@@ -24,10 +24,11 @@ It is not a workspace directory, execution environment, persisted artifact
 type, or security boundary.
 
 Chat identity and chat history are not sources of truth. They are not stored in
-`.validation/persistence/`, referenced by `state.json`, or required to resume a
-process. The agent reconstructs the required working context from current user
-instructions, the installed skill, repository evidence, and validated
-persistence artifacts.
+`.validation/persistence/`, referenced by `.validation/state.json`, or required
+to resume a process. The agent reconstructs the required working context from
+current user instructions, the installed skill, repository evidence, the
+latest deterministic integrity inspection, and validated persistence
+artifacts.
 
 ## 3. Recommended Organization
 
@@ -91,24 +92,33 @@ The agent then:
 
 1. loads the workspace-validator skill, the AI-Engineering process reference,
    and only the AI-Tool and knowledge references needed for that process;
-2. validates `.validation/policy.json` and loads the normative AI
+2. runs `workspace-validator integrity check`;
+3. when that inspection reports changes, inspects the deterministic diff and
+   records a bounded AI assessment linked to the exact inspection before using
+   existing analytical context, without repairing files or accepting a new
+   baseline;
+4. validates `.validation/policy.json` and loads the normative AI
    decision-policy contract;
-3. reads current validated context from `.validation/persistence/` when the
+5. reads current validated context from `.validation/persistence/` and the
+   AI-owned namespace of `.validation/state.json` when the
    invoked process is persistent;
-4. verifies linked repository, configuration, and exact report evidence,
+6. verifies linked repository, configuration, and exact report evidence,
    including the path and digest in local operational state;
-5. performs the invoked process;
-6. automatically saves the completed process result;
-7. applies `processContinuation` after Process 0 or after a passing verified
+7. performs the invoked process;
+8. saves the completed bounded redacted process result, subject to
+   `sensitiveDataPersistence` when protected content must remain;
+9. applies `processContinuation` after Process 0 or after a passing verified
    Process 2 result;
-8. classifies every other governed effect under all applicable decision
+10. classifies every other governed effect under all applicable decision
    categories and requests a free-text human decision exactly when the
    restrictive result is `human`.
 
-The human does not need to reproduce an earlier chat, manually copy its full
-history, or approve persistence writes. If required state is missing, stale, or
-inconsistent, the agent reports that condition and gathers only the evidence
-needed to continue safely.
+The human does not need to reproduce an earlier chat or manually copy its full
+history. If required state is missing, stale, or inconsistent, the agent
+reports that condition and gathers only the evidence needed to continue safely.
+Ordinary bounded redacted process-result persistence needs no additional
+prompt; report persistence and protected content follow their dedicated
+decision categories.
 
 When the current domain has replaced the domain referenced by the preceding
 sensorium, the agent treats the explicit `revalidation_required` state as a
@@ -123,6 +133,7 @@ The guide explains that the human:
 - invokes the desired AI-Engineering process and supplies its immediate
   objective;
 - owns and explicitly authorizes changes to `.validation/policy.json`;
+- explicitly initializes or accepts an integrity baseline when desired;
 - provides domain decisions that repository evidence cannot establish;
 - answers policy-required free-text decisions and may constrain or perform the
   proposed action manually;
@@ -143,6 +154,11 @@ agent:
   in;
 - does not require access to previous chat history;
 - uses persistence as the continuity mechanism between conversations;
+- begins every operation with the deterministic integrity check;
+- never repairs detected changes or accepts a new integrity baseline merely
+  because the check found them;
+- records a bounded assessment tied to the exact changed inspection before
+  relying on existing AI-Engineering context;
 - validates the decision policy and follows its category tables without
   process-specific reinterpretation;
 - validates current references before relying on them;
@@ -150,7 +166,9 @@ agent:
   operational state rather than searching the report directory;
 - rejects operational state whose domain, sensorium, or config references no
   longer match current setup state;
-- writes invoked process results without a separate persistence prompt;
+- writes bounded redacted process results without a separate persistence
+  prompt, while applying `sensitiveDataPersistence` to protected content that
+  remains;
 - treats a persisted result as context and applies `processContinuation` before
   either related next process;
 - preserves normal authorization boundaries outside persistence;
@@ -165,6 +183,8 @@ The public guide must:
 - present the unified context as fully supported;
 - distinguish conversational context from execution environment and consumer
   workspace;
+- explain that every AI operation checks workspace integrity first and that
+  baseline initialization or acceptance is always explicit;
 - show separate-context and unified-context diagrams;
 - explain that persistence, not chat history, provides continuity;
 - explain all three continuation states and that only `human` produces a
@@ -189,6 +209,10 @@ Documentation and forward trials verify that:
 - a fresh setup session can perform recalibration after a drift recommendation;
 - a fresh operational session resolves the exact stored report without human
   report selection;
+- each fresh or continued AI operation checks integrity before loading
+  analytical context;
+- a changed integrity inspection is assessed without implicit repair or
+  baseline acceptance;
 - domain replacement requires a fresh Process 1 result before Process 2 or
   Process 3;
 - no artifact or schema requires a chat or session identifier;

@@ -13,12 +13,17 @@ These processes run at onboarding, after a domain-relevant change, when the
 human directs the agent to reassess them, or after a drift assessment recommends
 recalibration. They do not run before every normal validation.
 
+Every invocation begins with `workspace-validator integrity check`. A changed
+inspection is assessed and recorded against its exact inspection digest before
+existing domain or sensorium context is used. Detection never authorizes repair
+or baseline acceptance.
+
 ## 2. Dependency
 
-Phase 4 provides safe automatic persistence, authorization boundaries, and
-AI-Engineering routing contracts. Phase 3 provides the AI-Tool operations that
-these processes compose. Phase 2 provides the source-backed validation model
-used to reason about evidence.
+Phase 4 provides safe process-result persistence, governed storage,
+authorization boundaries, and AI-Engineering routing contracts. Phase 3
+provides the AI-Tool operations that these processes compose. Phase 2 provides
+the source-backed validation model used to reason about evidence.
 
 ## 3. Process 0: Domain
 
@@ -30,6 +35,8 @@ The agent begins with:
 - repository manifests and lockfiles;
 - a bounded directory inventory;
 - the validated `.validation/policy.json` and its digest;
+- the latest validated `.validation/state.json` integrity inspection and any
+  AI observation linked to it;
 - the current `.validation/config.json`, when present;
 - build, packaging, persistence, deployment, and release documentation relevant
   to the product;
@@ -67,7 +74,8 @@ When the process completes:
 
 1. write the immutable domain artifact;
 2. validate its shape, references, bounds, and digest;
-3. atomically update `state.json` so the new domain becomes current and the
+3. atomically update the `aiEngineering` namespace of `state.json`, using its
+   preceding revision, so the new domain becomes current and the
    sensorium state becomes `missing` when no sensorium exists, or
    `revalidation_required` when a current sensorium is bound to the preceding
    domain;
@@ -78,20 +86,22 @@ When the process completes:
    for a free-text decision for `human`, or end without a continuation prompt
    for `stop`.
 
-No separate authorization is required to write the artifact or update the
-pointer. If the human corrects, constrains, or supplements the result, rerun the
-process with that input, write a new artifact, and update the pointer to the new
-validated result. Do not begin Process 1 merely because Process 0 completed or
-its state update succeeded: continuation must resolve to `auto` or receive an
-accepting human response, and every Process 1 precondition must hold. A
-declined, postponed, or `stop` handoff leaves Process 0 complete and allows
-Process 1 to be invoked later from any work context.
+No separate authorization is required to write a bounded redacted artifact or
+update its pointer. Protected content that remains necessary follows
+`sensitiveDataPersistence`. If the human corrects, constrains, or supplements
+the result, rerun the process with that input, write a new artifact, and update
+the pointer to the new validated result. Do not begin Process 1 merely because
+Process 0 completed or its state update succeeded: continuation must resolve to
+`auto` or receive an accepting human response, and every Process 1 precondition
+must hold. A declined, postponed, or `stop` handoff leaves Process 0 complete
+and allows Process 1 to be invoked later from any work context.
 
 Every replacement of the current domain reference invalidates the current
-sensorium, even when the preceding sensorium file remains available for audit.
-The transition and domain pointer update are one atomic state operation, so no
-observable state can pair a new domain with a sensorium validated for the
-preceding domain.
+sensorium and creates a bounded observation linked to the current integrity
+inspection, even when the preceding sensorium file remains available for audit.
+The transition and domain pointer update are one atomic revision-checked state
+operation, so no observable state can pair a new domain with a sensorium
+validated for the preceding domain.
 
 Any `operational-state.json` linked to the preceding domain or sensorium becomes
 stale by reference mismatch. It remains local audit context and cannot be
@@ -108,6 +118,8 @@ of commands consumed by the CLI.
 - current domain artifact;
 - validated AI decision policy and exact digest;
 - current sensorium lifecycle state and any revalidation marker;
+- latest integrity inspection and the exact linked AI assessment when that
+  inspection reports changes;
 - current config and its digest;
 - non-executing config inspection from `config validate`, `list --tree`, and
   `explain`;
@@ -170,10 +182,13 @@ When the sensorium identifies a coherent config change:
 10. evaluate the resolved first execution separately when its command,
     dependency, network, or other effects differ from the eligible or approved
     edit;
-11. after the effective configuration is validated, write a new sensorium
+11. after the effective configuration is validated, run `integrity check` again
+    so the exact post-change configuration and workspace state are recorded;
+12. assess and record that inspection without implicitly accepting its baseline;
+13. write a new sensorium
     artifact containing the exact current domain and config digests, then
-    atomically set the sensorium state to `current` and clear any revalidation
-    marker.
+    atomically set the sensorium state to `current`, link the assessment, and
+    clear any revalidation marker through a revision-checked state update.
 
 When a recommendation requires a human decision and is declined, constrained,
 postponed, or completed manually, record the decision and resulting gap. Do not
@@ -185,6 +200,7 @@ domain and effective config, whether the config remains unchanged, an approved
 or automatically eligible change is applied, or a proposed change is declined
 and retained as a gap. Only after that artifact validates may the process
 atomically set sensorium state to `current` and clear the revalidation marker.
+It never invokes `integrity accept` as an implicit consequence of this success.
 
 ## 6. Skill Behavior
 
@@ -244,7 +260,11 @@ Create representative fixtures for:
 - a proposed tool that is unavailable or unapproved;
 - policies exercising every decision level relevant to configuration,
   dependencies, commands, network access, and workspace mutation;
-- a replaced domain with an otherwise valid preceding sensorium.
+- a replaced domain with an otherwise valid preceding sensorium;
+- a changed integrity inspection that affects the config, domain evidence, or
+  neither analytical context;
+- a Process 1 config edit whose post-change inspection remains unaccepted as a
+  new hash baseline.
 
 Verify that the agent:
 
@@ -260,6 +280,8 @@ Verify that the agent:
 - implements `auto`, `human`, and `stop` continuation without bypassing Process
   1 preconditions;
 - can resume from current state in a fresh session;
+- always checks integrity first, links its assessment to the exact inspection,
+  and never repairs or accepts changed files implicitly;
 - cannot enter the operational flow after a domain replacement until Process 1
   binds a new sensorium to that domain.
 
@@ -276,6 +298,10 @@ Verify that the agent:
 - [ ] Process 0 applies `processContinuation` only after persistence and valid
       Process 1 preconditions.
 - [ ] The current sensorium references the exact config digest it analyzed.
+- [ ] Every changed integrity inspection is assessed before existing analytical
+      context is used.
+- [ ] A changed validated dependency marks the affected context for
+      revalidation through the general observation mechanism.
 - [ ] Replacing the current domain atomically marks any preceding sensorium as
       requiring Process 1 revalidation.
 - [ ] Process 1 clears the revalidation marker only after persisting a sensorium

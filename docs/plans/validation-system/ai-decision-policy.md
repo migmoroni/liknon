@@ -75,7 +75,9 @@ The initial contract is:
     "externalStateMutation": 4,
     "versionControlMutation": 4,
     "dataMutation": 4,
-    "sensitiveDataAccess": 4
+    "sensitiveDataAccess": 4,
+    "validationReportPersistence": 4,
+    "sensitiveDataPersistence": 4
   }
 }
 ```
@@ -94,7 +96,8 @@ the most human-controlled decision levels and `human` continuation.
 
 An existing malformed, unsupported, path-escaping, or internally inconsistent
 policy stops the AI-Engineering process before any governed effect. The agent
-problem and does not silently replace the document or apply defaults.
+reports the problem and does not silently replace the document or apply
+defaults.
 
 The policy cannot authorize its own modification. Any change to
 `.validation/policy.json`, including lowering or raising a level, requires an
@@ -123,6 +126,18 @@ failed, blocked, interrupted, stale, or incomplete process never continues
 automatically. `auto` does not bypass sensorium lifecycle, report, digest,
 configuration, or process-specific preconditions. `stop` does not prevent the
 human from invoking the next process explicitly later.
+
+The policy uses three distinct concepts:
+
+- **continuation mode** is the direct `processContinuation` value and governs
+  only the two relationships above;
+- **decision level** is the configured integer from `0` through `4` for one
+  decision category;
+- **decision outcome** is the computed `auto`, `human`, or `stop` result for one
+  concrete governed effect.
+
+Continuation mode is not derived from decision levels, and decision outcomes do
+not create additional process-continuation relationships.
 
 ## 6. Decision Evaluation Model
 
@@ -177,6 +192,18 @@ sensitive values are redacted from previews and decision records.
 
 The numeric scale applies independently to each decision category:
 
+```text
+4 > 3 > 2 > 1 > 0
+```
+
+This is the mandatory restrictiveness order for decision levels: `4` retains
+the most granular human control and `0` grants the most automation to eligible
+effects. A lower number must never require more human authority than a higher
+number for the same category and effect. Different categories still evaluate
+independently to decision outcomes, which are combined as
+`stop > human > auto`; numeric levels from different categories are not merged
+into one synthetic level.
+
 | Level | Name | General orientation |
 | ---: | --- | --- |
 | `4` | `strict` | Granular human control over nearly every governed effect in the category |
@@ -194,7 +221,7 @@ JSON contract stores the integer values only.
 
 This category covers creating, editing, moving, renaming, or deleting files and
 directories in the consumer workspace. Declared process artifacts and exact
-report capture use their separate automatic-output contract. Mutation of
+report capture use their dedicated persistence contracts. Mutation of
 `policy.json` follows the fixed rule in Section 4.
 
 | Level | Required behavior |
@@ -315,9 +342,54 @@ category unless the resource is classified as sensitive.
 | `3` | Obtain one approval for a bounded session covering one data class, source, purpose, and recipient set. |
 | `2` | Access internal non-secret material needed by the approved scope automatically; request approval for personal, confidential, production, credential, secret, or private-key access. |
 | `1` | Access explicitly scoped confidential and personal data automatically; request approval for credentials, tokens, private keys, unredacted production data, or transfer to another trust boundary. |
-| `0` | Access every explicitly eligible sensitive resource automatically while preserving minimization, redaction, non-disclosure, and non-persistence requirements. |
+| `0` | Access every explicitly eligible sensitive resource automatically while preserving minimization, redaction, and non-disclosure requirements; any persistent write is evaluated separately under `sensitiveDataPersistence`. |
 
-### 7.10 Required Classification Examples
+### 7.10 `validationReportPersistence`
+
+This category covers creating, retaining, replacing, exporting, or removing a
+canonical validation report. It applies regardless of report outcome or data
+sensitivity. Persistence outside the configured local report store also matches
+every applicable workspace, network, external-state, and data-mutation
+category.
+
+| Level | Required behavior |
+| ---: | --- |
+| `4` | Obtain a human decision before persisting each report, identifying the selection, exact destination, retention rule, and known data classes. |
+| `3` | Present one bounded report-storage plan for a validation session, including selections, destination, retention, and cleanup, and obtain approval before storing any report in that set. |
+| `2` | Persist reports automatically in the configured local private report store with bounded retention; request approval for another destination, extended or indefinite retention, export, or sharing. |
+| `1` | Persist reports automatically in configured local or explicitly trusted private stores; request approval for a new trust boundary, public exposure, indefinite retention, or destructive lifecycle change. |
+| `0` | Perform every eligible report-persistence action automatically at explicitly configured destinations and record the exact path, digest, retention rule, and lifecycle outcome. |
+
+This category does not inspect report meaning to decide whether a `Pass`,
+`Fail`, `Blocked`, or other status deserves persistence. Status never grants
+authority. When report content is sensitive, `sensitiveDataPersistence` also
+applies.
+
+### 7.11 `sensitiveDataPersistence`
+
+This category covers writing confidential source material, personal data,
+production data, secrets, credentials, tokens, private keys, or similarly
+protected values to any persistent medium. It applies to reports, AI artifacts,
+state observations, logs, snapshots, local files, databases, and external
+stores. Reading the same material is evaluated separately under
+`sensitiveDataAccess`.
+
+| Level | Required behavior |
+| ---: | --- |
+| `4` | Obtain a human decision for every persistence action, identifying the exact data class, values or bounded fields, destination, protection, purpose, and retention. |
+| `3` | Present one bounded persistence plan for one data class, purpose, destination, protection, and retention period, and obtain approval before writing any part of it. |
+| `2` | Persist internal non-secret sensitive material automatically only in a configured local private store with bounded retention; request approval for personal, confidential, production, credential, secret, private-key, remote, or cross-boundary persistence. |
+| `1` | Persist explicitly scoped confidential, personal, and production data automatically in configured private stores; request approval for credentials, tokens, private keys, other authentication secrets, a new trust boundary, or indefinite retention. |
+| `0` | Persist every explicitly eligible sensitive data class automatically only to explicitly configured eligible destinations while preserving minimization, access control, non-disclosure, retention, and auditable linkage. |
+
+This category governs authority, not storage security. An `auto` outcome never
+makes an unsuitable destination safe, bypasses path containment or access
+controls, or authorizes disclosure. Exact bytes may be persisted only when all
+applicable categories permit the action; otherwise the bytes remain
+non-persistent and the operation records only a bounded redacted decision
+result.
+
+### 7.12 Required Classification Examples
 
 The normative public document includes at least these overlap examples:
 
@@ -333,6 +405,13 @@ The normative public document includes at least these overlap examples:
   `versionControlMutation`, `networkAccess`, and `externalStateMutation`;
 - calling an authenticated API with protected data matches `networkAccess`,
   `externalStateMutation`, and `sensitiveDataAccess`;
+- storing a non-sensitive canonical validation report in the configured local
+  report store matches `validationReportPersistence`;
+- storing a canonical report containing protected values matches
+  `validationReportPersistence` and `sensitiveDataPersistence`, in addition to
+  any categories required by its destination;
+- persisting a sensitive AI observation matches `sensitiveDataPersistence`,
+  while reading its source also matches `sensitiveDataAccess`;
 - fixing an adjacent failure discovered during Process 2 additionally matches
   `scopeExpansion` when it was outside the approved incident scope.
 
@@ -350,7 +429,8 @@ The decision policy adjusts human involvement. It does not:
   `0`;
 - bypass process preconditions, state validation, report validation, or
   repository-integrity checks;
-- permit the agent to expose or persist secrets;
+- permit the agent to expose sensitive values or persist them without the
+  applicable decision outcomes, destination protections, and retention rules;
 - convert uncertainty about a human-owned product decision into automatic
   authority;
 - authorize the agent to modify `policy.json` itself.
@@ -365,8 +445,11 @@ The canonical public document must contain:
 
 - the exact policy shape and defaults;
 - the distinction between validation and AI decision policy;
-- the three continuation states;
-- all nine categories and all five levels for each category;
+- continuation mode, decision level, and decision outcome as separate concepts;
+- the three continuation modes;
+- all eleven categories and all five levels for each category;
+- the level restrictiveness order `4 > 3 > 2 > 1 > 0` and the outcome
+  restrictiveness order `stop > human > auto`;
 - action classification and restrictive combination rules;
 - explicit-request, free-text approval, audit, redaction, and policy-change
   behavior;
@@ -389,6 +472,7 @@ Schema, decision-table, and forward-agent fixtures cover:
 - all `processContinuation` states for both valid transitions;
 - prevention of continuation after failed or incomplete prerequisites;
 - every level of every category at its boundary examples;
+- monotonic category behavior under `4 > 3 > 2 > 1 > 0`;
 - actions matching two or more categories, with the most restrictive result
   winning;
 - exact initiating authority, partial approval, rejection, postponement, and
@@ -396,6 +480,10 @@ Schema, decision-table, and forward-agent fixtures cover:
 - mandatory human authority for policy mutation;
 - policy change during a resumable process and authorization re-evaluation;
 - redacted action previews and decision records;
+- non-sensitive, sensitive, approved, declined, and stopped canonical-report
+  persistence;
+- sensitive persistence in reports, AI artifacts, state observations, and
+  external destinations;
 - a level-0 policy that still obeys absolute boundaries;
 - a level-4 policy that does not request duplicate approval for an exact action
   already authorized by the current human instruction.
@@ -407,6 +495,8 @@ workspace evidence. They do not disclose the expected classification.
 
 - [ ] `processContinuation` is ternary and never interpreted as a numeric
       decision level.
+- [ ] `processContinuation` applies only to `0 -> 1` and `2 -> 3`.
+- [ ] Decision levels follow `4 > 3 > 2 > 1 > 0` within every category.
 - [ ] Every category-level combination has one documented normative meaning.
 - [ ] The same action and policy produce the same required decision regardless
       of process or chat context.

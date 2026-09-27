@@ -5,7 +5,8 @@
 Close the Human Flow as a complete product surface before adding AI operation.
 A user must be able to author or review one configuration,
 inspect its execution graph, run any supported selection, understand every
-outcome, and preserve repository integrity without relying on AI persistence.
+outcome, and verify workspace integrity against an explicit hash baseline
+without relying on AI persistence.
 
 ## 2. Entry Conditions
 
@@ -25,6 +26,7 @@ The supported workflow is:
 ```text
 author config
   -> validate config
+  -> initialize or verify the integrity baseline
   -> inspect graph and resolved commands
   -> execute selection
   -> interpret report and exit code
@@ -37,6 +39,10 @@ The default path uses:
 
 ```sh
 workspace-validator config validate
+workspace-validator integrity init
+workspace-validator integrity check
+workspace-validator integrity diff
+workspace-validator integrity accept
 workspace-validator list --tree
 workspace-validator explain group <group-id>
 workspace-validator explain suite <suite-id>
@@ -74,7 +80,39 @@ requiring color and supports the declared color and presentation profiles.
 - Add golden or structural tests that keep inspection output aligned with the
   configuration contract.
 
-### 4.3 Execution Closure
+### 4.3 Workspace Integrity State
+
+- Add `.validation/state.json` as the versioned shared workspace-state contract
+  used by deterministic integrity commands, humans, and both AI flows.
+- Keep the tool-owned `integrity` namespace separate from the optional
+  AI-owned `aiEngineering` namespace. Integrity commands validate and preserve
+  the AI namespace but never interpret it as executable input.
+- Resolve the integrity scope deterministically from the validated
+  configuration, including explicit path inclusion, exclusion, workspace-root,
+  symlink, file-size, and file-count rules.
+- Always exclude `.validation/state.json` itself from its hash baseline. Dynamic
+  report, persistence, cache, and build paths are excluded unless the validated
+  integrity scope explicitly includes them.
+- Hash raw file bytes with SHA-256, normalize contained relative paths, sort
+  entries deterministically, and record the resolved scope and aggregate
+  baseline digest.
+- Define `integrity init` as explicit creation of the first baseline,
+  `integrity check` as comparison without baseline promotion, `integrity diff`
+  as structured inspection of recorded changes, and `integrity accept` as the
+  only command that promotes the inspected state to the new baseline.
+- Let `integrity check` atomically record its last inspection, including added,
+  modified, removed, and hash-equivalent renamed paths, while leaving source
+  files and baseline hashes unchanged.
+- Protect state updates with a lock or compare-and-swap revision so concurrent
+  human or agent sessions cannot silently overwrite a newer state.
+- Produce human and versioned JSON output for every integrity command. Missing,
+  invalid, conflicting, or uninitialized state remains distinct from a clean or
+  changed state.
+- Document that hashes verify equality against the recorded baseline; they do
+  not authenticate origin when an actor can modify both workspace files and the
+  baseline.
+
+### 4.4 Execution Closure
 
 - Verify tool preflight, version parsing, and version requirements produce
   distinct observable failures.
@@ -87,7 +125,7 @@ requiring color and supports the declared color and presentation profiles.
 - Ensure the executor never installs tools, invokes an implicit shell, or
   repairs a workspace.
 
-### 4.4 Report And Exit-Code Closure
+### 4.5 Report And Exit-Code Closure
 
 - Treat the versioned JSON report as the canonical execution record.
 - Verify reports include selection, tools, groups, suites, checks, commands,
@@ -104,7 +142,7 @@ requiring color and supports the declared color and presentation profiles.
 - Document that a pass means all counted evidence in the selected graph passed;
   it is not a certification of complete product correctness.
 
-### 4.5 Human Documentation
+### 4.6 Human Documentation
 
 - Add `docs/validation/flows/human/README.md` as the focused Human Flow document
   covering configuration, inspection, execution, result interpretation, and
@@ -137,7 +175,13 @@ Add or complete tests for:
 - repository mutation introduction, removal, and modification;
 - plain, colored, high-contrast, color-vision, and low-vision output;
 - cross-platform process-tree termination;
-- source package contents and generated schemas.
+- source package contents and generated schemas;
+- integrity initialization, clean checks, added, modified, removed, and renamed
+  paths, explicit baseline acceptance, and uninitialized state;
+- deterministic integrity output across supported hosts;
+- state path traversal, symlink escape, oversized scope, malformed state,
+  interrupted writes, revision conflicts, and concurrent updates;
+- preservation of the AI-owned state namespace without interpreting it.
 
 Run the ignored outcome fixtures whenever execution-state or reporting behavior
 is touched.
@@ -146,6 +190,7 @@ is touched.
 
 - closed runtime and CLI contracts;
 - aligned checked-in JSON Schemas;
+- versioned workspace-state schema and integrity commands;
 - human workflow documentation;
 - representative configuration examples;
 - complete deterministic outcome fixtures.
@@ -153,6 +198,11 @@ is touched.
 ## 7. Acceptance Criteria
 
 - [ ] A new user can configure and run the validator from documentation alone.
+- [ ] A human can initialize, inspect, compare, and explicitly accept workspace
+      integrity without an AI agent.
+- [ ] `integrity check` never modifies workspace source or promotes its observed
+      hashes to the baseline.
+- [ ] Concurrent state updates fail explicitly instead of losing a newer write.
 - [ ] Inspection exposes the planned operation without starting processes.
 - [ ] Human and JSON outputs agree for every result class.
 - [ ] JSON output can be captured byte-for-byte, validated against the report
@@ -160,6 +210,8 @@ is touched.
 - [ ] Every nonzero exit code has one documented, tested meaning.
 - [ ] The validator does not read `.validation/policy.json`,
       `.validation/reports/`, or `.validation/persistence/` as execution input.
+- [ ] The execution planner never treats `.validation/state.json` as a command
+      source; only integrity commands interpret its tool-owned integrity data.
 - [ ] No human command requires an AI agent or skill.
 - [ ] Existing trusted configuration can be run without hidden installation or
       mutation.

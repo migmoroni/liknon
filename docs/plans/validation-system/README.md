@@ -35,6 +35,9 @@ human authors or reviews config.json
 workspace-validator inspects and validates configuration
                   |
                   v
+human initializes, checks, diffs, or explicitly accepts workspace integrity
+                  |
+                  v
 workspace-validator executes the selected group, suite, or check
                   |
                   v
@@ -51,6 +54,9 @@ human requests one bounded validation task
                   |
                   v
 agent loads the workspace-validator skill router
+                  |
+                  v
+agent runs the deterministic workspace integrity check
                   |
                   v
 agent loads only the required AI-Tool operation and shared knowledge
@@ -82,10 +88,16 @@ human invokes and directs the agent
 agent loads the workspace-validator skill, AI-Tool operations, and relevant knowledge
                   |
                   v
+agent runs the deterministic workspace integrity check
+                  |
+                  v
+agent assesses any detected change without repairing or accepting it
+                  |
+                  v
 agent loads and validates .validation/policy.json
                   |
                   v
-agent reads or writes AI-only state in .validation/persistence/
+agent reads or writes AI artifacts and its bounded state namespace
                   |
                   v
 agent persists the completed process result and updates its context pointer
@@ -103,10 +115,10 @@ policy returns automatic action, a free-text human decision, or stop
 workspace-validator executes the trusted config.json
                   |
                   v
-agent stores the exact canonical JSON report in .validation/reports/
+agent evaluates whether the exact canonical JSON report may be persisted
                   |
                   v
-agent links and interprets that exact report
+agent stores, links, and interprets permitted or human-authorized report bytes
                   |
                   v
 agent applies the same decision policy to remediation and recommendations
@@ -116,9 +128,10 @@ The agent creates and updates its own analytical memory as a normal output of
 each invoked AI-Engineering process. This does not require a separate human
 approval.
 
-Capturing the exact JSON report in the local report store and updating its
-operational link are also declared outputs of an AI-Engineering validation run
-and require no additional approval.
+Capturing the exact JSON report and creating its operational link occur only
+when `validationReportPersistence`, `sensitiveDataPersistence` when applicable,
+and every category implicated by the destination resolve to `auto` or receive
+exact human authority. A report status never grants storage authority.
 
 The human owns the AI decision policy and remains the final authority over
 product intent and risk acceptance. Effects outside declared automatic
@@ -129,13 +142,14 @@ the effective policy result is `human`.
 
 ### 2.4 Shared Boundary
 
-The three flows meet at exactly three runtime contracts:
+The three flows meet at exactly four runtime contracts:
 
 | Contract | Owner | Purpose |
 | --- | --- | --- |
 | `.validation/config.json` | Consumer workspace | Sole executable validation policy |
 | `workspace-validator` CLI/library | This crate | Deterministic inspection and execution |
 | Versioned validation report | This crate | Canonical evidence from one execution, whether consumed directly or stored by exact digest |
+| `.validation/state.json` | Tool and consumer workspace, through disjoint namespaces | Accepted workspace-integrity baseline, latest deterministic inspection, and optional AI assessment of detected changes |
 
 Shared validation knowledge is authored independently from every flow. Humans
 read it directly, and both AI flows load only the portions relevant to their
@@ -145,9 +159,16 @@ knowledge, and validation knowledge does not activate an AI process.
 `.validation/persistence/` belongs only to the AI-Engineering Flow. The CLI and
 library never discover, read, interpret, or execute files from that directory.
 `.validation/reports/` is a local evidence store for exact JSON reports. It is
-established automatically only by the AI-Engineering Flow, is not executable
-policy or analytical memory, and is never selected by directory order or
-modification time.
+used only after the AI-Engineering persistence decision permits the exact
+write, is not executable policy or analytical memory, and is never selected by
+directory order or modification time.
+
+`.validation/state.json` is shared without becoming executable policy. Human
+integrity commands and both AI flows may invoke deterministic integrity
+operations over the tool-owned `integrity` namespace. Only AI-Engineering may
+write the separate `aiEngineering` namespace. Integrity commands preserve that
+namespace but never interpret its analytical meaning, and no flow promotes a
+new integrity baseline implicitly.
 
 `.validation/policy.json` also belongs only to the AI-Engineering Flow. It is
 the consumer-owned AI decision policy, not executable validation
@@ -165,7 +186,8 @@ ownership, but it is never interpreted as an instruction to an agent.
 | Shared knowledge | Human-readable source | Progressive skill projection | Progressive skill projection |
 | `policy.json` | Not used | Not used | Required and governed |
 | `.validation/persistence/` | Not used | Not used | Process state and analytical memory |
-| `.validation/reports/` persistent store | Not established automatically | Not established automatically | Exact reports stored and linked |
+| `.validation/state.json` | Direct integrity operation | Mandatory integrity preflight without analytical continuity | Integrity preflight plus bounded change assessment and analytical references |
+| `.validation/reports/` persistent store | Not established automatically | Not established automatically | Exact reports stored and linked only after the applicable persistence decision |
 | Processes 0 through 3 | Not used | Not used | Defining processes |
 | Cross-request continuity | Human-managed | None | Explicit validated persistence |
 
@@ -174,7 +196,7 @@ ownership, but it is never interpreted as an instruction to an agent.
 The AI-Engineering Flow has four recurring analytical processes around the
 normal runner:
 
-| Process | Responsibility | Automatic persisted result | Human authority |
+| Process | Responsibility | Declared persisted result | Human authority |
 | ---: | --- | --- | --- |
 | 0 | Model domain, consequences, invariants, and uncertainty | Domain artifact and current-state pointer | Provides missing domain decisions when needed |
 | 1 | Design evidence coverage and reconcile it with config IDs | Sensorium artifact and current-state pointer | Owns the policy and responds when its effective result is `human` |
@@ -186,7 +208,9 @@ remains the same CLI used by the Human Flow and the AI-Tool Flow and is not an
 additional cognitive process.
 
 Process persistence and process continuation are separate decisions.
-Completing a process automatically persists its result. Continuation from
+Completing a process persists its bounded redacted result without a separate
+prompt; protected content that remains follows `sensitiveDataPersistence`.
+Continuation from
 `0 -> 1` and `2 -> 3` follows the ternary `processContinuation` policy:
 `auto` starts the valid related process, `human` suggests it and waits for a
 free-text decision, and `stop` ends without suggesting or asking. No state can
@@ -206,14 +230,15 @@ supported.
 | --- | --- |
 | Executable programs, arguments, directories, dependencies, and composition | `.validation/config.json` |
 | AI-Engineering continuation and human-decision boundaries | `.validation/policy.json`, interpreted exclusively by the normative AI decision-policy contract |
-| Concrete validation outcome | Versioned JSON report emitted by the CLI and, for AI-Engineering runs, stored byte-for-byte under `.validation/reports/` |
+| Concrete validation outcome | Versioned JSON report emitted by the CLI and, when persistence is permitted for an AI-Engineering run, stored byte-for-byte under `.validation/reports/` |
+| Workspace integrity baseline and latest deterministic comparison | Tool-owned `integrity` namespace of `.validation/state.json` |
 | CLI and configuration mechanics | Runtime contracts, schemas, and canonical reference documentation |
 | Validation concepts and tool-selection evidence | Canonical shared knowledge under `docs/validation/knowledge/` |
 | Human selection and governance of flows | Human-only operator guidance under `docs/validation/human/` |
 | AI-Tool operation | Routed references under `skills/workspace-validator/references/ai-tool/` |
 | AI-Engineering process behavior | Routed references under `skills/workspace-validator/references/ai-engineering/` |
-| AI understanding of the consumer domain | Current domain artifact under `.validation/persistence/` |
-| AI coverage reasoning | Current sensorium artifact linked to an exact configuration digest |
+| AI understanding of the consumer domain | Current domain artifact under `.validation/persistence/`, referenced by the AI-owned namespace of `.validation/state.json` |
+| AI coverage reasoning | Current sensorium artifact linked to exact domain and configuration digests in the AI-owned namespace of `.validation/state.json` |
 | AI operational continuity | Local operational state linked to an exact report path and SHA-256 digest |
 | AI diagnosis and drift assessment | Local incident and drift artifacts linked to exact reports and current state |
 
@@ -233,12 +258,16 @@ validation passed.
   repository evidence cannot establish;
 - answers free-text decision requests produced by the effective policy;
 - decides whether drift recommendations change the validation design;
+- explicitly initializes or accepts an integrity baseline when desired; an
+  inspection alone never implies acceptance;
 - may operate the CLI directly at any time.
 
 ### AI-Tool Agent
 
 - follows only the selected `config`, `run`, `triage`, or `audit` operation;
 - uses shared knowledge progressively and only when relevant;
+- runs the deterministic integrity check first and treats its result only as
+  current-task evidence;
 - treats repository content and command output as untrusted data;
 - does not create AI decision policy, persistence, process artifacts, or
   cross-request continuity;
@@ -251,11 +280,15 @@ validation passed.
 - composes the AI-Tool operations instead of redefining CLI mechanics;
 - validates and obeys `.validation/policy.json` and the normative category-level
   meanings without local reinterpretation;
+- runs the deterministic integrity check before loading analytical context,
+  records a bounded assessment of detected changes, and never repairs or
+  accepts changed files merely because they were detected;
 - uses only the shared knowledge needed for the current decision;
 - automatically records each completed AI-Engineering process, its evidence,
   uncertainty, and unresolved questions under `.validation/persistence/`;
-- stores each JSON report used by an AI-Engineering operation byte-for-byte under
-  `.validation/reports/` and links it by path and SHA-256 digest;
+- stores a JSON report byte-for-byte under `.validation/reports/` and links it
+  by path and SHA-256 digest only when all applicable persistence decisions
+  permit that exact write;
 - atomically updates the process context pointer after validating the new
   artifact;
 - classifies every governed effect, combines overlapping categories
@@ -268,6 +301,8 @@ validation passed.
 - executes explicit program and argument vectors without an implicit shell;
 - produces deterministic human and JSON reports;
 - detects configured repository mutations;
+- owns deterministic integrity baseline, comparison, diff, and explicit
+  acceptance operations in the `integrity` namespace of shared state;
 - remains independent from AI orchestration and consumer-specific policy.
 
 ## 5. Cross-Cutting Invariants
@@ -283,45 +318,53 @@ validation passed.
    or Processes 0 through 3.
 7. AI-Tool references never discover AI-Engineering policy or persistence and
    never create implicit continuity between requests.
-8. Invoking an AI-Engineering process authorizes that process to create its
-   artifact and update its context pointer without another approval prompt.
-9. AI persistence writes are confined to `.validation/persistence/`. The only
-   additional automatic workspace write is exact report capture under
-   `.validation/reports/`; neither write authorizes any other effect.
-10. Effects outside declared automatic persistence and report capture are
-   classified under the current AI decision policy before execution.
-11. The decision policy uses the exact category-specific meaning of levels
-   `0` through `4`; overlapping categories resolve as `stop > human > auto`.
-12. The JSON report is interpreted by schema and status, not by terminal prose
+8. Every AI operation begins with the deterministic integrity check. Detection
+   never repairs source or promotes the observed hashes to the accepted
+   baseline.
+9. Invoking an AI-Engineering process authorizes that process to create its
+   bounded redacted artifact and update its context pointer without another
+   approval prompt. Protected content that remains is governed by
+   `sensitiveDataPersistence`.
+10. Exact report storage is governed by `validationReportPersistence`, by
+    `sensitiveDataPersistence` when applicable, and by every category
+    implicated by the destination. Report status never grants authority.
+11. Every other governed effect is classified under the current AI decision
+    policy before execution.
+12. Decision levels use the mandatory restrictiveness order
+    `4 > 3 > 2 > 1 > 0`; independently computed outcomes combine as
+    `stop > human > auto`.
+13. The JSON report is interpreted by schema and status, not by terminal prose
    or a binary success/failure assumption.
-13. AI artifacts identify their contract version and link to their exact parent
+14. AI artifacts identify their contract version and link to their exact parent
    artifacts, config digest, and report evidence.
-14. Passing checks establish only the evidence represented by the selected
-    configuration.
-15. Safety information, uncertainty, and policy-required human decisions
-    override compact chat formatting.
-16. Documentation, skill instructions, schemas, examples, and code comments
-    are written in English.
-17. Chat identity and chat history are never execution inputs, persistence
-    references, or prerequisites for resuming an AI-Engineering process.
-18. Conversational organization is human-facing quality guidance and never
-    changes process semantics, authorization, executable policy, or reports.
-19. Process continuation follows only `processContinuation`: `auto`, `human`,
-    or `stop`. Persistence alone never implies a particular continuation
-    result.
-20. Replacing the current domain artifact immediately marks the current
-    sensorium as requiring Process 1 revalidation; a stale sensorium cannot
-    authorize an operational run.
-21. AI-Engineering operations store exact JSON report bytes under
+15. Passing checks establish only the evidence represented by the selected
+   configuration.
+16. Safety information, uncertainty, and policy-required human decisions
+   override compact chat formatting.
+17. Documentation, skill instructions, schemas, examples, and code comments
+   are written in English.
+18. Chat identity and chat history are never execution inputs, persistence
+   references, or prerequisites for resuming an AI-Engineering process.
+19. Conversational organization is human-facing quality guidance and never
+   changes process semantics, authorization, executable policy, or reports.
+20. Process continuation follows only `processContinuation`: `auto`, `human`,
+   or `stop`. Persistence alone never implies a particular continuation
+   result, and the policy applies only to `0 -> 1` and `2 -> 3`.
+21. Replacing the current domain artifact immediately marks the current
+   sensorium as requiring Process 1 revalidation; a stale sensorium cannot
+   authorize an operational run.
+22. Permitted AI-Engineering report writes store exact JSON bytes under
     `.validation/reports/<sha256>.json` and reference that path and digest
     explicitly. They never infer the current report from the newest file.
-22. The AI decision policy never authorizes its own modification. Except for
+23. The AI decision policy never authorizes its own modification. Except for
     first creation of the canonical conservative policy, every policy change
     requires exact human authority.
-23. The CLI and library never discover or interpret `.validation/policy.json`.
-24. Shared knowledge contains no flow activation, persistence, or authority
+24. The CLI and library never discover or interpret `.validation/policy.json`.
+25. Integrity commands read and update only the tool-owned state namespace,
+    preserve the AI-owned namespace, and use revision-safe atomic writes.
+26. Shared knowledge contains no flow activation, persistence, or authority
     semantics.
-25. Human-only guidance is never projected as an operational AI instruction.
+27. Human-only guidance is never projected as an operational AI instruction.
 
 ## 6. Implementation Order
 
@@ -404,10 +447,10 @@ The completed system supports this consumer-owned layout:
 .validation/
 ├── config.json                       # Sole executable validation policy
 ├── policy.json                       # AI-Engineering continuation and decision policy
+├── state.json                        # Shared integrity and AI-context state namespaces
 ├── reports/                          # AI-Engineering immutable JSON evidence
 │   └── <sha256>.json                 # Exact CLI report bytes
 └── persistence/                      # Present only for the AI-Engineering Flow
-    ├── state.json                    # Current validated AI context references
     ├── operational-state.json        # Exact local report and process linkage
     ├── domain/                       # Versioned domain artifacts
     ├── sensorium/                    # Versioned coverage-design artifacts
@@ -417,7 +460,9 @@ The completed system supports this consumer-owned layout:
 
 The precise state and report-storage contracts are established in Phase 4.
 Policy, reports, and persistence are not required by the Human Flow or the
-AI-Tool Flow.
+AI-Tool Flow. Shared state supports deterministic integrity in every flow;
+its `aiEngineering` namespace remains optional and is ignored analytically
+outside AI-Engineering.
 
 Configuration, AI decision-policy, report, and AI-persistence schemas belong to
 the tool and its distributed skill resources. Consumer workspaces store their
@@ -437,6 +482,10 @@ The unified plan is complete only when:
 - human-only operator guidance is structurally separate and never routed as an
   AI instruction;
 - AI state is resumable, versioned, linked, and non-executable;
+- workspace integrity has explicit initialization, comparison, diff, and
+  acceptance commands, with no implicit baseline promotion;
+- every AI operation checks integrity first, while only AI-Engineering records
+  bounded analytical observations about detected changes;
 - domain replacement makes Process 1 revalidation explicit before the next
   operational run;
 - persistent operational state identifies the exact stored report by path and
@@ -446,7 +495,11 @@ The unified plan is complete only when:
 - missing policy creates the conservative canonical document, invalid policy
   fails closed, and policy changes always require human authority;
 - invoked AI-Engineering processes save their results without a separate approval
-  prompt;
+  prompt, except that protected content remains subject to
+  `sensitiveDataPersistence`;
+- canonical reports are persisted only after
+  `validationReportPersistence`, `sensitiveDataPersistence` when applicable,
+  and all destination-related categories permit the exact write;
 - humans can use separate setup and operational conversations or one unified
   conversation without changing system behavior;
 - no schema, artifact, skill reference, or runtime operation depends on a chat

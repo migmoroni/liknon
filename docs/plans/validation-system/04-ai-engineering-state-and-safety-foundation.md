@@ -4,12 +4,15 @@
 
 Define the AI-Engineering Flow as a safe, resumable orchestration layer that
 composes the completed Human Flow and AI-Tool Flow. Establish persistence
-contracts, trust boundaries, automatic process-result recording, authorization
+contracts, trust boundaries, declared process-result recording, authorization
 boundaries for external effects, the consumer-owned AI decision policy,
 artifact linkage, and skill routing before implementing domain analysis or
 remediation behavior.
 
-The runtime remains unaware of this layer.
+The validation execution planner remains unaware of this layer. The runtime
+integrity subsystem reads and updates only the tool-owned namespace of the
+shared workspace state established in Phase 1; it never interprets AI
+observations, artifacts, policy, or process semantics.
 
 ## 2. Dependency
 
@@ -26,10 +29,10 @@ Use this consumer-owned structure:
 .validation/
 ├── config.json
 ├── policy.json
+├── state.json
 ├── reports/
 │   └── <sha256>.json
 └── persistence/
-    ├── state.json
     ├── operational-state.json
     ├── domain/
     │   └── <artifact-id>.json
@@ -41,12 +44,18 @@ Use this consumer-owned structure:
         └── <artifact-id>.json
 ```
 
-`state.json` contains the current validated setup context and the explicit
-sensorium lifecycle state. `operational-state.json` contains only local
-continuity for the current Process 2 and Process 3 cycle, including exact
-report, artifact, and AI decision-policy references. An AI-Engineering process
-creates its artifact and updates the corresponding state automatically when
-that process completes successfully.
+`state.json` is the shared workspace-state contract. Its tool-owned `integrity`
+namespace contains the accepted hash baseline and latest deterministic
+inspection. Its AI-owned `aiEngineering` namespace contains current validated
+setup references, sensorium lifecycle state, and bounded observations about
+integrity changes. `operational-state.json` contains only local continuity for
+the current Process 2 and Process 3 cycle, including exact report, artifact,
+and AI decision-policy references.
+
+An AI-Engineering process creates its ordinary bounded, redacted artifact and
+updates the AI-owned state namespace as a declared process result. If content
+that remains in a process artifact or state observation is sensitive, the write
+also requires the decision produced by `sensitiveDataPersistence`.
 
 Incident, drift, and report records are selected by explicit linkage, never by
 scanning for the lexically newest filename.
@@ -54,54 +63,79 @@ scanning for the lexically newest filename.
 For every AI-Engineering execution that produces a complete versioned JSON
 report, the agent:
 
-1. captures the exact report bytes emitted on standard output;
+1. captures the exact report bytes emitted on standard output in bounded
+   non-persistent memory or a protected temporary file;
 2. validates the document against the bundled report contract;
 3. calculates SHA-256 over those exact bytes;
 4. verifies that the report root and temporary path remain inside the workspace
    without symlink escape;
-5. writes the document atomically to
+5. classifies report persistence under `validationReportPersistence` and, when
+   the report contains protected values, `sensitiveDataPersistence`, together
+   with every category required by the destination;
+6. writes the document atomically to
    `.validation/reports/<sha256>.json`;
-6. verifies an existing file with that name is byte-identical before reusing
+7. verifies an existing file with that name is byte-identical before reusing
    it;
-7. records the normalized path and digest in `operational-state.json` and in
+8. records the normalized path and digest in `operational-state.json` and in
    every incident or drift artifact that consumes the report.
 
-The report store preserves raw execution evidence. AI artifacts contain only
-the bounded, redacted excerpts needed for reasoning. The CLI remains unaware
-of both storage directories: it emits the report, while the AI-Engineering
-process performs storage and linkage after capture.
+Steps 6 through 8 occur only after an `auto` outcome or an exact free-text human
+authorization. A `human` outcome waits without persisting the bytes. A `stop`,
+declined, or constrained decision that excludes storage securely discards any
+temporary bytes, creates no canonical report file or report link, and records
+only a bounded redacted decision result. Without an exact stored report,
+Processes 2 and 3 cannot use that execution as canonical evidence.
+
+The report store preserves permitted raw execution evidence byte-for-byte. AI
+artifacts contain only the bounded, redacted excerpts needed for reasoning.
+The CLI remains unaware of report and AI-persistence directories: it emits the
+report, while the AI-Engineering process performs governed storage and linkage
+after capture.
 
 Repository policy is:
 
 - `policy.json` is consumer-owned, reviewable AI decision policy and follows
   the consumer repository's normal tracking rules;
-- `state.json`, `domain/`, and `sensorium/` are resumable AI context and may be
-  tracked when the consumer wants that context shared across sessions;
+- `state.json` is shared deterministic and analytical state, not executable
+  policy; repository treatment follows the documented workspace-state policy;
+- `domain/` and `sensorium/` are resumable AI context and may be tracked when
+  the consumer wants that context shared across sessions;
 - `reports/`, `operational-state.json`, `incidents/`, and `drift/` contain local
   execution evidence or operational memory and are ignored;
 - consumer policy may exclude all AI-Engineering persistence without affecting
   Human Flow or AI-Tool Flow.
 
-Reports can contain captured process output and therefore potentially
-sensitive data. Documentation requires local-only retention by default,
-restrictive file handling, bounded retention and cleanup, and a warning against
-committing or sharing reports without review. An AI-Engineering process never edits or
-redacts a stored canonical report after hashing it.
+Reports can contain captured process output and therefore potentially sensitive
+data. Documentation requires local-only retention by default, restrictive file
+handling, bounded retention and cleanup, and a warning against committing or
+sharing reports without review. Persistence authority follows
+`validationReportPersistence` and `sensitiveDataPersistence`. An
+AI-Engineering process never edits or redacts a stored canonical report after
+hashing it.
 
 Writing process results inside `.validation/persistence/` is part of the invoked
-AI-Engineering process. It requires no separate approval prompt. This
-permission is strictly confined to AI context files and does not extend to
-`.validation/config.json` or any other workspace path. Exact report capture
-under `.validation/reports/` is the separate automatic output defined above;
-it does not broaden this permission further.
+AI-Engineering process. Ordinary bounded, redacted process results require no
+separate approval prompt. Sensitive content that remains necessary in an
+artifact or state observation is evaluated under `sensitiveDataPersistence`.
+This declared output is strictly confined to AI context files and the
+`aiEngineering` namespace of `.validation/state.json`; it does not extend to
+`.validation/config.json` or any other workspace path. Report persistence is
+governed independently as defined above.
 
-On the first AI-Engineering process invocation, the agent creates the
-persistence root, the required artifact subdirectory, and `state.json` when
-they are absent. Before doing so, it validates the current `policy.json` or
-atomically creates the canonical conservative policy when the file is absent. The report
-store and `operational-state.json` are created only when an operational
-execution produces a report. References for processes that have not completed
-yet remain absent rather than pointing to placeholders.
+Every AI skill invocation first runs `workspace-validator integrity check`.
+When shared state is uninitialized, invalid, or in a revision conflict, the
+agent does not infer a baseline: it follows the exact authority required for
+`integrity init` or stops with that prerequisite. A changed result may be
+inspected through `integrity diff`; the agent never restores files or promotes
+the observed hashes through `integrity accept` implicitly.
+
+On the first AI-Engineering process invocation, the agent validates the current
+`policy.json` or atomically creates the canonical conservative policy when the
+file is absent. It then creates the persistence root and required artifact
+subdirectory when authorized by the invoked process. The report store and
+`operational-state.json` are created only when governed report persistence
+succeeds. References for processes that have not completed remain absent rather
+than pointing to placeholders.
 
 Persistence schemas are canonical resources owned by the tool and distributed
 with the skill. The consumer stores only its state documents; it does not copy
@@ -170,53 +204,108 @@ Do not optimize canonical artifacts with cryptic keys. Transport or prompt
 assembly may create a temporary compact projection without replacing the
 auditable source document.
 
-## 5. Current State Contract
+## 5. Shared Workspace State Contract
 
-`state.json` contains:
+`.validation/state.json` is one versioned document with explicit ownership
+boundaries:
 
-- its own exact schema version;
+```json
+{
+  "schemaVersion": 1,
+  "stateRevision": "<opaque-revision>",
+  "integrity": {
+    "status": "clean",
+    "baseline": {},
+    "lastInspection": {}
+  },
+  "aiEngineering": {
+    "currentDomain": null,
+    "sensorium": { "status": "missing" },
+    "observations": []
+  }
+}
+```
+
+The exact schema constrains every placeholder above. The tool owns
+`schemaVersion`, `stateRevision`, and `integrity`. Integrity commands may update
+only those fields and must preserve a valid `aiEngineering` value byte-for-byte
+at the semantic JSON-value level. The AI-Engineering Flow owns only
+`aiEngineering`; it must preserve the tool-owned fields and update the document
+through an atomic revision check. Neither namespace may contain executable
+commands, credentials, source patches, or raw diagnostic streams.
+
+The `integrity` namespace contains:
+
+- a baseline ID, creation time, SHA-256 algorithm identifier, resolved scope,
+  deterministically ordered path and file-digest entries, and aggregate digest;
+- a last-inspection ID, time, baseline reference, observed aggregate digest,
+  status, and bounded added, modified, removed, and hash-equivalent rename
+  records;
+- `uninitialized`, `clean`, `changed`, `invalid`, and `conflict` as distinct
+  states;
+- no automatic baseline promotion. Only `integrity init` creates the first
+  baseline and only `integrity accept` promotes a successfully inspected state.
+
+The `aiEngineering` namespace contains:
+
 - the current validated domain artifact ID and digest;
 - a discriminated sensorium state: `missing`, `current`, or
   `revalidation_required`;
 - when `current`, the validated sensorium artifact ID and digest, its domain
   artifact ID and digest, and the configuration digest it analyzed;
-- when `revalidation_required`, the preceding sensorium reference for audit,
-  the replacement domain reference that invalidated it, the reason
-  `domain_changed`, and the time the marker was written;
-- the completion time and producing process version for each current reference;
-- no commands, credentials, source patches, or diagnostic streams.
+- when `revalidation_required`, the preceding sensorium reference for audit and
+  one or more bounded observation references that explain which validated
+  dependency changed;
+- bounded observations linked to one exact integrity inspection ID and digest,
+  containing changed paths, evidence, assessed context impact, uncertainty,
+  required follow-up, timestamp, and decision-policy digest when persistence
+  required a governed decision;
+- the completion time and producing process version for each current reference.
 
-The preceding sensorium retained by `revalidation_required` is historical
-evidence only. It is not a current sensorium and cannot satisfy a Process 2 or
-Process 3 precondition. The first domain uses `missing`; every later replacement
-of the current domain reference transitions an existing `current` sensorium to
-`revalidation_required`. If the state already requires revalidation, another
-domain replacement preserves the preceding sensorium only as audit evidence
-and updates the marker to require the newest domain. Process 1 is the only
-process that can return the sensorium state to `current`, and it must bind the
-new sensorium to the exact current domain and configuration digests.
+An AI skill always runs `integrity check` first. When the latest inspection is
+`changed`, no AI-Engineering process may rely on existing analytical context
+until an observation linked to that exact inspection assesses its impact. The
+agent uses `integrity diff`, repository evidence, and referenced digests for the
+assessment. It records the observation but never repairs, restores, deletes, or
+accepts changed files merely because it detected them.
+
+This is one general invalidation mechanism rather than a growing list of
+file-specific rules. A changed validated dependency, including the exact config
+digest bound to the current sensorium, marks the affected analytical context as
+`revalidation_required`. A change shown not to affect current domain or
+sensorium assumptions is recorded as such and does not invalidate them.
+Accepting a new hash baseline does not clear an analytical invalidation;
+Process 1 is the only process that can return the sensorium to `current`.
 
 The state machine is explicit:
 
-| Event | Sensorium state after the event |
+| Event | Integrity and AI-context result |
 | --- | --- |
+| No baseline exists | `uninitialized`; stop before relying on integrity claims |
+| `integrity check` matches the baseline | `clean`; existing AI context remains subject to its own references |
+| `integrity check` differs from the baseline | `changed`; require an observation for that exact inspection before using AI context |
+| The observation finds no affected analytical dependency | Record the assessment; preserve the current sensorium state |
+| The observation finds an affected domain or sensorium dependency | Preserve prior references for audit and set `revalidation_required` |
 | First domain becomes current and no sensorium exists | `missing` |
 | Process 1 persists a valid sensorium for the current domain and config | `current` |
-| A domain replaces the one referenced by a current sensorium | `revalidation_required` |
-| Another domain replaces the current domain while revalidation is pending | `revalidation_required`, updated to require the newest domain |
-| Process 2 or Process 3 is requested while state is not `current` | No transition; reject the operation and direct the human to Process 1 |
+| A domain replaces the one referenced by a current sensorium | `revalidation_required` with a linked bounded observation |
+| Process 2 or Process 3 is requested while sensorium state is not `current` | No transition; reject the operation and direct the human to Process 1 |
 
-Update current state automatically after:
+Update the AI-owned current state automatically after:
 
 1. writing a complete immutable artifact;
 2. validating its shape and references;
 3. confirming every referenced file and digest;
-4. atomically replacing `state.json`.
+4. confirming that sensitive persistence is eligible or exactly authorized;
+5. atomically replacing `state.json` only when its preceding `stateRevision`
+   still matches.
 
-A failed process or state update leaves the preceding valid state intact. Human
-correction of an analytical result causes the process to produce a new
-immutable artifact and update the pointer again; it does not mutate the
-preceding artifact.
+A failed process, policy decision, or revision check leaves the preceding valid
+state intact. Human correction of an analytical result causes the process to
+produce a new immutable artifact and update the pointer again; it does not
+mutate the preceding artifact. Hashes establish equality with the accepted
+baseline, not authenticity against an actor able to replace both workspace
+content and state.
 
 `operational-state.json` is a separate local, atomically replaced document. It
 contains its own schema version, an opaque operation ID, process status, exact
@@ -266,13 +355,15 @@ Distinguish these fixed and policy-governed actions:
 
 | Action | Authority |
 | --- | --- |
+| Run `integrity check` before an AI operation | Mandatory precondition; the exact command still follows the authority applicable to that flow, and its deterministic integrity-state update never authorizes baseline acceptance |
+| Initialize or accept an integrity baseline | Exact human request or every applicable AI decision category, including `workspaceMutation`; never implied by inspection |
 | Read ordinary repository and current AI state through non-executing inspection | Covered by the analysis request; sensitive resources still evaluate `sensitiveDataAccess` |
 | Create a missing `.validation/policy.json` | Automatic only when writing the exact canonical conservative policy |
 | Modify an existing `.validation/policy.json` | Exact explicit human request or free-text approval; the policy cannot authorize its own mutation |
-| Create a process artifact under `.validation/persistence/` | Automatic result of invoking that AI-Engineering process |
-| Update `state.json` to the completed, validated process result | Automatic result of invoking that AI-Engineering process |
-| Store a captured canonical report under `.validation/reports/` | Automatic result of an AI-Engineering validation run |
-| Create or update `operational-state.json` with exact report and artifact links | Automatic result of an AI-Engineering operational run |
+| Create a bounded redacted process artifact under `.validation/persistence/` | Declared result of invoking that AI-Engineering process; evaluate `sensitiveDataPersistence` when protected values remain |
+| Update the `aiEngineering` namespace of `state.json` | Declared result of the invoked process or integrity assessment; evaluate `sensitiveDataPersistence` when protected values remain and require the preceding state revision |
+| Store a captured canonical report under `.validation/reports/` | Evaluate `validationReportPersistence`, `sensitiveDataPersistence` when applicable, and every category implicated by the destination |
+| Create or update `operational-state.json` with exact report and artifact links | Declared result after governed report persistence succeeds; evaluate `sensitiveDataPersistence` if protected values remain |
 | Continue from Process 0 to Process 1 | Apply `processContinuation` after successful persistence and Process 1 precondition validation |
 | Continue from Process 2 to Process 3 | Apply `processContinuation` after a passing verified outcome, successful persistence, and Process 3 precondition validation |
 | Inspect configuration through non-executing parsing | Covered by the analysis request; invoking an inspection command also evaluates `commandExecution` |
@@ -284,7 +375,8 @@ Distinguish these fixed and policy-governed actions:
 
 The evaluator classifies actor, action, resource, environment, scope,
 reversibility, trust origin, sensitivity, privilege, and blast radius. Every
-applicable category evaluates independently. Combine results as
+applicable category evaluates independently. Decision levels follow
+`4 > 3 > 2 > 1 > 0`; computed outcomes combine as
 `stop > human > auto`. Approval prompts accept free text so the human can
 authorize only part of a proposal, impose constraints, postpone it, or report
 an action performed manually.
@@ -364,6 +456,14 @@ behavior.
 
 ## 9. State Safety Behavior
 
+- Run the deterministic integrity check before loading AI observations or
+  performing an AI operation.
+- Require an observation linked to the latest changed inspection before relying
+  on existing AI context.
+- Never initialize or accept an integrity baseline as an implicit consequence
+  of inspection, validation success, or process completion.
+- Never repair, restore, delete, or rewrite a changed source file merely because
+  the integrity check reported it.
 - Reject malformed, unsupported, path-escaping, oversized, or internally
   inconsistent state.
 - Stop rather than guessing when a current artifact is missing or has the wrong
@@ -376,18 +476,21 @@ behavior.
 - Never execute a command copied from an artifact.
 - Resolve an intended validation through the current config graph and existing
   skill mechanics.
-- Redact secrets and sensitive application data before persistence.
-- Preserve stored report bytes exactly and redact only derived AI artifact
-  excerpts; keep the report store local and ignored by default.
+- Minimize and redact protected data from derived artifacts whenever it is not
+  required; evaluate `sensitiveDataPersistence` before any protected content
+  that remains is written.
+- Evaluate `validationReportPersistence` and every overlapping category before
+  exact report storage. Once permitted and stored, preserve its bytes exactly
+  and redact only derived AI artifact excerpts.
 - Define retention and cleanup for ignored operational artifacts.
 - Never remove a report that is referenced by current operational state or a
   retained incident or drift artifact.
-- Persist a completed process before applying continuation toward its related
-  next process.
-- Apply `processContinuation` only after successful persistence and the target
-  process's preconditions: continue automatically for `auto`, request a
-  free-text decision for `human`, and end without a continuation prompt for
-  `stop`.
+- Persist a completed Process 0 or Process 2 before applying continuation toward
+  its defined related process.
+- Apply `processContinuation` only to `0 -> 1` and `2 -> 3`, after successful
+  persistence and the target process's preconditions: continue automatically
+  for `auto`, request a free-text decision for `human`, and end without a
+  continuation prompt for `stop`.
 - Never interpret successful persistence alone as a continuation decision.
 - Reload the current decision policy before a governed effect when its digest
   differs from the persisted operational decision context.
@@ -401,10 +504,21 @@ Create schema and process fixtures for:
 - unknown fields and malformed timestamps;
 - missing and cyclic parent references;
 - digest mismatch and stale current state;
+- integrity initialization, clean and changed inspection, deterministic diff,
+  explicit acceptance, and unchanged baseline after inspection;
+- bounded AI observations linked to the exact latest integrity inspection;
+- integrity changes that do and do not invalidate current analytical context;
+- state revision conflicts between integrity commands and AI updates;
 - domain replacement that marks an existing sensorium for revalidation;
 - rejection of Process 2 and Process 3 while sensorium revalidation is required;
 - exact report capture, schema validation, SHA-256 naming, atomic write,
   identical-file reuse, and mismatched-file rejection;
+- report persistence at all levels of `validationReportPersistence`, with and
+  without sensitive content;
+- sensitive persistence at all levels of `sensitiveDataPersistence` across
+  reports, process artifacts, and state observations;
+- declined, stopped, and constrained persistence that leaves no canonical
+  report or dangling report link;
 - report-store traversal, symlink escape, interrupted write, and concurrent
   identical capture;
 - missing, stale, or digest-mismatched operational report linkage;
@@ -418,6 +532,7 @@ Create schema and process fixtures for:
   prevention, and changed-policy re-evaluation;
 - every category at levels `0` through `4`, including overlapping categories
   whose most restrictive result wins;
+- monotonic category behavior under `4 > 3 > 2 > 1 > 0`;
 - bounded and redacted records for automatic, human, and stopped decisions;
 - `auto`, `human`, and `stop` continuation for both related process pairs;
 - accepted, declined, constrained, postponed, and unanswered human decisions;
@@ -430,16 +545,21 @@ the expected conclusion or hidden answer.
 
 - [ ] Human Flow and AI-Tool Flow remain unchanged when AI-Engineering decision
       policy and persistence are absent.
-- [ ] The CLI and library contain no persistence or AI decision-policy
-      discovery or interpretation.
+- [ ] The CLI and library interpret only the tool-owned integrity namespace of
+      shared state and contain no AI persistence or decision-policy discovery.
+- [ ] Every AI operation begins from a current deterministic integrity result,
+      and changed state is assessed without implicit repair or baseline
+      acceptance.
 - [ ] Every AI artifact is versioned, linked, bounded, and non-executable.
-- [ ] Every invoked AI-Engineering process writes its result and updates current
-      state without requesting separate approval.
+- [ ] Every invoked AI-Engineering process writes its bounded redacted result
+      and updates current state without requesting separate approval; protected
+      content that remains follows `sensitiveDataPersistence`.
 - [ ] Current state references only successfully completed, validated artifacts.
 - [ ] Replacing the current domain makes any existing current sensorium
       unusable until Process 1 produces a replacement.
-- [ ] AI-Engineering runs store exact report bytes under their SHA-256 name and
-      operational state references the exact path and digest.
+- [ ] AI-Engineering runs store exact report bytes under their SHA-256 name only
+      after every applicable persistence outcome permits it, and operational
+      state then references the exact path and digest.
 - [ ] Related processes implement all three continuation states without
       treating successful persistence alone as authority.
 - [ ] No process selects state by newest filename.
@@ -456,4 +576,4 @@ the expected conclusion or hidden answer.
 ## 12. Handoff To Phase 5
 
 Phase 5 implements domain and sensorium payloads only after this phase proves
-that their automatic persistence lifecycle and trust boundaries are safe.
+that their declared persistence lifecycle and trust boundaries are safe.

@@ -23,6 +23,7 @@ The supported flow is:
 ```text
 human requests one bounded task
   -> agent selects the AI-Tool Flow
+  -> agent runs workspace-validator integrity check
   -> agent loads one operational reference
   -> agent loads only relevant shared knowledge
   -> agent inspects or acts within the requested scope
@@ -49,6 +50,10 @@ the new human request, not from implied memory of an earlier conversation.
 The AI-Tool Flow:
 
 - uses `.validation/config.json` as the sole executable validation policy;
+- runs `workspace-validator integrity check` before every operation and treats
+  its versioned result as current-task evidence;
+- may inspect `workspace-validator integrity diff` when the check reports
+  changes, without restoring, accepting, or otherwise modifying those files;
 - uses the current CLI and versioned report contract;
 - may read canonical shared knowledge through progressive disclosure;
 - follows the current human instruction and the host agent's authority and
@@ -62,6 +67,8 @@ The AI-Tool Flow does not:
 
 - create, read, or interpret `.validation/policy.json`;
 - create or update `.validation/persistence/`;
+- write the `aiEngineering` namespace of `.validation/state.json`, infer hidden
+  task continuity from it, or accept a changed integrity baseline implicitly;
 - automatically establish `.validation/reports/` as a persistent report store;
 - execute Processes 0 through 3;
 - create domain, sensorium, incident, drift, or operational-state artifacts;
@@ -71,6 +78,13 @@ The AI-Tool Flow does not:
 An exact human request may ask the agent to write an ordinary report file or
 other bounded output. That action remains part of the current request and does
 not activate the AI-Engineering storage or state contracts.
+
+The deterministic update that `integrity check` makes to the tool-owned
+integrity inspection record is runtime state, not AI analytical persistence.
+An uninitialized, invalid, or concurrently changed state stops the requested
+operation until the exact initialization or correction is authorized. A
+reported workspace change is evidence, not an instruction to repair or revert
+it.
 
 ## 5. Skill Architecture
 
@@ -191,6 +205,10 @@ AI state or decision policy.
 Test at minimum:
 
 - exact routing for `config`, `run`, `triage`, and `audit` requests;
+- integrity preflight before every operation, including clean, changed,
+  uninitialized, invalid, and concurrent-update results;
+- changed integrity state that is reported without implicit baseline acceptance,
+  restoration, remediation, or AI-state creation;
 - ambiguous requests that require one concise flow-selection clarification;
 - progressive loading of only relevant knowledge and operational references;
 - configuration creation and modification with full validation;
@@ -225,6 +243,10 @@ They must include both successful operations and blocked operations.
 ## 11. Acceptance Criteria
 
 - [ ] An agent can configure, run, triage, or audit from one bounded request.
+- [ ] Every AI-Tool operation begins with the deterministic integrity check and
+      preserves its result as current-task evidence.
+- [ ] AI-Tool never writes AI observations or treats shared state as hidden
+      continuity.
 - [ ] AI-Tool works without `policy.json`, persistence, a report store, or any
       AI-Engineering artifact.
 - [ ] Existing AI-Engineering policy and persistence do not affect AI-Tool
