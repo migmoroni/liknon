@@ -2,13 +2,14 @@
 
 ## 1. Status And Audience
 
-This is cross-cutting human guidance, not an implementation phase or AI
-process, runtime contract, skill-routing rule, or persistence schema.
+This is cross-cutting human-only operator guidance for the AI-Engineering Flow,
+not an implementation phase, AI process, runtime contract, skill-routing rule,
+or persistence schema. It is not part of the Human Flow or AI-Tool Flow.
 
 It specifies the public guide to be authored at:
 
 ```text
-docs/validation/ai-work-contexts.md
+docs/validation/human/ai-work-contexts.md
 ```
 
 The guide helps a human organize conversations with an AI agent for clearer,
@@ -24,7 +25,7 @@ type, or security boundary.
 
 Chat identity and chat history are not sources of truth. They are not stored in
 `.validation/persistence/`, referenced by `state.json`, or required to resume a
-workflow. The agent reconstructs the required working context from current user
+process. The agent reconstructs the required working context from current user
 instructions, the installed skill, repository evidence, and validated
 persistence artifacts.
 
@@ -84,18 +85,19 @@ purpose, or accumulates irrelevant assumptions.
 
 ## 5. Invocation And Continuity
 
-The human invokes the required process or workflow and states the current goal.
+The human invokes the required AI-Engineering process and states the current
+goal.
 The agent then:
 
-1. loads the workspace-validator skill and only the references needed for that
-   workflow;
+1. loads the workspace-validator skill, the AI-Engineering process reference,
+   and only the AI-Tool and knowledge references needed for that process;
 2. validates `.validation/policy.json` and loads the normative AI
    decision-policy contract;
 3. reads current validated context from `.validation/persistence/` when the
-   invoked workflow is persistent;
+   invoked process is persistent;
 4. verifies linked repository, configuration, and exact report evidence,
    including the path and digest in local operational state;
-5. performs the invoked workflow;
+5. performs the invoked process;
 6. automatically saves the completed process result;
 7. applies `processContinuation` after Process 0 or after a passing verified
    Process 2 result;
@@ -111,14 +113,15 @@ needed to continue safely.
 When the current domain has replaced the domain referenced by the preceding
 sensorium, the agent treats the explicit `revalidation_required` state as a
 Process 1 prerequisite. It does not use the preceding sensorium to begin an
-operational workflow.
+operational process.
 
 ## 6. Human Responsibilities
 
 The guide explains that the human:
 
 - chooses whether to separate or combine conversational contexts;
-- invokes the desired workflow and supplies its immediate objective;
+- invokes the desired AI-Engineering process and supplies its immediate
+  objective;
 - owns and explicitly authorizes changes to `.validation/policy.json`;
 - provides domain decisions that repository evidence cannot establish;
 - answers policy-required free-text decisions and may constrain or perform the
@@ -132,7 +135,9 @@ newest file, or keep a chat alive solely to preserve continuity.
 
 ## 7. Agent Responsibilities
 
-The guide explains that the agent:
+This section tells the human what behavior to expect. It is descriptive
+operator guidance, not an operational skill route. The guide explains that the
+agent:
 
 - does not infer process semantics or authority from which chat it is running
   in;
@@ -168,8 +173,10 @@ The public guide must:
   paraphrasing its category-level tables;
 - avoid provider-specific chat features or assumptions;
 - avoid implying that the CLI reads AI persistence;
-- link to the persistent AI workflow, authorization model, and human-only
-  workflow without duplicating their contracts.
+- link to the AI-Engineering Flow, authorization model, Human Flow, and AI-Tool
+  Flow without duplicating their contracts;
+- remain outside the distributed skill routes so agent behavior never depends
+  on human-only conversational guidance.
 
 ## 9. Verification
 

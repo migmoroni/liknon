@@ -2,18 +2,18 @@
 
 ## 1. Status And Purpose
 
-This document specifies the consumer-facing AI decision policy that Phase 3
-implements and every persistent AI process obeys. It is a cross-cutting
+This document specifies the consumer-facing AI decision policy that Phase 4
+implements and every AI-Engineering process obeys. It is a cross-cutting
 contract, not an implementation phase or a validator execution contract.
 
 The canonical public document is authored at:
 
 ```text
-docs/validation/ai-decision-policy.md
+docs/validation/flows/ai-engineering/decision-policy.md
 ```
 
 The distributed skill receives the exact generated projection of that document
-and treats it as normative. `SKILL.md` and every persistent AI-process
+and treats it as normative. `SKILL.md` and every AI-Engineering process
 reference must require the agent to load this contract before classifying or
 performing an effect governed by `.validation/policy.json`.
 
@@ -39,8 +39,9 @@ workspace-validator contract as a local synthesis:
   explicit previews, reversibility, human-in-the-loop controls, and audit
   trails.
 
-The source register contains exact editions, stable source IDs, primary URIs,
-scope, and review dates. The five numeric levels and category tables are this
+The shared source register at `docs/validation/knowledge/SOURCES.md` contains
+exact editions, stable source IDs, primary URIs, scope, and review dates. The
+five numeric levels and category tables are this
 project's normative synthesis; the document must not misrepresent them as a
 standard published verbatim by any one source.
 
@@ -51,7 +52,7 @@ The consumer workspace has two policies with different owners and effects:
 | File | Responsibility | Consumer |
 | --- | --- | --- |
 | `.validation/config.json` | Defines the programs, arguments, composition, and repository-integrity behavior used for validation | `workspace-validator` CLI and library |
-| `.validation/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or ends a related process | Persistent AI-process skill workflows only |
+| `.validation/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or ends a related process | AI-Engineering Flow only |
 
 `policy.json` never contributes commands, checks, suites, groups, arguments, or
 validation outcomes. The CLI and library do not discover, read, or interpret
@@ -86,13 +87,13 @@ resolved through an implicit fallback.
 
 ## 4. Missing, Invalid, And Changed Policy
 
-On the first AI-assisted process invocation, when `policy.json` does not exist,
+On the first AI-Engineering process invocation, when `policy.json` does not exist,
 the agent atomically creates the canonical document above. This narrowly
 defined bootstrap write requires no separate approval because it establishes
 the most human-controlled decision levels and `human` continuation.
 
 An existing malformed, unsupported, path-escaping, or internally inconsistent
-policy stops the AI process before any governed effect. The agent reports the
+policy stops the AI-Engineering process before any governed effect. The agent
 problem and does not silently replace the document or apply defaults.
 
 The policy cannot authorize its own modification. Any change to
@@ -100,7 +101,7 @@ The policy cannot authorize its own modification. Any change to
 explicit human request or a free-text human approval bound to the exact proposed
 diff. The initial safe creation is the only automatic policy mutation.
 
-Each persistent process records the exact policy path, schema version, and
+Each AI-Engineering process records the exact policy path, schema version, and
 SHA-256 digest used for its decisions. A policy change does not invalidate
 domain or sensorium evidence, because it does not change validation coverage.
 It does invalidate any cached authorization decision. A resumed process reloads
@@ -115,7 +116,7 @@ scale:
 | --- | --- |
 | `auto` | After the preceding process completes successfully, persists its result, and satisfies every precondition of the next process, start `0 -> 1` or `2 -> 3` without another question. |
 | `human` | Present the completed result, suggest the valid next process, and wait for a free-text human decision. |
-| `stop` | Present the completed result and end the workflow without suggesting or asking to start the related next process. |
+| `stop` | Present the completed result and end the current process sequence without suggesting or asking to start the related next process. |
 
 The policy applies only to the defined `0 -> 1` and `2 -> 3` relationships. A
 failed, blocked, interrupted, stale, or incomplete process never continues
@@ -374,7 +375,7 @@ The canonical public document must contain:
 - invalid-policy and missing-policy behavior;
 - the absolute boundaries above.
 
-The skill router loads a concise policy summary for every persistent process
+The skill router loads a concise policy summary for every AI-Engineering process
 and loads the full document whenever an effect must be classified. Process
 references link to the canonical projected contract rather than restating
 level semantics independently.
@@ -413,7 +414,7 @@ workspace evidence. They do not disclose the expected classification.
 - [ ] Missing policy creates only the canonical conservative policy.
 - [ ] Invalid policy fails closed without silent replacement.
 - [ ] Policy cannot authorize its own modification.
-- [ ] Every persistent decision records the exact policy digest and applicable
+- [ ] Every AI-Engineering decision records the exact policy digest and applicable
       categories without recording secrets.
 - [ ] The CLI and library remain independent from AI decision policy.
 - [ ] The canonical document and its distributed skill projection are

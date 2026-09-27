@@ -69,15 +69,22 @@ Documentation explains:
 - cost, mutation, overlap, and limitations;
 - links to primary documentation.
 
-### 3.3 Agent Skill Responsibilities
+### 3.3 Skill Projection Responsibilities
 
-The skill guides an agent to:
+The generated knowledge projection:
 
-- inspect the consumer workspace and its existing manifests or scripts;
-- read only the references relevant to the requested task;
-- recommend validations with reasons and limitations;
-- translate commands approved by the user into declarative checks and suites;
-- preserve user ownership of dependency installation and project policy.
+- preserves the canonical authored files byte-for-byte;
+- exposes stable routes for progressive disclosure;
+- lets AI-Tool and AI-Engineering references load only the knowledge relevant
+  to the current decision;
+- contains no operational command, flow-selection, persistence, continuation,
+  or authority instructions;
+- never replaces AI-Tool operation references or AI-Engineering process
+  references.
+
+Inspecting a workspace, translating approved commands into configuration,
+executing validation, and maintaining engineering state belong to their
+respective flow plans rather than to the knowledge base.
 
 ## 4. Canonical Content Layout
 
@@ -87,73 +94,79 @@ Use the following structure:
 docs/
 └── validation/
     ├── README.md
-    ├── SOURCES.md
-    ├── foundations/
-    │   ├── source-policy.md
-    │   ├── validation-model.md
-    │   ├── test-types.md
-    │   └── validation-strategy.md
-    ├── languages/
-    │   ├── rust.md
-    │   ├── javascript.md
-    │   ├── typescript.md
-    │   ├── ruby.md
-    │   └── sql.md
-    ├── frameworks/
-    │   ├── svelte.md
-    │   ├── tauri.md
-    │   └── rails.md
-    ├── technologies/
-    │   └── sqlite.md
-    ├── tools/
-    │   ├── cargo.md
-    │   ├── rustfmt.md
-    │   ├── clippy.md
-    │   ├── cargo-audit.md
-    │   ├── cargo-deny.md
-    │   ├── pnpm.md
-    │   ├── typescript-compiler.md
-    │   ├── vite.md
-    │   ├── vitest.md
-    │   ├── svelte-check.md
-    │   ├── tauri-cli.md
-    │   ├── bundler.md
-    │   ├── rubocop.md
-    │   ├── brakeman.md
-    │   ├── bundler-audit.md
-    │   └── sqlite3.md
-    ├── concerns/
-    │   ├── structured-data.md
-    │   ├── accessibility.md
-    │   ├── repository-integrity.md
-    │   ├── packaging-release.md
-    │   └── security-supply-chain.md
-    └── recipes/
-        ├── rust-crate.md
-        ├── rust-workspace.md
-        ├── svelte-application.md
-        ├── tauri-svelte-application.md
-        ├── rails-application.md
-        └── structured-data-pipeline.md
+    └── knowledge/
+        ├── README.md
+        ├── SOURCES.md
+        ├── foundations/
+        │   ├── source-policy.md
+        │   ├── validation-model.md
+        │   ├── test-types.md
+        │   └── validation-strategy.md
+        ├── languages/
+        │   ├── rust.md
+        │   ├── javascript.md
+        │   ├── typescript.md
+        │   ├── ruby.md
+        │   └── sql.md
+        ├── frameworks/
+        │   ├── svelte.md
+        │   ├── tauri.md
+        │   └── rails.md
+        ├── technologies/
+        │   └── sqlite.md
+        ├── tools/
+        │   ├── cargo.md
+        │   ├── rustfmt.md
+        │   ├── clippy.md
+        │   ├── cargo-audit.md
+        │   ├── cargo-deny.md
+        │   ├── pnpm.md
+        │   ├── typescript-compiler.md
+        │   ├── vite.md
+        │   ├── vitest.md
+        │   ├── svelte-check.md
+        │   ├── tauri-cli.md
+        │   ├── bundler.md
+        │   ├── rubocop.md
+        │   ├── brakeman.md
+        │   ├── bundler-audit.md
+        │   └── sqlite3.md
+        ├── concerns/
+        │   ├── structured-data.md
+        │   ├── accessibility.md
+        │   ├── repository-integrity.md
+        │   ├── packaging-release.md
+        │   └── security-supply-chain.md
+        └── recipes/
+            ├── rust-crate.md
+            ├── rust-workspace.md
+            ├── svelte-application.md
+            ├── tauri-svelte-application.md
+            ├── rails-application.md
+            └── structured-data-pipeline.md
 
 skills/workspace-validator/
 ├── SKILL.md
 ├── manifest.json
 └── references/
-    ├── run.md
-    ├── triage.md
-    ├── config.md
-    └── audit.md
+    └── ai-tool/
+        ├── index.md
+        ├── run.md
+        ├── triage.md
+        ├── config.md
+        └── audit.md
 
 generated skill bundle/
 ├── SKILL.md
 ├── manifest.json
 └── references/
-    ├── run.md
-    ├── triage.md
-    ├── config.md
-    ├── audit.md
-    └── guidance/                # Generated from docs/validation
+    ├── ai-tool/
+    │   ├── index.md
+    │   ├── run.md
+    │   ├── triage.md
+    │   ├── config.md
+    │   └── audit.md
+    └── knowledge/               # Generated from docs/validation/knowledge
 
 examples/
 └── validation-guides/
@@ -165,14 +178,23 @@ examples/
     └── structured-data-pipeline/
 ```
 
-`docs/validation/README.md` is the human-facing index and learning path. The
-detailed guides under `docs/validation/` are the only authored source for the
-validation knowledge base. Their Markdown serves humans and coding agents.
+`docs/validation/README.md` distinguishes shared knowledge from the three flow
+entry points. `docs/validation/knowledge/README.md` is the shared learning path.
+The detailed guides under `docs/validation/knowledge/` are the only authored
+source for the validation knowledge base. Their Markdown serves humans and
+coding agents.
 
-Keep operational workflows directly below `references/`. Place the educational
-knowledge base only in `docs/validation/` while authoring. The distributed skill
-receives a byte-equivalent generated copy below `references/guidance/` so it
-remains self-contained outside the source repository.
+Sibling trees for `reference/`, `flows/`, and human-only operator guidance are
+defined by the unified validation-system plan. They are intentionally omitted
+from this knowledge-specific layout and never become part of the generated
+knowledge projection.
+
+Keep AI-Tool operations below `references/ai-tool/`. Place the educational
+knowledge base only in `docs/validation/knowledge/` while authoring. The
+distributed skill receives a byte-equivalent generated copy below
+`references/knowledge/` so it remains self-contained outside the source
+repository. AI-Engineering process references remain outside this plan and
+consume both namespaces without changing either one.
 
 The guidance taxonomy is semantic rather than ecosystem-shaped:
 
@@ -195,8 +217,8 @@ make the canonical Markdown suitable for both audiences.
 
 The skill bundle generation process must:
 
-1. copy the complete `docs/validation/` tree into
-   `references/guidance/`;
+1. copy the complete `docs/validation/knowledge/` tree into
+   `references/knowledge/`;
 2. preserve relative paths and file contents exactly;
 3. reject missing, extra, stale, or modified generated files;
 4. produce a deterministic tree digest for release verification;
@@ -207,17 +229,17 @@ The generated bundle is the distributable artifact. Whether generated files are
 staged for a source release or assembled in a release directory, tests must
 prove that they are exact projections of the canonical documentation.
 
-### 5.1 Guidance Manifest
+### 5.1 Knowledge Manifest
 
 Extend `skills/workspace-validator/manifest.json` with a discoverable catalog.
-Paths in `entries` are relative guidance paths. The release task reads each
+Paths in `entries` are relative knowledge paths. The release task reads each
 path below `canonicalSource` and writes the same path below `root`:
 
 ```json
 {
-  "guidance": {
-    "canonicalSource": "../../docs/validation",
-    "root": "references/guidance",
+  "knowledge": {
+    "canonicalSource": "../../docs/validation/knowledge",
+    "root": "references/knowledge",
     "entries": {
       "index": "README.md",
       "sources": "SOURCES.md",
@@ -287,7 +309,7 @@ Automated tests verify that every catalog entry:
 
 - is a normalized relative path without traversal;
 - exists below the canonical source;
-- exists with identical bytes below the active guidance root;
+- exists with identical bytes below the active knowledge root;
 - is included in the Cargo package and source release;
 - can be discovered without scanning every Markdown file.
 
@@ -353,7 +375,7 @@ not become a second source for tool behavior.
 
 ### 6.8 Source And Traceability Contract
 
-`docs/validation/SOURCES.md` is the source register. Each entry records:
+`docs/validation/knowledge/SOURCES.md` is the source register. Each entry records:
 
 | Field | Meaning |
 | --- | --- |
@@ -592,10 +614,10 @@ projects of the same shape.
 Do not place installers, watch commands, development servers, destructive
 operations, or interactive commands in recipes.
 
-## 13. Skill Routing
+## 13. Knowledge Routing
 
-Keep `SKILL.md` concise. It acts as a menu and routes an agent according to the
-task:
+Keep `SKILL.md` concise. It selects AI-Tool or AI-Engineering before either flow
+loads shared knowledge according to the task:
 
 - read `foundations/validation-model.md` for validation-model questions;
 - read `foundations/test-types.md` when choosing test boundaries;
@@ -607,15 +629,15 @@ task:
   concern, or recipe references;
 - read only the exact categories needed for the current decision;
 - read `concerns/security-supply-chain.md` for dependency, provenance, and
-  artifact concerns;
-- retain `run.md` and `triage.md` for execution and failure handling.
+  artifact concerns.
 
-The agent explains why a proposed validator applies before introducing it. The
-presence of a manifest or lockfile signals relevance, but never grants
-permission to install software or alter project policy.
+The consuming flow explains why a proposed validator applies before introducing
+it. The presence of a manifest or lockfile signals relevance, but never grants
+permission to install software or alter project policy. Knowledge routing
+itself never performs that installation or policy change.
 
-The skill always resolves guidance from `guidance.root`. The
-`guidance.canonicalSource` field is maintenance metadata for repository
+The skill always resolves shared knowledge from `knowledge.root`. The
+`knowledge.canonicalSource` field is maintenance metadata for repository
 generation and integrity tests; it is never an alternate runtime lookup path.
 The skill must not combine divergent copies or continue when bundle integrity
 fails.
@@ -624,11 +646,11 @@ fails.
 
 ### Phase 1: Content Contract
 
-- Create the human documentation index.
+- Create the shared knowledge index.
 - Create the source policy and pinned source register.
 - Define the taxonomy and the contract for every guidance category.
 - Define the tool-guide recommendation table.
-- Add canonical-source metadata, one active guidance root, and categorized
+- Add canonical-source metadata, one active knowledge root, and categorized
   entries to the skill manifest.
 - Define a deterministic, cross-platform repository release task that generates
   the self-contained skill bundle without entering validation runtime logic.
@@ -642,7 +664,8 @@ fails.
 - Write the test-type guide.
 - Write the validation-strategy guide based on context, likelihood, impact,
   evidence, and residual risk.
-- Link the foundation guides from the human index and skill menu.
+- Link the foundation guides from the knowledge index and skill knowledge
+  routes.
 - Verify that no foundation introduces a universal local assurance scale.
 
 ### Phase 3: Languages, Frameworks, And Technologies
@@ -669,11 +692,12 @@ fails.
 
 ### Phase 6: Skill Integration
 
-- Update configuration guidance to consult only relevant categorized
-  references.
-- Update audit guidance to classify missing validation evidence by risk.
-- Preserve the existing execution and triage workflows.
-- Generate `references/guidance/` solely from the canonical documentation.
+- Generate `references/knowledge/` solely from the canonical knowledge
+  documentation.
+- Expose stable knowledge routes that independently authored AI-Tool and
+  AI-Engineering references can load progressively.
+- Verify that the projection contains no operational flow, persistence,
+  continuation, or authority instructions.
 - Record and verify the generated tree digest.
 - Document that consumer workspaces may add local policy skills alongside the
   generic crate skill.
@@ -682,10 +706,10 @@ fails.
 ### Phase 7: Verification
 
 - Validate the skill bundle structure.
-- Verify byte equality and path equality between canonical guidance and the
+- Verify byte equality and path equality between canonical knowledge and the
   generated skill projection.
 - Validate every example configuration without running its checks.
-- Test canonical-source metadata, the single active guidance root, catalog
+- Test canonical-source metadata, the single active knowledge root, catalog
   routes, path safety, source version ownership, and package inclusion.
 - Check internal documentation links.
 - Check source-register links and references to sections or controls.
@@ -696,7 +720,7 @@ fails.
 
 - Write documentation and examples in English.
 - Keep one canonical source for each concept.
-- Edit validation knowledge only below `docs/validation/`; regenerate the skill
+- Edit validation knowledge only below `docs/validation/knowledge/`; regenerate the skill
   projection after changes.
 - Pin external references by version and record their review date.
 - Review mutable ecosystem documentation before changing recommendations.
@@ -726,9 +750,10 @@ fails.
 - [ ] A human can learn the validation model without reading the JSON schema
       first.
 - [ ] An agent can load only the references relevant to the current task.
-- [ ] `docs/validation/` is the only authored validation knowledge source.
-- [ ] The distributed guidance tree is an exact generated projection of the
-      canonical documentation.
+- [ ] `docs/validation/knowledge/` is the only authored validation knowledge
+      source.
+- [ ] The distributed knowledge tree is an exact generated projection of the
+      canonical knowledge documentation.
 - [ ] Every substantive recommendation cites an applicable source or identifies
       itself as local synthesis.
 - [ ] External conformance and maturity levels retain their native names,
@@ -740,10 +765,6 @@ fails.
 - [ ] Every recipe passes configuration validation without executing checks.
 - [ ] Every recipe states assumptions, source basis, execution contexts, and
       known gaps.
-- [ ] Configuration guidance translates approved commands without inventing
-      dependencies or policy.
-- [ ] Audit guidance identifies missing evidence without modifying the
-      workspace.
 - [ ] The distributed skill is self-contained and uses the manifest as its
       version source.
 - [ ] Manifest routes, links, examples, tests, and Cargo package contents remain

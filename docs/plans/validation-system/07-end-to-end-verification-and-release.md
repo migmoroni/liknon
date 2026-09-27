@@ -1,20 +1,20 @@
-# Phase 6: End-To-End Verification And Release
+# Phase 7: End-To-End Verification And Release
 
 ## 1. Objective
 
-Prove that the human-operated and AI-assisted flows are independently usable,
-interoperate only through declared contracts, and ship as coherent versioned
-artifacts. Complete documentation, realistic forward trials, package
+Prove that Human Flow, AI-Tool Flow, and AI-Engineering Flow are independently
+usable, compose only through declared contracts, and ship as coherent
+versioned artifacts. Complete documentation, realistic forward trials, package
 inspection, security review, and release evidence.
 
 ## 2. Dependency
 
-Phases 1 through 5 are implemented. No acceptance test in this phase substitutes
+Phases 1 through 6 are implemented. No acceptance test in this phase substitutes
 for an incomplete contract from an earlier phase.
 
 ## 3. End-To-End Scenario Matrix
 
-### 3.1 Human-Only Scenarios
+### 3.1 Human Flow Scenarios
 
 - create and validate a configuration from documentation;
 - inspect a nested group without executing it;
@@ -25,15 +25,18 @@ for an incomplete contract from an earlier phase.
 - operate successfully with no skill, AI decision policy, persistence
   directory, or report store.
 
-### 3.2 Point-In-Time AI Assistance
+### 3.2 AI-Tool Flow Scenarios
 
-- explain a report using only `triage.md`;
+- explain a report using only `ai-tool/triage.md`;
 - audit coverage without running checks;
-- make an authorized config edit without activating persistent AI state;
+- make an authorized config edit without activating AI-Engineering state;
 - reject an unauthorized installation or source change;
-- recognize stale skill and incompatible CLI versions.
+- recognize stale skill and incompatible CLI versions;
+- complete every operation without creating `policy.json`, persistence,
+  process artifacts, or an automatic report store;
+- begin a later request without inheriting hidden state or authority.
 
-### 3.3 Persistent AI Setup
+### 3.3 AI-Engineering Setup
 
 - create and persist a domain result from evidence and human answers without an
   additional permission prompt;
@@ -46,7 +49,7 @@ for an incomplete contract from an earlier phase.
 - audit existing config, persist a sensorium result, and update its pointer
   automatically;
 - classify a config change under every applicable decision category and apply
-  the restrictive result through the normal config workflow;
+  the restrictive result through the AI-Tool config operation;
 - inspect the resolved operation and request a free-text decision only when the
   effective result is `human`;
 - persist a new sensorium result linked to the exact effective config digest;
@@ -54,7 +57,7 @@ for an incomplete contract from an earlier phase.
   changing Process 1 preconditions;
 - resume setup in a fresh agent session.
 
-### 3.4 Persistent AI Daily Loop
+### 3.4 AI-Engineering Operational Loop
 
 - execute one trusted validation selection;
 - store its exact JSON report under `.validation/reports/<sha256>.json` and
@@ -79,6 +82,12 @@ Prove that:
 
 - runtime tests pass after `.validation/policy.json` or
   `.validation/persistence/` is absent or renamed;
+- AI-Tool operations neither require nor create AI-Engineering policy or state;
+- existing malformed, restrictive, or stale AI-Engineering files do not alter
+  AI-Tool routing or results;
+- selecting AI-Tool never loads an AI-Engineering process implicitly;
+- AI-Engineering routes configuration, execution, triage, and audit mechanics
+  through the corresponding AI-Tool references;
 - the CLI never opens `.validation/policy.json` or files below the persistence
   root;
 - the CLI remains a report emitter and never discovers AI operational state or
@@ -90,11 +99,16 @@ Prove that:
   report semantics;
 - the same governed action and policy produce the same decision across process
   and chat contexts;
-- human and AI invocations of the same selection produce the same report
-  semantics;
-- a report captured by the persistent AI flow is byte-identical to the CLI JSON
+- human, AI-Tool, and AI-Engineering invocations of the same selection produce
+  the same report semantics;
+- a report captured by the AI-Engineering Flow is byte-identical to the CLI JSON
   output and resolves from its recorded SHA-256 path;
-- generated skill guidance is byte-equivalent to canonical documentation;
+- generated skill knowledge is byte-equivalent to
+  `docs/validation/knowledge/`;
+- the generated AI-Engineering decision-policy contract is byte-equivalent to
+  its canonical public document;
+- human-only operator guidance is absent from skill routes and generated skill
+  content;
 - skill compatibility gates prevent unsupported runtime interaction.
 
 ## 5. Security And Abuse Review
@@ -128,12 +142,17 @@ agent instruction compliance.
 
 ## 6. Documentation Completion
 
-Update the public documentation to provide separate entry points:
+Update the public documentation to provide structurally separate entry points:
 
-- human quick start and full operational workflow;
-- optional point-in-time agent assistance;
-- persistent AI-assisted validation workflow;
-- the human-facing AI work-context guide specified by
+- Human Flow quick start and full operational workflow under
+  `docs/validation/flows/human/`;
+- AI-Tool Flow under `docs/validation/flows/ai-tool/`;
+- AI-Engineering Flow under `docs/validation/flows/ai-engineering/`;
+- shared knowledge under `docs/validation/knowledge/`;
+- shared CLI, configuration, report, and schema references under
+  `docs/validation/reference/`;
+- human-only flow selection, governance, and work-context guidance under
+  `docs/validation/human/`, including the guide specified by
   [AI Work Contexts](ai-work-contexts.md);
 - configuration and report contracts;
 - validation knowledge index;
@@ -146,7 +165,9 @@ Update the public documentation to provide separate entry points:
 - skill installation, compatibility, and update process.
 
 Use diagrams that show `.validation/config.json` and the JSON report as the
-shared bridge. Do not imply that the CLI consumes persistence artifacts.
+shared runtime bridge. Show AI-Engineering composing AI-Tool operations rather
+than duplicating them. Do not imply that the CLI or AI-Tool consumes
+persistence artifacts.
 
 ## 7. Skill Evaluation
 
@@ -154,6 +175,7 @@ Validate the skill folder structurally, then forward-test it with fresh agents
 on representative repositories. Evaluate:
 
 - trigger accuracy;
+- correct selection between AI-Tool and AI-Engineering;
 - progressive reference loading;
 - command and status accuracy;
 - adherence to approval boundaries;
@@ -165,7 +187,9 @@ on representative repositories. Evaluate:
 - persistence linkage and resume behavior;
 - domain-driven sensorium invalidation and report-store linkage;
 - avoidance of duplicate execution and retry loops;
-- diagnostic usefulness without excessive context loading.
+- diagnostic usefulness without excessive context loading;
+- absence of AI-Engineering state and policy behavior in AI-Tool trials;
+- reuse of AI-Tool operations from every applicable AI-Engineering process.
 
 Use raw artifacts and task-like prompts. Do not provide the expected answer to
 the evaluating agent.
@@ -175,10 +199,12 @@ the evaluating agent.
 - Run formatting, Clippy with warnings denied, all targets, Rustdoc tests, and
   ignored outcome fixtures.
 - Validate the declared MSRV and supported platform behavior.
-- Build the canonical documentation projection and verify its digest.
+- Build the shared-knowledge and AI-Engineering decision-policy projections and
+  verify their independent digests.
 - Inspect `cargo package --list` and the packaged crate contents.
 - Verify skill manifest version, compatible CLI range, source crate version,
-  guidance routes, AI decision-policy route, and persistence contract versions.
+  knowledge routes, AI-Tool routes, AI-Engineering decision-policy route, and
+  persistence contract versions.
 - Verify examples and fixtures are included or excluded intentionally.
 - Record user-visible runtime, config, report, skill, and guidance changes in
   the changelog.
@@ -187,9 +213,10 @@ the evaluating agent.
 
 ## 9. Acceptance Criteria
 
-- [ ] Human-only operation passes every end-to-end scenario without AI files.
-- [ ] Point-in-time AI assistance works without persistent state.
-- [ ] Persistent AI setup and daily workflows resume across fresh sessions.
+- [ ] Human Flow passes every end-to-end scenario without AI files.
+- [ ] AI-Tool Flow works without policy, persistent state, or process artifacts.
+- [ ] AI-Engineering setup and operational processes resume across fresh
+      sessions.
 - [ ] Domain replacement prevents operational execution until Process 1 restores
       a current sensorium.
 - [ ] Operational resume resolves an exact immutable report without newest-file
@@ -202,21 +229,28 @@ the evaluating agent.
 - [ ] Missing policy initializes conservatively, invalid policy fails closed,
       and policy never authorizes its own modification.
 - [ ] Trust, approval, and redaction boundaries survive adversarial fixtures.
-- [ ] Every documented report and exit state has a tested workflow.
-- [ ] Canonical guidance, generated skill content, manifest routes, and package
+- [ ] Every documented report and exit state has a tested route.
+- [ ] Canonical knowledge, generated skill content, manifest routes, and package
       contents are consistent.
+- [ ] Shared knowledge, shared reference, flow documentation, human-only
+      guidance, AI-Tool references, and AI-Engineering references remain in
+      their declared architectural boundaries.
 - [ ] No acceptance claim exceeds the evidence produced by the configured
       validations.
 - [ ] Release validation passes on the MSRV and current supported toolchain.
 
 ## 10. Final System State
 
-The released system presents one deterministic validator with two usage flows:
+The released system presents one deterministic validator with three usage
+flows:
 
-- humans directly own configuration and execution;
-- AI agents optionally maintain explicit analytical memory and operate the same
-  human flow under human direction.
+- Human Flow directly owns configuration and execution;
+- AI-Tool Flow provides bounded, stateless assistance through `config`, `run`,
+  `triage`, and `audit`;
+- AI-Engineering Flow composes those operations with validation-engineering
+  processes, governed continuity, and explicit analytical memory.
 
-Neither flow weakens the other. The human flow remains sufficient on its own,
-and the AI flow adds continuity, reasoning, diagnosis, and drift awareness
-without becoming an alternate executor.
+No flow weakens another. Human Flow remains sufficient on its own, AI-Tool
+remains useful without persistent state, and AI-Engineering adds continuity,
+domain reasoning, coverage design, diagnosis, and drift awareness without
+becoming an alternate executor.

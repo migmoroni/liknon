@@ -1,23 +1,24 @@
-# Phase 5: AI Triage And Drift Loop
+# Phase 6: AI-Engineering Triage And Drift Loop
 
 ## 1. Objective
 
-Implement the daily AI-assisted loop over the current domain, sensorium, and
-configuration. The loop executes the normal validator, diagnoses structured
+Implement the daily AI-Engineering loop over the current domain, sensorium, and
+configuration. The loop composes the AI-Tool operations to execute the normal
+validator, diagnose structured
 outcomes, performs only authorized remediation, verifies the smallest affected
 scope, and evaluates whether recent change invalidates the current validation
 design.
 
 ## 2. Dependency
 
-Phase 4 has produced:
+Phase 5 has produced:
 
 - one current validated domain artifact;
 - one current validated sensorium artifact whose lifecycle state is `current`;
 - one exact config digest;
 - a trusted config that passes complete configuration validation.
 
-## 3. Execution Workflow
+## 3. Execution Process
 
 Before a run, the agent:
 
@@ -31,8 +32,8 @@ Before a run, the agent:
 6. records repository state without cleaning or restoring it;
 7. evaluates execution under every applicable decision category, accounting
    for exact authority in the initiating request;
-8. invokes exactly one normal validator command with JSON output when the
-   effective result permits it;
+8. delegates one explicit configured selection to `ai-tool/run.md` with JSON
+   output when the effective result permits it;
 9. waits for completion and captures the exact JSON bytes;
 10. validates the report contract, hashes the exact bytes, and atomically stores
    them at `.validation/reports/<sha256>.json`;
@@ -53,7 +54,7 @@ Route outcomes by the report contract and stable CLI exit semantics:
 | Pass | Persist the passing result, validate Process 3 preconditions, and apply `processContinuation` |
 | One or more failed checks or repository gate | Create an incident diagnosis |
 | Blocked or skipped without failure | Diagnose prerequisite or dependency state; do not assume source failure |
-| Invalid configuration or CLI use | Return to the config workflow |
+| Invalid configuration or CLI use | Return to the `ai-tool/config.md` operation |
 | Internal execution or reporting failure | Report a validator defect boundary; do not patch consumer source |
 | Interrupted | Preserve available evidence and stop until the human resumes |
 
@@ -66,11 +67,12 @@ reference; only a passing final verification may populate
 `finalPassingReport`. A non-pass result clears any final-passing reference for
 that operation.
 
-## 5. Process 2: Incident Workflow
+## 5. Process 2: Incident
 
 ### 5.1 Evidence
 
-Use the stored JSON report as canonical evidence. Record its exact path and
+Use `ai-tool/triage.md` for report interpretation and the stored JSON report as
+canonical evidence. Record its exact path and
 digest and extract only the diagnostics needed for analysis. Preserve:
 
 - selection and config digest;
@@ -146,15 +148,16 @@ the current operation update, the agent:
    for `human`, or ends without suggesting it for `stop`.
 
 Declining, postponing, not answering, or resolving continuation to `stop` ends
-the current workflow without invalidating Process 2. Process 3 can be invoked
+the current process without invalidating Process 2. Process 3 can be invoked
 later from any work context using the persisted operational state and exact
 linked passing report. A failed, blocked, skipped, invalid, internal-error, or
 interrupted outcome never triggers continuation.
 
-## 6. Process 3: Drift Workflow
+## 6. Process 3: Drift
 
-Drift assessment is consultative and runs only after a passing report. A pass
-is necessary evidence for this workflow, not proof that the workspace is ready
+Drift assessment composes the non-executing analysis principles from
+`ai-tool/audit.md` and runs only after a passing report. A pass is necessary
+evidence for this process, not proof that the workspace is ready
 for release or commit.
 
 ### 6.1 Baseline
@@ -258,9 +261,10 @@ diagnosis to the test agent.
 
 ## 9. Acceptance Criteria
 
-- [ ] Every CLI result class reaches the correct workflow.
+- [ ] Every CLI result class reaches the correct AI-Tool operation or
+      AI-Engineering process.
 - [ ] The JSON report remains the canonical execution evidence.
-- [ ] Every persistent operational run stores and links the exact report bytes
+- [ ] Every AI-Engineering operational run stores and links the exact report bytes
       by path and SHA-256 digest.
 - [ ] No operational run starts while Process 1 revalidation is required.
 - [ ] Incidents support multiple independent primary causes.
@@ -279,8 +283,8 @@ diagnosis to the test agent.
 - [ ] Recalibration never changes executable configuration without an effective
       `auto` result or exact human authority.
 
-## 10. Handoff To Phase 6
+## 10. Handoff To Phase 7
 
-Phase 6 validates both flows as one distributable system, including scenarios
-where the AI layer is absent, newly installed, stale, interrupted, or resumed in
-a fresh session.
+Phase 7 validates all three flows as one distributable system, including
+scenarios where AI-Tool or AI-Engineering is absent, selected independently,
+stale, interrupted, or resumed in a fresh session where applicable.

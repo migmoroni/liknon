@@ -1,25 +1,26 @@
-# Phase 4: AI Domain And Coverage Setup
+# Phase 5: AI-Engineering Domain And Coverage Setup
 
 ## 1. Objective
 
-Implement the two setup workflows of the AI-assisted flow:
+Implement the two setup processes of the AI-Engineering Flow:
 
 1. domain understanding, which records what the workspace is and which failures
    matter;
 2. validation design, which maps required evidence to the executable
-   configuration used by the human flow.
+   configuration used by all three flows.
 
-These workflows run at onboarding, after a domain-relevant change, when the
+These processes run at onboarding, after a domain-relevant change, when the
 human directs the agent to reassess them, or after a drift assessment recommends
 recalibration. They do not run before every normal validation.
 
 ## 2. Dependency
 
-Phase 3 provides safe automatic persistence, authorization boundaries, and
-skill-routing contracts. Phase 2 provides the source-backed validation model
+Phase 4 provides safe automatic persistence, authorization boundaries, and
+AI-Engineering routing contracts. Phase 3 provides the AI-Tool operations that
+these processes compose. Phase 2 provides the source-backed validation model
 used to reason about evidence.
 
-## 3. Process 0: Domain Workflow
+## 3. Process 0: Domain
 
 ### 3.1 Inputs
 
@@ -94,10 +95,10 @@ preceding domain.
 
 Any `operational-state.json` linked to the preceding domain or sensorium becomes
 stale by reference mismatch. It remains local audit context and cannot be
-resumed. After Process 1, a later operational workflow starts with a new
+resumed. After Process 1, a later operational process starts with a new
 operation and report linkage.
 
-## 4. Process 1: Sensorium Workflow
+## 4. Process 1: Sensorium
 
 `sensorium` means the AI's current validation-design memory. It is not a list
 of commands consumed by the CLI.
@@ -154,7 +155,7 @@ and are never executed from the artifact.
 
 When the sensorium identifies a coherent config change:
 
-1. load the existing `config` skill workflow;
+1. load the existing `ai-tool/config.md` operation;
 2. produce the smallest complete config diff;
 3. preserve `tool -> check -> suite -> group` ownership;
 4. represent programs and arguments structurally without an implicit shell;
@@ -182,12 +183,12 @@ revision.
 Process 1 always finishes by writing a sensorium artifact for the exact current
 domain and effective config, whether the config remains unchanged, an approved
 or automatically eligible change is applied, or a proposed change is declined
-and retained as a gap. Only after that artifact validates may the workflow
+and retained as a gap. Only after that artifact validates may the process
 atomically set sensorium state to `current` and clear the revalidation marker.
 
 ## 6. Skill Behavior
 
-### `ai-domain.md`
+### `ai-engineering/process-0-domain.md`
 
 - loads source policy, validation strategy, and only relevant domain guidance;
 - gathers evidence before conclusions;
@@ -197,7 +198,7 @@ atomically set sensorium state to `current` and clear the revalidation marker.
 - applies `processContinuation` only after Process 0 is persisted and Process 1
   preconditions are validated.
 
-### `ai-sensorium.md`
+### `ai-engineering/process-1-sensorium.md`
 
 - verifies the current domain artifact;
 - treats `missing` and `revalidation_required` as mandatory Process 1 work
@@ -206,9 +207,9 @@ atomically set sensorium state to `current` and clear the revalidation marker.
 - loads only relevant language, framework, technology, concern, tool, and
   recipe guides;
 - constructs the evidence matrix and proposed config diff;
-- delegates configuration mechanics to `config.md`;
+- delegates configuration mechanics to `ai-tool/config.md`;
 - delegates every effect classification to the normative AI decision-policy
-  workflow;
+  contract;
 - writes the sensorium result and updates current state automatically;
 - requests a free-text decision exactly when the restrictive policy result is
   `human`.
@@ -268,7 +269,7 @@ Verify that the agent:
       uncertainty.
 - [ ] Sensorium state describes evidence and maps it to real config IDs.
 - [ ] The sensorium is never an executable input to the CLI.
-- [ ] Config changes follow the existing config workflow and the exact
+- [ ] Config changes follow the AI-Tool config operation and the exact
       category-level AI decision policy.
 - [ ] Domain and sensorium results are persisted automatically when their
       processes complete.
@@ -282,8 +283,8 @@ Verify that the agent:
 - [ ] Tool overlap is evaluated by evidence rather than prohibited by rule.
 - [ ] A fresh agent can resume setup from state without reading old chat logs.
 
-## 10. Handoff To Phase 5
+## 10. Handoff To Phase 6
 
-Phase 5 starts after one current domain artifact, one sensorium whose lifecycle
+Phase 6 starts after one current domain artifact, one sensorium whose lifecycle
 state is `current`, and the exact linked config have been validated. The daily
 loop consumes those references but does not reinterpret setup from scratch.

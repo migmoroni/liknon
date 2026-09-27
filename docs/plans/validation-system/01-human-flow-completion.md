@@ -2,8 +2,8 @@
 
 ## 1. Objective
 
-Close the human-operated workflow as a complete product surface before adding
-AI orchestration. A user must be able to author or review one configuration,
+Close the Human Flow as a complete product surface before adding AI operation.
+A user must be able to author or review one configuration,
 inspect its execution graph, run any supported selection, understand every
 outcome, and preserve repository integrity without relying on AI persistence.
 
@@ -99,15 +99,18 @@ requiring color and supports the declared color and presentation profiles.
   without semantic disagreement.
 - Ensure JSON mode writes exactly one complete report document to standard
   output without prose, progress rendering, or terminal control bytes. These
-  exact bytes are the digest source when a later persistent AI workflow stores
+  exact bytes are the digest source when a later AI-Engineering process stores
   the report.
 - Document that a pass means all counted evidence in the selected graph passed;
   it is not a certification of complete product correctness.
 
 ### 4.5 Human Documentation
 
-- Add a focused human workflow document covering configuration, inspection,
-  execution, result interpretation, and narrow revalidation.
+- Add `docs/validation/flows/human/README.md` as the focused Human Flow document
+  covering configuration, inspection, execution, result interpretation, and
+  narrow revalidation.
+- Place CLI, configuration, report, schema, and exit-status reference material
+  under `docs/validation/reference/` so it remains usable by every flow.
 - Keep the root README as the concise entry point and link to deeper contracts.
 - Provide complete examples for a single crate, a heterogeneous workspace, and
   a workspace with shared suites across groups.
@@ -118,19 +121,6 @@ requiring color and supports the declared color and presentation profiles.
 - Keep configuration and report schemas owned and distributed by the tool.
   Schema inspection commands must not require consumers to track copied schema
   files in their workspaces.
-
-### 4.6 Optional Point-In-Time AI Assistance
-
-The bundled skill continues to support isolated requests such as explaining a
-failure or editing configuration. This does not invoke a persistent AI process
-or write AI context. Verify that the existing `run`, `triage`, `config`, and
-`audit` references:
-
-- match the current CLI exactly;
-- require structured reports for machine interpretation;
-- preserve user approval for installation and mutation;
-- avoid duplicate execution and unchanged-failure loops;
-- remain usable without `.validation/persistence/`.
 
 ## 5. Tests
 
@@ -158,7 +148,6 @@ is touched.
 - aligned checked-in JSON Schemas;
 - human workflow documentation;
 - representative configuration examples;
-- updated operational skill references;
 - complete deterministic outcome fixtures.
 
 ## 7. Acceptance Criteria
@@ -169,7 +158,8 @@ is touched.
 - [ ] JSON output can be captured byte-for-byte, validated against the report
       schema, and hashed without stripping terminal output.
 - [ ] Every nonzero exit code has one documented, tested meaning.
-- [ ] The validator does not read `.validation/persistence/`.
+- [ ] The validator does not read `.validation/policy.json`,
+      `.validation/reports/`, or `.validation/persistence/` as execution input.
 - [ ] No human command requires an AI agent or skill.
 - [ ] Existing trusted configuration can be run without hidden installation or
       mutation.
@@ -178,6 +168,6 @@ is touched.
 
 ## 8. Handoff To Phase 2
 
-Phase 2 starts only after the human workflow is independently usable and its
+Phase 2 starts only after the Human Flow is independently usable and its
 public contracts are stable enough to support source-backed educational
 guidance and agent routing.

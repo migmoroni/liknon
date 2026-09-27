@@ -17,53 +17,53 @@ rather than compensating for unfinished runtime contracts.
 
 ## 3. Canonical Layout
 
-Create the canonical authored tree:
+Create the canonical authored knowledge tree:
 
 ```text
 docs/validation/
 ├── README.md
-├── SOURCES.md
-├── ai-decision-policy.md
-├── ai-work-contexts.md
-├── foundations/
-│   ├── source-policy.md
-│   ├── validation-model.md
-│   ├── test-types.md
-│   └── validation-strategy.md
-├── languages/
-│   ├── rust.md
-│   ├── javascript.md
-│   ├── typescript.md
-│   ├── ruby.md
-│   └── sql.md
-├── frameworks/
-│   ├── svelte.md
-│   ├── tauri.md
-│   └── rails.md
-├── technologies/
-│   └── sqlite.md
-├── tools/
-├── concerns/
-└── recipes/
+└── knowledge/
+    ├── README.md
+    ├── SOURCES.md
+    ├── foundations/
+    │   ├── source-policy.md
+    │   ├── validation-model.md
+    │   ├── test-types.md
+    │   └── validation-strategy.md
+    ├── languages/
+    │   ├── rust.md
+    │   ├── javascript.md
+    │   ├── typescript.md
+    │   ├── ruby.md
+    │   └── sql.md
+    ├── frameworks/
+    │   ├── svelte.md
+    │   ├── tauri.md
+    │   └── rails.md
+    ├── technologies/
+    │   └── sqlite.md
+    ├── tools/
+    ├── concerns/
+    └── recipes/
 ```
 
-The human index explains how to move from validation concepts to a project
-strategy. Foundation documents provide the reasoning model. Language,
-framework, technology, tool, and concern documents remain semantically
-separate. Recipes compose them for concrete project shapes.
+The root index distinguishes shared knowledge from reference material and the
+three flows without duplicating their contracts. The knowledge index explains
+how to move from validation concepts to a project strategy. Foundation
+documents provide the reasoning model. Language, framework, technology, tool,
+and concern documents remain semantically separate. Recipes compose them for
+concrete project shapes.
 
-`ai-decision-policy.md` is reserved for the normative contract specified by
-[AI Decision Policy](ai-decision-policy.md) and implemented in Phase 3. Phase 2
-establishes its canonical projection path but does not invent or partially
-implement its authorization semantics.
-
-`ai-work-contexts.md` is reserved for the human-facing cross-cutting guide
-specified by [AI Work Contexts](ai-work-contexts.md). It does not define runtime
-or authorization semantics.
+Everything below `knowledge/` is audience-neutral. It contains no process
+activation, persistence behavior, decision authority, flow-specific control,
+or human-only conversational guidance. Human Flow documentation, AI-Tool
+instructions, AI-Engineering process contracts, and human-only operator guides
+are authored in their dedicated locations in later phases.
 
 ## 4. Source And Traceability Contract
 
-Create `SOURCES.md` as a versioned source register. Each source records:
+Create `knowledge/SOURCES.md` as a versioned source register. Each source
+records:
 
 - stable source ID;
 - authority and exact title;
@@ -72,6 +72,10 @@ Create `SOURCES.md` as a versioned source register. Each source records:
 - supported scope;
 - normative, framework, official-documentation, or local-synthesis status;
 - last review date.
+
+The register is shared evidence infrastructure for the knowledge base and for
+source-backed flow contracts. Registering a source used by AI-Engineering does
+not place that flow's behavioral rules inside `knowledge/`.
 
 Every substantive recommendation links to an applicable source ID and, when
 available, a section, requirement, control, or success criterion. Local
@@ -89,8 +93,8 @@ The initial register covers:
 - WCAG 2.2 for web accessibility conformance;
 - SLSA 1.2 for source and build supply-chain guarantees;
 - a pinned OpenSSF OSPS Baseline release;
-- NIST SP 800-162 for the attribute-based decision model used by the AI
-  decision policy;
+- NIST SP 800-162 for the attribute-based model referenced by the
+  AI-Engineering decision policy;
 - NIST AI RMF for human-AI oversight responsibilities;
 - OASIS XACML 3.0 for restrictive policy-combination semantics;
 - Parasuraman, Sheridan, and Wickens' published types-and-levels-of-automation
@@ -172,10 +176,15 @@ contexts, and known gaps. It is an example, not a mandatory project policy.
 Keep `skills/workspace-validator/SKILL.md` as a small router. Extend the skill
 manifest with:
 
-- maintenance metadata pointing to `docs/validation/` in the source tree;
-- one active runtime root below `references/guidance/`;
+- maintenance metadata pointing to `docs/validation/knowledge/` in the source
+  tree;
+- one active runtime root below `references/knowledge/`;
 - explicit catalog routes for the index, source register, foundations,
   categories, and recipes.
+
+This phase adds only the shared-knowledge branch. Phase 3 implements explicit
+AI-Tool routing, and Phase 4 adds AI-Engineering routing. The knowledge branch
+must not infer or select either flow.
 
 A deterministic repository release task copies the entire canonical tree to
 the distributed skill while preserving paths and bytes. The generated copy is
@@ -185,8 +194,8 @@ Tests reject:
 
 - missing, extra, stale, or modified generated files;
 - unsafe or traversing manifest paths;
-- routes outside the active guidance root;
-- package contents that omit routed guidance;
+- routes outside the active knowledge root;
+- package contents that omit routed knowledge;
 - a version declared independently from the skill manifest.
 
 ## 8. Progressive Disclosure
@@ -200,13 +209,10 @@ The skill loads only the references relevant to the current decision:
 - exact language, framework, technology, tool, concern, and recipe guides for
   the workspace under analysis.
 
-Operational `run`, `triage`, `config`, and `audit` references remain distinct
-from educational guidance.
-
-The normative AI decision-policy route is also distinct from educational
-guidance selection: persistent AI workflows must load it when classifying an
-effect, regardless of which language, framework, technology, or recipe guides
-are relevant.
+AI-Tool and AI-Engineering references remain distinct from shared knowledge.
+Loading knowledge never selects a flow, starts a process, creates state, or
+grants authority. Later phases may route to the generated knowledge projection
+without modifying it.
 
 ## 9. Tests
 
@@ -223,18 +229,18 @@ are relevant.
 
 - [ ] A human can learn the validation model without reading a JSON schema.
 - [ ] An agent can load only the guidance required for one decision.
-- [ ] `docs/validation/` is the sole authored knowledge source.
-- [ ] The distributed guidance is an exact generated projection.
+- [ ] `docs/validation/knowledge/` is the sole authored shared-knowledge source.
+- [ ] The distributed knowledge is an exact generated projection.
 - [ ] Recommendations begin with risk and required evidence, not a fashionable
       tool.
 - [ ] External standards retain their native versions, levels, and scopes.
-- [ ] The AI decision-policy source basis is traceable while its category-level
-      tables are clearly labeled as the project's normative synthesis.
 - [ ] Recipes are valid examples and never implicit global policy.
 - [ ] The runtime remains independent from guidance and tool selection.
+- [ ] Shared knowledge contains no Human Flow, AI-Tool, AI-Engineering, or
+      human-only operator instructions.
 
 ## 11. Handoff To Phase 3
 
-Phase 3 uses this knowledge base to constrain AI reasoning. It does not copy the
-guidance into persistence artifacts; those artifacts record only the decisions,
-evidence links, and uncertainty relevant to one consumer workspace.
+Phase 3 uses this knowledge base in the AI-Tool Flow while keeping each
+operational skill bounded and stateless. It does not turn educational material
+into executable policy or AI-Engineering context.
