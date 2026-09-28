@@ -43,8 +43,9 @@ Use one focused context for Processes 0 and 1:
 
 These processes benefit from sharing one conversational context because
 coverage design directly depends on the domain model it evaluates. After
-Process 0 persists its result, the agent applies `processContinuation`: it
-proceeds for `auto`, asks for `human`, or ends without a continuation prompt for
+Process 0 persists its result, the agent revalidates the current policy and
+Process 1 preconditions before applying `processContinuation`: it starts Process
+1 for `auto`, asks for `human`, or ends without a continuation prompt for
 `stop`.
 
 ### 3.2 Operational Context
@@ -60,7 +61,8 @@ Use another focused context for Processes 2 and 3:
 These processes benefit from sharing one conversational context because
 incident evidence, remediation results, passing reports, and drift analysis
 form one operational sequence. After Process 2 persists a passing verified
-outcome, the agent applies the same continuation policy before Process 3.
+outcome, the agent revalidates the current policy and Process 3 preconditions
+before applying the same continuation policy.
 
 This two-context organization is a quality recommendation. It is not a
 required topology and does not change process semantics. Automatic continuation
@@ -100,7 +102,8 @@ The agent then:
 6. performs only the invoked process and its authorized effects;
 7. validates and stores one new immutable UUIDv7 process artifact, applying
    `sensitiveDataPersistence` when protected content remains;
-8. applies `processContinuation` after Process 0 or after a passing verified
+8. revalidates the current policy and the next process preconditions, then
+   applies `processContinuation` after Process 0 or after a passing verified
    Process 2 result;
 9. classifies every other governed effect under all applicable decision
    categories and requests a free-text human decision exactly when the
@@ -161,8 +164,9 @@ agent:
   command for the same explicit workspace root, stops when it is absent or
   invalid, and follows its category tables without process-specific
   reinterpretation;
-- never creates, edits, formats, replaces, deletes, moves, restores, initializes,
-  or indirectly mutates the policy, even after an explicit request or approval;
+- never creates, edits, formats, replaces, deletes, moves, renames, restores,
+  initializes, or indirectly mutates the policy, even after an explicit request
+  or approval;
 - resumes work from exact artifact and report paths rather than searching
   persistence directories;
 - rejects a sensorium whose domain or config references do not match the
@@ -218,5 +222,10 @@ Documentation and forward trials verify that:
   validator results;
 - `auto`, `human`, and `stop` handoffs preserve the completed preceding process
   and behave consistently across conversational contexts;
+- every `0 -> 1` and `2 -> 3` handoff revalidates the current policy and the next
+  process preconditions before continuation;
+- no conversational context, request, or approval permits an agent to create,
+  edit, format, replace, delete, move, rename, restore, initialize, or indirectly
+  mutate policy;
 - decision-category outcomes remain identical when the same action, inputs,
   and policy are evaluated in a different conversation.
