@@ -29,12 +29,20 @@ and configuration reference before loading analytical content. Missing,
 mismatched, stale, or ambiguous inputs stop the operation and identify the exact
 setup process or validation run required next.
 
+A missing or invalid decision policy stops before those inputs are consumed.
+The process routes to read-only `AI-Tool/policy` guidance. Missing-policy
+guidance tells the human to run `workspace-validator init --policy` personally;
+invalid-policy guidance explains diagnostics and suggested manual field changes.
+No AI operation may create, edit, format, replace, delete, move, restore, or
+otherwise mutate policy, even after explicit approval.
+
 ## 3. Validation Execution
 
 When the operational request starts with a new validation run:
 
 1. validate the supplied domain and sensorium artifacts;
-2. verify their relationship and the current config digest;
+2. load the immutable policy boundary and verify their relationship and the
+   current config digest;
 3. load `ai-tool/run.md` and resolve one explicit configured selection;
 4. evaluate command execution and every other implicated decision category;
 5. execute the selection once through the normal validator;
@@ -257,6 +265,8 @@ conclusion to the agent.
       report and successful incident persistence.
 - [ ] An initial passing run never creates Process 2 or consults continuation.
 - [ ] Operational processes use only explicitly supplied artifacts and reports.
+- [ ] Every operational process obeys the immutable policy boundary and never
+      mutates policy directly or indirectly.
 - [ ] Passing evidence is never described as complete product correctness.
 
 ## 10. Handoff To Phase 7

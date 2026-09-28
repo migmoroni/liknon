@@ -13,16 +13,19 @@ These processes run at onboarding, after a domain-relevant change, when the
 human directs the agent to reassess them, or after a drift assessment recommends
 recalibration. They do not run before every normal validation.
 
-Every invocation verifies CLI and skill compatibility, validates the current
-decision policy, and validates each explicitly supplied artifact before using
-its content.
+Every invocation loads the immutable policy boundary, verifies CLI and skill
+compatibility, validates the current decision policy, and validates each
+explicitly supplied artifact before using its content. Missing or invalid policy
+routes to read-only `AI-Tool/policy` guidance and stops until the human performs
+the required creation or correction manually.
 
 ## 2. Dependencies
 
 Phase 4 provides explicit-input artifact validation, single-file persistence,
 governed report storage, authorization boundaries, and AI-Engineering routing.
-Phase 3 provides the AI-Tool operations that these processes compose. Phase 2
-provides the source-backed validation model used to reason about evidence.
+Phase 3 provides the human-owned decision policy, immutable policy boundary, and
+AI-Tool operations that these processes compose. Phase 2 provides the
+source-backed validation model used to reason about evidence.
 
 ## 3. Process 0: Domain
 
@@ -33,8 +36,8 @@ The agent begins with:
 - workspace instructions and declared product documentation;
 - repository manifests and lockfiles;
 - a bounded directory inventory;
-- the `.validation/policy.json` path and digest returned by `policy init` for the
-  explicit active workspace root;
+- the existing `.validation/policy.json` path and digest returned by
+  `policy validate` for the explicit active workspace root;
 - the current `.validation/config.json`, when present;
 - build, packaging, persistence, deployment, and release documentation relevant
   to the product;
@@ -86,6 +89,10 @@ No separate authorization is required for the bounded redacted process result.
 Protected content that remains follows `sensitiveDataPersistence`. A human
 correction reruns Process 0 and creates another immutable artifact; it never
 rewrites the preceding one.
+
+Neither process may create, edit, format, replace, delete, move, restore, or
+otherwise mutate `.validation/policy.json`. A policy recommendation is delegated
+to the advisory AI-Tool `policy` operation, and only the human applies it.
 
 A completed domain artifact remains valid evidence for its recorded repository
 and policy context. Creating another domain artifact does not mutate it. An
@@ -263,6 +270,8 @@ Verify that the agent:
 - [ ] Each sensorium references the exact domain and config digests it analyzed.
 - [ ] Setup processes use only explicitly supplied artifacts and never select
       one by directory order.
+- [ ] Missing or invalid policy stops setup and routes to read-only policy
+      guidance; no setup process mutates policy under any authorization.
 - [ ] Tool overlap is evaluated by evidence rather than prohibited by rule.
 - [ ] A fresh agent can resume setup from explicitly supplied validated
       artifacts without reading old chat logs.

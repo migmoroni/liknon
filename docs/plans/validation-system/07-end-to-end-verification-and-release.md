@@ -16,7 +16,8 @@ composition; they do not replace an incomplete earlier contract.
 
 ### 3.1 Human Flow
 
-- create and validate a configuration from documentation;
+- author a complete configuration candidate, install it through
+  `init --config`, and validate the canonical configuration from documentation;
 - inspect a nested group without executing it;
 - run a check, suite, explicit group, and default group;
 - understand pass, fail, blocked, skipped, invalid, internal, and interrupted
@@ -27,20 +28,31 @@ composition; they do not replace an incomplete earlier contract.
 
 ### 3.2 AI-Tool Flow
 
+- explain a missing policy and direct the human to run `init --policy` without
+  invoking that command;
+- explain every current policy category, recommend manual values, and revalidate
+  after the human reports editing the file;
+- refuse to create, edit, format, replace, delete, move, restore, initialize, or
+  indirectly mutate policy, including after explicit authorization and under
+  level `0`;
 - explain a report using only `ai-tool/triage.md`;
 - audit coverage without running checks;
 - make an authorized config edit within the bounded request;
 - reject an unauthorized installation or source change;
 - recognize stale skill and incompatible CLI versions;
 - inspect repository mutation evidence from a concrete report;
-- complete every operation without creating AI decision policy or process
-  artifacts;
+- complete every operation without mutating AI decision policy or creating
+  process artifacts;
 - begin a later request without inherited authority or analytical context.
 
 ### 3.3 AI-Engineering Setup
 
-- initialize a missing canonical policy through `policy init` for an explicit
-  workspace and validate an existing one without modification;
+- prove that a missing policy blocks process work and directs the human to
+  invoke `init --policy` personally and review every setting;
+- validate the policy created or corrected manually by the human without
+  modifying it;
+- prove that AI-Engineering delegates policy explanation to `AI-Tool/policy` and
+  cannot mutate policy through any process path;
 - create and store one immutable domain artifact from evidence and human
   answers;
 - verify that artifact by exact path and digest;
@@ -85,10 +97,12 @@ composition; they do not replace an incomplete earlier contract.
 
 Prove that:
 
-- Human Flow and AI-Tool Flow work when `.validation/policy.json` and
+- Human Flow works when `.validation/policy.json` and
   `.validation/persistence/` are absent;
-- AI-Tool operations neither require nor create AI-Engineering policy or
-  artifacts;
+- read-only AI-Tool policy guidance works when policy is absent or invalid, while
+  every other AI operation stops before workspace work;
+- AI-Tool operations require and obey valid policy without creating or mutating
+  it and never create AI-Engineering artifacts;
 - selecting AI-Tool never loads an AI-Engineering process implicitly;
 - AI-Engineering routes configuration, execution, triage, and audit mechanics
   through the corresponding AI-Tool references;
@@ -99,6 +113,9 @@ Prove that:
 - policy and persistence commands share one canonical workspace boundary, do
   not discover another root, and expose the same containment behavior through
   CLI and library APIs;
+- every `init` capability uses that boundary, validates all requested resources
+  before writing, and reports created, reused, conflicted, or partially
+  committed resources exactly;
 - artifact content containing command-like text is never executed;
 - only `.validation/config.json` affects runner planning;
 - decision-policy changes affect AI authority but never runner planning or
@@ -113,7 +130,7 @@ Prove that:
   artifact;
 - generated skill knowledge is byte-equivalent to
   `docs/validation/knowledge/`;
-- the generated AI-Engineering decision-policy contract is byte-equivalent to
+- the generated shared AI decision-policy contract is byte-equivalent to
   its canonical public document;
 - human-only operator guidance is absent from skill routes and generated skill
   content;
@@ -139,8 +156,11 @@ Test at minimum:
   protection, explicit removal, and absence of automatic pruning;
 - report and sensitive-data persistence at every numeric level, including one
   write matching both categories and a destination-related category;
-- missing, malformed, unsupported, self-modifying, and concurrently changed AI
-  decision policy;
+- missing policy before AI work, direct human initialization, malformed,
+  unsupported, and concurrently changed AI decision policy;
+- adversarial attempts to make either AI flow create, edit, format, replace,
+  delete, move, restore, initialize, or indirectly mutate policy, including
+  explicit user authorization and policy level `0`;
 - missing, malformed, oversized, symlinked, incompatible, and stale supplied
   skill manifests;
 - dependency, source, generated-output, snapshot, database, command, network,
@@ -166,8 +186,8 @@ Update public documentation with separate entry points for:
 - AI-Tool Flow under `docs/validation/flows/ai-tool/`;
 - AI-Engineering Flow under `docs/validation/flows/ai-engineering/`;
 - shared knowledge under `docs/validation/knowledge/`;
-- CLI, configuration, report, persistence-command, and schema references under
-  `docs/validation/reference/`;
+- CLI, initialization, configuration, report, persistence-command, and schema
+  references under `docs/validation/reference/`;
 - human-only flow selection, governance, and work-context guidance under
   `docs/validation/human/`;
 - troubleshooting by exit and report status;
@@ -190,6 +210,9 @@ on representative repositories. Evaluate:
 
 - trigger accuracy;
 - correct selection between AI-Tool and AI-Engineering;
+- mandatory loading of the immutable policy boundary for both AI flows;
+- correct policy preflight, read-only guidance, and refusal of every policy
+  mutation path;
 - progressive reference loading;
 - command and report-status accuracy;
 - adherence to approval boundaries;
@@ -205,7 +228,7 @@ on representative repositories. Evaluate:
 - domain and config relationship enforcement for sensorium artifacts;
 - avoidance of duplicate execution and unchanged retry loops;
 - diagnostic usefulness without excessive context loading;
-- absence of AI-Engineering policy and artifact behavior in AI-Tool trials;
+- absence of AI-Engineering persistence and artifact behavior in AI-Tool trials;
 - reuse of AI-Tool operations from every applicable AI-Engineering process.
 
 Use raw artifacts and task-like prompts. Do not provide the expected answer to
@@ -216,15 +239,16 @@ the evaluating agent.
 - Run formatting, Clippy with warnings denied, all targets, Rustdoc tests, and
   ignored outcome fixtures.
 - Validate the declared MSRV and supported platform behavior.
-- Build shared-knowledge and AI-Engineering decision-policy projections and
+- Build shared-knowledge, shared AI decision-policy, and immutable policy-boundary
+  projections and
   verify their independent digests.
 - Validate every process-artifact schema, explicit-reference fixture,
   report-storage fixture, and persistence-command contract included in the
   package.
 - Inspect `cargo package --list` and the packaged crate contents.
 - Verify skill manifest version, compatible CLI range, source crate version,
-  knowledge routes, AI-Tool routes, AI-Engineering policy route, and persistence
-  contract versions.
+  knowledge routes, policy-boundary route, AI-Tool routes, AI-Engineering routes,
+  and persistence contract versions.
 - Verify examples and fixtures are included or excluded intentionally.
 - Record user-visible runtime, config, report, skill, and guidance changes in
   the changelog.
@@ -234,8 +258,8 @@ the evaluating agent.
 ## 9. Acceptance Criteria
 
 - [ ] Human Flow passes every end-to-end scenario with only the CLI and config.
-- [ ] AI-Tool Flow performs bounded assistance without creating policy or
-      process artifacts.
+- [ ] AI-Tool Flow performs bounded policy-governed assistance without mutating
+      policy or creating process artifacts.
 - [ ] AI-Engineering processes continue across fresh conversations from exact
       explicitly supplied artifacts.
 - [ ] Domain replacement requires a new matching Process 1 result before an
@@ -253,11 +277,12 @@ the evaluating agent.
       categories permit the exact write.
 - [ ] Every completed AI-Engineering process creates one immutable UUIDv7
       artifact with exact parent and report references.
-- [ ] Missing policy initializes conservatively, invalid policy fails closed,
-      and policy never authorizes its own modification.
-- [ ] `policy validate`, `policy init`, and every persistence operation use the
-      declared workspace boundary without config, Git, or parent-directory
-      discovery.
+- [ ] Missing or invalid policy blocks every AI operation except read-only policy
+      guidance until direct human initialization or correction and review.
+- [ ] Neither AI flow mutates policy directly or indirectly under any approval,
+      configured level, continuation mode, or process state.
+- [ ] `init`, `policy validate`, and every persistence operation use the declared
+      workspace boundary without config, Git, or parent-directory discovery.
 - [ ] Trust, approval, redaction, containment, and atomic-write boundaries
       survive adversarial fixtures.
 - [ ] Every documented report and exit outcome has a tested route.
@@ -276,8 +301,8 @@ The released system presents one deterministic validator with three usage
 flows:
 
 - Human Flow directly owns configuration and execution;
-- AI-Tool Flow provides bounded assistance through `config`, `run`, `triage`,
-  and `audit`;
+- AI-Tool Flow provides bounded assistance through `policy`, `config`, `run`,
+  `triage`, and `audit` under the human-owned decision policy;
 - AI-Engineering Flow composes those operations with decision policy and
   explicit immutable analytical artifacts.
 

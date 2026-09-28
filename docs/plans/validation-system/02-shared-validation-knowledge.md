@@ -94,7 +94,7 @@ The initial register covers:
 - SLSA 1.2 for source and build supply-chain guarantees;
 - a pinned OpenSSF OSPS Baseline release;
 - NIST SP 800-162 for the attribute-based model referenced by the
-  AI-Engineering decision policy;
+  shared AI decision policy;
 - NIST AI RMF for human-AI oversight responsibilities;
 - OASIS XACML 3.0 for restrictive policy-combination semantics;
 - Parasuraman, Sheridan, and Wickens' published types-and-levels-of-automation
@@ -182,9 +182,9 @@ manifest with:
 - explicit catalog routes for the index, source register, foundations,
   categories, and recipes.
 
-This phase adds only the shared-knowledge branch. Phase 3 implements explicit
-AI-Tool routing, and Phase 4 adds AI-Engineering routing. The knowledge branch
-must not infer or select either flow.
+This phase adds only the shared-knowledge branch. Phase 3 implements the shared
+AI policy boundary and explicit AI-Tool routing, and Phase 4 adds AI-Engineering
+routing. The knowledge branch must not infer or select either flow.
 
 A deterministic repository release task copies the entire canonical tree to
 the distributed skill while preserving paths and bytes. The generated copy is
@@ -241,6 +241,6 @@ projection without modifying it.
 
 ## 11. Handoff To Phase 3
 
-Phase 3 uses this knowledge base in the AI-Tool Flow while keeping each
-operational skill bounded to one request. It does not turn educational material
-into executable policy or AI-Engineering context.
+Phase 3 uses this knowledge base in the policy-governed AI-Tool Flow while
+keeping each operational skill bounded to one request. It does not turn
+educational material into executable policy or AI-Engineering context.

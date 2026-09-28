@@ -21,10 +21,11 @@ tests, examples, and documentation.
 
 ## 3. Human Workflow Contract
 
-The supported workflow is:
+The supported first-time workflow is:
 
 ```text
-author config
+author a complete config candidate
+  -> initialize the canonical config
   -> validate config
   -> inspect graph and resolved commands
   -> execute selection
@@ -37,6 +38,7 @@ author config
 The default path uses:
 
 ```sh
+workspace-validator init --config <candidate-path>
 workspace-validator config validate
 workspace-validator list --tree
 workspace-validator explain group <group-id>
@@ -48,6 +50,8 @@ workspace-validator check <check-id>
 
 Machine consumers use `--format=json`. Human output remains accessible without
 requiring color and supports the declared color and presentation profiles.
+An existing canonical configuration enters the workflow at `config validate`;
+`init` is provisioning, not a replacement or edit command.
 
 ## 4. Workstreams
 
@@ -64,7 +68,39 @@ requiring color and supports the declared color and presentation profiles.
   omitted.
 - Keep configuration declarative and free from implicit shell behavior.
 
-### 4.2 Inspection Closure
+### 4.2 Deterministic Initialization
+
+- Add one extensible `workspace-validator init` command for provisioning
+  consumer-owned resources through explicit capability flags.
+- Phase 1 introduces `--config <candidate-path>`. The command requires at least
+  one provisioning flag and accepts `--workspace <workspace-path>`; omission of
+  `--workspace` means exactly the process current working directory.
+- Resolve and canonicalize that workspace once. Do not discover another root
+  from a parent directory, Git, or configuration content.
+- Require the candidate to be a contained regular file and reject symlinks,
+  parent traversal, and workspace escape.
+- Validate the complete candidate as though its canonical location were
+  `<workspace>/.validation/config.json`. Relative configuration semantics,
+  including `workspaceRoot`, therefore resolve from the canonical destination
+  rather than from the candidate's temporary location.
+- Install the exact validated bytes through an atomic, no-overwrite operation.
+  Reuse an existing destination only when its bytes are identical; reject an
+  invalid or different existing destination as a conflict.
+- Do not run tool preflight, checks, suites, groups, installation, or repair as
+  part of initialization.
+- Define one versioned `InitResult` shared by every provisioning capability. It
+  contains the normalized workspace root, overall status, and one ordered entry
+  per requested resource with kind, normalized canonical path, status, digest
+  when available, and bounded diagnostics. Resource status is `created`,
+  `reused`, `conflict`, `failed`, or `not_written`; overall status is `success`,
+  `conflict`, `failed`, or `partial`.
+- Derive human and JSON output from that same typed result. JSON mode emits
+  exactly one document without progress or prose.
+- Keep provisioning flags capability-owned and composable. A later capability
+  extends this same command with another flag instead of adding a separate
+  initialization namespace.
+
+### 4.3 Inspection Closure
 
 - Ensure `config validate` validates the entire document without running
   preflight or checks.
@@ -75,7 +111,7 @@ requiring color and supports the declared color and presentation profiles.
 - Add golden or structural tests that keep inspection output aligned with the
   configuration contract.
 
-### 4.3 Repository Mutation Evidence
+### 4.4 Repository Mutation Evidence
 
 - Preserve the optional repository provider as execution-scoped evidence.
 - Capture repository status and content fingerprints immediately before and
@@ -89,7 +125,7 @@ requiring color and supports the declared color and presentation profiles.
 - Document that this evidence detects run-time mutations; it does not certify
   repository origin or provide historical tamper detection.
 
-### 4.4 Execution Closure
+### 4.5 Execution Closure
 
 - Verify tool preflight, version parsing, and version requirements produce
   distinct observable failures.
@@ -102,7 +138,7 @@ requiring color and supports the declared color and presentation profiles.
 - Ensure the executor never installs tools, invokes an implicit shell, or
   repairs a workspace.
 
-### 4.5 Report And Exit-Code Closure
+### 4.6 Report And Exit-Code Closure
 
 - Treat the versioned JSON report as the canonical execution record.
 - Verify reports include selection, tools, groups, suites, checks, commands,
@@ -119,13 +155,14 @@ requiring color and supports the declared color and presentation profiles.
 - Document that a pass means all counted evidence in the selected graph passed;
   it is not a certification of complete product correctness.
 
-### 4.6 Human Documentation
+### 4.7 Human Documentation
 
 - Add `docs/validation/flows/human/README.md` as the focused Human Flow document
   covering configuration, inspection, execution, result interpretation, and
   narrow revalidation.
-- Place CLI, configuration, report, schema, and exit-status reference material
-  under `docs/validation/reference/` so it remains usable by every flow.
+- Place CLI, initialization, configuration, report, schema, and exit-status
+  reference material under `docs/validation/reference/` so it remains usable by
+  every flow.
 - Keep the root README as the concise entry point and link to deeper contracts.
 - Provide complete examples for a single crate, a heterogeneous workspace, and
   a workspace with shared suites across groups.
@@ -148,6 +185,10 @@ requiring color and supports the declared color and presentation profiles.
 Add or complete tests for:
 
 - every CLI command and exit code;
+- `init` with no capability, one config candidate, an explicit or omitted
+  workspace root, identical reuse, conflicting or invalid destinations,
+  canonical-destination-relative resolution, symlink escape, and interrupted
+  atomic writes;
 - valid and invalid configuration fixtures;
 - nested and convergent group graphs;
 - contextual parameter expansion without shell interpretation;
@@ -170,6 +211,7 @@ is touched.
 ## 6. Deliverables
 
 - closed runtime and CLI contracts;
+- deterministic config provisioning through the shared `init` command;
 - aligned checked-in JSON Schemas;
 - human workflow documentation;
 - representative configuration examples;
@@ -178,6 +220,11 @@ is touched.
 ## 7. Acceptance Criteria
 
 - [ ] A new user can configure and run the validator from documentation alone.
+- [ ] A new user can install one fully authored config candidate without the
+      tool inventing project-specific tools, checks, suites, or groups.
+- [ ] Config initialization validates canonical path semantics, never
+      overwrites a different destination, and is idempotent for identical
+      bytes.
 - [ ] A human can identify repository mutations introduced by a validation run
       from that run's report.
 - [ ] Inspection exposes the planned operation without starting processes.

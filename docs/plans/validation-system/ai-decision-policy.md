@@ -2,20 +2,22 @@
 
 ## 1. Status And Purpose
 
-This document specifies the consumer-facing AI decision policy that Phase 4
-implements and every AI-Engineering process obeys. It is a cross-cutting
-contract, not an implementation phase or a validator execution contract.
+This document specifies the consumer-facing AI decision policy that Phase 3
+implements and every AI-Tool operation and AI-Engineering process obeys. It is
+a cross-cutting contract, not an implementation phase or a validator execution
+contract.
 
 The canonical public document is authored at:
 
 ```text
-docs/validation/flows/ai-engineering/decision-policy.md
+docs/validation/reference/ai-decision-policy.md
 ```
 
 The distributed skill receives the exact generated projection of that document
-and treats it as normative. `SKILL.md` and every AI-Engineering process
-reference must require the agent to load this contract before classifying or
-performing an effect governed by `.validation/policy.json`.
+and treats it as normative. `SKILL.md`, every AI-Tool operation, and every
+AI-Engineering process reference require the agent to load the immutable policy
+boundary before reading policy-controlled workspace data. They load the full
+contract before classifying or performing a governed effect.
 
 The document must define every category and every level explicitly. An agent
 must not infer, rename, merge, or locally reinterpret their meanings.
@@ -52,13 +54,12 @@ The consumer workspace has two policies with different owners and effects:
 | File | Responsibility | Consumer |
 | --- | --- | --- |
 | `.validation/config.json` | Defines the programs, arguments, composition, and repository-mutation detection used for validation | `workspace-validator` CLI and library |
-| `.validation/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or ends a related process | AI-Engineering Flow only |
+| `.validation/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or stops; also defines the two AI-Engineering continuation transitions | AI-Tool and AI-Engineering |
 
 `policy.json` never contributes commands, checks, suites, groups, arguments, or
-validation outcomes. The validation executor and planner do not discover,
-read, or interpret it. AI-Engineering validates its schema and digest before
-applying policy decisions. `config.json` remains the sole executable validation
-policy.
+validation outcomes. The validation executor and planner do not discover, read,
+or interpret it. Both AI flows validate its schema and digest before applying
+policy decisions. `config.json` remains the sole executable validation policy.
 
 ## 3. Canonical Policy Shape
 
@@ -124,32 +125,65 @@ Removal of an artifact or report supplied to an active process is invalid until
 that process ends. These lifecycle facts are fixed operational inputs to the
 category tables below; they are not inferred from a numeric level.
 
-## 4. Missing, Invalid, And Changed Policy
+## 4. Human Ownership, Validation, And Change
 
-On the first AI-Engineering process invocation, when `policy.json` does not exist,
-the agent invokes `workspace-validator policy init` for the explicit active
-workspace root. The deterministic command atomically creates and validates the
-canonical document above. This narrowly defined bootstrap write requires no
-separate approval because it establishes the most human-controlled decision
-levels and `human` continuation. When the policy already exists, the command
-validates it without modification.
+### 4.1 Non-Configurable Mutation Boundary
+
+`.validation/policy.json` is created and changed only by the human operator. No
+agent in either AI flow may create, edit, format, replace, delete, move, rename,
+restore, or otherwise mutate it. The prohibition includes direct file APIs,
+patches, shell or structured commands, scripts, VCS operations, generated
+candidate files intended for replacement, and indirect delegation to another
+tool or agent.
+
+This rule is outside and above `policy.json`. It cannot be weakened by level
+`0`, `processContinuation`, a category outcome, an explicit approval, or a user
+request asking the agent to perform the mutation. The agent may recommend
+specific values and explain an exact manual procedure, but the human enters and
+applies every effective value.
+
+`workspace-validator init --policy` is a human-operated provisioning command.
+It creates the missing canonical conservative document through the deterministic
+no-overwrite initialization contract. When the file exists, it validates and
+reuses it without modification. An agent may display this command but must never
+invoke it or ask for permission to invoke it.
+
+### 4.2 Preflight For Both AI Flows
+
+Every AI-Tool operation other than the narrowly read-only advisory `policy`
+operation, and every AI-Engineering process invocation, begins with
+`workspace-validator policy validate` for the explicit active workspace root.
+This read-only operation is part of AI preflight. A valid result fixes the exact
+path, schema version, and digest used for subsequent decisions.
+
+The advisory `AI-Tool/policy` operation may invoke `policy validate` while the
+document is missing or invalid. It is the only pre-policy AI operation and is
+limited to validation, explanation, and recommendations. It performs no
+workspace mutation, arbitrary command execution, persistent analytical write,
+or AI-Engineering process work.
+
+When `policy.json` is absent, every other AI operation stops before repository
+analysis, execution, mutation, or artifact creation. The agent routes to policy
+guidance and directs the human to run `workspace-validator init --policy`
+personally, review `processContinuation` and every category, and then report
+completion. The agent does not execute initialization even when the human offers
+approval.
 
 An existing malformed, unsupported, path-escaping, or internally inconsistent
-policy stops the AI-Engineering process before any governed effect. The agent
-reports the problem and does not silently replace the document or apply
-defaults.
+policy also stops every other AI operation. Policy guidance explains the
+diagnostics and may recommend field values, but only the human edits the file.
+Defaults are never applied over an existing document.
 
-The policy cannot authorize its own modification. Any change to
-`.validation/policy.json`, including lowering or raising a level, requires an
-explicit human request or a free-text human approval bound to the exact proposed
-diff. The initial safe creation is the only automatic policy mutation.
+After the human reports a manual creation or change, the requested operation
+runs `policy validate` again before continuing. No persistent reviewed marker is
+added. A policy change invalidates every cached authorization decision. It does
+not by itself invalidate domain or sensorium evidence because it does not change
+validation coverage.
 
-Each AI-Engineering process records the exact policy path, schema version, and
-SHA-256 digest used for its decisions. A policy change does not invalidate
-domain or sensorium evidence, because it does not change validation coverage.
-It does invalidate any cached authorization decision. A resumed process reloads
-the current policy through `workspace-validator policy validate`, using the
-same workspace root, and re-evaluates it before its next governed effect.
+AI-Engineering artifacts record the exact policy path, schema version, and
+SHA-256 digest used for their decisions. AI-Tool reports the current digest and
+applicable outcomes within its bounded response but creates no analytical
+persistence merely to record them.
 
 ## 5. Process Continuation
 
@@ -182,10 +216,11 @@ not create additional process-continuation relationships.
 
 ## 6. Decision Evaluation Model
 
-Before a governed effect, the agent constructs a bounded action preview that
+Before a governed effect in either AI flow, the agent constructs a bounded
+action preview that
 identifies:
 
-- current process and objective;
+- current flow, operation or process, and objective;
 - operation and exact target resources;
 - matching decision categories;
 - whether the action is explicitly in scope;
@@ -201,8 +236,8 @@ resource, and current environment rather than on the action name alone.
 
 An **eligible effect** is relevant to the current objective, permitted by every
 superior instruction and repository rule, supported by the available evidence,
-within the agent's actual permissions, and valid under all process
-preconditions. Level `0` automates only eligible effects; it does not make an
+within the agent's actual permissions, and valid under all applicable operation
+or process preconditions. Level `0` automates only eligible effects; it does not make an
 otherwise prohibited or unrelated effect eligible.
 
 Every applicable category evaluates independently to `auto` or `human`. A hard
@@ -213,20 +248,22 @@ evaluates to `stop`. Combine overlapping results in this order:
 stop > human > auto
 ```
 
-One human prompt may cover one coherent action set, but it must show every
-category that required human authority. Approval is bound to the presented
-targets and effects; it does not authorize later scope expansion. Prompts accept
-free text so the human can approve, reject, constrain, postpone, or report a
-manually completed action.
+One human prompt may cover one coherent eligible action set, but it must show
+every category that required human authority. Approval is bound to the presented
+targets and effects; it does not authorize later scope expansion or any policy
+mutation. Prompts accept free text so the human can approve, reject, constrain,
+postpone, or report a manually completed action.
 
-A precise initiating request can provide the required human authority for the
-exact action and scope it names. Invoking an AI process alone authorizes only
-that process's declared persistence outputs; it does not preauthorize config,
-source, dependency, command, network, external-state, VCS, data, or sensitive
-resource effects.
+A precise initiating request can provide the required human authority for an
+eligible exact action and scope it names. It never authorizes an agent to mutate
+policy. Invoking an AI process alone authorizes only that process's declared
+persistence outputs; it does not preauthorize config, source, dependency,
+command, network, external-state, VCS, data, or sensitive resource effects.
 
-Automatic and human-authorized decisions are recorded with policy digest,
-matched categories, action preview, result, and resulting evidence. Secrets and
+Automatic and human-authorized decisions carry the policy digest, matched
+categories, action preview, result, and resulting evidence. AI-Tool reports this
+information for its bounded request without creating process persistence.
+AI-Engineering records it in the applicable immutable artifact. Secrets and
 sensitive values are redacted from previews and decision records.
 
 ## 7. Numeric Decision Scale
@@ -254,7 +291,7 @@ into one synthetic level.
 | `0` | `autonomous` | Automatic execution of every eligible effect in the category |
 
 This table is orientation only. The category-specific definitions below are
-normative. A process must use the applicable category table rather than derive
+normative. An agent must use the applicable category table rather than derive
 behavior from the general labels. The names are documentation vocabulary; the
 JSON contract stores the integer values only.
 
@@ -263,7 +300,8 @@ JSON contract stores the integer values only.
 This category covers creating, editing, moving, renaming, or deleting files and
 directories in the consumer workspace. Declared process artifacts and exact
 report capture use their dedicated persistence contracts. Mutation of
-`policy.json` follows the fixed rule in Section 4.
+`policy.json` is excluded from every numeric level and follows the absolute
+human-only mutation rule in Section 4.
 
 | Level | Required behavior |
 | ---: | --- |
@@ -305,14 +343,16 @@ features, versions, lockfiles, runtimes, and toolchains.
 This category covers starting local programs and scripts outside the internal
 non-executing reasoning of the agent. Explicit validator selections remain
 commands and are classified here unless the current human request already
-authorizes that exact run. Selecting AI-Engineering preauthorizes only the
-bounded non-mutating compatibility check and persistence verification commands
-required to validate explicitly supplied process inputs. Invoking a process
-also authorizes the deterministic store command for its declared process
-artifact once every applicable persistence condition is satisfied. A decision
-that permits exact report persistence likewise authorizes the deterministic
-report store command. These narrow exceptions never extend to validation
-execution, repair, installation, or another command.
+authorizes that exact run. Selecting either AI flow preauthorizes only the
+bounded read-only compatibility and `policy validate` commands needed for its
+preflight. Selecting AI-Engineering additionally preauthorizes persistence
+verification commands required for explicitly supplied inputs. Neither flow
+preauthorizes `init --policy`. Invoking an AI-Engineering process also
+authorizes the deterministic store command for its declared process artifact
+once every applicable persistence condition is satisfied. A decision that
+permits exact report persistence likewise authorizes the deterministic report
+store command. These narrow exceptions never extend to initialization,
+validation execution, repair, installation, or another command.
 
 | Level | Required behavior |
 | ---: | --- |
@@ -475,14 +515,15 @@ The decision policy adjusts human involvement. It does not:
   permissions;
 - make an action relevant to the current objective merely because its level is
   `0`;
-- bypass process preconditions, artifact validation, report validation, or the
-  repository mutation checks configured for a validation run;
+- bypass operation or process preconditions, artifact validation, report
+  validation, or the repository mutation checks configured for a validation run;
 - permit the agent to expose sensitive values or persist them without the
   applicable decision outcomes, destination protections, and canonical
   lifecycle rules;
 - convert uncertainty about a human-owned product decision into automatic
   authority;
-- authorize the agent to modify `policy.json` itself.
+- authorize an agent to create, edit, format, replace, delete, move, rename,
+  restore, initialize, or otherwise mutate `policy.json` itself.
 
 When required facts are missing, the agent requests clarification. When an
 action is prohibited by a superior rule, it stops. These outcomes are not
@@ -502,26 +543,31 @@ The canonical public document must contain:
 - the level restrictiveness order `4 > 3 > 2 > 1 > 0` and the outcome
   restrictiveness order `stop > human > auto`;
 - action classification and restrictive combination rules;
-- explicit-request, free-text approval, audit, redaction, and policy-change
-  behavior;
+- explicit-request, free-text approval, audit, redaction, human-only policy
+  ownership, and manual policy-change behavior;
 - examples of one action matching multiple categories;
 - examples for Processes 0 through 3;
 - invalid-policy and missing-policy behavior;
 - the absolute boundaries above.
 
-The skill router loads a concise policy summary for every AI-Engineering process
-and loads the full document whenever an effect must be classified. Process
-references link to the canonical projected contract rather than restating
-level semantics independently.
+The skill router loads `references/policy-boundary.md` before every AI operation.
+The boundary is an exact concise projection of the human-only policy-mutation
+rule and the read-only bootstrap exception. The router loads the full normative
+document whenever an effect must be classified. AI-Tool and AI-Engineering
+references link to the canonical projected contract rather than restating level
+semantics independently.
 
 ## 10. Verification
 
 Schema, decision-table, and forward-agent fixtures cover:
 
-- missing policy and canonical level-4 creation;
+- missing policy blocking every non-policy AI operation before work, exact
+  human-facing initialization and review guidance, and direct human canonical
+  level-4 initialization;
 - explicit workspace-root selection, current-directory CLI default, and absence
   of parent, Git, or configuration-based root discovery;
-- read-only `policy validate` and idempotent non-overwriting `policy init`;
+- read-only `policy validate` and idempotent non-overwriting human-operated
+  `init --policy`;
 - malformed, unsupported, unknown-field, and path-escaping policy;
 - all `processContinuation` modes for both valid transitions;
 - prevention of continuation after failed or incomplete prerequisites;
@@ -531,7 +577,11 @@ Schema, decision-table, and forward-agent fixtures cover:
   winning;
 - exact initiating authority, partial approval, rejection, postponement, and
   manually completed actions;
-- mandatory human authority for policy mutation;
+- refusal by both AI flows to create, edit, format, replace, delete, move,
+  rename, restore, initialize, or indirectly mutate policy, including after an
+  explicit user request and under level `0`;
+- advisory policy guidance with no candidate file, patch, mutation command,
+  process artifact, or hidden persistence;
 - policy change during a resumable process and authorization re-evaluation;
 - redacted action previews and decision records;
 - non-sensitive, sensitive, approved, declined, and stopped canonical-report
@@ -544,8 +594,10 @@ Schema, decision-table, and forward-agent fixtures cover:
 - a level-4 policy that does not request duplicate approval for an exact action
   already authorized by the current human instruction.
 
-Forward tests give agents only the policy, current process inputs, and raw
-workspace evidence. They do not disclose the expected classification.
+Forward tests give agents only the policy when present, the current operation or
+process inputs, and raw workspace evidence. They do not disclose the expected
+classification. Missing-policy trials exercise the advisory policy operation and
+attempt to persuade the agent to perform a prohibited mutation.
 
 ## 11. Acceptance Criteria
 
@@ -557,11 +609,17 @@ workspace evidence. They do not disclose the expected classification.
 - [ ] The same action and policy produce the same required decision regardless
       of process or chat context.
 - [ ] Overlapping categories use `stop > human > auto`.
-- [ ] Missing policy creates only the canonical conservative policy.
+- [ ] Missing policy blocks every AI-Tool operation except read-only policy
+      guidance and blocks every AI-Engineering process until the human directly
+      initializes and reviews the decision settings.
 - [ ] Invalid policy fails closed without silent replacement.
-- [ ] Policy cannot authorize its own modification.
-- [ ] Every AI-Engineering decision records the exact policy digest and applicable
-      categories without recording secrets.
+- [ ] No AI operation mutates policy directly or indirectly, even after explicit
+      approval or under level `0`.
+- [ ] Policy guidance remains read-only and requires the human to apply every
+      effective value manually.
+- [ ] Every AI-Tool decision reports, and every AI-Engineering decision records,
+      the exact policy digest and applicable categories without recording
+      secrets.
 - [ ] Numeric levels select authority behavior without inventing storage fields
       absent from `policy.json`; persistence facts come from the canonical
       profile in this document.

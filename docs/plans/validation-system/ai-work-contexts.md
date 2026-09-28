@@ -89,11 +89,11 @@ human to transcribe them.
 The agent then:
 
 1. loads the workspace-validator skill, the requested AI-Engineering process
-   reference, and only the AI-Tool and knowledge references needed for it;
+   reference, the immutable policy boundary, and only the AI-Tool and knowledge
+   references needed for it;
 2. verifies CLI and skill compatibility;
-3. invokes `policy init` for the explicit active workspace root, validating the
-   existing `.validation/policy.json` or creating only the missing canonical
-   conservative document, and records its exact digest;
+3. invokes `policy validate` for the explicit active workspace root and records
+   the exact path, schema version, and digest of the existing valid policy;
 4. verifies every explicitly supplied artifact and report through the
    deterministic persistence commands;
 5. verifies the relationships and digests required by the requested process;
@@ -105,6 +105,14 @@ The agent then:
 9. classifies every other governed effect under all applicable decision
    categories and requests a free-text human decision exactly when the
    restrictive result is `human`.
+
+If Step 3 reports a missing policy, the process stops before Step 4. The agent
+routes to the advisory AI-Tool `policy` operation, asks the human to run
+`workspace-validator init --policy` personally, and explains that the human must
+review `processContinuation` and every decision level. An invalid policy also
+stops the process; the agent may explain diagnostics and recommend values but
+never edits or replaces the file. After the human reports manual initialization
+or correction, the process is invoked or resumed and validates the policy again.
 
 A later conversation does not need the preceding chat transcript. It needs the
 same explicit prerequisite files that the process contract requires. If a path,
@@ -124,7 +132,11 @@ The guide explains that the human:
   objective;
 - supplies exact prerequisite artifact paths when starting outside a direct
   process handoff;
-- owns and explicitly authorizes changes to `.validation/policy.json`;
+- initializes `.validation/policy.json` directly through
+  `workspace-validator init --policy`, then reviews and selects its continuation
+  and decision levels;
+- opens and changes `.validation/policy.json` manually; no agent performs that
+  action on the human's behalf;
 - provides domain decisions that repository evidence cannot establish;
 - answers policy-required free-text decisions and may constrain or perform the
   proposed action manually;
@@ -145,9 +157,12 @@ agent:
   it runs;
 - does not require access to previous chat history;
 - verifies every explicit prerequisite before loading its analytical content;
-- validates the decision policy through the deterministic policy commands for
-  the same explicit workspace root and follows its category tables without
-  process-specific reinterpretation;
+- validates the existing decision policy through the deterministic read-only
+  command for the same explicit workspace root, stops when it is absent or
+  invalid, and follows its category tables without process-specific
+  reinterpretation;
+- never creates, edits, formats, replaces, deletes, moves, restores, initializes,
+  or indirectly mutates the policy, even after an explicit request or approval;
 - resumes work from exact artifact and report paths rather than searching
   persistence directories;
 - rejects a sensorium whose domain or config references do not match the
@@ -196,6 +211,8 @@ Documentation and forward trials verify that:
 - a fresh setup conversation can perform recalibration from an explicitly
   supplied drift artifact;
 - missing or mismatched prerequisite paths stop with a precise explanation;
+- a missing policy stops before process work and produces exact
+  human-controlled initialization and review guidance;
 - no artifact or schema requires a chat or session identifier;
 - changing conversational organization does not change executable policy or
   validator results;

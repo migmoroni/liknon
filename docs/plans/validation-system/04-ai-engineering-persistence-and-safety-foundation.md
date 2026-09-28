@@ -4,22 +4,22 @@
 
 Define the AI-Engineering Flow as a safe orchestration layer that composes the
 completed Human Flow and AI-Tool Flow. Establish explicit immutable artifacts,
-single-file persistence, trust boundaries, authorization rules, and the
-consumer-owned AI decision policy before implementing domain analysis or
-remediation behavior.
+single-file persistence, trust boundaries, authorization rules, and process
+contracts over the consumer-owned AI decision policy established in Phase 3
+before implementing domain analysis or remediation behavior.
 
 The validation planner and executor remain unaware of this layer. They interpret
 only `.validation/config.json` and emit the normal validation report. Dedicated
-policy and persistence commands may validate fixed contracts and explicitly
-supplied files, but they never discover analytical context or influence an
-execution plan.
+persistence commands validate fixed contracts and explicitly supplied files,
+but they never discover analytical context or influence an execution plan.
 
 ## 2. Dependencies
 
 - Phase 1 provides stable CLI, configuration, report, and Human Flow contracts.
 - Phase 2 provides source-backed reasoning guidance and progressive disclosure.
-- Phase 3 provides the bounded AI-Tool operations that AI-Engineering composes
-  for configuration, execution, triage, and audit.
+- Phase 3 provides the human-owned AI decision policy, immutable
+  policy-mutation boundary, read-only policy guidance, and the bounded AI-Tool
+  operations that AI-Engineering composes.
 
 ## 3. Persistence Boundary
 
@@ -73,14 +73,14 @@ to the canonical process directory. Protected content that remains follows
 `validationReportPersistence`, `sensitiveDataPersistence` when applicable, and
 every category implicated by the destination permit the write.
 
-## 4. Deterministic Policy And Persistence Operations
+## 4. Policy Preflight And Persistence Operations
 
-Phase 4 adds deterministic, non-cognitive policy and persistence operations
-owned by the tool. Their public CLI shape is:
+Phase 3 provides human-operated `init --policy`, read-only `policy validate`,
+and the complete decision-policy contract. Phase 4 consumes those operations
+without adding another policy lifecycle. It adds these non-cognitive persistence
+operations:
 
 ```sh
-workspace-validator policy validate [--workspace <workspace-path>] --format=json
-workspace-validator policy init [--workspace <workspace-path>] --format=json
 workspace-validator persistence verify artifact <path> [--workspace <workspace-path>] --format=json
 workspace-validator persistence verify report <path> [--workspace <workspace-path>] --format=json
 workspace-validator persistence store artifact --input <candidate-path> [--workspace <workspace-path>] --format=json
@@ -88,10 +88,17 @@ workspace-validator persistence store report --input <candidate-path> [--workspa
 ```
 
 The equivalent library API uses typed inputs and results. These operations do
-not interpret domain meaning, choose an artifact, evaluate AI policy, or execute
-configured validation commands.
+not interpret domain meaning, choose an artifact, evaluate AI policy, mutate
+policy, or execute configured validation commands.
 
-Every command above uses one workspace-boundary contract:
+Before an AI-Engineering process uses these operations, it loads the mandatory
+policy boundary and invokes Phase 3 `policy validate`. It never invokes
+`init --policy`, creates a policy candidate, edits policy, or delegates policy
+mutation. Missing or invalid policy routes to the read-only AI-Tool `policy`
+operation and then stops until the human performs the required action manually.
+
+Every command above and Phase 3 policy preflight use one workspace-boundary
+contract:
 
 - `--workspace` identifies the workspace root; when omitted, it defaults exactly
   to the process current working directory;
@@ -109,31 +116,8 @@ Every command above uses one workspace-boundary contract:
   silently changing the selected boundary.
 
 The library API has no current-directory fallback. It receives one validated
-workspace-root value explicitly and uses that same value for policy,
+workspace-root value explicitly and uses that same value for policy preflight,
 persistence, containment, and destination resolution.
-
-`policy validate` reads only
-`<workspace>/.validation/policy.json`, validates its schema and semantic
-invariants, computes SHA-256 over its exact bytes, and returns a bounded
-versioned result containing the normalized path, schema version, digest, and
-validation status. A missing document is a typed non-success result. The command
-never creates, modifies, or replaces a file.
-
-`policy init` is an idempotent bootstrap operation for that same fixed path:
-
-1. when the document is absent, it securely creates the canonical `.validation/`
-   directory when needed and atomically creates the exact bundled conservative
-   policy without overwriting another writer;
-2. when the document already exists, it never alters it;
-3. in both cases, it opens the resulting file, validates the exact bytes under
-   the normal policy contract, and returns the same path, schema version, and
-   digest as `policy validate`, plus whether creation occurred;
-4. a malformed, unsupported, symlinked, or internally inconsistent existing
-   policy fails closed and is never replaced with defaults.
-
-Neither policy command classifies or authorizes later AI actions. The narrowly
-defined automatic bootstrap permission belongs to the AI-Engineering contract;
-the CLI only performs the deterministic operation requested by its caller.
 
 `persistence verify artifact`:
 
@@ -211,7 +195,7 @@ Repository policy is:
 - `reports/`, `incidents/`, and `drift/` contain local execution evidence or
   operational memory and must be ignored;
 - consumer policy may exclude every AI-Engineering persistence directory without
-  affecting Human Flow or AI-Tool Flow.
+  affecting Human Flow or the non-persistent operation of AI-Tool.
 
 Before writing `reports/`, `incidents/`, or `drift/` in a Git workspace, the
 store operation verifies through Git that the concrete destination is ignored.
@@ -278,20 +262,29 @@ Canonical schemas and fixtures belong to the tool, ship in the source package
 and skill bundle as declared resources, and are tested for exact consistency.
 Consumer workspaces store artifact instances, not schema copies.
 
-## 8. Policy Bootstrap And Validation
+## 8. Policy Presence And Validation
 
 The complete policy contract is defined by
 [AI Decision Policy](ai-decision-policy.md). At the start of every
-AI-Engineering process invocation, the agent invokes `policy init` with the
-explicit active workspace root. The command validates the existing document or
-atomically creates and validates the exact canonical conservative policy when it
-is absent. The returned path, schema version, and digest become the process's
+AI-Engineering process invocation, the agent loads the immutable policy boundary
+and invokes `policy validate` with the explicit active workspace root. A valid
+result supplies the path, schema version, and digest used as the process's
 initial policy identity.
 
+When the policy is missing, the process stops before loading analytical inputs
+or producing an artifact. The agent routes to the advisory AI-Tool `policy`
+operation, explains that both AI flows require a consumer-owned decision policy,
+and directs the human to run `workspace-validator init --policy` personally.
+The human reviews every category and `processContinuation` value before invoking
+or resuming the process. The agent never runs initialization or writes policy.
+After the human reports completion, the resumed process runs `policy validate`
+again.
+
 An existing malformed, unsupported, path-escaping, or internally inconsistent
-policy stops the process. The policy cannot authorize its own modification.
-Every later policy change requires an explicit human request or free-text human
-approval bound to the exact proposed diff.
+policy stops the process. The advisory policy operation may explain diagnostics
+and recommend manual field changes, but no AI flow creates, edits, formats,
+replaces, deletes, moves, restores, or otherwise mutates the document. This
+prohibition cannot be overridden by approval or policy level.
 
 Each artifact records the exact policy schema version and SHA-256 digest used
 for its decisions. Before a later governed effect, a resumed or long-running
@@ -319,16 +312,17 @@ and `.validation/policy.json`. Persistence artifacts remain non-executable data.
 
 ## 10. Authorization Model
 
-Implement the complete contract in
-[AI Decision Policy](ai-decision-policy.md). Its canonical public projection is
-an absolute rule for every bundled AI-Engineering process. Process references
-link to it rather than redefining category or level semantics.
+Use the complete contract implemented in Phase 3 and specified by
+[AI Decision Policy](ai-decision-policy.md). Its canonical public projection and
+mandatory policy boundary are absolute rules for every bundled AI-Engineering
+process. Process references link to them rather than redefining category, level,
+or policy-mutation semantics.
 
 | Action | Authority |
 | --- | --- |
 | Verify an explicitly supplied policy, artifact, or report | Covered by the analysis request; sensitive resources still evaluate `sensitiveDataAccess` |
-| Create a missing canonical `policy.json` | Automatic only for the exact conservative document |
-| Modify an existing `policy.json` | Exact explicit human request or free-text approval; the policy cannot authorize itself |
+| Explain policy or recommend field values | Delegate to the read-only AI-Tool `policy` operation |
+| Create, modify, move, restore, or delete `policy.json` | Human-only action; every agent is prohibited from performing or delegating it, regardless of approval or configured level |
 | Store a bounded redacted process artifact | Declared result of the invoked process; evaluate `sensitiveDataPersistence` when protected values remain |
 | Store an exact validation report | Evaluate `validationReportPersistence`, `sensitiveDataPersistence` when applicable, and every category implicated by the destination |
 | Continue from Process 0 to Process 1 | Apply `processContinuation` after successful artifact persistence and Process 1 precondition validation |
@@ -353,17 +347,16 @@ and add direct references for AI-Engineering:
 ```text
 references/
 ├── knowledge/
+├── policy-boundary.md
 ├── ai-tool/
 │   ├── index.md
+│   ├── policy.md
 │   ├── run.md
 │   ├── triage.md
 │   ├── config.md
 │   └── audit.md
 └── ai-engineering/
     ├── index.md
-    ├── policy.md
-    ├── contracts/
-    │   └── decision-policy.md
     ├── process-0-domain.md
     ├── process-1-sensorium.md
     ├── process-2-incident.md
@@ -371,9 +364,10 @@ references/
 ```
 
 Each process reference describes one process, requires explicit artifact inputs,
-routes operational work through the applicable AI-Tool reference, and links only
-the knowledge categories it needs. The AI-Engineering index is selected only
-when the human invokes that flow or one of its processes.
+loads `policy-boundary.md`, routes policy guidance and operational work through
+the applicable AI-Tool reference, and links only the knowledge categories it
+needs. The AI-Engineering index is selected only when the human invokes that
+flow or one of its processes.
 
 The manifest remains the skill version and compatibility source. Artifacts
 record the producing skill version so a later process can reject incompatible
@@ -382,7 +376,12 @@ inputs.
 ## 12. Safety Behavior
 
 - Verify CLI and skill compatibility before process work.
-- Validate the current policy and every explicitly supplied artifact or report.
+- Validate the current policy before process work and every explicitly supplied
+  artifact or report before use.
+- Stop on a missing or invalid policy, route to read-only policy guidance, and
+  require human-performed initialization or correction.
+- Never create, edit, format, replace, delete, move, rename, restore, initialize,
+  or indirectly mutate `policy.json`, even after explicit approval.
 - Stop rather than search for or guess a missing input.
 - Never select an artifact by filename order or modification time.
 - Never repair, restore, delete, or accept a repository change merely because it
@@ -420,9 +419,13 @@ Create schema, persistence, and process fixtures for:
   unavailable to Git, plus tracked and ignored domain or sensorium artifacts;
 - explicit artifact selection when multiple valid files exist;
 - stale sensorium inputs caused by domain or config digest mismatch;
-- read-only policy validation; idempotent and concurrent missing-policy
-  bootstrap; invalid-policy rejection without replacement; policy self-mutation
-  prevention; and changed-policy reevaluation;
+- read-only policy validation; missing-policy process rejection with exact
+  human-operated `init --policy` guidance; invalid-policy rejection without
+  replacement; changed-policy reevaluation; and delegation of explanation to
+  `AI-Tool/policy`;
+- refusal to create, edit, format, replace, delete, move, rename, restore,
+  initialize, or indirectly mutate policy, including after explicit approval and
+  under policy level `0`;
 - report and sensitive persistence at every applicable decision level;
 - denied or stopped persistence that leaves no canonical file;
 - concurrent writes of the same and different immutable artifacts;
@@ -437,15 +440,16 @@ the expected conclusion or hidden answer.
 
 ## 14. Acceptance Criteria
 
-- [ ] Human Flow and AI-Tool Flow remain complete without policy, reports, or AI
-      persistence.
+- [ ] Human Flow remains complete without policy, reports, or AI persistence;
+      the advisory AI-Tool policy operation remains available when policy is
+      missing, while every other AI operation stops.
 - [ ] The execution planner interprets only `config.json`.
 - [ ] Every AI-Engineering process receives exact artifact and report inputs and
       uses only those supplied inputs.
 - [ ] Every completed process creates one immutable UUIDv7 artifact.
 - [ ] Artifact and report storage use one validated atomic file operation.
-- [ ] Policy validation and bootstrap are deterministic CLI and library
-      operations, and bootstrap never overwrites an existing policy.
+- [ ] Phase 3 policy validation and human-only initialization remain the only
+      policy lifecycle operations consumed by this phase.
 - [ ] Every policy and persistence operation uses one explicit canonical
       workspace boundary; the CLI defaults only to its current directory, while
       the library API always requires the root.
@@ -456,8 +460,11 @@ the expected conclusion or hidden answer.
       applicable persistence decision permits the write.
 - [ ] Related processes implement all three continuation modes.
 - [ ] Untrusted repository content cannot authorize an action.
-- [ ] Missing policy initializes conservatively, invalid policy fails closed,
-      and policy cannot authorize its own modification.
+- [ ] Missing or invalid policy blocks AI-Engineering, routes to advisory policy
+      guidance, and remains blocked until the human manually initializes or
+      corrects and reviews the file.
+- [ ] AI-Engineering cannot mutate policy directly or indirectly under any
+      approval, policy level, continuation mode, or process state.
 - [ ] Every decision records the exact policy digest without storing secrets.
 - [ ] Skill references load progressively and remain within their declared
       compatibility range.
