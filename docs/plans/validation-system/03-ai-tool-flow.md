@@ -361,6 +361,12 @@ continuation modes, restrictive combination, canonical persistence facts, and
 absolute policy-mutation prohibition. The skill projection is generated from
 that canonical source rather than maintained independently.
 
+Register every standard, primary research work, and official reference used by
+the policy contract in `docs/validation/knowledge/SOURCES.md` before citing it.
+Add only sources the contract actually uses; do not expand the shared knowledge
+tree merely to summarize those sources. Regenerate the exact distributed
+knowledge projection after updating the register.
+
 The root validation index clearly distinguishes AI-Tool from Human Flow and
 AI-Engineering. It states that both AI flows require a valid human-owned policy,
 while the read-only `policy` operation remains available to help the human
@@ -395,6 +401,10 @@ Test at minimum:
 - read-only `policy validate` for missing, valid, invalid, unsupported,
   symlinked, path-escaping, and concurrently changed documents;
 - policy category and continuation semantics from the normative contract;
+- complete source-register entries and valid primary links for every policy
+  design source actually cited;
+- byte-equivalence between the updated canonical source register and its
+  distributed knowledge projection;
 - policy guidance for missing, invalid, and valid documents;
 - refusal to create, edit, format, replace, delete, move, rename, restore, or
   indirectly mutate policy, including after explicit user authorization and
@@ -433,6 +443,7 @@ requests to mutate policy.
 - policy schema, conservative default, read-only validation, and human-only
   deterministic initialization;
 - canonical AI decision-policy documentation and generated skill projection;
+- source-register entries for the policy contract's cited design foundations;
 - mandatory `policy-boundary.md` skill reference;
 - namespaced AI-Tool skill references, including advisory `policy.md`;
 - top-level flow routing;

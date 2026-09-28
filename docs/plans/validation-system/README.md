@@ -245,7 +245,7 @@ supported.
 | AI-Tool and AI-Engineering authority plus AI-Engineering continuation | Human-owned `.validation/policy.json`, interpreted exclusively by the normative AI decision-policy contract |
 | Concrete validation outcome | Versioned JSON report emitted by the CLI and, when persistence is permitted for an AI-Engineering run, stored byte-for-byte under `.validation/reports/` |
 | CLI and configuration mechanics | Runtime contracts, schemas, and canonical reference documentation |
-| Validation concepts and tool-selection evidence | Canonical shared knowledge under `docs/validation/knowledge/` |
+| Validation concepts and tool-selection evidence | Curated canonical shared knowledge and linked primary sources under `docs/validation/knowledge/` |
 | Human selection and governance of flows | Human-only operator guidance under `docs/validation/human/` |
 | AI-Tool operation | Routed references under `skills/workspace-validator/references/ai-tool/` |
 | AI-Engineering process behavior | Routed references under `skills/workspace-validator/references/ai-engineering/` |
@@ -406,7 +406,7 @@ validation passed.
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
 | 1 | [Human Flow Completion](01-human-flow-completion.md) | Current runtime | Independently complete human workflow and deterministic config initialization |
-| 2 | [Shared Validation Knowledge](02-shared-validation-knowledge.md) | Phase 1 | Source-backed guidance for humans and agents |
+| 2 | [Shared Validation Knowledge](02-shared-validation-knowledge.md) | Phase 1 | Concise, source-backed, incrementally extensible guidance for humans and agents |
 | 3 | [AI-Tool Flow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1-2 | Human-owned policy foundation and five bounded policy-governed agent operations without AI-Engineering processes or persistence |
 | 4 | [AI-Engineering Persistence And Safety Foundation](04-ai-engineering-persistence-and-safety-foundation.md) | Phases 1-3 | Explicit artifact persistence, process trust boundaries, and AI-Engineering composition over the existing policy contract |
 | 5 | [AI-Engineering Domain And Coverage Setup](05-ai-engineering-domain-and-coverage-setup.md) | Phase 4 | Automatically persisted domain and sensorium processes |
