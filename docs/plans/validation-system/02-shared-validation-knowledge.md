@@ -122,7 +122,7 @@ Describe independent evidence dimensions, including:
 - persistence, schema, and generated-output validation;
 - accessibility;
 - dependency, license, and supply-chain security;
-- repository integrity and reproducibility;
+- repository consistency and reproducibility;
 - platform and runtime support;
 - performance, load, property-based, fuzz, and mutation testing.
 
@@ -210,9 +210,9 @@ The skill loads only the references relevant to the current decision:
   the workspace under analysis.
 
 AI-Tool and AI-Engineering references remain distinct from shared knowledge.
-Loading knowledge never selects a flow, starts a process, creates state, or
-grants authority. Later phases may route to the generated knowledge projection
-without modifying it.
+Loading knowledge never selects a flow, starts a process, writes an artifact,
+or grants authority. Later phases may route to the generated knowledge
+projection without modifying it.
 
 ## 9. Tests
 
@@ -242,5 +242,5 @@ without modifying it.
 ## 11. Handoff To Phase 3
 
 Phase 3 uses this knowledge base in the AI-Tool Flow while keeping each
-operational skill bounded and stateless. It does not turn educational material
+operational skill bounded to one request. It does not turn educational material
 into executable policy or AI-Engineering context.

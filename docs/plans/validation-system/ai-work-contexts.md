@@ -23,18 +23,15 @@ work. It may be one chat, a sequence of chats, or another agent session model.
 It is not a workspace directory, execution environment, persisted artifact
 type, or security boundary.
 
-Chat identity and chat history are not sources of truth. They are not stored in
-`.validation/persistence/`, referenced by `.validation/state.json`, or required
-to resume a process. The agent reconstructs the required working context from
-current user instructions, the installed skill, repository evidence, the
-latest deterministic integrity inspection, and validated persistence
-artifacts.
+Chat identity and chat history are not process inputs. Continuity comes from
+the exact domain, sensorium, incident, drift, and report artifacts supplied to
+an invocation. Each artifact carries its own explicit references and digests.
 
 ## 3. Recommended Organization
 
-For sustained work, recommend two conversational contexts:
+For sustained work, recommend two conversational contexts.
 
-### Setup Context
+### 3.1 Setup Context
 
 Use one focused context for Processes 0 and 1:
 
@@ -45,11 +42,12 @@ Use one focused context for Processes 0 and 1:
 - reconciliation with `.validation/config.json`.
 
 These processes benefit from sharing one conversational context because
-coverage design directly depends on the domain model it is evaluating. After
-Process 0 is persisted, the agent applies `processContinuation`: it proceeds for
-`auto`, asks for `human`, or ends without a continuation prompt for `stop`.
+coverage design directly depends on the domain model it evaluates. After
+Process 0 persists its result, the agent applies `processContinuation`: it
+proceeds for `auto`, asks for `human`, or ends without a continuation prompt for
+`stop`.
 
-### Operational Context
+### 3.2 Operational Context
 
 Use another focused context for Processes 2 and 3:
 
@@ -61,69 +59,61 @@ Use another focused context for Processes 2 and 3:
 
 These processes benefit from sharing one conversational context because
 incident evidence, remediation results, passing reports, and drift analysis
-form one operational sequence. After Process 2 reaches and persists a passing
-verified outcome, the agent applies the same continuation policy before Process
-3.
+form one operational sequence. After Process 2 persists a passing verified
+outcome, the agent applies the same continuation policy before Process 3.
 
 This two-context organization is a quality recommendation. It is not a
-required topology and does not change process semantics.
-
-The two handoffs explain why these pairings are useful, but they do not bind a
-handoff to the current chat. Automatic continuation may remain in the current
-context, a human decision may continue or postpone it, and the next process may
-always be invoked later from a fresh context when its preconditions hold.
+required topology and does not change process semantics. Automatic continuation
+may remain in the same conversation. A human may continue immediately,
+postpone the next process, or invoke it later from another conversation by
+supplying its exact prerequisites.
 
 ## 4. Unified Context
 
-A human may run Processes 0 through 3 in one chat. This remains fully supported
-and produces the same artifacts, authorization boundaries, CLI behavior, and
-report semantics.
+A human may run Processes 0 through 3 in one conversation. This remains fully
+supported and produces the same artifacts, authorization boundaries, CLI
+behavior, and report semantics.
 
 A unified context can be practical for short work, initial exploration, or an
-incident that immediately exposes a coverage assumption requiring review. The
-human may start a fresh chat whenever the conversation becomes long, changes
-purpose, or accumulates irrelevant assumptions.
+incident that exposes a coverage assumption requiring immediate review. The
+human may start a fresh conversation whenever the discussion becomes long,
+changes purpose, or accumulates irrelevant assumptions.
 
 ## 5. Invocation And Continuity
 
-The human invokes the required AI-Engineering process and states the current
-goal.
+The human invokes the required AI-Engineering process, states the immediate
+goal, and supplies the exact prerequisite artifact paths. A direct process
+handoff may pass paths returned by the preceding process without asking the
+human to transcribe them.
+
 The agent then:
 
-1. loads the workspace-validator skill, the AI-Engineering process reference,
-   and only the AI-Tool and knowledge references needed for that process;
-2. runs `workspace-validator integrity check`;
-3. when that inspection reports changes, inspects the deterministic diff and
-   records a bounded AI assessment linked to the exact inspection before using
-   existing analytical context, without repairing files or accepting a new
-   baseline;
-4. validates `.validation/policy.json` and loads the normative AI
-   decision-policy contract;
-5. reads current validated context from `.validation/persistence/` and the
-   AI-owned namespace of `.validation/state.json` when the
-   invoked process is persistent;
-6. verifies linked repository, configuration, and exact report evidence,
-   including the path and digest in local operational state;
-7. performs the invoked process;
-8. saves the completed bounded redacted process result, subject to
-   `sensitiveDataPersistence` when protected content must remain;
-9. applies `processContinuation` after Process 0 or after a passing verified
+1. loads the workspace-validator skill, the requested AI-Engineering process
+   reference, and only the AI-Tool and knowledge references needed for it;
+2. verifies CLI and skill compatibility;
+3. invokes `policy init` for the explicit active workspace root, validating the
+   existing `.validation/policy.json` or creating only the missing canonical
+   conservative document, and records its exact digest;
+4. verifies every explicitly supplied artifact and report through the
+   deterministic persistence commands;
+5. verifies the relationships and digests required by the requested process;
+6. performs only the invoked process and its authorized effects;
+7. validates and stores one new immutable UUIDv7 process artifact, applying
+   `sensitiveDataPersistence` when protected content remains;
+8. applies `processContinuation` after Process 0 or after a passing verified
    Process 2 result;
-10. classifies every other governed effect under all applicable decision
+9. classifies every other governed effect under all applicable decision
    categories and requests a free-text human decision exactly when the
    restrictive result is `human`.
 
-The human does not need to reproduce an earlier chat or manually copy its full
-history. If required state is missing, stale, or inconsistent, the agent
-reports that condition and gathers only the evidence needed to continue safely.
-Ordinary bounded redacted process-result persistence needs no additional
-prompt; report persistence and protected content follow their dedicated
-decision categories.
+A later conversation does not need the preceding chat transcript. It needs the
+same explicit prerequisite files that the process contract requires. If a path,
+digest, relationship, or policy is missing or invalid, the agent reports the
+specific prerequisite and stops before relying on that evidence.
 
-When the current domain has replaced the domain referenced by the preceding
-sensorium, the agent treats the explicit `revalidation_required` state as a
-Process 1 prerequisite. It does not use the preceding sensorium to begin an
-operational process.
+Process artifacts are immutable. A correction creates another artifact and the
+caller chooses that exact file in a later invocation. The agent never selects
+an artifact from directory order or filename recency.
 
 ## 6. Human Responsibilities
 
@@ -132,17 +122,18 @@ The guide explains that the human:
 - chooses whether to separate or combine conversational contexts;
 - invokes the desired AI-Engineering process and supplies its immediate
   objective;
+- supplies exact prerequisite artifact paths when starting outside a direct
+  process handoff;
 - owns and explicitly authorizes changes to `.validation/policy.json`;
-- explicitly initializes or accepts an integrity baseline when desired;
 - provides domain decisions that repository evidence cannot establish;
 - answers policy-required free-text decisions and may constrain or perform the
   proposed action manually;
-- may correct AI context without approving its creation;
 - decides `0 -> 1` and `2 -> 3` handoffs when
   `processContinuation` is `human`.
 
-The human does not manage artifact IDs or report digests, select the lexically
-newest file, or keep a chat alive solely to preserve continuity.
+The human does not need to manage artifact IDs or digests manually during a
+direct handoff, select files by recency, or keep a conversation alive solely to
+preserve continuity.
 
 ## 7. Agent Responsibilities
 
@@ -150,29 +141,25 @@ This section tells the human what behavior to expect. It is descriptive
 operator guidance, not an operational skill route. The guide explains that the
 agent:
 
-- does not infer process semantics or authority from which chat it is running
-  in;
+- does not infer process semantics or authority from the conversation in which
+  it runs;
 - does not require access to previous chat history;
-- uses persistence as the continuity mechanism between conversations;
-- begins every operation with the deterministic integrity check;
-- never repairs detected changes or accepts a new integrity baseline merely
-  because the check found them;
-- records a bounded assessment tied to the exact changed inspection before
-  relying on existing AI-Engineering context;
-- validates the decision policy and follows its category tables without
+- verifies every explicit prerequisite before loading its analytical content;
+- validates the decision policy through the deterministic policy commands for
+  the same explicit workspace root and follows its category tables without
   process-specific reinterpretation;
-- validates current references before relying on them;
-- resumes operational work from the exact report reference in local
-  operational state rather than searching the report directory;
-- rejects operational state whose domain, sensorium, or config references no
-  longer match current setup state;
-- writes bounded redacted process results without a separate persistence
-  prompt, while applying `sensitiveDataPersistence` to protected content that
-  remains;
-- treats a persisted result as context and applies `processContinuation` before
-  either related next process;
-- preserves normal authorization boundaries outside persistence;
-- can recommend changing conversational context for clarity but never makes it
+- resumes work from exact artifact and report paths rather than searching
+  persistence directories;
+- rejects a sensorium whose domain or config references do not match the
+  invocation;
+- writes one bounded redacted process result without a separate ordinary
+  persistence prompt, while applying `sensitiveDataPersistence` to protected
+  content that remains;
+- treats a persisted result as evidence and applies `processContinuation`
+  before either related next process;
+- preserves normal authorization boundaries outside declared process-result
+  persistence;
+- may recommend changing conversational context for clarity but never makes it
   a prerequisite for validation.
 
 ## 8. Documentation Requirements
@@ -183,16 +170,15 @@ The public guide must:
 - present the unified context as fully supported;
 - distinguish conversational context from execution environment and consumer
   workspace;
-- explain that every AI operation checks workspace integrity first and that
-  baseline initialization or acceptance is always explicit;
 - show separate-context and unified-context diagrams;
-- explain that persistence, not chat history, provides continuity;
-- explain all three continuation states and that only `human` produces a
+- explain explicit artifact handoff within one conversation and across fresh
+  conversations;
+- explain all three continuation modes and that only `human` produces a
   free-text handoff decision;
 - link to the normative AI decision-policy document without duplicating or
   paraphrasing its category-level tables;
 - avoid provider-specific chat features or assumptions;
-- avoid implying that the CLI reads AI persistence;
+- avoid implying that the validation planner or executor reads AI persistence;
 - link to the AI-Engineering Flow, authorization model, Human Flow, and AI-Tool
   Flow without duplicating their contracts;
 - remain outside the distributed skill routes so agent behavior never depends
@@ -202,23 +188,18 @@ The public guide must:
 
 Documentation and forward trials verify that:
 
-- one session can complete all four processes;
-- a fresh session can continue with Process 1 after Process 0;
-- a separate operational session can continue with Processes 2 and 3 after
-  setup;
-- a fresh setup session can perform recalibration after a drift recommendation;
-- a fresh operational session resolves the exact stored report without human
-  report selection;
-- each fresh or continued AI operation checks integrity before loading
-  analytical context;
-- a changed integrity inspection is assessed without implicit repair or
-  baseline acceptance;
-- domain replacement requires a fresh Process 1 result before Process 2 or
-  Process 3;
+- one conversation can complete all four processes;
+- a fresh conversation can invoke Process 1 from an explicitly supplied Process
+  0 artifact;
+- a separate operational conversation can invoke Process 2 or Process 3 from
+  exact setup artifacts and report evidence;
+- a fresh setup conversation can perform recalibration from an explicitly
+  supplied drift artifact;
+- missing or mismatched prerequisite paths stop with a precise explanation;
 - no artifact or schema requires a chat or session identifier;
 - changing conversational organization does not change executable policy or
   validator results;
 - `auto`, `human`, and `stop` handoffs preserve the completed preceding process
   and behave consistently across conversational contexts;
-- decision-category outcomes remain identical when the same action and policy
-  are evaluated in a different chat.
+- decision-category outcomes remain identical when the same action, inputs,
+  and policy are evaluated in a different conversation.

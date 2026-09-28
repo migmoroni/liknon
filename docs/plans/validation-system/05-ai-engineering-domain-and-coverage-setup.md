@@ -13,17 +13,16 @@ These processes run at onboarding, after a domain-relevant change, when the
 human directs the agent to reassess them, or after a drift assessment recommends
 recalibration. They do not run before every normal validation.
 
-Every invocation begins with `workspace-validator integrity check`. A changed
-inspection is assessed and recorded against its exact inspection digest before
-existing domain or sensorium context is used. Detection never authorizes repair
-or baseline acceptance.
+Every invocation verifies CLI and skill compatibility, validates the current
+decision policy, and validates each explicitly supplied artifact before using
+its content.
 
-## 2. Dependency
+## 2. Dependencies
 
-Phase 4 provides safe process-result persistence, governed storage,
-authorization boundaries, and AI-Engineering routing contracts. Phase 3
-provides the AI-Tool operations that these processes compose. Phase 2 provides
-the source-backed validation model used to reason about evidence.
+Phase 4 provides explicit-input artifact validation, single-file persistence,
+governed report storage, authorization boundaries, and AI-Engineering routing.
+Phase 3 provides the AI-Tool operations that these processes compose. Phase 2
+provides the source-backed validation model used to reason about evidence.
 
 ## 3. Process 0: Domain
 
@@ -34,17 +33,17 @@ The agent begins with:
 - workspace instructions and declared product documentation;
 - repository manifests and lockfiles;
 - a bounded directory inventory;
-- the validated `.validation/policy.json` and its digest;
-- the latest validated `.validation/state.json` integrity inspection and any
-  AI observation linked to it;
+- the `.validation/policy.json` path and digest returned by `policy init` for the
+  explicit active workspace root;
 - the current `.validation/config.json`, when present;
 - build, packaging, persistence, deployment, and release documentation relevant
   to the product;
-- current domain state, when recalibrating;
+- an explicitly supplied preceding domain artifact when recalibrating;
 - answers provided by the human operator.
 
-The initial directory inventory is discovery evidence, not a fixed depth limit.
-The agent follows only paths needed to substantiate a conclusion.
+The directory inventory is discovery evidence, not a fixed depth limit. The
+agent follows only paths needed to substantiate a conclusion. A preceding domain
+artifact is optional evidence and must be supplied explicitly.
 
 ### 3.2 Domain Payload
 
@@ -66,66 +65,53 @@ reasoning records the concrete consequence, likelihood basis, affected asset,
 and uncertainty. Domain-specific external levels retain their native standard,
 version, and scope.
 
-### 3.3 Process Completion And Human Input
+### 3.3 Completion And Human Input
 
 When repository evidence cannot establish a necessary domain decision, request
 that input from the human and include the answer as human-provided evidence.
-When the process completes:
+When Process 0 completes:
 
-1. write the immutable domain artifact;
-2. validate its shape, references, bounds, and digest;
-3. atomically update the `aiEngineering` namespace of `state.json`, using its
-   preceding revision, so the new domain becomes current and the
-   sensorium state becomes `missing` when no sensorium exists, or
-   `revalidation_required` when a current sensorium is bound to the preceding
-   domain;
-4. present the product and deployment model, highest-consequence failure
-   scenarios, invariants, unresolved questions, weakly supported assumptions,
-   artifact path, and digest;
-5. apply `processContinuation`: start Process 1 for `auto`, suggest it and wait
-   for a free-text decision for `human`, or end without a continuation prompt
-   for `stop`.
+1. generate a UUIDv7 and assemble one bounded redacted domain artifact;
+2. validate its schema, references, bounds, and digest;
+3. persist it through `workspace-validator persistence store artifact` using
+   the same explicit workspace root;
+4. present its path and digest together with the product model,
+   highest-consequence scenarios, invariants, unresolved questions, and weakly
+   supported assumptions;
+5. apply `processContinuation`: pass that exact domain artifact to Process 1 for
+   `auto`, suggest Process 1 and wait for a free-text decision for `human`, or
+   end without a continuation prompt for `stop`.
 
-No separate authorization is required to write a bounded redacted artifact or
-update its pointer. Protected content that remains necessary follows
-`sensitiveDataPersistence`. If the human corrects, constrains, or supplements
-the result, rerun the process with that input, write a new artifact, and update
-the pointer to the new validated result. Do not begin Process 1 merely because
-Process 0 completed or its state update succeeded: continuation must resolve to
-`auto` or receive an accepting human response, and every Process 1 precondition
-must hold. A declined, postponed, or `stop` handoff leaves Process 0 complete
-and allows Process 1 to be invoked later from any work context.
+No separate authorization is required for the bounded redacted process result.
+Protected content that remains follows `sensitiveDataPersistence`. A human
+correction reruns Process 0 and creates another immutable artifact; it never
+rewrites the preceding one.
 
-Every replacement of the current domain reference invalidates the current
-sensorium and creates a bounded observation linked to the current integrity
-inspection, even when the preceding sensorium file remains available for audit.
-The transition and domain pointer update are one atomic revision-checked state
-operation, so no observable state can pair a new domain with a sensorium
-validated for the preceding domain.
-
-Any `operational-state.json` linked to the preceding domain or sensorium becomes
-stale by reference mismatch. It remains local audit context and cannot be
-resumed. After Process 1, a later operational process starts with a new
-operation and report linkage.
+A completed domain artifact remains valid evidence for its recorded repository
+and policy context. Creating another domain artifact does not mutate it. An
+operational process uses only the exact domain and sensorium paths supplied for
+that invocation and requires their declared relationship to match.
 
 ## 4. Process 1: Sensorium
 
-`sensorium` means the AI's current validation-design memory. It is not a list
-of commands consumed by the CLI.
+`sensorium` means one immutable validation-design analysis. It is not a list of
+commands consumed by the CLI.
 
 ### 4.1 Inputs
 
-- current domain artifact;
-- validated AI decision policy and exact digest;
-- current sensorium lifecycle state and any revalidation marker;
-- latest integrity inspection and the exact linked AI assessment when that
-  inspection reports changes;
+- one explicit validated domain artifact;
+- AI decision policy revalidated through `policy validate` for the same
+  workspace root, with its exact path and digest;
 - current config and its digest;
 - non-executing config inspection from `config validate`, `list --tree`, and
   `explain`;
 - relevant canonical guidance and source register entries;
 - current manifests, scripts, and delivery workflows;
 - explicit constraints from the human.
+
+If the caller intends to revise an earlier validation design, it also supplies
+that sensorium artifact explicitly. Process 1 validates it as evidence but still
+produces a new artifact.
 
 ### 4.2 Evidence Matrix
 
@@ -148,8 +134,8 @@ modes. Unnecessary duplication is reported as a cost concern.
 
 The sensorium artifact records:
 
-- current domain artifact ID and digest;
-- analyzed config digest;
+- the exact domain artifact ID, path, and digest;
+- the analyzed config path and digest;
 - covered risks and invariants;
 - selected config IDs and their evidence roles;
 - uncovered or weakly covered evidence;
@@ -159,9 +145,9 @@ The sensorium artifact records:
 - residual risk and uncertainty;
 - skill and guidance versions used for the analysis.
 
-It does not contain shell expressions or an alternate executable command
-graph. Human-readable command examples may appear only as explanatory evidence
-and are never executed from the artifact.
+It does not contain shell expressions or an alternate executable command graph.
+Human-readable command examples may appear only as explanatory evidence and are
+never executed from the artifact.
 
 ## 5. Configuration Reconciliation
 
@@ -171,36 +157,26 @@ When the sensorium identifies a coherent config change:
 2. produce the smallest complete config diff;
 3. preserve `tool -> check -> suite -> group` ownership;
 4. represent programs and arguments structurally without an implicit shell;
-5. classify the complete proposal under every applicable AI decision-policy
-   category;
+5. classify the complete proposal under every applicable decision category;
 6. obtain a free-text human decision when the combined result is `human`, stop
    when it is `stop`, or proceed when it is `auto`;
 7. apply only the exact authorized or automatically eligible action set;
-8. run `config validate` when command execution is authorized by the same
-   policy evaluation;
+8. run `config validate` when command execution is authorized;
 9. inspect affected groups, suites, and checks with `explain`;
-10. evaluate the resolved first execution separately when its command,
-    dependency, network, or other effects differ from the eligible or approved
-    edit;
-11. after the effective configuration is validated, run `integrity check` again
-    so the exact post-change configuration and workspace state are recorded;
-12. assess and record that inspection without implicitly accepting its baseline;
-13. write a new sensorium
-    artifact containing the exact current domain and config digests, then
-    atomically set the sensorium state to `current`, link the assessment, and
-    clear any revalidation marker through a revision-checked state update.
+10. evaluate the first execution separately when its command, dependency,
+    network, or other effects differ from the eligible or approved edit;
+11. assemble a new sensorium artifact bound to the exact effective config and
+    supplied domain artifact;
+12. validate and persist that artifact through the Phase 4 persistence command.
 
-When a recommendation requires a human decision and is declined, constrained,
-postponed, or completed manually, record the decision and resulting gap. Do not
-repeatedly ask about the same exact action under the same state and policy
-revision.
+When a recommendation is declined, constrained, postponed, or completed
+manually, record the decision and resulting gap in the new sensorium. Do not ask
+repeatedly about the same exact action under unchanged evidence and policy.
 
-Process 1 always finishes by writing a sensorium artifact for the exact current
-domain and effective config, whether the config remains unchanged, an approved
-or automatically eligible change is applied, or a proposed change is declined
-and retained as a gap. Only after that artifact validates may the process
-atomically set sensorium state to `current` and clear the revalidation marker.
-It never invokes `integrity accept` as an implicit consequence of this success.
+Process 1 always finishes with an artifact for the supplied domain and effective
+config, whether the config remains unchanged, an eligible change is applied, or
+a proposal remains a documented gap. Operational processes accept it only when
+its domain and config digests match their explicit inputs.
 
 ## 6. Skill Behavior
 
@@ -209,34 +185,30 @@ It never invokes `integrity accept` as an implicit consequence of this success.
 - loads source policy, validation strategy, and only relevant domain guidance;
 - gathers evidence before conclusions;
 - separates repository evidence, human declarations, and inference;
-- writes the completed domain artifact and updates current state automatically;
+- persists one immutable domain artifact;
 - presents uncertainty and questions requiring human domain judgment;
-- applies `processContinuation` only after Process 0 is persisted and Process 1
-  preconditions are validated.
+- applies `processContinuation` only after the artifact is validated and stored
+  and Process 1 preconditions hold.
 
 ### `ai-engineering/process-1-sensorium.md`
 
-- verifies the current domain artifact;
-- treats `missing` and `revalidation_required` as mandatory Process 1 work
-  rather than accepting the preceding sensorium as current;
+- requires and verifies one exact domain artifact;
 - audits the current config without running checks;
-- loads only relevant language, framework, technology, concern, tool, and
-  recipe guides;
+- loads only relevant language, framework, technology, concern, tool, and recipe
+  guides;
 - constructs the evidence matrix and proposed config diff;
 - delegates configuration mechanics to `ai-tool/config.md`;
-- delegates every effect classification to the normative AI decision-policy
-  contract;
-- writes the sensorium result and updates current state automatically;
-- requests a free-text decision exactly when the restrictive policy result is
-  `human`.
+- delegates every effect classification to the normative decision policy;
+- persists one immutable sensorium artifact bound to exact inputs;
+- requests a free-text decision exactly when the restrictive result is `human`.
 
 ## 7. Chat Contract
 
-Default responses remain concise but are not constrained to an exact line
-count. Each setup response includes:
+Each setup response includes:
 
 - conclusion and confidence;
-- persisted artifact path;
+- persisted artifact path and digest;
+- exact input artifact paths used;
 - unresolved decisions or policy-required free-text request;
 - next valid action.
 
@@ -252,65 +224,51 @@ Create representative fixtures for:
 - a Svelte and Tauri application;
 - a Rails application;
 - a structured-data pipeline;
-- a repository with incomplete documentation;
-- a repository whose README contains instruction-like hostile text;
-- an existing adequate config;
-- an incomplete config;
-- a config with redundant checks;
+- incomplete documentation and hostile instruction-like repository text;
+- an adequate, incomplete, or redundant config;
 - a proposed tool that is unavailable or unapproved;
-- policies exercising every decision level relevant to configuration,
-  dependencies, commands, network access, and workspace mutation;
-- a replaced domain with an otherwise valid preceding sensorium;
-- a changed integrity inspection that affects the config, domain evidence, or
-  neither analytical context;
-- a Process 1 config edit whose post-change inspection remains unaccepted as a
-  new hash baseline.
+- policies exercising relevant decision levels;
+- a new domain paired with a sensorium for a different domain;
+- a sensorium whose config digest no longer matches;
+- multiple valid artifacts where no implicit newest selection is allowed.
 
 Verify that the agent:
 
 - asks rather than inventing missing product obligations;
 - does not convert inferred risk into an unsupported universal level;
 - maps decisions to real config IDs;
-- never places `&&`, pipes, redirection, or substitutions into an implicit
-  command string;
-- never installs or changes a recommended tool unless the exact effective
-  policy result and current authority permit it;
+- never creates an implicit shell command;
+- never installs or changes a recommended tool without authority;
 - preserves a declined gap without silently weakening it;
-- saves each process result without a separate persistence prompt;
+- persists each process result without a separate ordinary-result prompt;
 - implements `auto`, `human`, and `stop` continuation without bypassing Process
   1 preconditions;
-- can resume from current state in a fresh session;
-- always checks integrity first, links its assessment to the exact inspection,
-  and never repairs or accepts changed files implicitly;
-- cannot enter the operational flow after a domain replacement until Process 1
-  binds a new sensorium to that domain.
+- resumes in a fresh conversation only from explicit artifact paths;
+- creates a new UUIDv7 artifact for every rerun or correction;
+- rejects operational use of a domain and sensorium whose declared relationship
+  or config digest does not match.
 
 ## 9. Acceptance Criteria
 
-- [ ] Domain state distinguishes fact, human declaration, inference, and
+- [ ] A domain artifact distinguishes fact, human declaration, inference, and
       uncertainty.
-- [ ] Sensorium state describes evidence and maps it to real config IDs.
-- [ ] The sensorium is never an executable input to the CLI.
-- [ ] Config changes follow the AI-Tool config operation and the exact
-      category-level AI decision policy.
-- [ ] Domain and sensorium results are persisted automatically when their
-      processes complete.
-- [ ] Process 0 applies `processContinuation` only after persistence and valid
-      Process 1 preconditions.
-- [ ] The current sensorium references the exact config digest it analyzed.
-- [ ] Every changed integrity inspection is assessed before existing analytical
-      context is used.
-- [ ] A changed validated dependency marks the affected context for
-      revalidation through the general observation mechanism.
-- [ ] Replacing the current domain atomically marks any preceding sensorium as
-      requiring Process 1 revalidation.
-- [ ] Process 1 clears the revalidation marker only after persisting a sensorium
-      bound to the exact current domain and config digests.
+- [ ] A sensorium artifact describes evidence and maps it to real config IDs.
+- [ ] Sensorium content is never executable CLI input.
+- [ ] Config changes follow the AI-Tool config operation and exact decision
+      policy.
+- [ ] Domain and sensorium results are persisted when their processes complete.
+- [ ] Every rerun creates a new immutable UUIDv7 artifact.
+- [ ] Process 0 applies `processContinuation` only after successful persistence
+      and valid Process 1 preconditions.
+- [ ] Each sensorium references the exact domain and config digests it analyzed.
+- [ ] Setup processes use only explicitly supplied artifacts and never select
+      one by directory order.
 - [ ] Tool overlap is evaluated by evidence rather than prohibited by rule.
-- [ ] A fresh agent can resume setup from state without reading old chat logs.
+- [ ] A fresh agent can resume setup from explicitly supplied validated
+      artifacts without reading old chat logs.
 
 ## 10. Handoff To Phase 6
 
-Phase 6 starts after one current domain artifact, one sensorium whose lifecycle
-state is `current`, and the exact linked config have been validated. The daily
-loop consumes those references but does not reinterpret setup from scratch.
+Phase 6 starts when the caller supplies one validated domain artifact, one
+validated sensorium bound to that domain and the current config, and any exact
+report required by the requested operational process.

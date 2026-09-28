@@ -51,12 +51,14 @@ The consumer workspace has two policies with different owners and effects:
 
 | File | Responsibility | Consumer |
 | --- | --- | --- |
-| `.validation/config.json` | Defines the programs, arguments, composition, and repository-integrity behavior used for validation | `workspace-validator` CLI and library |
+| `.validation/config.json` | Defines the programs, arguments, composition, and repository-mutation detection used for validation | `workspace-validator` CLI and library |
 | `.validation/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or ends a related process | AI-Engineering Flow only |
 
 `policy.json` never contributes commands, checks, suites, groups, arguments, or
-validation outcomes. The CLI and library do not discover, read, or interpret
-it. `config.json` remains the sole executable validation policy.
+validation outcomes. The validation executor and planner do not discover,
+read, or interpret it. AI-Engineering validates its schema and digest before
+applying policy decisions. `config.json` remains the sole executable validation
+policy.
 
 ## 3. Canonical Policy Shape
 
@@ -87,12 +89,50 @@ policy document, not a schema copy. Every listed category is required. Missing
 categories, unknown fields, and unsupported values are rejected rather than
 resolved through an implicit fallback.
 
+### 3.1 Canonical Persistence Profile
+
+`policy.json` selects decision levels; it does not configure storage paths,
+retention, or transport. This normative document is the source of truth for the
+current persistence profile used by those decisions:
+
+| Content | Canonical destination | Repository treatment |
+| --- | --- | --- |
+| Exact validation reports | `.validation/reports/<sha256>.json` | Local and ignored |
+| Domain process results | `.validation/persistence/domain/<uuidv7>.json` | Determined by effective Git treatment of the concrete file |
+| Sensorium process results | `.validation/persistence/sensorium/<uuidv7>.json` | Determined by effective Git treatment of the concrete file |
+| Incident process results | `.validation/persistence/incidents/<uuidv7>.json` | Local and ignored |
+| Drift process results | `.validation/persistence/drift/<uuidv7>.json` | Local and ignored |
+
+The canonical local private store consists of the ignored destinations above.
+The AI-Engineering persistence system writes only these local destinations.
+Exporting or sharing content elsewhere is a separate proposed effect and must
+evaluate every category implicated by that exact boundary, including network
+or external-state categories where applicable; it does not create another
+configured persistence destination.
+
+Artifacts contain explicit paths, digests, bounded decisions, and analytical
+results; they do not duplicate report bodies, raw diagnostic streams,
+credentials, tokens, private keys, or source patches. Exact reports retain their
+bytes after hashing. Derived artifacts minimize and redact protected content
+whenever that content is not required. Files use restrictive permissions where
+the platform supports them, paths remain within the workspace without symlink
+escape, and credentials are never persisted in analytical artifacts.
+
+The current profile performs no automatic retention expiry, deletion, history
+compaction, or pruning. Content remains until an explicit governed removal.
+Removal of an artifact or report supplied to an active process is invalid until
+that process ends. These lifecycle facts are fixed operational inputs to the
+category tables below; they are not inferred from a numeric level.
+
 ## 4. Missing, Invalid, And Changed Policy
 
 On the first AI-Engineering process invocation, when `policy.json` does not exist,
-the agent atomically creates the canonical document above. This narrowly
-defined bootstrap write requires no separate approval because it establishes
-the most human-controlled decision levels and `human` continuation.
+the agent invokes `workspace-validator policy init` for the explicit active
+workspace root. The deterministic command atomically creates and validates the
+canonical document above. This narrowly defined bootstrap write requires no
+separate approval because it establishes the most human-controlled decision
+levels and `human` continuation. When the policy already exists, the command
+validates it without modification.
 
 An existing malformed, unsupported, path-escaping, or internally inconsistent
 policy stops the AI-Engineering process before any governed effect. The agent
@@ -108,11 +148,12 @@ Each AI-Engineering process records the exact policy path, schema version, and
 SHA-256 digest used for its decisions. A policy change does not invalidate
 domain or sensorium evidence, because it does not change validation coverage.
 It does invalidate any cached authorization decision. A resumed process reloads
-and re-evaluates the current policy before its next governed effect.
+the current policy through `workspace-validator policy validate`, using the
+same workspace root, and re-evaluates it before its next governed effect.
 
 ## 5. Process Continuation
 
-`processContinuation` is a three-state policy, not part of the numeric decision
+`processContinuation` is a three-mode policy, not part of the numeric decision
 scale:
 
 | Value | Required behavior |
@@ -264,7 +305,14 @@ features, versions, lockfiles, runtimes, and toolchains.
 This category covers starting local programs and scripts outside the internal
 non-executing reasoning of the agent. Explicit validator selections remain
 commands and are classified here unless the current human request already
-authorizes that exact run.
+authorizes that exact run. Selecting AI-Engineering preauthorizes only the
+bounded non-mutating compatibility check and persistence verification commands
+required to validate explicitly supplied process inputs. Invoking a process
+also authorizes the deterministic store command for its declared process
+artifact once every applicable persistence condition is satisfied. A decision
+that permits exact report persistence likewise authorizes the deterministic
+report store command. These narrow exceptions never extend to validation
+execution, repair, installation, or another command.
 
 | Level | Required behavior |
 | ---: | --- |
@@ -348,17 +396,17 @@ category unless the resource is classified as sensitive.
 
 This category covers creating, retaining, replacing, exporting, or removing a
 canonical validation report. It applies regardless of report outcome or data
-sensitivity. Persistence outside the configured local report store also matches
+sensitivity. Persistence outside the canonical local report store also matches
 every applicable workspace, network, external-state, and data-mutation
 category.
 
 | Level | Required behavior |
 | ---: | --- |
-| `4` | Obtain a human decision before persisting each report, identifying the selection, exact destination, retention rule, and known data classes. |
-| `3` | Present one bounded report-storage plan for a validation session, including selections, destination, retention, and cleanup, and obtain approval before storing any report in that set. |
-| `2` | Persist reports automatically in the configured local private report store with bounded retention; request approval for another destination, extended or indefinite retention, export, or sharing. |
-| `1` | Persist reports automatically in configured local or explicitly trusted private stores; request approval for a new trust boundary, public exposure, indefinite retention, or destructive lifecycle change. |
-| `0` | Perform every eligible report-persistence action automatically at explicitly configured destinations and record the exact path, digest, retention rule, and lifecycle outcome. |
+| `4` | Obtain a human decision before each report persistence or removal action, identifying the selection, exact destination, known data classes, and canonical lifecycle. |
+| `3` | Present one bounded report-persistence action set for a validation session, including selections, destination, lifecycle effects, and cleanup if requested, and obtain approval before applying any part of it. |
+| `2` | Persist reports automatically in the canonical local private report store; request approval for removal, another destination, export, or sharing. |
+| `1` | Persist reports automatically in the canonical local private report store and perform eligible cleanup of unreferenced reports when that cleanup is explicitly in scope; request approval for a new trust boundary, public exposure, or removal that has broader lifecycle effects. |
+| `0` | Perform every eligible report-persistence action within the canonical profile automatically and record the exact path, digest, and lifecycle outcome. |
 
 This category does not inspect report meaning to decide whether a `Pass`,
 `Fail`, `Blocked`, or other status deserves persistence. Status never grants
@@ -370,17 +418,17 @@ applies.
 This category covers writing confidential source material, personal data,
 production data, secrets, credentials, tokens, private keys, or similarly
 protected values to any persistent medium. It applies to reports, AI artifacts,
-state observations, logs, snapshots, local files, databases, and external
+logs, snapshots, local files, databases, and external
 stores. Reading the same material is evaluated separately under
 `sensitiveDataAccess`.
 
 | Level | Required behavior |
 | ---: | --- |
-| `4` | Obtain a human decision for every persistence action, identifying the exact data class, values or bounded fields, destination, protection, purpose, and retention. |
-| `3` | Present one bounded persistence plan for one data class, purpose, destination, protection, and retention period, and obtain approval before writing any part of it. |
-| `2` | Persist internal non-secret sensitive material automatically only in a configured local private store with bounded retention; request approval for personal, confidential, production, credential, secret, private-key, remote, or cross-boundary persistence. |
-| `1` | Persist explicitly scoped confidential, personal, and production data automatically in configured private stores; request approval for credentials, tokens, private keys, other authentication secrets, a new trust boundary, or indefinite retention. |
-| `0` | Persist every explicitly eligible sensitive data class automatically only to explicitly configured eligible destinations while preserving minimization, access control, non-disclosure, retention, and auditable linkage. |
+| `4` | Obtain a human decision for every persistence action, identifying the exact data class, values or bounded fields, canonical destination, protection, purpose, and lifecycle. |
+| `3` | Present one bounded persistence plan for one data class, purpose, destination, protection, and lifecycle, and obtain approval before writing any part of it. |
+| `2` | Persist internal non-secret sensitive material automatically only in the canonical local private store; request approval for personal, confidential, production, credential, secret, private-key, remote, or cross-boundary persistence. |
+| `1` | Persist explicitly scoped confidential, personal, and production data automatically in the canonical local private store; request approval for credentials, tokens, private keys, other authentication secrets, or a new trust boundary. |
+| `0` | Persist every explicitly eligible sensitive data class automatically only within the canonical persistence profile while preserving minimization, access control, non-disclosure, lifecycle rules, and auditable linkage. |
 
 This category governs authority, not storage security. An `auto` outcome never
 makes an unsuitable destination safe, bypasses path containment or access
@@ -410,8 +458,8 @@ The normative public document includes at least these overlap examples:
 - storing a canonical report containing protected values matches
   `validationReportPersistence` and `sensitiveDataPersistence`, in addition to
   any categories required by its destination;
-- persisting a sensitive AI observation matches `sensitiveDataPersistence`,
-  while reading its source also matches `sensitiveDataAccess`;
+- persisting a sensitive AI artifact matches `sensitiveDataPersistence`, while
+  reading its protected source also matches `sensitiveDataAccess`;
 - fixing an adjacent failure discovered during Process 2 additionally matches
   `scopeExpansion` when it was outside the approved incident scope.
 
@@ -427,10 +475,11 @@ The decision policy adjusts human involvement. It does not:
   permissions;
 - make an action relevant to the current objective merely because its level is
   `0`;
-- bypass process preconditions, state validation, report validation, or
-  repository-integrity checks;
+- bypass process preconditions, artifact validation, report validation, or the
+  repository mutation checks configured for a validation run;
 - permit the agent to expose sensitive values or persist them without the
-  applicable decision outcomes, destination protections, and retention rules;
+  applicable decision outcomes, destination protections, and canonical
+  lifecycle rules;
 - convert uncertainty about a human-owned product decision into automatic
   authority;
 - authorize the agent to modify `policy.json` itself.
@@ -444,6 +493,8 @@ downgraded by numeric levels.
 The canonical public document must contain:
 
 - the exact policy shape and defaults;
+- the canonical persistence destinations, repository treatment, protection,
+  and lifecycle facts used by the category tables;
 - the distinction between validation and AI decision policy;
 - continuation mode, decision level, and decision outcome as separate concepts;
 - the three continuation modes;
@@ -468,8 +519,11 @@ level semantics independently.
 Schema, decision-table, and forward-agent fixtures cover:
 
 - missing policy and canonical level-4 creation;
+- explicit workspace-root selection, current-directory CLI default, and absence
+  of parent, Git, or configuration-based root discovery;
+- read-only `policy validate` and idempotent non-overwriting `policy init`;
 - malformed, unsupported, unknown-field, and path-escaping policy;
-- all `processContinuation` states for both valid transitions;
+- all `processContinuation` modes for both valid transitions;
 - prevention of continuation after failed or incomplete prerequisites;
 - every level of every category at its boundary examples;
 - monotonic category behavior under `4 > 3 > 2 > 1 > 0`;
@@ -482,8 +536,10 @@ Schema, decision-table, and forward-agent fixtures cover:
 - redacted action previews and decision records;
 - non-sensitive, sensitive, approved, declined, and stopped canonical-report
   persistence;
-- sensitive persistence in reports, AI artifacts, state observations, and
-  external destinations;
+- canonical local destinations, attempts to use another destination, explicit
+  governed removal, active-process protection, and absence of automatic pruning
+  or compaction;
+- sensitive persistence in reports, AI artifacts, and external destinations;
 - a level-0 policy that still obeys absolute boundaries;
 - a level-4 policy that does not request duplicate approval for an exact action
   already authorized by the current human instruction.
@@ -506,6 +562,11 @@ workspace evidence. They do not disclose the expected classification.
 - [ ] Policy cannot authorize its own modification.
 - [ ] Every AI-Engineering decision records the exact policy digest and applicable
       categories without recording secrets.
-- [ ] The CLI and library remain independent from AI decision policy.
+- [ ] Numeric levels select authority behavior without inventing storage fields
+      absent from `policy.json`; persistence facts come from the canonical
+      profile in this document.
+- [ ] The validation executor and planner remain independent from AI decision
+      policy; explicit artifact verification never affects execution planning or
+      report semantics.
 - [ ] The canonical document and its distributed skill projection are
       byte-identical.

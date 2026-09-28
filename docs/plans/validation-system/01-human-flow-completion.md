@@ -3,10 +3,10 @@
 ## 1. Objective
 
 Close the Human Flow as a complete product surface before adding AI operation.
-A user must be able to author or review one configuration,
-inspect its execution graph, run any supported selection, understand every
-outcome, and verify workspace integrity against an explicit hash baseline
-without relying on AI persistence.
+A user must be able to author or review one configuration, inspect its execution
+graph, run any supported selection, understand every outcome, and identify
+repository mutations introduced by a validation run without relying on AI
+components.
 
 ## 2. Entry Conditions
 
@@ -26,7 +26,6 @@ The supported workflow is:
 ```text
 author config
   -> validate config
-  -> initialize or verify the integrity baseline
   -> inspect graph and resolved commands
   -> execute selection
   -> interpret report and exit code
@@ -39,10 +38,6 @@ The default path uses:
 
 ```sh
 workspace-validator config validate
-workspace-validator integrity init
-workspace-validator integrity check
-workspace-validator integrity diff
-workspace-validator integrity accept
 workspace-validator list --tree
 workspace-validator explain group <group-id>
 workspace-validator explain suite <suite-id>
@@ -80,37 +75,19 @@ requiring color and supports the declared color and presentation profiles.
 - Add golden or structural tests that keep inspection output aligned with the
   configuration contract.
 
-### 4.3 Workspace Integrity State
+### 4.3 Repository Mutation Evidence
 
-- Add `.validation/state.json` as the versioned shared workspace-state contract
-  used by deterministic integrity commands, humans, and both AI flows.
-- Keep the tool-owned `integrity` namespace separate from the optional
-  AI-owned `aiEngineering` namespace. Integrity commands validate and preserve
-  the AI namespace but never interpret it as executable input.
-- Resolve the integrity scope deterministically from the validated
-  configuration, including explicit path inclusion, exclusion, workspace-root,
-  symlink, file-size, and file-count rules.
-- Always exclude `.validation/state.json` itself from its hash baseline. Dynamic
-  report, persistence, cache, and build paths are excluded unless the validated
-  integrity scope explicitly includes them.
-- Hash raw file bytes with SHA-256, normalize contained relative paths, sort
-  entries deterministically, and record the resolved scope and aggregate
-  baseline digest.
-- Define `integrity init` as explicit creation of the first baseline,
-  `integrity check` as comparison without baseline promotion, `integrity diff`
-  as structured inspection of recorded changes, and `integrity accept` as the
-  only command that promotes the inspected state to the new baseline.
-- Let `integrity check` atomically record its last inspection, including added,
-  modified, removed, and hash-equivalent renamed paths, while leaving source
-  files and baseline hashes unchanged.
-- Protect state updates with a lock or compare-and-swap revision so concurrent
-  human or agent sessions cannot silently overwrite a newer state.
-- Produce human and versioned JSON output for every integrity command. Missing,
-  invalid, conflicting, or uninitialized state remains distinct from a clean or
-  changed state.
-- Document that hashes verify equality against the recorded baseline; they do
-  not authenticate origin when an actor can modify both workspace files and the
-  baseline.
+- Preserve the optional repository provider as execution-scoped evidence.
+- Capture repository status and content fingerprints immediately before and
+  after a validation run through the configured provider.
+- Distinguish repository changes that precede the run from mutations introduced
+  during that run.
+- Keep the observation bounded, deterministic, and represented in both human
+  and JSON reports.
+- When the repository provider is unavailable, report that condition through
+  the existing typed result.
+- Document that this evidence detects run-time mutations; it does not certify
+  repository origin or provide historical tamper detection.
 
 ### 4.4 Execution Closure
 
@@ -120,8 +97,8 @@ requiring color and supports the declared color and presentation profiles.
   groups.
 - Verify timeout, interruption, process-tree termination, output truncation,
   and dependency propagation on every supported platform boundary.
-- Verify repository integrity distinguishes pre-existing state from mutations
-  introduced during validation.
+- Verify repository mutation evidence distinguishes pre-existing changes from
+  mutations introduced during validation.
 - Ensure the executor never installs tools, invokes an implicit shell, or
   repairs a workspace.
 
@@ -130,7 +107,7 @@ requiring color and supports the declared color and presentation profiles.
 - Treat the versioned JSON report as the canonical execution record.
 - Verify reports include selection, tools, groups, suites, checks, commands,
   context, durations, statuses, exit codes, timeout state, truncation state,
-  useful diagnostics, repository state, and aggregate summary.
+  useful diagnostics, repository observations, and aggregate summary.
 - Preserve the distinct meanings of pass, fail, blocked, skipped, invalid
   configuration or usage, internal failure, and interruption.
 - Confirm human output and JSON output derive from the same completed result
@@ -159,6 +136,12 @@ requiring color and supports the declared color and presentation profiles.
 - Keep configuration and report schemas owned and distributed by the tool.
   Schema inspection commands must not require consumers to track copied schema
   files in their workspaces.
+- Keep `manifest.json` as the single source for the skill bundle version, source
+  crate version, and compatible CLI range. Workflow documents must not duplicate
+  those values.
+- Align skill bundle tests with that ownership: verify manifest values,
+  entrypoint routing, declared resources, and document completeness without
+  requiring repeated version headers in each workflow document.
 
 ## 5. Tests
 
@@ -176,12 +159,10 @@ Add or complete tests for:
 - plain, colored, high-contrast, color-vision, and low-vision output;
 - cross-platform process-tree termination;
 - source package contents and generated schemas;
-- integrity initialization, clean checks, added, modified, removed, and renamed
-  paths, explicit baseline acceptance, and uninitialized state;
-- deterministic integrity output across supported hosts;
-- state path traversal, symlink escape, oversized scope, malformed state,
-  interrupted writes, revision conflicts, and concurrent updates;
-- preservation of the AI-owned state namespace without interpreting it.
+- skill manifest metadata, entrypoint and workflow routing, declared resources,
+  and absence of duplicated version metadata in workflow documents;
+- repository mutation evidence for clean, pre-dirty, modified, added, removed,
+  renamed, copied, ignored, and unavailable-provider cases.
 
 Run the ignored outcome fixtures whenever execution-state or reporting behavior
 is touched.
@@ -190,7 +171,6 @@ is touched.
 
 - closed runtime and CLI contracts;
 - aligned checked-in JSON Schemas;
-- versioned workspace-state schema and integrity commands;
 - human workflow documentation;
 - representative configuration examples;
 - complete deterministic outcome fixtures.
@@ -198,11 +178,8 @@ is touched.
 ## 7. Acceptance Criteria
 
 - [ ] A new user can configure and run the validator from documentation alone.
-- [ ] A human can initialize, inspect, compare, and explicitly accept workspace
-      integrity without an AI agent.
-- [ ] `integrity check` never modifies workspace source or promotes its observed
-      hashes to the baseline.
-- [ ] Concurrent state updates fail explicitly instead of losing a newer write.
+- [ ] A human can identify repository mutations introduced by a validation run
+      from that run's report.
 - [ ] Inspection exposes the planned operation without starting processes.
 - [ ] Human and JSON outputs agree for every result class.
 - [ ] JSON output can be captured byte-for-byte, validated against the report
@@ -210,9 +187,10 @@ is touched.
 - [ ] Every nonzero exit code has one documented, tested meaning.
 - [ ] The validator does not read `.validation/policy.json`,
       `.validation/reports/`, or `.validation/persistence/` as execution input.
-- [ ] The execution planner never treats `.validation/state.json` as a command
-      source; only integrity commands interpret its tool-owned integrity data.
 - [ ] No human command requires an AI agent or skill.
+- [ ] The skill manifest is the only bundle-version and CLI-compatibility source,
+      and bundle tests do not require those values to be copied into workflow
+      documents.
 - [ ] Existing trusted configuration can be run without hidden installation or
       mutation.
 - [ ] The complete Rust validation gate, outcome fixtures, package inspection,

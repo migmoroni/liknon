@@ -2,318 +2,264 @@
 
 ## 1. Objective
 
-Implement the daily AI-Engineering loop over the current domain, sensorium, and
-configuration. The loop composes the AI-Tool operations to execute the normal
-validator, diagnose structured outcomes, perform only authorized remediation,
-verify the smallest affected scope, and evaluate whether recent change
-invalidates the current validation design.
+Implement the operational AI-Engineering processes over explicit validated
+evidence:
 
-## 2. Dependency
+- Process 2 diagnoses a concrete non-pass report, governs remediation, and
+  verifies the result;
+- Process 3 compares one passing report and its declared setup context with
+  current repository evidence and recommends recalibration when justified.
 
-Phase 5 has produced:
+The processes compose AI-Tool operations and use the same validation runner.
 
-- one current validated domain artifact;
-- one current validated sensorium artifact whose lifecycle state is `current`;
-- one exact config digest;
-- one valid shared integrity state and an AI assessment linked to its latest
-  inspection when that inspection reports changes;
-- a trusted config that passes complete configuration validation.
+## 2. Preconditions
 
-## 3. Execution Process
+Every operational invocation requires:
 
-Before a run, the agent:
+- one explicit validated domain artifact;
+- one explicit validated sensorium artifact that references that domain;
+- a current config whose digest matches the sensorium;
+- the decision policy revalidated through `policy validate` for the explicit
+  active workspace root, with its exact path and digest;
+- one explicit stored validation report when Process 2 or Process 3 begins from
+  existing evidence.
 
-1. runs `workspace-validator integrity check`;
-2. when the inspection reports changes, inspects `integrity diff`, records a
-   bounded observation linked to that exact inspection, and marks every
-   affected analytical context without repairing or accepting changed files;
-3. validates `.validation/policy.json` and records its exact digest;
-4. checks skill and CLI compatibility;
-5. validates current persistence references and digests;
-6. rejects operational execution when the sensorium is `missing` or
-   `revalidation_required`, then confirms that a `current` sensorium references
-   the exact current domain and config digests;
-7. confirms the requested group, suite, or check through inspection;
-8. records repository state without cleaning or restoring it;
-9. evaluates execution under every applicable decision category, accounting
-   for exact authority in the initiating request;
-10. delegates one explicit configured selection to `ai-tool/run.md` with JSON
-   output when the effective result permits it;
-11. waits for completion and captures the exact JSON bytes in bounded
-    non-persistent storage;
-12. validates the report contract and hashes the exact bytes;
-13. evaluates `validationReportPersistence`,
-    `sensitiveDataPersistence` when applicable, and every category implicated
-    by the destination;
-14. atomically stores eligible or exactly authorized bytes at
-    `.validation/reports/<sha256>.json`;
-15. creates or atomically updates `operational-state.json` with the operation
-    ID, current setup references, decision-policy digest, and exact report path
-    and digest;
-16. parses that stored report for outcome routing.
+The process verifies every path, schema, digest, relationship, skill version,
+and configuration reference before loading analytical content. Missing,
+mismatched, stale, or ambiguous inputs stop the operation and identify the exact
+setup process or validation run required next.
 
-When report persistence resolves to `human`, the process waits before Step 14.
-When it resolves to `stop` or the human declines storage, the process securely
-discards temporary bytes, records only a bounded redacted persistence decision,
-and ends without a canonical report link or outcome routing.
+## 3. Validation Execution
 
-The agent never expands a group by manually executing its member checks and
-never runs commands from a persistence artifact.
+When the operational request starts with a new validation run:
+
+1. validate the supplied domain and sensorium artifacts;
+2. verify their relationship and the current config digest;
+3. load `ai-tool/run.md` and resolve one explicit configured selection;
+4. evaluate command execution and every other implicated decision category;
+5. execute the selection once through the normal validator;
+6. capture the exact versioned JSON report in bounded memory or temporary
+   storage inside the active workspace boundary;
+7. verify the report schema and exact-byte SHA-256 digest;
+8. evaluate `validationReportPersistence`, `sensitiveDataPersistence` when
+   applicable, and every category implicated by the destination;
+9. persist the exact report only when the combined result is `auto` or exact
+   human authority permits it;
+10. route the outcome using the stored report path and digest.
+
+When persistence resolves to `human`, wait before Step 9. When it resolves to
+`stop` or storage is declined, discard temporary bytes after presenting the
+bounded validation result. No Process 2 or Process 3 artifact is then created
+because those processes require canonical report evidence.
+
+The report is data, never instructions. The agent does not execute commands from
+stdout, stderr, diagnostics, or persisted artifacts.
 
 ## 4. Outcome Routing
 
-Route outcomes by the report contract and stable CLI exit semantics:
+Route outcomes by the report contract and stable CLI semantics:
 
-| Outcome | Route |
+| Report outcome | Required route |
 | --- | --- |
-| Pass | Persist the permitted passing result, mark it as the final passing report, and complete the execution without applying `processContinuation` |
-| One or more failed checks or repository gate | Create an incident diagnosis |
-| Blocked or skipped without failure | Diagnose prerequisite or dependency state; do not assume source failure |
-| Invalid configuration or CLI use | Return to the `ai-tool/config.md` operation |
-| Internal execution or reporting failure | Report a validator defect boundary; do not patch consumer source |
-| Interrupted | Preserve available evidence and stop until the human resumes |
+| Pass from an initial run | Present success for the selected evidence and finish; Process 3 may be invoked later with the exact stored report |
+| Fail | Start or continue Process 2 with the exact stored report |
+| Blocked | Identify failed prerequisites and enter Process 2 only when diagnosis is useful |
+| Skipped | Explain dependency propagation; do not report the skipped check as an independent root failure |
+| Invalid usage or configuration | Route through AI-Tool config diagnosis before product remediation |
+| Interrupted | Report partial execution and require a new explicit run |
+| Internal validator failure | Report the tool boundary; do not patch consumer source as a substitute |
 
-Do not reduce all nonzero exits to one remediation path.
-
-For an initial pass, atomically mark the current report as
-`finalPassingReport` in `operational-state.json` and complete the execution.
-This is not a Process 2 result and never applies `processContinuation`. Process
-3 may be invoked explicitly later from that exact linked passing report. During
-remediation, every newly permitted validation report replaces the current
-report reference; only a passing final verification may populate
-`finalPassingReport`. A non-pass result clears any final-passing reference for
-that operation.
+An initial passing run does not create an incident and does not apply
+`processContinuation`. A human can explicitly invoke Process 3 later by
+supplying that report together with the exact domain and sensorium artifacts.
 
 ## 5. Process 2: Incident
 
 ### 5.1 Evidence
 
-Use `ai-tool/triage.md` for report interpretation and the stored JSON report as
-canonical evidence. Record its exact path and
-digest and extract only the diagnostics needed for analysis. Preserve:
+Use `ai-tool/triage.md` for report interpretation. Bind every conclusion to:
 
-- selection and config digest;
-- tool preflight outcomes;
-- check IDs, contexts, argument vectors, and working directories;
-- statuses, exit codes, timeout and truncation markers;
-- concise redacted stdout and stderr evidence;
-- dependency propagation;
-- repository-integrity findings;
-- current domain and sensorium IDs.
+- exact report path and SHA-256 digest;
+- selected group, suite, or check;
+- root failure and propagated outcomes;
+- command, exit code, timeout, truncation, and bounded diagnostic evidence;
+- repository mutation evidence emitted by that validation run;
+- exact domain, sensorium, config, and policy digests;
+- material uncertainty and competing explanations.
 
-The incident artifact and `operational-state.json` reference the same stored
-report. Derived excerpts may be redacted and bounded, but the report file is
-never rewritten after hashing.
+Derived excerpts are bounded and redacted. The stored report remains immutable.
 
 ### 5.2 Diagnosis
 
-An incident may contain more than one independent primary cause. For each
-cause, record:
+The incident analysis:
 
-- category: configuration, environment, validation, timeout, interruption,
-  dependency propagation, repository integrity, or validator internal;
-- affected checks and evidence excerpts;
-- one or more hypotheses with confidence and disconfirming evidence;
-- whether it appears related to the requested implementation;
-- the smallest useful counter-check or suite;
-- every applicable AI decision-policy category and its effective result.
+1. separates execution failure from environment, configuration, prerequisite,
+   and validator defects;
+2. identifies the smallest supported root cause;
+3. distinguishes evidence from inference;
+4. evaluates whether remediation belongs to source, config, dependencies, test
+   data, generated output, environment, or the validator itself;
+5. proposes the narrowest useful proof and final gate;
+6. classifies every proposed effect under the decision policy.
 
-Do not force a singular root cause and do not discard a diagnostic merely
-because another failure occurred earlier.
+Do not retry an unchanged failure, broaden scope merely to seek a different
+result, or modify code before a concrete diagnosis exists.
 
-### 5.3 Remediation
+### 5.3 Remediation And Verification
 
-Before changing source, config, snapshots, generated data, databases,
-dependencies, or tools:
+For an eligible remediation:
 
-1. explain the supported diagnosis;
-2. present the smallest proposed intervention;
-3. classify the action by scope, trust origin, environment, reversibility,
-   sensitivity, privilege, blast radius, and every applicable decision
-   category;
-4. combine results as `stop > human > auto`;
-5. stop for `stop`, obtain a free-text decision for `human`, or proceed for
-   `auto`, accounting for exact authority already supplied by the initiating
-   request;
-6. apply only the exact eligible or human-authorized scope;
-7. classify and authorize the verification command independently when its
-   effects were not covered by the preceding decision;
-8. run the smallest affected check or suite;
-9. compare its failure fingerprint with the original report;
-10. stop if the unchanged failure repeats without relevant new evidence;
-11. run one final requested or policy-required group after the narrow proof.
+1. present one bounded action preview;
+2. combine every applicable category restrictively;
+3. wait for a free-text decision when the result is `human`;
+4. apply only the exact authorized or automatic subset;
+5. run the narrowest configured proof once;
+6. when the proof passes, run the required final selection once;
+7. persist each report only under its own report-persistence decision;
+8. compare new failures with the original evidence rather than looping
+   unchanged commands.
 
-The process writes its incident artifact automatically as its analytical
-result, including the diagnosis, policy decision status, and any automatic or
-human-authorized actions. Protected content that remains follows
-`sensitiveDataPersistence`. It does not claim that a proposed patch succeeded
-before the verification report exists.
+Process 2 completes by creating one immutable incident artifact that references
+the original report, every persisted verification report, the exact setup
+artifacts, policy decisions, diagnosis, actions taken, unresolved causes, and
+final verified outcome. It is validated and stored through the Phase 4
+single-file persistence operation.
+
+If no remediation is authorized or the problem remains unresolved, the incident
+artifact records that outcome without claiming success. Protected content that
+must remain follows `sensitiveDataPersistence`.
 
 ### 5.4 Process 2 Handoff
 
-Process 2 may apply `processContinuation` toward Process 3 only after the
-current operational cycle has a canonical passing final verification after
-eligible or human-authorized remediation. A run that passes initially does not
-create an artificial Process 2 incident and does not apply this continuation
-policy.
+Process 2 applies `processContinuation` toward Process 3 only when:
 
-After persisting the completed Process 2 result, its exact report linkage, and
-the current operation update, the agent:
+- the final verification report is stored and has result `pass`;
+- the incident artifact is validated and stored;
+- the exact domain, sensorium, and config relationship still matches;
+- Process 3 preconditions hold.
 
-1. summarizes the passing evidence and remaining uncertainty;
-2. validates every Process 3 precondition;
-3. starts Process 3 for `auto`, suggests it and waits for a free-text decision
-   for `human`, or ends without suggesting it for `stop`.
-
-Declining, postponing, not answering, or resolving continuation to `stop` ends
-the current process without invalidating Process 2. Process 3 can be invoked
-later from any work context using the persisted operational state and exact
-linked passing report. A failed, blocked, skipped, invalid, internal-error, or
-interrupted outcome never triggers continuation.
+For `auto`, pass those exact files directly to Process 3. For `human`, present
+their paths and suggest Process 3 through a free-text decision. For `stop`, end
+without suggesting or asking. The human may invoke Process 3 later with the same
+explicit inputs.
 
 ## 6. Process 3: Drift
 
-Drift assessment composes the non-executing analysis principles from
-`ai-tool/audit.md` and runs only after a passing report. A pass is necessary
-evidence for this process, not proof that the workspace is ready
-for release or commit.
+Process 3 uses `ai-tool/audit.md` and runs only from one explicit stored passing
+report. A pass establishes the selected configured evidence, not complete
+correctness.
 
-### 6.1 Baseline
+### 6.1 Explicit Comparison Inputs
 
-Record an explicit baseline containing:
+The comparison inputs are:
 
-- current domain and sensorium IDs and digests;
-- current config digest;
-- passing report path, digest, schema version, and selection;
-- repository HEAD revision when available;
-- staged, unstaged, untracked, renamed, and deleted paths;
-- relevant manifest, lockfile, schema, build, and delivery changes;
-- the comparison base used for committed changes.
+- exact domain and sensorium artifacts;
+- exact config digest represented by the sensorium and report;
+- exact passing report path and digest;
+- optional explicit incident artifact;
+- repository revision and file evidence recorded by those artifacts and report;
+- current repository revision, manifests, config, and bounded diff evidence.
 
-Do not rely only on `git diff --name-only`, and do not infer the current
-incident by selecting the newest file in a directory.
-
-Process 3 resolves the report from `operational-state.json`, verifies its digest
-and schema before use, and stops if the link is absent, stale, or inconsistent.
-It also requires a current integrity inspection and a linked AI assessment for
-any reported changes before using the operational baseline.
+When Git is unavailable or revisions cannot be compared, record that
+limitation. Process 3 uses only the report and artifacts supplied to the
+invocation.
 
 ### 6.2 Drift Signals
 
-Evaluate whether changes introduce:
+Assess at least:
 
-- a new language, framework, technology, file class, or generated artifact;
-- a new build, package, platform, or delivery path;
-- a changed dependency or toolchain boundary;
-- a changed schema, persistence model, protocol, concurrency model, or network
-  boundary;
-- a new user, data, security, accessibility, or operational consequence;
-- a mismatch between config IDs and the current sensorium evidence matrix;
-- a changed product purpose or invariant.
+- new or removed languages, frameworks, tools, technologies, or file classes;
+- changed manifests, lockfiles, build, packaging, deployment, or release paths;
+- changed schemas, persistence models, protocols, concurrency, or network
+  boundaries;
+- changed domain obligations, assets, data classes, or failure consequences;
+- changed validation configuration or selected evidence;
+- repeated incidents, newly unsupported assumptions, or obsolete guidance;
+- a sensorium whose domain or config relationship no longer matches current
+  inputs.
 
-### 6.3 Recommendations
+### 6.3 Result
 
-Use explicit recommendations rather than universal drift classes:
+The drift artifact records:
 
-- no uncovered drift identified from the available evidence;
-- review validation coverage and produce a new sensorium proposal;
-- review domain assumptions, then produce a new sensorium proposal;
-- insufficient evidence; request human clarification.
+- exact input references and digests;
+- observed changes and supporting evidence;
+- affected domain assumptions, invariants, risks, and validation coverage;
+- unaffected areas that were checked;
+- uncertainty and missing evidence;
+- recommendations to rerun Process 0, Process 1, both, or neither;
+- proposed config or dependency changes without applying them implicitly.
 
-The process writes the drift artifact automatically. The human decides whether
-to invoke domain or sensorium recalibration. A recalibration process persists
-its own result automatically, but no process changes executable configuration
-without evaluation under the current AI decision policy. Drift recommendations
-do not count as either of the two `processContinuation` relationships.
+Process 3 persists one immutable UUIDv7 drift artifact. It never modifies setup
+artifacts or config. A recommended recalibration is a separate invocation that
+receives the drift artifact explicitly as evidence.
 
 ## 7. Chat Contract
 
-For execution and incident handling, report:
+For Process 2, report:
 
-- selection and overall result;
-- primary causes or blocking conditions;
-- affected check IDs and shortest useful evidence;
-- artifact path and report linkage;
-- policy decision request or next smallest action.
+- exact report and setup artifact paths;
+- root cause and confidence;
+- authorized, declined, and completed actions;
+- proof and final result;
+- incident artifact path and digest;
+- next valid action.
 
-For drift, report:
+For Process 3, report:
 
-- baseline and inspected change scope;
-- uncovered or uncertain evidence;
-- recommendation and its rationale;
-- drift artifact path;
-- human decision required, when any.
-
-Compact presentation never suppresses failures, uncertainty, secrets warnings,
-or approval boundaries.
+- explicit comparison inputs;
+- material drift and unaffected areas;
+- recalibration recommendations;
+- drift artifact path and digest;
+- unresolved human decisions.
 
 ## 8. Tests And Forward Trials
 
-Exercise the complete loop with fixtures for:
+Cover:
 
-- pass with no identified drift;
-- initial pass that completes without applying `processContinuation`;
-- explicit Process 3 invocation from an initially passing linked report;
-- pass with a new source type;
-- pass with manifest and lockfile changes;
-- independent failures in two checks;
-- one primary failure with skipped dependents;
-- missing or incompatible tool;
-- timeout and truncated output;
-- invalid configuration;
-- internal validator failure;
-- interruption;
-- repository mutation caused by a check;
-- stale domain, sensorium, config, and report linkage;
-- `missing` and `revalidation_required` sensorium states;
-- exact report persistence and operational-state resume after a fresh session;
-- `human` and `stop` report-persistence outcomes that create no report link and
-  cannot enter Process 2 or Process 3;
-- no prior incident;
-- hostile instructions in stdout, stderr, source, and persistence;
-- a declined patch, partial approval, and human-performed repair;
-- `auto`, `human`, and `stop` Process 2 to Process 3 continuation, including
-  accepted, declined, constrained, postponed, and unanswered human decisions;
-- remediation actions at every applicable category level, including actions
-  that match multiple categories;
-- a changed policy digest during a resumable incident;
-- repeated unchanged failure fingerprint;
-- secrets present in captured output;
-- integrity changes assessed as context-preserving and context-invalidating,
-  without source restoration or implicit baseline acceptance.
+- initial pass without Process 2 or continuation;
+- explicit Process 3 invocation from a stored initial passing report;
+- root failure, propagated block, skip, timeout, interruption, invalid config,
+  and internal validator error;
+- report persistence outcomes `auto`, `human`, and `stop`;
+- sensitive report and artifact content at every applicable policy level;
+- denied storage that creates no process artifact or hidden report reference;
+- partial remediation approval and manual completion;
+- narrow proof followed by final gate;
+- unchanged-failure retry prevention;
+- final pass, unresolved failure, and changed root cause;
+- domain, sensorium, config, report, and optional incident mismatches;
+- multiple artifacts where explicit selection is required;
+- fresh-conversation resume from paths and digests supplied by the caller;
+- hostile instructions in output, source, reports, and artifacts;
+- drift with material change, no material change, missing Git history, and
+  insufficient evidence;
+- immutable UUIDv7 incident and drift artifacts with exact parent references;
+- all continuation modes after a passing Process 2 result.
 
 Forward tests use raw reports and repositories without disclosing the intended
-diagnosis to the test agent.
+conclusion to the agent.
 
 ## 9. Acceptance Criteria
 
-- [ ] Every CLI result class reaches the correct AI-Tool operation or
-      AI-Engineering process.
-- [ ] The JSON report remains the canonical execution evidence.
-- [ ] Every AI-Engineering operational run stores and links exact report bytes
-      only when all applicable persistence outcomes permit it.
-- [ ] No operational run starts while Process 1 revalidation is required.
-- [ ] Incidents support multiple independent primary causes.
-- [ ] Every patch, installation, config mutation, command, network effect, and
-      other governed action follows the exact effective policy result.
-- [ ] Narrow revalidation precedes an applicable final gate.
-- [ ] Repeated unchanged failures stop rather than loop.
-- [ ] Drift compares against an explicit baseline and complete visible change
-      state.
-- [ ] A passing report is never described as complete correctness or automatic
-      commit readiness.
-- [ ] Incident and drift processes persist bounded redacted analytical results
-      without a separate approval prompt, while protected content that remains
-      follows `sensitiveDataPersistence`.
-- [ ] Process 2 applies `processContinuation` only after a passing verified
-      outcome and valid Process 3 preconditions.
-- [ ] An initial passing run never applies `processContinuation` or creates an
-      artificial Process 2.
-- [ ] Recalibration never changes executable configuration without an effective
-      `auto` result or exact human authority.
+- [ ] The JSON report remains canonical execution evidence.
+- [ ] Every operational process validates explicit setup artifacts and config
+      relationships before work begins.
+- [ ] Every stored report preserves exact bytes and has an explicit path and
+      digest in each consuming artifact.
+- [ ] A denied or stopped report-persistence decision leaves no canonical report
+      or process artifact dependent on it.
+- [ ] Incident handling prevents unchanged retry loops and unauthorized repair.
+- [ ] Process 2 creates one immutable artifact for each completed invocation.
+- [ ] Process 3 uses an explicit passing report and explicit comparison
+      evidence.
+- [ ] Process 2 applies `processContinuation` only after a stored passing final
+      report and successful incident persistence.
+- [ ] An initial passing run never creates Process 2 or consults continuation.
+- [ ] Operational processes use only explicitly supplied artifacts and reports.
+- [ ] Passing evidence is never described as complete product correctness.
 
 ## 10. Handoff To Phase 7
 
-Phase 7 validates all three flows as one distributable system, including
-scenarios where AI-Tool or AI-Engineering is absent, selected independently,
-stale, interrupted, or resumed in a fresh session where applicable.
+Phase 7 verifies all three flows, explicit artifact exchange, persistence
+boundaries, policy behavior, documentation, packaging, and release evidence.

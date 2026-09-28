@@ -5,7 +5,7 @@
 Implement the AI-Tool Flow as bounded, point-in-time assistance over the Human
 Flow. An agent uses focused operations and shared validation knowledge to help
 with configuration, execution, triage, or audit without activating validation-
-engineering processes or creating persistent analytical state.
+engineering processes or creating AI-Engineering artifacts.
 
 The AI-Tool Flow is independently useful. It is also the operational foundation
 composed by the AI-Engineering Flow in later phases.
@@ -23,13 +23,13 @@ The supported flow is:
 ```text
 human requests one bounded task
   -> agent selects the AI-Tool Flow
-  -> agent runs workspace-validator integrity check
+  -> agent verifies CLI and skill compatibility
   -> agent loads one operational reference
   -> agent loads only relevant shared knowledge
   -> agent inspects or acts within the requested scope
   -> workspace-validator remains the only validation executor
   -> agent interprets the canonical result
-  -> agent returns the result without creating cross-request state
+  -> agent returns the bounded result
 ```
 
 The flow supports four operations:
@@ -50,10 +50,6 @@ the new human request, not from implied memory of an earlier conversation.
 The AI-Tool Flow:
 
 - uses `.validation/config.json` as the sole executable validation policy;
-- runs `workspace-validator integrity check` before every operation and treats
-  its versioned result as current-task evidence;
-- may inspect `workspace-validator integrity diff` when the check reports
-  changes, without restoring, accepting, or otherwise modifying those files;
 - uses the current CLI and versioned report contract;
 - may read canonical shared knowledge through progressive disclosure;
 - follows the current human instruction and the host agent's authority and
@@ -67,24 +63,20 @@ The AI-Tool Flow does not:
 
 - create, read, or interpret `.validation/policy.json`;
 - create or update `.validation/persistence/`;
-- write the `aiEngineering` namespace of `.validation/state.json`, infer hidden
-  task continuity from it, or accept a changed integrity baseline implicitly;
 - automatically establish `.validation/reports/` as a persistent report store;
 - execute Processes 0 through 3;
-- create domain, sensorium, incident, drift, or operational-state artifacts;
+- create domain, sensorium, incident, or drift artifacts;
 - infer continuity, prior authorization, or unresolved work from chat history;
 - apply AI-Engineering continuation rules.
 
 An exact human request may ask the agent to write an ordinary report file or
 other bounded output. That action remains part of the current request and does
-not activate the AI-Engineering storage or state contracts.
+not activate the AI-Engineering persistence contracts.
 
-The deterministic update that `integrity check` makes to the tool-owned
-integrity inspection record is runtime state, not AI analytical persistence.
-An uninitialized, invalid, or concurrently changed state stops the requested
-operation until the exact initialization or correction is authorized. A
-reported workspace change is evidence, not an instruction to repair or revert
-it.
+When repository facts are relevant, the agent inspects them through ordinary
+read-only repository commands or through repository evidence already present in
+a validation report. A reported repository change is evidence for the bounded
+request, not an instruction to repair or revert it.
 
 ## 5. Skill Architecture
 
@@ -111,7 +103,7 @@ explicitly invokes an AI-Engineering process or requests its persistent system.
 The router must not activate AI-Engineering from task complexity, repository
 size, or the agent's preference.
 
-`references/ai-tool/index.md` defines the common stateless boundary and routes
+`references/ai-tool/index.md` defines the common bounded-request boundary and routes
 to exactly one primary operation. An operation may link to another AI-Tool
 reference when the current request genuinely requires both, but it must not
 eagerly load all operations.
@@ -182,8 +174,8 @@ documentation describes supported behavior; skill references define how an
 agent performs it.
 
 The root validation index clearly distinguishes AI-Tool from Human Flow and
-AI-Engineering. It states that choosing AI-Tool does not initialize persistent
-AI state or decision policy.
+AI-Engineering. It states that choosing AI-Tool does not initialize decision
+policy or process artifacts.
 
 ## 8. Authority And Safety
 
@@ -205,10 +197,7 @@ AI state or decision policy.
 Test at minimum:
 
 - exact routing for `config`, `run`, `triage`, and `audit` requests;
-- integrity preflight before every operation, including clean, changed,
-  uninitialized, invalid, and concurrent-update results;
-- changed integrity state that is reported without implicit baseline acceptance,
-  restoration, remediation, or AI-state creation;
+- current repository evidence inspected within one bounded request;
 - ambiguous requests that require one concise flow-selection clarification;
 - progressive loading of only relevant knowledge and operational references;
 - configuration creation and modification with full validation;
@@ -216,7 +205,7 @@ Test at minimum:
 - triage of root failure and propagated outcomes;
 - non-executing coverage audit;
 - unauthorized installation, mutation, network, and scope expansion;
-- repeated requests without implied cross-request state;
+- repeated requests without implied cross-request continuity;
 - absence of policy, persistence, process artifacts, and automatic report-store
   creation after every AI-Tool operation;
 - an existing malformed or restrictive AI-Engineering policy that AI-Tool does
@@ -237,22 +226,20 @@ They must include both successful operations and blocked operations.
 - top-level flow routing;
 - dedicated public AI-Tool documentation;
 - progressive shared-knowledge routing;
-- stateless safety and authority tests;
+- bounded-request safety and authority tests;
 - representative forward-trial fixtures.
 
 ## 11. Acceptance Criteria
 
 - [ ] An agent can configure, run, triage, or audit from one bounded request.
-- [ ] Every AI-Tool operation begins with the deterministic integrity check and
-      preserves its result as current-task evidence.
-- [ ] AI-Tool never writes AI observations or treats shared state as hidden
+- [ ] AI-Tool does not treat repository observations as cross-request
       continuity.
 - [ ] AI-Tool works without `policy.json`, persistence, a report store, or any
       AI-Engineering artifact.
 - [ ] Existing AI-Engineering policy and persistence do not affect AI-Tool
       routing, authority, or results.
 - [ ] AI-Tool never invokes Processes 0 through 3 implicitly.
-- [ ] Separate requests do not inherit hidden state or authorization.
+- [ ] Separate requests do not inherit analytical context or authorization.
 - [ ] Every execution passes through the normal CLI configuration and report
       contracts.
 - [ ] Shared knowledge is loaded progressively and never activates a flow.
@@ -264,5 +251,6 @@ They must include both successful operations and blocked operations.
 ## 12. Handoff To Phase 4
 
 Phase 4 composes these stable AI-Tool operations into the AI-Engineering Flow.
-It adds decision policy, persistence, process state, and resumability without
-duplicating or weakening the stateless operational contracts established here.
+It adds decision policy, immutable process artifacts, and explicit
+cross-request continuity without duplicating or weakening the bounded
+operational contracts established here.
