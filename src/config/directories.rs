@@ -60,6 +60,44 @@ pub(super) fn resolve_suite_directories(
     }
 }
 
+/// Resolves suites when the workspace root is the empty directory that
+/// initialization will create immediately before publishing the config.
+pub(super) fn resolve_virtual_suite_directories(
+    suites: &BTreeMap<String, SuiteConfig>,
+    root: &Path,
+) -> Result<BTreeMap<String, ResolvedSuiteDirectory>, Vec<String>> {
+    let mut result = BTreeMap::new();
+    let mut errors = Vec::new();
+    for (id, suite) in suites {
+        let declared = suite
+            .working_directory
+            .as_deref()
+            .unwrap_or_else(|| Path::new("."));
+        if declared
+            .components()
+            .all(|component| component == Component::CurDir)
+        {
+            result.insert(
+                id.clone(),
+                ResolvedSuiteDirectory {
+                    absolute: root.to_path_buf(),
+                    relative: ".".into(),
+                },
+            );
+        } else {
+            errors.push(format!(
+                "suite {id} has invalid workingDirectory {}: directory will not exist after initialization",
+                declared.display()
+            ));
+        }
+    }
+    if errors.is_empty() {
+        Ok(result)
+    } else {
+        Err(errors)
+    }
+}
+
 /// Rejects path forms that cannot safely be resolved below a workspace root.
 pub(super) fn validate_relative_path(path: &Path) -> Result<(), String> {
     if path.is_absolute() || path.as_os_str().is_empty() {

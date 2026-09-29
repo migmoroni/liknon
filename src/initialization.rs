@@ -184,19 +184,37 @@ fn publish_with(
     bytes: &[u8],
     before_publication: impl FnOnce(&Path) -> Result<(), String>,
 ) -> Result<InitResourceStatus, String> {
+    publish_with_allocator(
+        destination,
+        bytes,
+        || TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed),
+        before_publication,
+    )
+}
+
+fn publish_with_allocator(
+    destination: &Path,
+    bytes: &[u8],
+    mut next_sequence: impl FnMut() -> u64,
+    before_publication: impl FnOnce(&Path) -> Result<(), String>,
+) -> Result<InitResourceStatus, String> {
     let parent = destination.parent().expect("fixed destination has parent");
     fs::create_dir_all(parent)
         .map_err(|error| format!("cannot create destination directory: {error}"))?;
-    let sequence = TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed);
-    let temporary = parent.join(format!(
-        ".config.json.tmp-{}-{sequence}",
-        std::process::id()
-    ));
-    let mut file = OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&temporary)
-        .map_err(|error| format!("cannot create atomic temporary file: {error}"))?;
+    let (temporary, mut file) = loop {
+        let temporary = temporary_path(parent, next_sequence());
+        match OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temporary)
+        {
+            Ok(file) => break (temporary, file),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => {
+                return Err(format!("cannot create atomic temporary file: {error}"));
+            }
+        }
+    };
     let write_result = file
         .write_all(bytes)
         .and_then(|()| file.sync_all())
@@ -223,6 +241,13 @@ fn publish_with(
     };
     let _ = fs::remove_file(&temporary);
     published
+}
+
+fn temporary_path(parent: &Path, sequence: u64) -> PathBuf {
+    parent.join(format!(
+        ".config.json.tmp-{}-{sequence}",
+        std::process::id()
+    ))
 }
 
 fn result(workspace: &Path, resource: InitResourceResult) -> InitResult {
@@ -272,7 +297,9 @@ pub fn resolve_workspace(path: PathBuf) -> Result<PathBuf, String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{publish, publish_with, InitResourceStatus};
+    use super::{
+        publish, publish_with, publish_with_allocator, temporary_path, InitResourceStatus,
+    };
     use std::fs;
     use tempfile::TempDir;
 
@@ -312,5 +339,34 @@ mod tests {
         assert!(status.contains("interrupted"));
         assert_eq!(fs::read(&destination).unwrap(), b"existing");
         assert_eq!(fs::read_dir(parent).unwrap().count(), 1);
+    }
+
+    #[test]
+    fn abandoned_temporary_is_untouched_and_does_not_block_publication() {
+        let temp = TempDir::new().unwrap();
+        let parent = temp.path().join(".validation");
+        fs::create_dir(&parent).unwrap();
+        let destination = parent.join("config.json");
+        let first_sequence = 41;
+        let abandoned = temporary_path(&parent, first_sequence);
+        fs::write(&abandoned, b"unknown owner").unwrap();
+        let mut sequence = first_sequence;
+
+        let status = publish_with_allocator(
+            &destination,
+            b"validated bytes",
+            || {
+                let current = sequence;
+                sequence += 1;
+                current
+            },
+            |_| Ok(()),
+        )
+        .unwrap();
+
+        assert_eq!(status, InitResourceStatus::Created);
+        assert_eq!(fs::read(&destination).unwrap(), b"validated bytes");
+        assert_eq!(fs::read(&abandoned).unwrap(), b"unknown owner");
+        assert_eq!(fs::read_dir(parent).unwrap().count(), 2);
     }
 }

@@ -607,7 +607,7 @@ fn invalid_configuration_and_usage_return_three() {
 
 #[cfg(unix)]
 #[test]
-fn cli_translates_reporting_failure_to_exit_four() {
+fn inspection_output_failure_returns_exit_four() {
     let temp = TempDir::new().unwrap();
     let mut value = common::base_config("rustc");
     let tools = value["tools"].as_array_mut().unwrap();
@@ -633,6 +633,74 @@ fn cli_translates_reporting_failure_to_exit_four() {
         .unwrap();
     assert_eq!(output.status.code(), Some(4));
     assert!(String::from_utf8_lossy(&output.stderr).contains("internal executor failure"));
+}
+
+#[cfg(unix)]
+#[test]
+fn final_json_report_write_failure_returns_four_without_panicking() {
+    let temp = TempDir::new().unwrap();
+    let mut value = common::base_config("rustc");
+    value["checks"][0]["args"] = serde_json::json!(["--version"]);
+    let path = common::write_config(temp.path(), &value);
+    let output = Command::new("sh")
+        .args([
+            "-c",
+            "exec 1>/dev/full; exec \"$1\" validate --format=json --config \"$2\"",
+            "workspace-validator-test",
+            env!("CARGO_BIN_EXE_workspace-validator"),
+        ])
+        .arg(path)
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(4));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("cannot write standard output"), "{stderr}");
+    assert!(!stderr.contains("panicked"), "{stderr}");
+    assert!(!stderr.contains("\"schemaVersion\""), "{stderr}");
+}
+
+#[cfg(unix)]
+#[test]
+fn final_init_json_write_failure_returns_four_without_panicking() {
+    let temp = TempDir::new().unwrap();
+    let (candidate, _) = init_candidate(temp.path());
+    let output = Command::new("sh")
+        .args([
+            "-c",
+            "exec 1>/dev/full; exec \"$1\" init --format=json --config \"$2\"",
+            "workspace-validator-test",
+            env!("CARGO_BIN_EXE_workspace-validator"),
+        ])
+        .arg(candidate)
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(4));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("cannot write standard output"), "{stderr}");
+    assert!(!stderr.contains("panicked"), "{stderr}");
+    assert!(!stderr.contains("\"schemaVersion\""), "{stderr}");
+    assert!(temp.path().join(".validation/config.json").is_file());
+}
+
+#[cfg(unix)]
+#[test]
+fn failed_stdout_and_stderr_sinks_preserve_exit_four() {
+    let temp = TempDir::new().unwrap();
+    let mut value = common::base_config("rustc");
+    value["checks"][0]["args"] = serde_json::json!(["--version"]);
+    let path = common::write_config(temp.path(), &value);
+    let status = Command::new("sh")
+        .args([
+            "-c",
+            "exec 1>/dev/full 2>/dev/full; exec \"$1\" validate --format=json --config \"$2\"",
+            "workspace-validator-test",
+            env!("CARGO_BIN_EXE_workspace-validator"),
+        ])
+        .arg(path)
+        .status()
+        .unwrap();
+    assert_eq!(status.code(), Some(4));
 }
 
 #[cfg(unix)]

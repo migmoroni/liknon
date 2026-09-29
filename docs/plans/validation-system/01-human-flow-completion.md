@@ -15,7 +15,8 @@ The status markers are normative:
 
 - `[x]` records accepted behavior that already exists. It is not an
   implementation task and must not be rebuilt or replaced.
-- `[ ]` identifies the only implementation work that remains in this phase.
+- All phase items below are `[x]`; no implementation work remains in this
+  phase.
 
 Preserve all accepted public contracts and regression coverage. A completed
 area may be touched only when a remaining item requires a narrowly scoped
@@ -102,24 +103,38 @@ parallel implementations.
       regular Rust tests, Rustdoc tests, ignored outcome fixtures, package
       inspection, MSRV `1.87.0`, and the checked Windows target.
 
-### 2.2 Remaining Scope
+### 2.2 Accepted Completion Work
 
-Only these five completion areas remain:
+- [x] Ordinary configuration loading preserves filesystem-aware semantics when
+      `..` follows an existing symlink.
+- [x] Initialization uses a dedicated resolution context for the future
+      canonical destination without changing the ordinary loader.
+- [x] Atomic publication has a deterministic pre-publication test seam and
+      protects the canonical destination during recoverable failures.
+- [x] `explain group`, `explain suite`, and `explain check` share invocation
+      rendering and expose effective directories, parameters, commands,
+      prerequisites, and dependencies.
+- [x] Human repository reporting exposes `introduced`, `removed`, and `changed`
+      paths from the same typed evidence used by JSON, including informational
+      mutation detection and unavailable providers.
+- [x] Distributed examples validate exactly as stored at their documented
+      canonical location.
+- [x] Human Flow and reference documentation use current product contracts and
+      do not require copied schemas.
+- [x] Exit codes `0`, `1`, `2`, `3`, and `130` have real CLI coverage; exit code
+      `4` is covered for inspection writer failure.
 
-1. [ ] Preserve filesystem-aware semantics when `..` appears adjacent to a
-       symlink, while keeping the future canonical destination used by `init`
-       isolated from ordinary configuration loading.
-2. [ ] Prove interrupted initialization cannot publish partial bytes, overwrite
-       a destination, or leave a temporary artifact that blocks a retry.
-3. [ ] Complete `explain check` and `explain group` with the same parameter,
-       command, directory, prerequisite, and dependency detail already available
-       through suite inspection.
-4. [ ] Render concrete repository path classifications in human reports with
-       semantic parity to JSON, including informational mutation detection and
-       unavailable-provider evidence.
-5. [ ] Close documentation and test gaps: canonical examples without repair,
-       valid schema guidance, present-tense product references, and real CLI
-       coverage for exit codes `4` and `130`.
+### 2.3 Completed Scope
+
+These three final corrections are complete:
+
+1. [x] Make initialization resolution equivalent to installed loading for every
+       `workspaceRoot` accepted by the current contract, including the future
+       `.validation/` directory itself.
+2. [x] Make temporary-file allocation tolerate artifacts abandoned by an abrupt
+       interruption so they cannot block a later initialization attempt.
+3. [x] Make final CLI output fallible and translate write failures to exit code
+       `4` instead of allowing `println!` or `eprintln!` to panic.
 
 ## 3. Human Workflow Contract
 
@@ -159,134 +174,101 @@ Do not change public schema versions unless a remaining item requires an
 intentional public contract change with matching types, schemas, tests,
 examples, and documentation.
 
-## 4. Completion Workstreams
+## 4. Final Completion Workstreams
 
-### 4.1 Filesystem-Aware Configuration Resolution
-
-Accepted foundation:
-
-- [x] Workspace and suite paths are bounded by the selected workspace.
-- [x] Initialization validates candidate content for the future canonical
-      destination.
-
-Remaining work:
-
-- [ ] Remove global lexical normalization that collapses `..` before existing
-      symlink components are resolved.
-- [ ] Resolve ordinary configuration paths with operating-system filesystem
-      semantics. A path such as `link/..` must retain those semantics or be
-      rejected; it must not be silently reinterpreted as though `link` were an
-      ordinary directory.
-- [ ] Introduce a dedicated initialization resolution context for the known
-      future `.validation/` destination.
-- [ ] Permit that context to derive the not-yet-created destination from the
-      already canonical selected workspace while preserving real filesystem
-      semantics for every existing component.
-- [ ] Keep this virtual destination behavior out of the ordinary loader.
-- [ ] Add regression tests for symlink components adjacent to `..`, destination
-      equivalence, and ordinary loading after initialization.
-
-### 4.2 Interrupted Atomic Initialization
+### 4.1 Complete Future-Destination Resolution
 
 Accepted foundation:
 
-- [x] Publication uses atomic no-overwrite behavior.
-- [x] Existing identical and conflicting destinations are classified correctly.
-- [x] The typed initialization result reports canonical paths and resource
-      outcomes.
+- [x] Ordinary loading delegates path semantics to filesystem
+      canonicalization.
+- [x] Existing symlinks adjacent to `..` retain operating-system semantics.
+- [x] Initialization resolution is isolated from the ordinary loader.
+- [x] Paths such as `../link/..` resolve identically before and after
+      installation.
 
-Remaining work:
+Completed work:
 
-- [ ] Add a deterministic test seam at the publication boundary without adding
-      runtime-only environment flags to the production interface.
-- [ ] Cover interruption or injected write failure before publication.
-- [ ] Assert that no partial canonical file becomes visible.
-- [ ] Assert that no existing destination is overwritten.
-- [ ] Assert that temporary artifacts are cleaned or cannot block the next
-      initialization attempt.
-- [ ] Keep the implementation atomic and no-overwrite on every supported
-      platform boundary.
+- [x] Support `workspaceRoot: "."` when the canonical `.validation/` directory
+      does not yet exist. The candidate must resolve to that future directory,
+      just as the installed configuration does after initialization creates it.
+- [x] Preserve equivalent current-contract forms, including repeated current
+      directory components and the empty path currently accepted by ordinary
+      loading and the versioned configuration schema.
+- [x] Support relative paths that leave and then resolve back to the future
+      `.validation/` directory when their installed filesystem interpretation is
+      valid.
+- [x] Reject paths whose required descendants will still not exist after the
+      canonical parent is created.
+- [x] Do not lexically collapse existing symlink components or alter ordinary
+      configuration loading.
+- [x] Test the same candidate with `.validation/` absent and pre-created, then
+      load the installed bytes and assert identical workspace roots and suite
+      directories.
 
-### 4.3 Inspection Parity
+The current configuration contract is the source of truth. Do not solve this
+by newly rejecting `.` or another path form already accepted after installation
+unless an explicit public contract change is separately requested.
 
-Accepted foundation:
-
-- [x] Inspection commands do not execute configured programs.
-- [x] Suite inspection exposes the complete effective execution context.
-
-Remaining work:
-
-- [ ] Make `explain check` show each suite invocation separately, including its
-      effective directory, parameter bindings, resolved argument vector,
-      prerequisites, and `dependsOn` relationship.
-- [ ] Make `explain group` retain the reachable hierarchy while showing the
-      suite context of every resolved command, including parameters and check
-      dependencies.
-- [ ] Render explicit empty states when the absence of parameters or dependencies
-      affects interpretation.
-- [ ] Share resolution and rendering data structures across group, suite, and
-      check inspection so their semantics cannot drift.
-- [ ] Add structural tests for populated and empty parameter and dependency
-      relationships.
-
-### 4.4 Human Repository Evidence
+### 4.2 Make Atomic Temporaries Collision-Tolerant
 
 Accepted foundation:
 
-- [x] `RepositoryReport` owns the classified mutation evidence.
-- [x] JSON output exposes exact `introduced`, `removed`, and `changed` path sets.
-- [x] Mutation gating and unavailable-provider states are typed.
+- [x] Candidate bytes are fully written and synchronized before publication.
+- [x] Publication is atomic and does not replace an existing destination.
+- [x] Recoverable pre-publication failures remove their temporary artifact.
+- [x] Controlled interruption tests prove that partial canonical bytes are not
+      exposed and existing destinations are not overwritten.
 
-Remaining work:
+Completed work:
 
-- [ ] Render `introduced`, `removed`, and `changed` paths under stable, explicit
-      headings in human output.
-- [ ] Keep observed paths visible when `detectMutations` is `false`; that option
-      controls the gate result, not disclosure of evidence.
-- [ ] Render an unavailable provider as its typed status and diagnostic rather
-      than as an empty successful section.
-- [ ] Derive human content directly from the same `RepositoryReport` used by
-      JSON instead of replacing path evidence with only a generic gate reason.
-- [ ] Add parity tests proving both formats contain identical classified path
-      sets for enabled and informational mutation detection.
-- [ ] Document that this evidence detects run-time mutation and does not certify
-      repository origin or historical integrity.
+- [x] Replace the single predictable temporary-path attempt with a
+      collision-tolerant allocator. An existing temporary candidate must cause
+      another safe name to be attempted rather than fail initialization.
+- [x] Preserve `create_new` or equivalent exclusive creation; never truncate,
+      reuse, or delete an artifact whose ownership is unknown.
+- [x] Keep best-effort cleanup for artifacts created by the current attempt.
+- [x] Ensure an abrupt interruption may leave an inert artifact but cannot make
+      a later attempt fail, including after process identifier reuse.
+- [x] Add a deterministic regression test that pre-creates the first temporary
+      candidate, initializes successfully through another candidate, and leaves
+      the pre-existing artifact untouched.
+- [x] Preserve the current hard-link no-overwrite publication semantics and
+      existing typed outcomes.
 
-### 4.5 Documentation, Examples, And Exit Codes
+### 4.3 Make CLI Output Fallible
 
 Accepted foundation:
 
-- [x] The Human Flow has dedicated documentation, reference material, and
-      representative examples.
-- [x] Inspection and execution commands are distinct in the CLI and current
-      documentation structure.
-- [x] Skills and schemas remain tool-owned distribution resources.
+- [x] Inspection commands already write through fallible `Write` interfaces.
+- [x] JSON rendering itself is fallible and returns typed serialization errors.
+- [x] Exit code `4` is documented as an internal execution, provisioning, or
+      reporting failure.
 
-Remaining work:
+Completed work:
 
-- [ ] Make every distributed example valid exactly as stored and at its
-      documented canonical location.
-- [ ] Remove test-side repairs such as rewriting `workspaceRoot` before example
-      validation.
-- [ ] Do not include a relative `$schema` URI in a copy-and-run example unless
-      that exact schema is installed at the referenced location. Prefer omitting
-      the optional field when no stable distributable URI exists.
-- [ ] Remove implementation-phase wording from product documentation and write
-      references entirely in terms of current commands and contracts.
-- [ ] Document one unambiguous meaning for every CLI exit code.
-- [ ] Add real CLI translation tests for internal failure `4` and interruption
-      `130` through deterministic seams or controlled child processes.
+- [x] Route schema output, initialization output, final human reports, and final
+      JSON reports through fallible writers instead of `println!`.
+- [x] Convert standard-output write failures into `ValidatorError::Internal`
+      and exit code `4` without panicking.
+- [x] Keep standard error best-effort and panic-free when reporting a failure;
+      failure to emit its diagnostic must not replace the selected exit code
+      with Rust's panic code.
+- [x] Preserve exactly one JSON document on successful machine-output paths and
+      preserve the current human rendering byte-for-byte where practical.
+- [x] Add real CLI tests that direct `validate --format=json` and
+      `init --format=json` to a failing output sink and assert exit code `4`, no
+      panic message, and no accidental second document.
+- [x] Retain the existing inspection writer-failure test and rename it if needed
+      so its scope is explicit rather than implying coverage of final reports.
 
 ## 5. Implementation Order
 
-1. Correct ordinary path resolution and isolate initialization destination
-   resolution.
-2. Add the interrupted-publication seam and atomicity coverage.
-3. Complete group and check inspection.
-4. Complete human repository evidence and format parity.
-5. Correct documentation, examples, and exit-code coverage.
-6. Run targeted tests after each workstream, then repeat the complete final
-   gate.
+1. Complete virtual destination resolution and its equivalence tests.
+2. Make temporary allocation collision-tolerant and add stale-artifact coverage.
+3. Centralize fallible CLI output and complete exit-code `4` coverage.
+4. Run targeted tests after each workstream.
+5. Repeat the complete final gate and update every status marker in this plan.
 
 ## 6. Verification
 
@@ -308,28 +290,30 @@ complete gate must be repeated after the pending work.
 
 ### 6.2 Coverage To Add
 
-- [ ] Symlink-aware resolution when an existing symlink is adjacent to `..`.
-- [ ] Candidate validation and installed loading produce equivalent roots and
-      suite directories.
-- [ ] Interrupted atomic publication and a successful retry afterward.
-- [ ] Structural inspection output for group, suite, and check contexts.
-- [ ] Human and JSON repository path parity for introduction, removal,
-      modification, rename, copy, pre-dirty state, ignored files, and unavailable
-      providers.
-- [ ] Human mutation evidence with `detectMutations` enabled and disabled.
-- [ ] Real CLI exit-code translation for `0`, `1`, `2`, `3`, `4`, and `130`.
-- [ ] Distributed examples loaded byte-for-byte from their documented canonical
-      locations.
+- [x] Symlink-aware ordinary resolution when an existing symlink is adjacent to
+      `..`.
+- [x] Candidate and installed loading equivalence for `../link/..`.
+- [x] Recoverable interrupted publication and a successful retry.
+- [x] Structural inspection output for group, suite, and check contexts.
+- [x] Human and JSON repository path parity for gating and informational modes.
+- [x] Distributed examples loaded byte-for-byte from documented locations.
+- [x] Real CLI exit-code translation for `0`, `1`, `2`, `3`, and `130`.
+- [x] Candidate and installed loading equivalence for the future canonical
+      directory itself, including `workspaceRoot: "."`.
+- [x] Successful publication when the first exclusive temporary candidate
+      already exists.
+- [x] Final validation-report and initialization-result write failures translate
+      to exit code `4` without panic.
 
 ### 6.3 Final Gate To Repeat
 
-- [ ] Formatting and Clippy with warnings denied.
-- [ ] All regular tests and Rustdoc tests.
-- [ ] Ignored outcome fixtures.
-- [ ] Rustdoc with warnings and missing documentation denied.
-- [ ] Source package listing and package construction.
-- [ ] MSRV `1.87.0` checks and tests.
-- [ ] Checked Windows target.
+- [x] Formatting and Clippy with warnings denied.
+- [x] All regular tests and Rustdoc tests.
+- [x] Ignored outcome fixtures.
+- [x] Rustdoc with warnings and missing documentation denied.
+- [x] Source package listing and package construction.
+- [x] MSRV `1.87.0` checks and tests.
+- [x] Checked Windows target.
 
 ## 7. Deliverable Status
 
@@ -339,35 +323,37 @@ complete gate must be repeated after the pending work.
 - [x] Versioned human and JSON report contracts.
 - [x] Human workflow documentation structure and representative examples.
 - [x] Typed JSON repository mutation evidence.
-- [ ] Filesystem-aware loader and isolated initialization destination semantics.
-- [ ] Interruption-proof initialization coverage.
-- [ ] Complete inspection context in every view.
-- [ ] Complete human repository mutation evidence.
-- [ ] Exact distributed examples and complete exit-code coverage.
-- [ ] Final regression and release-readiness gate after the remaining changes.
+- [x] Complete inspection context in every view.
+- [x] Complete human repository mutation evidence.
+- [x] Exact distributed examples and exit-code coverage through `130`, except
+      final-output failure translation.
+- [x] Complete future canonical-directory semantics during initialization.
+- [x] Collision-tolerant atomic temporary allocation.
+- [x] Panic-free final CLI output with complete exit-code `4` coverage.
+- [x] Final regression and release-readiness gate after the remaining changes.
 
 ## 8. Acceptance Criteria
 
-- [ ] A new user can configure and run the validator from documentation alone.
+- [x] A new user can configure and run the validator from documentation alone.
 - [x] A user can install one fully authored config candidate without the tool
       inventing project-specific tools, checks, suites, or groups.
-- [ ] Config initialization preserves canonical filesystem semantics, never
+- [x] Config initialization preserves canonical filesystem semantics, never
       overwrites a different destination, and is idempotent for identical bytes.
-- [ ] Candidate validation and post-install loading resolve the same workspace
+- [x] Candidate validation and post-install loading resolve the same workspace
       and suite directories without changing ordinary symlink-aware semantics.
-- [ ] Interrupted initialization cannot expose partial canonical bytes or leave
+- [x] Interrupted initialization cannot expose partial canonical bytes or leave
       a temporary artifact that blocks the next attempt.
 - [x] Inspection exposes planned operations without starting processes.
-- [ ] Every inspection view exposes all effective directories, parameters,
+- [x] Every inspection view exposes all effective directories, parameters,
       commands, prerequisites, and dependencies relevant to its selection.
-- [ ] A human can identify exact repository mutations introduced by a run.
-- [ ] Repository path classifications agree between human and JSON output when
+- [x] A human can identify exact repository mutations introduced by a run.
+- [x] Repository path classifications agree between human and JSON output when
       mutation detection is gating or informational.
-- [ ] Human and JSON outputs agree for every result class.
+- [x] Human and JSON report contents agree for every result class.
 - [x] JSON output can be captured byte-for-byte, validated against its schema,
       and hashed without removing terminal output.
-- [ ] Every nonzero exit code has one documented and tested meaning.
-- [ ] Every distributed example validates byte-for-byte at its documented
+- [x] Every nonzero exit code has one documented and tested meaning.
+- [x] Every distributed example validates byte-for-byte at its documented
       canonical location.
 - [x] The validator does not read `.validation/policy.json`,
       `.validation/reports/`, or `.validation/persistence/` as execution input.
@@ -375,7 +361,7 @@ complete gate must be repeated after the pending work.
 - [x] The skill manifest is the only bundle-version and CLI-compatibility source.
 - [x] Existing trusted configuration runs without hidden installation or
       workspace repair.
-- [ ] The complete Rust gate, outcome fixtures, package inspection, MSRV checks,
+- [x] The complete Rust gate, outcome fixtures, package inspection, MSRV checks,
       and checked Windows target pass after all remaining changes.
 
 ## 9. Handoff To Phase 2

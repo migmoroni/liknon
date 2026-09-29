@@ -20,6 +20,8 @@ use crate::{
 use clap::{error::ErrorKind, Parser, Subcommand, ValueEnum};
 use schemars::schema_for;
 use std::{
+    fmt::Write as _,
+    io::Write,
     path::PathBuf,
     process::ExitCode,
     sync::{atomic::AtomicBool, Arc},
@@ -199,11 +201,11 @@ enum Contract {
 pub fn run_cli() -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
     if color_value_without_equals(&arguments) {
-        eprintln!("error: named --color palettes require --color=<PALETTE>");
+        write_stderr("error: named --color palettes require --color=<PALETTE>");
         return ExitCode::from(3);
     }
     if presentation_value_without_equals(&arguments) {
-        eprintln!("error: named presentation modes require --presentation=<MODE>");
+        write_stderr("error: named presentation modes require --presentation=<MODE>");
         return ExitCode::from(3);
     }
     let cli = match Cli::try_parse_from(arguments) {
@@ -217,26 +219,31 @@ pub fn run_cli() -> ExitCode {
             return ExitCode::from(code);
         }
     };
-    match execute(cli) {
+    let mut stdout = std::io::stdout().lock();
+    let mut stderr = std::io::stderr().lock();
+    match execute(cli, &mut stdout, &mut stderr) {
         Ok(code) => ExitCode::from(code as u8),
         Err((error, code)) => {
-            eprintln!("workspace-validator: {error}");
+            let _ = writeln!(stderr, "workspace-validator: {error}");
+            let _ = stderr.flush();
             ExitCode::from(code)
         }
     }
 }
 
-fn execute(cli: Cli) -> Result<i32, (ValidatorError, u8)> {
+fn execute(
+    cli: Cli,
+    stdout: &mut impl Write,
+    stderr: &mut impl Write,
+) -> Result<i32, (ValidatorError, u8)> {
     if let Command::Schema { contract } = cli.command {
         let schema = match contract {
             Contract::Config => schema_for!(Config),
             Contract::Report => schema_for!(ValidationReport),
         };
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&schema)
-                .map_err(|error| (ValidatorError::Internal(error.to_string()), 4))?
-        );
+        let rendered = serde_json::to_string_pretty(&schema)
+            .map_err(|error| (ValidatorError::Internal(error.to_string()), 4))?;
+        write_output(stdout, &rendered)?;
         return Ok(0);
     }
     if matches!(
@@ -285,7 +292,7 @@ fn execute(cli: Cli) -> Result<i32, (ValidatorError, u8)> {
                 .map_err(|error| (ValidatorError::Usage(error), 3))?;
         let (result, failure_class) =
             initialization::provision_config_classified(&workspace, candidate);
-        render_init(&result, *format)?;
+        render_init(&result, *format, stdout)?;
         return Ok(match result.status {
             InitStatus::Success => 0,
             InitStatus::Conflict | InitStatus::Partial => 1,
@@ -312,58 +319,51 @@ fn execute(cli: Cli) -> Result<i32, (ValidatorError, u8)> {
         Command::Schema { .. } => unreachable!(),
     };
     let validated = config::load(explicit, &current).map_err(|error| (error, 3))?;
-    let mut stdout = std::io::stdout().lock();
     match cli.command {
         Command::Config { .. } => {
-            inspection::config_validate(&validated, &mut stdout)
+            inspection::config_validate(&validated, stdout)
                 .map_err(|error| (ValidatorError::Internal(error), 4))?;
             Ok(0)
         }
         Command::List { tree, .. } => {
-            inspection::list(&validated, tree, &mut stdout)
+            inspection::list(&validated, tree, stdout)
                 .map_err(|error| (ValidatorError::Internal(error), 4))?;
             Ok(0)
         }
         Command::Explain { target } => {
             match target {
                 ExplainTarget::Group { group_id, .. } => {
-                    inspection::explain_group(&validated, &group_id, &mut stdout).map_err(
-                        |details| {
-                            (
-                                ValidatorError::invalid(
-                                    validated.configuration_path(),
-                                    details.to_string(),
-                                ),
-                                3,
-                            )
-                        },
-                    )?
+                    inspection::explain_group(&validated, &group_id, stdout).map_err(|details| {
+                        (
+                            ValidatorError::invalid(
+                                validated.configuration_path(),
+                                details.to_string(),
+                            ),
+                            3,
+                        )
+                    })?
                 }
                 ExplainTarget::Suite { suite_id, .. } => {
-                    inspection::explain_suite(&validated, &suite_id, &mut stdout).map_err(
-                        |details| {
-                            (
-                                ValidatorError::invalid(
-                                    validated.configuration_path(),
-                                    details.to_string(),
-                                ),
-                                3,
-                            )
-                        },
-                    )?
+                    inspection::explain_suite(&validated, &suite_id, stdout).map_err(|details| {
+                        (
+                            ValidatorError::invalid(
+                                validated.configuration_path(),
+                                details.to_string(),
+                            ),
+                            3,
+                        )
+                    })?
                 }
                 ExplainTarget::Check { check_id, .. } => {
-                    inspection::explain_check(&validated, &check_id, &mut stdout).map_err(
-                        |details| {
-                            (
-                                ValidatorError::invalid(
-                                    validated.configuration_path(),
-                                    details.to_string(),
-                                ),
-                                3,
-                            )
-                        },
-                    )?
+                    inspection::explain_check(&validated, &check_id, stdout).map_err(|details| {
+                        (
+                            ValidatorError::invalid(
+                                validated.configuration_path(),
+                                details.to_string(),
+                            ),
+                            3,
+                        )
+                    })?
                 }
             };
             Ok(0)
@@ -381,7 +381,15 @@ fn execute(cli: Cli) -> Result<i32, (ValidatorError, u8)> {
                     3,
                 )
             })?;
-            execute_run(&validated, &plan, format, color, presentation)
+            execute_run(
+                &validated,
+                &plan,
+                format,
+                color,
+                presentation,
+                stdout,
+                stderr,
+            )
         }
         Command::Check {
             check_id,
@@ -396,38 +404,51 @@ fn execute(cli: Cli) -> Result<i32, (ValidatorError, u8)> {
                     3,
                 )
             })?;
-            execute_run(&validated, &plan, format, color, presentation)
+            execute_run(
+                &validated,
+                &plan,
+                format,
+                color,
+                presentation,
+                stdout,
+                stderr,
+            )
         }
         Command::Schema { .. } => unreachable!(),
         Command::Init { .. } => unreachable!(),
     }
 }
 
-fn render_init(result: &InitResult, format: Format) -> Result<(), (ValidatorError, u8)> {
-    match format {
-        Format::Json => println!(
-            "{}",
-            serde_json::to_string_pretty(result)
-                .map_err(|error| (ValidatorError::Internal(error.to_string()), 4))?
-        ),
+fn render_init(
+    result: &InitResult,
+    format: Format,
+    output: &mut impl Write,
+) -> Result<(), (ValidatorError, u8)> {
+    let rendered = match format {
+        Format::Json => serde_json::to_string_pretty(result)
+            .map_err(|error| (ValidatorError::Internal(error.to_string()), 4))?,
         Format::Human => {
-            println!("Initialization: {:?}", result.status);
-            println!("Workspace: {}", result.workspace_root);
+            let mut rendered = String::new();
+            let _ = writeln!(rendered, "Initialization: {:?}", result.status);
+            let _ = writeln!(rendered, "Workspace: {}", result.workspace_root);
             for resource in &result.resources {
-                println!(
+                let _ = writeln!(
+                    rendered,
                     "  {:?} {:?}: {}",
                     resource.kind, resource.status, resource.path
                 );
                 if let Some(digest) = &resource.digest {
-                    println!("    SHA-256: {digest}");
+                    let _ = writeln!(rendered, "    SHA-256: {digest}");
                 }
                 for diagnostic in &resource.diagnostics {
-                    println!("    {diagnostic}");
+                    let _ = writeln!(rendered, "    {diagnostic}");
                 }
             }
+            rendered.pop();
+            rendered
         }
-    }
-    Ok(())
+    };
+    write_output(output, &rendered)
 }
 
 fn execute_run(
@@ -436,6 +457,8 @@ fn execute_run(
     format: Format,
     color: Option<ColorPaletteArgument>,
     presentation: Option<PresentationArgument>,
+    output: &mut impl Write,
+    error_output: &mut impl Write,
 ) -> Result<i32, (ValidatorError, u8)> {
     let cancelled = Arc::new(AtomicBool::new(false));
     let signal = cancelled.clone();
@@ -479,14 +502,32 @@ fn execute_run(
     if separate_result {
         // Indicatif leaves the cursor at the end of its completed footer. The
         // first newline closes that row; the second creates the visible gap.
-        eprintln!("\n");
+        let _ = writeln!(error_output, "\n");
+        let _ = error_output.flush();
     }
-    println!("{rendered}");
+    write_output(output, &rendered)?;
     Ok(if outcome.interrupted {
         130
     } else {
         outcome.report.summary.exit_code()
     })
+}
+
+fn write_output(output: &mut impl Write, rendered: &str) -> Result<(), (ValidatorError, u8)> {
+    writeln!(output, "{rendered}")
+        .and_then(|()| output.flush())
+        .map_err(|error| {
+            (
+                ValidatorError::Internal(format!("cannot write standard output: {error}")),
+                4,
+            )
+        })
+}
+
+fn write_stderr(message: &str) {
+    let mut stderr = std::io::stderr().lock();
+    let _ = writeln!(stderr, "{message}");
+    let _ = stderr.flush();
 }
 
 fn color_value_without_equals(arguments: &[std::ffi::OsString]) -> bool {

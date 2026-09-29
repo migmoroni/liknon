@@ -31,3 +31,7 @@ Human validation output is plain by default. `--color[=<palette>]` and
 `--presentation=<mode>` apply only to execution output and are rejected with
 `--format=json`. JSON execution output contains exactly one complete report on
 standard output.
+Standard-output delivery is part of command completion. If a schema,
+initialization result, or final validation report cannot be written and flushed,
+the command returns exit code `4`; diagnostic output remains best-effort and
+cannot turn that result into a panic exit.
