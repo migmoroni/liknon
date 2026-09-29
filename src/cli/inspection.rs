@@ -2,7 +2,7 @@
 
 use crate::{
     config::{parameters, ValidatedConfig},
-    contracts::config::GroupMemberRef,
+    contracts::config::{GroupMemberRef, ParameterValue},
     execution,
     planning::{self, ExecutionNodeRef, ValidationPlan},
 };
@@ -109,7 +109,7 @@ pub(super) fn explain_group(
     print_membership_paths(validated, ExecutionNodeRef::Group { id: id.into() }, output)?;
     writeln!(output, "Reachable hierarchy:").map_err(|error| error.to_string())?;
     print_tree(&plan, ExecutionNodeRef::Group { id: id.into() }, output)?;
-    print_commands_and_tools(validated, &plan, output)
+    print_invocations_and_tools(validated, &plan, output)
 }
 
 pub(super) fn explain_suite(
@@ -122,7 +122,7 @@ pub(super) fn explain_suite(
     let definition = &validated.suites[id];
     writeln!(
         output,
-        "SUITE {} - {}\n{}\nDeclared directory: {}\nEffective directory: {}\nChecks:",
+        "SUITE {} - {}\n{}\nDeclared directory: {}\nEffective directory: {}",
         id,
         suite.label,
         suite.description,
@@ -135,21 +135,9 @@ pub(super) fn explain_suite(
         suite.relative_working_directory,
     )
     .map_err(|error| error.to_string())?;
-    for invocation in &suite.checks {
-        writeln!(output, "  {}", invocation.check_id).map_err(|error| error.to_string())?;
-        if !invocation.parameters.is_empty() {
-            let parameters =
-                serde_json::to_string(&invocation.parameters).map_err(|error| error.to_string())?;
-            writeln!(output, "    Parameters: {parameters}").map_err(|error| error.to_string())?;
-        }
-        if !invocation.depends_on.is_empty() {
-            writeln!(output, "    Depends on: {:?}", invocation.depends_on)
-                .map_err(|error| error.to_string())?;
-        }
-    }
     writeln!(output, "Membership paths:").map_err(|error| error.to_string())?;
     print_membership_paths(validated, ExecutionNodeRef::Suite { id: id.into() }, output)?;
-    print_commands_and_tools(validated, &plan, output)
+    print_invocations_and_tools(validated, &plan, output)
 }
 
 pub(super) fn explain_check(
@@ -164,39 +152,49 @@ pub(super) fn explain_check(
     let direct_arguments = parameters::expand(&check.args, &Default::default());
     writeln!(
         output,
-        "CHECK {} - {}\n{}\nTool: {}\nArgument template: {}\nDirect command: {}\nDirect directory: .\nTimeout: {} s\nSuites:",
+        "CHECK {} - {}\n{}\nTool: {}\nArgument template: {}\nTimeout: {} s\nResolved invocations:",
         id,
         check.label,
         check.description,
         check.tool_id,
         command(&validated.tools[&check.tool_id].program, &check.args),
-        command(
-            &validated.tools[&check.tool_id].program,
-            &direct_arguments
-        ),
         check.timeout_seconds,
     )
     .map_err(|error| error.to_string())?;
+    render_invocation(
+        validated,
+        None,
+        id,
+        ".",
+        &BTreeMap::new(),
+        &direct_arguments,
+        &[],
+        output,
+    )?;
     for suite in validated.suites.values().filter(|suite| {
         suite
             .checks
             .iter()
             .any(|invocation| invocation.check_id == id)
     }) {
-        let invocation = suite
+        let plan = planning::suite(validated, &suite.id).expect("validated suite");
+        let planned_suite = &plan.suites[0];
+        let invocation = planned_suite
             .checks
             .iter()
             .find(|invocation| invocation.check_id == id)
             .expect("filtered suite invocation");
-        let args = parameters::expand(&check.args, &invocation.parameters);
-        writeln!(
+        render_invocation(
+            validated,
+            Some(&suite.id),
+            id,
+            &planned_suite.relative_working_directory,
+            &invocation.parameters,
+            &invocation.arguments,
+            &invocation.depends_on,
             output,
-            "  {} @ {}: {}",
-            suite.id,
-            validated.suite_directories[&suite.id].relative,
-            command(&validated.tools[&check.tool_id].program, &args)
-        )
-        .map_err(|error| error.to_string())?;
+        )?;
+        writeln!(output, "    Membership paths:").map_err(|error| error.to_string())?;
         print_membership_paths(
             validated,
             ExecutionNodeRef::Suite {
@@ -205,39 +203,77 @@ pub(super) fn explain_check(
             output,
         )?;
     }
-    Ok(())
+    print_required_tools(validated, &[id.to_string()], output)
 }
 
-fn print_commands_and_tools(
+fn print_invocations_and_tools(
     validated: &ValidatedConfig,
     plan: &ValidationPlan,
     output: &mut impl Write,
 ) -> Result<(), String> {
-    writeln!(output, "Commands:").map_err(|error| error.to_string())?;
+    writeln!(output, "Resolved invocations:").map_err(|error| error.to_string())?;
     for suite in &plan.suites {
         for invocation in &suite.checks {
-            let check = &validated.checks[&invocation.check_id];
-            writeln!(
+            render_invocation(
+                validated,
+                Some(&suite.id),
+                &invocation.check_id,
+                &suite.relative_working_directory,
+                &invocation.parameters,
+                &invocation.arguments,
+                &invocation.depends_on,
                 output,
-                "  {} / {} @ {}: {}",
-                suite.id,
-                invocation.check_id,
-                suite.relative_working_directory,
-                command(
-                    &validated.tools[&check.tool_id].program,
-                    &invocation.arguments
-                )
-            )
-            .map_err(|error| error.to_string())?;
+            )?;
         }
     }
-    writeln!(output, "Required tools:").map_err(|error| error.to_string())?;
     let check_ids = plan
         .check_executions
         .iter()
         .map(|execution| execution.check_id.clone())
         .collect::<Vec<_>>();
-    for tool_id in execution::necessary_tool_ids(validated, &check_ids) {
+    print_required_tools(validated, &check_ids, output)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn render_invocation(
+    validated: &ValidatedConfig,
+    suite_id: Option<&str>,
+    check_id: &str,
+    directory: &str,
+    parameters: &BTreeMap<String, ParameterValue>,
+    arguments: &[String],
+    dependencies: &[String],
+    output: &mut impl Write,
+) -> Result<(), String> {
+    let check = &validated.checks[check_id];
+    let parameters = serde_json::to_string(parameters).map_err(|error| error.to_string())?;
+    let dependencies = if dependencies.is_empty() {
+        "<none>".into()
+    } else {
+        dependencies.join(", ")
+    };
+    let tools = execution::necessary_tool_ids(validated, &[check_id.to_string()]);
+    writeln!(
+        output,
+        "  {} / CHECK {}\n    Directory: {}\n    Parameters: {}\n    Depends on: {}\n    Command: {}\n    Prerequisites: {}",
+        suite_id.map_or("DIRECT".into(), |id| format!("SUITE {id}")),
+        check_id,
+        directory,
+        parameters,
+        dependencies,
+        command(&validated.tools[&check.tool_id].program, arguments),
+        tools.join(", "),
+    )
+    .map_err(|error| error.to_string())
+}
+
+fn print_required_tools(
+    validated: &ValidatedConfig,
+    check_ids: &[String],
+    output: &mut impl Write,
+) -> Result<(), String> {
+    writeln!(output, "Required tools:").map_err(|error| error.to_string())?;
+    for tool_id in execution::necessary_tool_ids(validated, check_ids) {
         let tool = &validated.tools[&tool_id];
         let requirement = tool
             .version_requirement
@@ -245,6 +281,22 @@ fn print_commands_and_tools(
             .map_or_else(String::new, |value| format!(" ({value})"));
         writeln!(output, "  {}: {}{}", tool.id, tool.program, requirement)
             .map_err(|error| error.to_string())?;
+        writeln!(
+            output,
+            "    Version command: {}",
+            command(&tool.program, &tool.version_args)
+        )
+        .map_err(|error| error.to_string())?;
+        writeln!(
+            output,
+            "    Requires tools: {}",
+            if tool.requires_tools.is_empty() {
+                "<none>".into()
+            } else {
+                tool.requires_tools.join(", ")
+            }
+        )
+        .map_err(|error| error.to_string())?;
     }
     Ok(())
 }

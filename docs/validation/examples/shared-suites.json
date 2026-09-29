@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 6,
+  "workspaceRoot": "..",
+  "defaultGroup": "release",
+  "outputLimitBytes": 1048576,
+  "tools": [
+    {
+      "id": "cargo",
+      "program": "cargo",
+      "requiresTools": [],
+      "versionArgs": ["--version"],
+      "versionParser": "firstSemver"
+    }
+  ],
+  "checks": [
+    {
+      "id": "rust.check",
+      "label": "Cargo check",
+      "description": "Checks the selected Cargo targets.",
+      "toolId": "cargo",
+      "args": ["check", "{targets}", "--locked"],
+      "requiresTools": [],
+      "timeoutSeconds": 600
+    }
+  ],
+  "suites": [
+    {
+      "id": "shared.rust",
+      "label": "Shared Rust validation",
+      "description": "Runs once even when reached through several groups.",
+      "workingDirectory": ".",
+      "checks": [
+        {
+          "checkId": "rust.check",
+          "parameters": { "targets": ["--workspace", "--all-targets"] },
+          "dependsOn": []
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "fast",
+      "label": "Fast gate",
+      "description": "Uses the shared Rust suite.",
+      "members": [{ "kind": "suite", "id": "shared.rust" }]
+    },
+    {
+      "id": "complete",
+      "label": "Complete gate",
+      "description": "Also uses the shared Rust suite.",
+      "members": [{ "kind": "suite", "id": "shared.rust" }]
+    },
+    {
+      "id": "release",
+      "label": "Release gate",
+      "description": "Converges on one shared suite through two groups.",
+      "members": [
+        { "kind": "group", "id": "fast" },
+        { "kind": "group", "id": "complete" }
+      ]
+    }
+  ]
+}

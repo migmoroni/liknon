@@ -1,6 +1,10 @@
 use schemars::schema_for;
 use serde_json::json;
-use workspace_validator::contracts::{config::Config, report::ValidationReport};
+use workspace_validator::contracts::{
+    config::Config,
+    init::{InitResourceKind, InitResourceResult, InitResourceStatus, InitResult, InitStatus},
+    report::ValidationReport,
+};
 
 #[test]
 fn checked_in_schemas_match_rust_contracts() {
@@ -233,4 +237,26 @@ fn report_contract_round_trips_without_loss() {
     let encoded = serde_json::to_value(parsed).unwrap();
     let decoded: ValidationReport = serde_json::from_value(encoded.clone()).unwrap();
     assert_eq!(serde_json::to_value(decoded).unwrap(), encoded);
+}
+
+#[test]
+fn initialization_contract_is_versioned_and_round_trips() {
+    let result = InitResult {
+        schema_version: 1,
+        workspace_root: "/workspace".into(),
+        status: InitStatus::Success,
+        resources: vec![InitResourceResult {
+            kind: InitResourceKind::Config,
+            path: "/workspace/.validation/config.json".into(),
+            status: InitResourceStatus::Created,
+            digest: Some("00".repeat(32)),
+            diagnostics: Vec::new(),
+        }],
+    };
+    let value = serde_json::to_value(&result).unwrap();
+    assert_eq!(value["schemaVersion"], 1);
+    assert_eq!(value["status"], "success");
+    assert_eq!(value["resources"][0]["status"], "created");
+    let decoded: InitResult = serde_json::from_value(value.clone()).unwrap();
+    assert_eq!(serde_json::to_value(decoded).unwrap(), value);
 }

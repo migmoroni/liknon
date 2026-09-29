@@ -1,7 +1,168 @@
 mod common;
 use serde_json::Value;
+#[cfg(unix)]
+use std::process::Stdio;
 use std::{fs, process::Command};
 use tempfile::TempDir;
+
+fn init_candidate(root: &std::path::Path) -> (std::path::PathBuf, Vec<u8>) {
+    let mut value = common::base_config("definitely-missing");
+    value["workspaceRoot"] = "..".into();
+    let bytes = serde_json::to_vec_pretty(&value).unwrap();
+    let path = root.join("candidate.json");
+    fs::write(&path, &bytes).unwrap();
+    (path, bytes)
+}
+
+#[test]
+fn init_requires_a_capability_flag() {
+    let temp = TempDir::new().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .arg("init")
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(3));
+    assert!(!temp.path().join(".validation").exists());
+}
+
+#[test]
+fn init_installs_exact_validated_bytes_and_reuses_them() {
+    let temp = TempDir::new().unwrap();
+    let (candidate, bytes) = init_candidate(temp.path());
+    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+
+    let created = Command::new(bin)
+        .args(["init", "--config"])
+        .arg(&candidate)
+        .arg("--format=json")
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert!(
+        created.status.success(),
+        "{}",
+        String::from_utf8_lossy(&created.stderr)
+    );
+    assert!(created.stderr.is_empty());
+    let document: Value = serde_json::from_slice(&created.stdout).unwrap();
+    assert_eq!(document["schemaVersion"], 1);
+    assert_eq!(document["status"], "success");
+    assert_eq!(document["resources"][0]["kind"], "config");
+    assert_eq!(document["resources"][0]["status"], "created");
+    assert!(document["resources"][0]["digest"].as_str().unwrap().len() == 64);
+    assert_eq!(
+        fs::read(temp.path().join(".validation/config.json")).unwrap(),
+        bytes
+    );
+
+    let reused = Command::new(bin)
+        .args(["init", "--config"])
+        .arg(&candidate)
+        .arg("--format=json")
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert!(reused.status.success());
+    let document: Value = serde_json::from_slice(&reused.stdout).unwrap();
+    assert_eq!(document["resources"][0]["status"], "reused");
+}
+
+#[test]
+fn init_reports_conflicts_and_never_overwrites() {
+    let temp = TempDir::new().unwrap();
+    let (candidate, _) = init_candidate(temp.path());
+    fs::create_dir(temp.path().join(".validation")).unwrap();
+    fs::write(temp.path().join(".validation/config.json"), b"different").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .args(["init", "--config"])
+        .arg(candidate)
+        .arg("--format=json")
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    assert!(output.stderr.is_empty());
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(document["status"], "conflict");
+    assert_eq!(document["resources"][0]["status"], "conflict");
+    assert_eq!(
+        fs::read(temp.path().join(".validation/config.json")).unwrap(),
+        b"different"
+    );
+}
+
+#[test]
+fn init_uses_canonical_destination_semantics_and_starts_no_tool() {
+    let temp = TempDir::new().unwrap();
+    let marker = temp.path().join("preflight-ran");
+    let mut value = common::base_config(common::process_fixture());
+    value["workspaceRoot"] = "..".into();
+    value["tools"][0]["versionArgs"] = serde_json::json!(["mark-version", marker]);
+    let candidate = common::write_config(temp.path(), &value);
+    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .args(["init", "--config"])
+        .arg(candidate)
+        .arg("--workspace")
+        .arg(temp.path())
+        .current_dir(std::env::temp_dir())
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(!marker.exists());
+}
+
+#[cfg(unix)]
+#[test]
+fn init_rejects_symlinked_candidates_and_workspace_escape() {
+    use std::os::unix::fs::symlink;
+    let workspace = TempDir::new().unwrap();
+    let outside = TempDir::new().unwrap();
+    let (outside_candidate, _) = init_candidate(outside.path());
+    let link = workspace.path().join("candidate-link.json");
+    symlink(&outside_candidate, &link).unwrap();
+    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+    for candidate in [&link, &outside_candidate] {
+        let output = Command::new(bin)
+            .args(["init", "--config"])
+            .arg(candidate)
+            .arg("--workspace")
+            .arg(workspace.path())
+            .arg("--format=json")
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(3));
+        let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(document["status"], "failed");
+    }
+    assert!(!workspace.path().join(".validation").exists());
+}
+
+#[cfg(unix)]
+#[test]
+fn init_rejects_a_symlinked_destination_directory() {
+    use std::os::unix::fs::symlink;
+    let workspace = TempDir::new().unwrap();
+    let outside = TempDir::new().unwrap();
+    let (candidate, _) = init_candidate(workspace.path());
+    symlink(outside.path(), workspace.path().join(".validation")).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .args(["init", "--config"])
+        .arg(candidate)
+        .arg("--workspace")
+        .arg(workspace.path())
+        .arg("--format=json")
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    let document: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(document["resources"][0]["status"], "conflict");
+    assert!(!outside.path().join("config.json").exists());
+}
 
 #[test]
 fn discovers_current_config_and_emits_portable_json() {
@@ -318,10 +479,16 @@ fn explain_suite_reports_membership_context_commands_and_tools() {
         "Effective directory: nested",
         "GROUP root -> GROUP branch.a -> SUITE shared",
         "GROUP root -> GROUP branch.b -> SUITE shared",
-        "shared / fixture.check @ nested",
+        "SUITE shared / CHECK fixture.check",
+        "Directory: nested",
+        "Parameters: {\"context\":\"--context\"}",
+        "Depends on: <none>",
+        "Prerequisites: fixture",
         "\"run\" \"--context\"",
         "Required tools:",
         "fixture: definitely-missing",
+        "Version command: \"definitely-missing\" \"--version\"",
+        "Requires tools: <none>",
     ] {
         assert!(
             stdout.contains(expected),
@@ -329,6 +496,76 @@ fn explain_suite_reports_membership_context_commands_and_tools() {
         );
     }
     assert!(!stdout.contains("Paths: Some"));
+}
+
+#[test]
+fn explain_group_and_check_share_complete_invocation_context() {
+    let temp = TempDir::new().unwrap();
+    fs::create_dir(temp.path().join("nested")).unwrap();
+    let mut value = common::base_config("definitely-missing");
+    value["checks"] = serde_json::json!([
+        {"id":"base","label":"Base","description":"Base check.","toolId":"fixture","args":["base"],"requiresTools":[],"timeoutSeconds":5},
+        {"id":"dependent","label":"Dependent","description":"Dependent check.","toolId":"fixture","args":["run","{target}"],"requiresTools":[],"timeoutSeconds":5}
+    ]);
+    value["suites"] = serde_json::json!([{
+        "id":"fixture","label":"Fixture","description":"Fixture suite.","workingDirectory":"nested",
+        "checks":[
+            {"checkId":"base","parameters":{},"dependsOn":[]},
+            {"checkId":"dependent","parameters":{"target":["--one","two words"]},"dependsOn":["base"]}
+        ]
+    }]);
+    let path = common::write_config(temp.path(), &value);
+    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+    let group = Command::new(bin)
+        .args(["explain", "group", "all", "--config"])
+        .arg(&path)
+        .output()
+        .unwrap();
+    let check = Command::new(bin)
+        .args(["explain", "check", "dependent", "--config"])
+        .arg(path)
+        .output()
+        .unwrap();
+    assert!(group.status.success());
+    assert!(check.status.success());
+    let group = String::from_utf8(group.stdout).unwrap();
+    let check = String::from_utf8(check.stdout).unwrap();
+    for output in [&group, &check] {
+        for expected in [
+            "SUITE fixture / CHECK dependent",
+            "Directory: nested",
+            "Parameters: {\"target\":[\"--one\",\"two words\"]}",
+            "Depends on: base",
+            "Command: \"definitely-missing\" \"run\" \"--one\" \"two words\"",
+            "Prerequisites: fixture",
+        ] {
+            assert!(
+                output.contains(expected),
+                "missing {expected:?} in:\n{output}"
+            );
+        }
+    }
+    for expected in [
+        "SUITE fixture / CHECK base",
+        "Parameters: {}",
+        "Depends on: <none>",
+    ] {
+        assert!(
+            group.contains(expected),
+            "missing {expected:?} in:\n{group}"
+        );
+    }
+    for expected in [
+        "DIRECT / CHECK dependent",
+        "Directory: .",
+        "Parameters: {}",
+        "Depends on: <none>",
+    ] {
+        assert!(
+            check.contains(expected),
+            "missing {expected:?} in:\n{check}"
+        );
+    }
 }
 
 #[test]
@@ -366,4 +603,72 @@ fn invalid_configuration_and_usage_return_three() {
         .status()
         .unwrap();
     assert_eq!(status.code(), Some(3));
+}
+
+#[cfg(unix)]
+#[test]
+fn cli_translates_reporting_failure_to_exit_four() {
+    let temp = TempDir::new().unwrap();
+    let mut value = common::base_config("rustc");
+    let tools = value["tools"].as_array_mut().unwrap();
+    for index in 0..1000 {
+        tools.push(serde_json::json!({
+            "id": format!("tool{index}"),
+            "program": "tool",
+            "requiresTools": [],
+            "versionArgs": ["--version"],
+            "versionParser": "firstSemver"
+        }));
+    }
+    let path = common::write_config(temp.path(), &value);
+    let output = Command::new("sh")
+        .args([
+            "-c",
+            "exec 1>/dev/full; exec \"$1\" list --config \"$2\"",
+            "workspace-validator-test",
+            env!("CARGO_BIN_EXE_workspace-validator"),
+        ])
+        .arg(path)
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(4));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("internal executor failure"));
+}
+
+#[cfg(unix)]
+#[test]
+fn cli_translates_sigint_to_exit_one_hundred_thirty() {
+    use std::time::{Duration, Instant};
+
+    let temp = TempDir::new().unwrap();
+    let tool = common::process_fixture();
+    let started = temp.path().join("started");
+    let descendant = temp.path().join("descendant");
+    let mut value = common::base_config(tool);
+    value["checks"][0]["args"] =
+        serde_json::json!(["spawn-descendant", descendant, started, "0", "5000", "5000"]);
+    let path = common::write_config(temp.path(), &value);
+    let child = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .args(["validate", "--format=json", "--config"])
+        .arg(path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !started.exists() && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    assert!(started.exists(), "fixture check did not start");
+    assert!(Command::new("kill")
+        .args(["-INT", &child.id().to_string()])
+        .status()
+        .unwrap()
+        .success());
+    let output = child.wait_with_output().unwrap();
+    assert_eq!(output.status.code(), Some(130));
+    assert!(output.stderr.is_empty());
+    let report: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["checks"][0]["status"], "fail");
+    assert_eq!(report["checks"][0]["reason"], "check interrupted");
 }

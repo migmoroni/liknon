@@ -30,22 +30,6 @@ fn assert_safe_relative_path(path: &Path) {
     );
 }
 
-fn assert_version_header(
-    document: &str,
-    crate_version: &str,
-    bundle_version: u64,
-    compatibility: &str,
-) {
-    assert!(document.contains(&format!("- Tool: `{SKILL_NAME}`")));
-    assert!(document.contains(&format!("- Source crate version: `{crate_version}`")));
-    assert!(document.contains(&format!("- Skill bundle version: `{bundle_version}`")));
-    assert!(document.contains(&format!("- Compatible CLI: `{compatibility}`")));
-    assert!(
-        !document.contains("TODO"),
-        "skill documents must be complete"
-    );
-}
-
 #[test]
 fn bundled_skill_matches_the_crate_and_routes_every_workflow() {
     let root = Path::new(SKILL_ROOT);
@@ -106,11 +90,20 @@ fn bundled_skill_matches_the_crate_and_routes_every_workflow() {
             entrypoint_document.contains(&format!("`{}`", relative.display())),
             "entrypoint must route workflow {name}"
         );
-        assert_version_header(
-            &read(root.join(relative)),
-            crate_version,
-            bundle_version,
-            compatibility,
+        let document = read(root.join(relative));
+        assert!(
+            !document.contains("TODO"),
+            "workflow {name} must be complete"
         );
+        for duplicated in [
+            "Source crate version:",
+            "Skill bundle version:",
+            "Compatible CLI:",
+        ] {
+            assert!(
+                !document.contains(duplicated),
+                "workflow {name} must obtain {duplicated:?} from manifest.json"
+            );
+        }
     }
 }

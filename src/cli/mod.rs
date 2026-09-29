@@ -4,9 +4,13 @@ mod inspection;
 
 use crate::{
     config::{self, ValidatedConfig},
-    contracts::{config::Config, report::ValidationReport},
+    contracts::{
+        config::Config,
+        init::{InitResult, InitStatus},
+        report::ValidationReport,
+    },
     error::ValidatorError,
-    execution,
+    execution, initialization,
     planning::{self, ValidationPlan},
     reporting::{
         self,
@@ -34,6 +38,17 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Provisions validated consumer-owned resources without executing checks.
+    Init {
+        /// Complete configuration candidate to install.
+        #[arg(long)]
+        config: Option<PathBuf>,
+        /// Workspace boundary; defaults exactly to the process current directory.
+        #[arg(long)]
+        workspace: Option<PathBuf>,
+        #[arg(long, value_enum, default_value = "human")]
+        format: Format,
+    },
     Validate {
         /// Group or suite ID; defaults to the configured default group.
         target: Option<String>,
@@ -253,7 +268,36 @@ fn execute(cli: Cli) -> Result<i32, (ValidatorError, u8)> {
     }
     let current = std::env::current_dir()
         .map_err(|error| (ValidatorError::Internal(error.to_string()), 4))?;
+    if let Command::Init {
+        config: candidate,
+        workspace,
+        format,
+    } = &cli.command
+    {
+        let candidate = candidate.as_deref().ok_or_else(|| {
+            (
+                ValidatorError::Usage("init requires at least one provisioning flag".into()),
+                3,
+            )
+        })?;
+        let workspace =
+            initialization::resolve_workspace(workspace.clone().unwrap_or_else(|| current.clone()))
+                .map_err(|error| (ValidatorError::Usage(error), 3))?;
+        let (result, failure_class) =
+            initialization::provision_config_classified(&workspace, candidate);
+        render_init(&result, *format)?;
+        return Ok(match result.status {
+            InitStatus::Success => 0,
+            InitStatus::Conflict | InitStatus::Partial => 1,
+            InitStatus::Failed => match failure_class {
+                initialization::InitFailureClass::Internal => 4,
+                initialization::InitFailureClass::Rejected
+                | initialization::InitFailureClass::None => 3,
+            },
+        });
+    }
     let explicit = match &cli.command {
+        Command::Init { .. } => unreachable!(),
         Command::Validate { config, .. }
         | Command::Check { config, .. }
         | Command::List { config, .. } => config.as_deref(),
@@ -355,7 +399,35 @@ fn execute(cli: Cli) -> Result<i32, (ValidatorError, u8)> {
             execute_run(&validated, &plan, format, color, presentation)
         }
         Command::Schema { .. } => unreachable!(),
+        Command::Init { .. } => unreachable!(),
     }
+}
+
+fn render_init(result: &InitResult, format: Format) -> Result<(), (ValidatorError, u8)> {
+    match format {
+        Format::Json => println!(
+            "{}",
+            serde_json::to_string_pretty(result)
+                .map_err(|error| (ValidatorError::Internal(error.to_string()), 4))?
+        ),
+        Format::Human => {
+            println!("Initialization: {:?}", result.status);
+            println!("Workspace: {}", result.workspace_root);
+            for resource in &result.resources {
+                println!(
+                    "  {:?} {:?}: {}",
+                    resource.kind, resource.status, resource.path
+                );
+                if let Some(digest) = &resource.digest {
+                    println!("    SHA-256: {digest}");
+                }
+                for diagnostic in &resource.diagnostics {
+                    println!("    {diagnostic}");
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 fn execute_run(

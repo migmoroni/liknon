@@ -114,6 +114,7 @@ pub fn render(report: &ValidationReport, theme: &Theme) -> String {
                 theme.paint(Role::DiagnosticContent, reason)
             );
         }
+        render_repository_paths(repository, theme, &mut output);
     }
     write_section_gap(&mut output, theme);
     let gate_count = usize::from(report.repository.is_some());
@@ -139,6 +140,33 @@ pub fn render(report: &ValidationReport, theme: &Theme) -> String {
         theme.frame_rule('╰', "Validation complete", Role::Border)
     );
     output
+}
+
+fn render_repository_paths(
+    repository: &crate::contracts::report::RepositoryReport,
+    theme: &Theme,
+    output: &mut String,
+) {
+    let border = vertical_border(theme);
+    for (heading, paths) in [
+        ("Introduced paths", repository.introduced.as_deref()),
+        ("Removed paths", repository.removed.as_deref()),
+        ("Changed paths", repository.changed.as_deref()),
+    ] {
+        let Some(paths) = paths else { continue };
+        let _ = writeln!(
+            output,
+            "{border}       {}",
+            theme.paint(Role::Metadata, format!("{heading}:"))
+        );
+        if paths.is_empty() {
+            let _ = writeln!(output, "{border}         <none>");
+        } else {
+            for path in paths {
+                let _ = writeln!(output, "{border}         {path}");
+            }
+        }
+    }
 }
 
 fn render_tree(report: &ValidationReport, theme: &Theme, output: &mut String) {

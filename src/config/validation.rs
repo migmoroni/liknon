@@ -70,6 +70,20 @@ impl ValidatedConfig {
 
 /// Validates all semantic contracts and creates indexed runtime state.
 pub(super) fn validate(parsed: ParsedConfig) -> Result<ValidatedConfig, ValidatorError> {
+    validate_with_workspace_root(parsed, None)
+}
+
+pub(super) fn validate_for_initialization(
+    parsed: ParsedConfig,
+    workspace_root: PathBuf,
+) -> Result<ValidatedConfig, ValidatorError> {
+    validate_with_workspace_root(parsed, Some(workspace_root))
+}
+
+fn validate_with_workspace_root(
+    parsed: ParsedConfig,
+    resolved_workspace_root: Option<PathBuf>,
+) -> Result<ValidatedConfig, ValidatorError> {
     let path = parsed.path;
     let config = parsed.config;
     let invalid = |details: Vec<String>| ValidatorError::invalid(&path, details.join("\n"));
@@ -82,10 +96,13 @@ pub(super) fn validate(parsed: ParsedConfig) -> Result<ValidatedConfig, Validato
     let config_dir = path
         .parent()
         .ok_or_else(|| invalid(vec!["configuration has no parent".into()]))?;
-    let workspace_root = config_dir
-        .join(&config.workspace_root)
-        .canonicalize()
-        .map_err(|error| invalid(vec![format!("invalid workspaceRoot: {error}")]))?;
+    let workspace_root = match resolved_workspace_root {
+        Some(workspace_root) => workspace_root,
+        None => config_dir
+            .join(&config.workspace_root)
+            .canonicalize()
+            .map_err(|error| invalid(vec![format!("invalid workspaceRoot: {error}")]))?,
+    };
     if !workspace_root.is_dir() {
         return Err(invalid(vec!["workspaceRoot is not a directory".into()]));
     }

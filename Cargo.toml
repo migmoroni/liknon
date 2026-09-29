@@ -16,6 +16,7 @@ include = [
   "/examples/**",
   "/schemas/**",
   "/skills/**",
+  "/docs/validation/**",
   "/README.md",
   "/CONFIG_DESIGN.md",
   "/CHANGELOG.md",

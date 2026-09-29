@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 6,
+  "workspaceRoot": "..",
+  "defaultGroup": "all",
+  "outputLimitBytes": 1048576,
+  "tools": [
+    {
+      "id": "cargo",
+      "program": "cargo",
+      "requiresTools": [],
+      "versionArgs": ["--version"],
+      "versionParser": "firstSemver"
+    },
+    {
+      "id": "pnpm",
+      "program": "pnpm",
+      "requiresTools": [],
+      "versionArgs": ["--version"],
+      "versionParser": "firstSemver"
+    }
+  ],
+  "checks": [
+    {
+      "id": "rust.test",
+      "label": "Rust tests",
+      "description": "Tests the selected Rust package set.",
+      "toolId": "cargo",
+      "args": ["test", "{targets}", "--locked"],
+      "requiresTools": [],
+      "timeoutSeconds": 900
+    },
+    {
+      "id": "web.check",
+      "label": "Web checks",
+      "description": "Runs a declared package script.",
+      "toolId": "pnpm",
+      "args": ["run", "{script}"],
+      "requiresTools": [],
+      "timeoutSeconds": 600
+    }
+  ],
+  "suites": [
+    {
+      "id": "backend",
+      "label": "Backend",
+      "description": "Validates the Rust backend.",
+      "workingDirectory": "backend",
+      "checks": [
+        {
+          "checkId": "rust.test",
+          "parameters": { "targets": ["--workspace", "--all-targets"] },
+          "dependsOn": []
+        }
+      ]
+    },
+    {
+      "id": "frontend",
+      "label": "Frontend",
+      "description": "Validates the web frontend.",
+      "workingDirectory": "frontend",
+      "checks": [
+        {
+          "checkId": "web.check",
+          "parameters": { "script": "check" },
+          "dependsOn": []
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "all",
+      "label": "All workspaces",
+      "description": "Runs backend and frontend validation.",
+      "members": [
+        { "kind": "suite", "id": "backend" },
+        { "kind": "suite", "id": "frontend" }
+      ]
+    }
+  ]
+}

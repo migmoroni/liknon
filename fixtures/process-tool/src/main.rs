@@ -51,6 +51,14 @@ fn main() -> io::Result<()> {
         }
         "sleep" => thread::sleep(milliseconds(required(&arguments, 1, "duration"))),
         "touch" => fs::write(required(&arguments, 1, "path"), [])?,
+        "repository-mutations" => {
+            fs::write("introduced", "new")?;
+            fs::remove_file("pre-removed")?;
+            fs::write("pre-changed", "after")?;
+            fs::rename("pre-renamed", "renamed")?;
+            fs::copy("pre-copied", "copied")?;
+            fs::write("ignored", "ignored")?;
+        }
         "write-cwd" => fs::write(
             required(&arguments, 1, "path"),
             env::current_dir()?.display().to_string(),

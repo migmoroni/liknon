@@ -286,3 +286,48 @@ fn plans_each_group_and_suite_once_in_a_convergent_deep_dag() {
     assert_eq!(plan.suites().len(), 1);
     assert_eq!(plan.check_executions().len(), 1);
 }
+
+#[test]
+fn documented_configuration_examples_are_complete_and_semantically_valid() {
+    let examples = [
+        include_str!("../docs/validation/examples/single-crate.json"),
+        include_str!("../docs/validation/examples/heterogeneous-workspace.json"),
+        include_str!("../docs/validation/examples/shared-suites.json"),
+    ];
+    for document in examples {
+        let temp = TempDir::new().unwrap();
+        fs::create_dir(temp.path().join(".validation")).unwrap();
+        fs::create_dir(temp.path().join("backend")).unwrap();
+        fs::create_dir(temp.path().join("frontend")).unwrap();
+        let path = temp.path().join(".validation/config.json");
+        fs::write(&path, document.as_bytes()).unwrap();
+        config::load(Some(&path), temp.path())
+            .unwrap_or_else(|error| panic!("documented example is invalid: {error}"));
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn ordinary_workspace_root_preserves_symlink_then_parent_semantics() {
+    use std::os::unix::fs::symlink;
+
+    let workspace = TempDir::new().unwrap();
+    let target = TempDir::new().unwrap();
+    fs::create_dir(target.path().join("nested")).unwrap();
+    symlink(target.path().join("nested"), workspace.path().join("link")).unwrap();
+    let mut value = common::base_config("rustc");
+    value["workspaceRoot"] = json!("link/..");
+    let loaded = config::load(
+        Some(&common::write_config(workspace.path(), &value)),
+        workspace.path(),
+    )
+    .unwrap();
+    assert_eq!(
+        loaded.workspace_root(),
+        target.path().canonicalize().unwrap()
+    );
+    assert_ne!(
+        loaded.workspace_root(),
+        workspace.path().canonicalize().unwrap()
+    );
+}

@@ -41,6 +41,7 @@ mod process;
 pub mod config;
 pub mod contracts;
 pub mod execution;
+pub mod initialization;
 pub mod planning;
 pub mod reporting;
 mod repository;

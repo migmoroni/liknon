@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 6,
+  "workspaceRoot": "..",
+  "defaultGroup": "all",
+  "outputLimitBytes": 1048576,
+  "repository": {
+    "provider": "git",
+    "toolId": "git",
+    "detectMutations": true
+  },
+  "tools": [
+    {
+      "id": "cargo",
+      "program": "cargo",
+      "requiresTools": [],
+      "versionArgs": ["--version"],
+      "versionParser": "firstSemver",
+      "versionRequirement": ">=1.87"
+    },
+    {
+      "id": "git",
+      "program": "git",
+      "requiresTools": [],
+      "versionArgs": ["--version"],
+      "versionParser": "firstSemver"
+    }
+  ],
+  "checks": [
+    {
+      "id": "rust.fmt",
+      "label": "Rust formatting",
+      "description": "Checks Rust formatting without modifying files.",
+      "toolId": "cargo",
+      "args": ["fmt", "--all", "--", "--check"],
+      "requiresTools": [],
+      "timeoutSeconds": 120
+    },
+    {
+      "id": "rust.test",
+      "label": "Rust tests",
+      "description": "Runs all crate targets.",
+      "toolId": "cargo",
+      "args": ["test", "--all-targets", "--locked"],
+      "requiresTools": [],
+      "timeoutSeconds": 900
+    }
+  ],
+  "suites": [
+    {
+      "id": "rust",
+      "label": "Rust crate",
+      "description": "Validates the complete crate.",
+      "workingDirectory": ".",
+      "checks": [
+        { "checkId": "rust.fmt", "dependsOn": [] },
+        { "checkId": "rust.test", "dependsOn": ["rust.fmt"] }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "all",
+      "label": "All validations",
+      "description": "Runs the complete crate gate.",
+      "members": [{ "kind": "suite", "id": "rust" }]
+    }
+  ]
+}

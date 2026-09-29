@@ -20,11 +20,11 @@ Rust 1.87 or newer is required.
 
 ## Quick Start
 
-Create `.validation/config.json` at the workspace boundary:
+Author a complete candidate such as `validation.config.json` at the workspace
+boundary:
 
 ```json
 {
-  "$schema": "./config.schema.json",
   "schemaVersion": 6,
   "workspaceRoot": "..",
   "defaultGroup": "all",
@@ -80,12 +80,13 @@ Create `.validation/config.json` at the workspace boundary:
 }
 ```
 
-Generate the local schemas and run the default group:
+Validate and install that exact candidate, inspect it, and run the default
+group:
 
 ```sh
-workspace-validator schema config > .validation/config.schema.json
-workspace-validator schema report > .validation/report.schema.json
+workspace-validator init --config validation.config.json
 workspace-validator config validate
+workspace-validator list --tree
 workspace-validator validate
 ```
 
@@ -118,10 +119,10 @@ destination when the consumer uses another skill discovery convention.
 Installing the Cargo binary does not register the skill automatically.
 
 Copy the whole directory so `manifest.json` and the `references` remain on the
-same version. Compare `workspace-validator --version` with the source crate
-version recorded at the top of the copied skill. The router warns about a stale
-but compatible copy and stops workflows outside its declared compatibility
-range. Replace the copied directory from the matching release to update it;
+same version. `manifest.json` is the only source for the bundle version, source
+crate version, and compatible CLI range. The router warns about a stale but
+compatible copy and stops workflows outside its declared compatibility range.
+Replace the copied directory from the matching release to update it;
 keep project-specific commands and approval rules in a separate local skill or
 agent policy.
 
@@ -155,6 +156,7 @@ The normative ownership and extension rules are documented in
 ## Commands
 
 ```text
+workspace-validator init --config <candidate-path> [--workspace <path>] [--format=human|json]
 workspace-validator config validate [--config <path>]
 workspace-validator validate [group-or-suite] [--config <path>] [--format=human|json]
 workspace-validator check <check-id> [--config <path>] [--format=human|json]
@@ -170,17 +172,27 @@ Without `--config`, the CLI discovers the nearest
 `.validation/config.json` by walking from the current directory upward.
 `validate` without a target selects `defaultGroup`. `config validate`, `list`,
 and `explain` inspect configuration without running preflight or checks.
+`init` performs no discovery and installs only explicitly requested resources;
+an omitted `--workspace` means exactly the process current directory.
+
+The focused [Human Flow](docs/validation/flows/human/README.md) walks through
+authoring, deterministic initialization, inspection, execution, interpretation,
+and narrow revalidation. Stable command and contract details live under
+[the validation reference](docs/validation/reference/README.md).
 
 Exit codes are stable CLI behavior:
 
 | Code | Meaning |
 | ---: | --- |
-| `0` | Every counted result passed |
-| `1` | At least one check or repository gate failed |
-| `2` | At least one result was blocked or skipped, with no failure |
-| `3` | Invalid CLI usage or configuration |
-| `4` | Internal executor or reporting failure |
-| `130` | Validation was interrupted |
+| `0` | The request completed with a positive result |
+| `1` | The request completed with negative validation evidence or an initialization conflict/partial result |
+| `2` | Validation was blocked or skipped without a failure |
+| `3` | Usage, configuration, candidate input, or a provisioning precondition was rejected before configured execution |
+| `4` | An internal execution, provisioning, or reporting operation failed |
+| `130` | An interrupt was observed during validation, regardless of the report aggregate |
+
+The [exit-status reference](docs/validation/reference/exit-status.md) defines
+these process-composition outcomes precisely.
 
 ## Human And JSON Output
 
