@@ -29,6 +29,18 @@ pub(crate) enum InitFailureClass {
     Internal,
 }
 
+#[derive(Clone, Copy, Debug)]
+enum PreparedDirectory {
+    Existing,
+    Created,
+}
+
+#[derive(Debug)]
+enum DirectoryPreparationError {
+    Conflict(String),
+    Internal(String),
+}
+
 /// Provisions a complete candidate as `.validation/config.json`.
 ///
 /// The workspace must already be canonical. Candidate bytes are validated as
@@ -60,28 +72,31 @@ pub(crate) fn provision_config_classified(
     };
     resource.digest = Some(format!("{:x}", Sha256::digest(&bytes)));
 
-    if let Some(parent) = destination.parent() {
-        match fs::symlink_metadata(parent) {
-            Ok(metadata) if !metadata.file_type().is_dir() => {
-                resource.status = InitResourceStatus::Conflict;
-                resource
-                    .diagnostics
-                    .push("destination directory exists with an unsafe file type".into());
-                return (result(workspace, resource), InitFailureClass::None);
-            }
-            Ok(_) => {}
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(error) => {
-                resource.diagnostics.push(bounded(format!(
-                    "cannot inspect destination directory: {error}"
-                )));
-                return (result(workspace, resource), InitFailureClass::Internal);
-            }
+    let parsed = match config::parse_at(&bytes, &destination) {
+        Ok(parsed) => parsed,
+        Err(error) => {
+            resource.diagnostics.push(bounded(error.to_string()));
+            return (result(workspace, resource), InitFailureClass::Rejected);
         }
-    }
+    };
 
-    if let Err(error) = config::validate_at(&bytes, &destination, workspace) {
+    let parent = destination.parent().expect("fixed destination has parent");
+    let prepared = match prepare_destination_directory(parent) {
+        Ok(prepared) => prepared,
+        Err(DirectoryPreparationError::Conflict(error)) => {
+            resource.status = InitResourceStatus::Conflict;
+            resource.diagnostics.push(bounded(error));
+            return (result(workspace, resource), InitFailureClass::None);
+        }
+        Err(DirectoryPreparationError::Internal(error)) => {
+            resource.diagnostics.push(bounded(error));
+            return (result(workspace, resource), InitFailureClass::Internal);
+        }
+    };
+
+    if let Err(error) = config::validate_parsed(parsed) {
         resource.diagnostics.push(bounded(error.to_string()));
+        cleanup_created_directory(parent, prepared);
         return (result(workspace, resource), InitFailureClass::Rejected);
     }
 
@@ -110,7 +125,58 @@ pub(crate) fn provision_config_classified(
             InitFailureClass::Internal
         }
     };
+    if !matches!(
+        resource.status,
+        InitResourceStatus::Created | InitResourceStatus::Reused
+    ) {
+        cleanup_created_directory(parent, prepared);
+    }
     (result(workspace, resource), failure_class)
+}
+
+fn prepare_destination_directory(
+    directory: &Path,
+) -> Result<PreparedDirectory, DirectoryPreparationError> {
+    match fs::symlink_metadata(directory) {
+        Ok(metadata) => inspect_destination_directory(metadata),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            match fs::create_dir(directory) {
+                Ok(()) => Ok(PreparedDirectory::Created),
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                    let metadata = fs::symlink_metadata(directory).map_err(|error| {
+                        DirectoryPreparationError::Internal(format!(
+                            "cannot inspect concurrently created destination directory: {error}"
+                        ))
+                    })?;
+                    inspect_destination_directory(metadata)
+                }
+                Err(error) => Err(DirectoryPreparationError::Internal(format!(
+                    "cannot create destination directory: {error}"
+                ))),
+            }
+        }
+        Err(error) => Err(DirectoryPreparationError::Internal(format!(
+            "cannot inspect destination directory: {error}"
+        ))),
+    }
+}
+
+fn inspect_destination_directory(
+    metadata: fs::Metadata,
+) -> Result<PreparedDirectory, DirectoryPreparationError> {
+    if metadata.file_type().is_dir() {
+        Ok(PreparedDirectory::Existing)
+    } else {
+        Err(DirectoryPreparationError::Conflict(
+            "destination directory exists with an unsafe file type".into(),
+        ))
+    }
+}
+
+fn cleanup_created_directory(directory: &Path, prepared: PreparedDirectory) {
+    if matches!(prepared, PreparedDirectory::Created) {
+        let _ = fs::remove_dir(directory);
+    }
 }
 
 fn read_candidate(workspace: &Path, candidate: &Path) -> Result<Vec<u8>, String> {
@@ -199,8 +265,6 @@ fn publish_with_allocator(
     before_publication: impl FnOnce(&Path) -> Result<(), String>,
 ) -> Result<InitResourceStatus, String> {
     let parent = destination.parent().expect("fixed destination has parent");
-    fs::create_dir_all(parent)
-        .map_err(|error| format!("cannot create destination directory: {error}"))?;
     let (temporary, mut file) = loop {
         let temporary = temporary_path(parent, next_sequence());
         match OpenOptions::new()
@@ -298,15 +362,253 @@ pub fn resolve_workspace(path: PathBuf) -> Result<PathBuf, String> {
 #[cfg(test)]
 mod tests {
     use super::{
-        publish, publish_with, publish_with_allocator, temporary_path, InitResourceStatus,
+        prepare_destination_directory, provision_config, publish, publish_with,
+        publish_with_allocator, temporary_path, InitResourceStatus,
     };
-    use std::fs;
+    use crate::{config, contracts::init::InitStatus};
+    use serde_json::json;
+    #[cfg(unix)]
+    use std::os::unix::fs::symlink;
+    use std::{fs, path::Path};
     use tempfile::TempDir;
+
+    fn document(workspace_root: &str) -> serde_json::Value {
+        json!({
+            "schemaVersion": 6,
+            "workspaceRoot": workspace_root,
+            "defaultGroup": "all",
+            "outputLimitBytes": 4096,
+            "tools": [{"id":"tool","program":"tool","requiresTools":[],"versionArgs":["--version"],"versionParser":"firstSemver"}],
+            "checks": [{"id":"check","label":"Check","description":"Check.","toolId":"tool","args":[],"requiresTools":[],"timeoutSeconds":1}],
+            "suites": [{"id":"suite","label":"Suite","description":"Suite.","checks":[{"checkId":"check","dependsOn":[]}]}],
+            "groups": [{"id":"all","label":"All","description":"All.","members":[{"kind":"suite","id":"suite"}]}]
+        })
+    }
+
+    fn write_candidate(root: &Path, value: &serde_json::Value) -> std::path::PathBuf {
+        let candidate = root.join("candidate.json");
+        fs::write(&candidate, serde_json::to_vec(value).unwrap()).unwrap();
+        candidate
+    }
+
+    #[test]
+    fn malformed_candidates_do_not_prepare_the_canonical_directory() {
+        for bytes in [
+            b"{".to_vec(),
+            serde_json::to_vec(&{
+                let mut value = document("..");
+                value["unknown"] = true.into();
+                value
+            })
+            .unwrap(),
+        ] {
+            let workspace = TempDir::new().unwrap();
+            let candidate = workspace.path().join("candidate.json");
+            fs::write(&candidate, bytes).unwrap();
+
+            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+
+            assert_eq!(result.status, InitStatus::Failed);
+            assert!(!workspace.path().join(".validation").exists());
+        }
+    }
+
+    #[test]
+    fn safe_canonical_directory_states_publish_without_touching_unrelated_entries() {
+        for state in ["absent", "empty", "unrelated"] {
+            let workspace = TempDir::new().unwrap();
+            let validation = workspace.path().join(".validation");
+            if state != "absent" {
+                fs::create_dir(&validation).unwrap();
+            }
+            if state == "unrelated" {
+                fs::write(validation.join("keep.txt"), b"keep").unwrap();
+            }
+            let candidate = write_candidate(workspace.path(), &document(".."));
+
+            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+
+            assert_eq!(result.status, InitStatus::Success, "{state}");
+            assert!(validation.join("config.json").is_file());
+            if state == "unrelated" {
+                assert_eq!(fs::read(validation.join("keep.txt")).unwrap(), b"keep");
+            }
+        }
+    }
+
+    #[test]
+    fn failed_validation_never_publishes_and_only_leaves_a_safe_empty_directory() {
+        for value in [document("missing"), {
+            let mut value = document("..");
+            value["defaultGroup"] = "missing".into();
+            value
+        }] {
+            let workspace = TempDir::new().unwrap();
+            let candidate = write_candidate(workspace.path(), &value);
+            let validation = workspace.path().join(".validation");
+
+            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+
+            assert_eq!(result.status, InitStatus::Failed);
+            assert!(!validation.join("config.json").exists());
+            if validation.exists() {
+                assert!(fs::symlink_metadata(&validation)
+                    .unwrap()
+                    .file_type()
+                    .is_dir());
+                assert!(fs::read_dir(&validation).unwrap().next().is_none());
+            }
+        }
+    }
+
+    #[test]
+    fn canonical_directory_forms_use_the_same_ordinary_loading_semantics() {
+        for declared in [".", "", "././", "../.validation"] {
+            let workspace = TempDir::new().unwrap();
+            let candidate = write_candidate(workspace.path(), &document(declared));
+            let canonical_workspace = workspace.path().canonicalize().unwrap();
+            let destination = workspace.path().join(".validation/config.json");
+            prepare_destination_directory(destination.parent().unwrap()).unwrap();
+            let before = config::validate_parsed(
+                config::parse_at(&fs::read(&candidate).unwrap(), &destination).unwrap(),
+            )
+            .unwrap();
+
+            let result = provision_config(&canonical_workspace, &candidate);
+            assert_eq!(result.status, InitStatus::Success, "{declared:?}");
+            let installed = config::load(None, workspace.path()).unwrap();
+            assert_eq!(before.workspace_root, installed.workspace_root);
+            assert_eq!(
+                before.suite_directories["suite"].absolute,
+                installed.suite_directories["suite"].absolute
+            );
+            assert_eq!(
+                installed.workspace_root,
+                workspace.path().join(".validation")
+            );
+            assert_eq!(
+                installed.suite_directories["suite"].absolute,
+                installed.workspace_root
+            );
+        }
+    }
+
+    #[test]
+    fn absolute_workspace_root_uses_ordinary_loading_semantics() {
+        let workspace = TempDir::new().unwrap();
+        let external = TempDir::new().unwrap();
+        let declared = external.path().to_string_lossy();
+        let candidate = write_candidate(workspace.path(), &document(&declared));
+
+        let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+
+        assert_eq!(result.status, InitStatus::Success);
+        let installed = config::load(None, workspace.path()).unwrap();
+        assert_eq!(
+            installed.workspace_root,
+            external.path().canonicalize().unwrap()
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn local_and_external_symlinks_use_ordinary_loading_semantics() {
+        for mode in ["local", "parent", "external"] {
+            let workspace = TempDir::new().unwrap();
+            let external = TempDir::new().unwrap();
+            let validation = workspace.path().join(".validation");
+            let (declared, expected) = match mode {
+                "local" => {
+                    symlink(".validation", workspace.path().join("future-link")).unwrap();
+                    ("../future-link".into(), validation.clone())
+                }
+                "parent" => {
+                    symlink(".validation", workspace.path().join("future-link")).unwrap();
+                    (
+                        "../future-link/..".into(),
+                        workspace.path().canonicalize().unwrap(),
+                    )
+                }
+                "external" => {
+                    let link = external.path().join("absolute-link");
+                    symlink(&validation, &link).unwrap();
+                    (link.to_string_lossy().into_owned(), validation.clone())
+                }
+                _ => unreachable!(),
+            };
+            let candidate = write_candidate(workspace.path(), &document(&declared));
+            let destination = validation.join("config.json");
+            prepare_destination_directory(&validation).unwrap();
+            let before = config::validate_parsed(
+                config::parse_at(&fs::read(&candidate).unwrap(), &destination).unwrap(),
+            )
+            .unwrap();
+
+            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+            assert_eq!(result.status, InitStatus::Success, "{mode}");
+            let installed = config::load(None, workspace.path()).unwrap();
+            assert_eq!(before.workspace_root, installed.workspace_root, "{mode}");
+            assert_eq!(
+                before.suite_directories["suite"].absolute,
+                installed.suite_directories["suite"].absolute,
+                "{mode}"
+            );
+            assert_eq!(installed.workspace_root, expected, "{mode}");
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn ordinary_canonicalization_rejects_dangling_missing_and_excessive_links() {
+        for mode in ["dangling", "descendant", "excessive"] {
+            let workspace = TempDir::new().unwrap();
+            let declared = match mode {
+                "dangling" => {
+                    symlink("missing", workspace.path().join("entry")).unwrap();
+                    "../entry".to_string()
+                }
+                "descendant" => ".validation/missing".to_string(),
+                "excessive" => {
+                    for index in 0..64 {
+                        let target = if index == 63 {
+                            ".validation".to_string()
+                        } else {
+                            format!("link{}", index + 1)
+                        };
+                        symlink(target, workspace.path().join(format!("link{index}"))).unwrap();
+                    }
+                    "../link0".to_string()
+                }
+                _ => unreachable!(),
+            };
+            let candidate = write_candidate(workspace.path(), &document(&declared));
+            let validation = workspace.path().join(".validation");
+
+            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+
+            assert_eq!(result.status, InitStatus::Failed, "{mode}");
+            assert!(!validation.join("config.json").exists(), "{mode}");
+        }
+    }
+
+    #[test]
+    fn unsafe_canonical_file_is_a_conflict_and_is_never_replaced() {
+        let workspace = TempDir::new().unwrap();
+        let validation = workspace.path().join(".validation");
+        fs::write(&validation, b"unsafe").unwrap();
+        let candidate = write_candidate(workspace.path(), &document(".."));
+
+        let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+
+        assert_eq!(result.status, InitStatus::Conflict);
+        assert_eq!(fs::read(validation).unwrap(), b"unsafe");
+    }
 
     #[test]
     fn interrupted_publication_exposes_no_partial_bytes_and_allows_retry() {
         let temp = TempDir::new().unwrap();
         let destination = temp.path().join(".validation/config.json");
+        fs::create_dir(destination.parent().unwrap()).unwrap();
         let interrupted = publish_with(&destination, b"complete bytes", |_| {
             Err("initialization interrupted before publication".into())
         });

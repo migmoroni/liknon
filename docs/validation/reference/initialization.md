@@ -7,18 +7,23 @@ workspace is exactly the process current directory. Initialization never walks
 to a parent configuration or Git root.
 
 The candidate must be a contained regular file. Symlinks, parent traversal,
-workspace escape, and non-files are rejected. Its complete bytes are validated
-as though their location were `<workspace>/.validation/config.json`, so
-`workspaceRoot`, suite directories, graph references, and every other semantic
-rule have their installed meaning before any write occurs.
-This includes configurations whose `workspaceRoot` is the canonical
-`.validation` directory itself: current-directory components, an empty path,
-and paths that leave and return to that future directory resolve exactly as
-they do after installation. On Unix, the same rule applies when an existing
-symlink resolves to the future `.validation` directory, including parent
-traversal after the symlink. Unrelated dangling links and required descendants
-that publication does not create remain invalid. Candidate validation does not
-create directories to perform this resolution.
+workspace escape, and non-files are rejected. Its complete bytes are first
+parsed as the closed configuration contract. Malformed JSON and unknown fields
+are rejected without creating `.validation/`.
+
+After parsing, `init` creates the canonical `.validation/` directory when it is
+absent, using a single-directory operation and rejecting a file, symlink, or
+other unsafe entry at that path. The directory is still empty when the candidate
+is validated as `<workspace>/.validation/config.json` through the ordinary
+filesystem-aware configuration path. Consequently `workspaceRoot`, suite
+directories, symlinks, parent traversal, graph references, and operating-system
+path errors have exactly their installed meaning. `config.json` and atomic
+temporary files are created only after complete validation succeeds.
+
+If validation or publication fails after the current invocation created the
+directory, cleanup attempts only `remove_dir`; it can remove the directory only
+while it remains empty. A pre-existing real directory and every unrelated entry
+inside it are preserved.
 
 Successful publication is atomic and never overwrites a destination. Exact
 existing bytes produce `reused`; different bytes or an unsafe destination

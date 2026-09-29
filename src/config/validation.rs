@@ -2,9 +2,7 @@
 
 use crate::{
     config::{
-        directories::{
-            resolve_suite_directories, resolve_virtual_suite_directories, validate_relative_path,
-        },
+        directories::{resolve_suite_directories, validate_relative_path},
         loader::ParsedConfig,
         parameters::placeholder_names,
     },
@@ -72,21 +70,6 @@ impl ValidatedConfig {
 
 /// Validates all semantic contracts and creates indexed runtime state.
 pub(super) fn validate(parsed: ParsedConfig) -> Result<ValidatedConfig, ValidatorError> {
-    validate_with_workspace_root(parsed, None)
-}
-
-pub(super) fn validate_for_initialization(
-    parsed: ParsedConfig,
-    workspace_root: PathBuf,
-    workspace_root_is_virtual: bool,
-) -> Result<ValidatedConfig, ValidatorError> {
-    validate_with_workspace_root(parsed, Some((workspace_root, workspace_root_is_virtual)))
-}
-
-fn validate_with_workspace_root(
-    parsed: ParsedConfig,
-    resolved_workspace_root: Option<(PathBuf, bool)>,
-) -> Result<ValidatedConfig, ValidatorError> {
     let path = parsed.path;
     let config = parsed.config;
     let invalid = |details: Vec<String>| ValidatorError::invalid(&path, details.join("\n"));
@@ -99,15 +82,11 @@ fn validate_with_workspace_root(
     let config_dir = path
         .parent()
         .ok_or_else(|| invalid(vec!["configuration has no parent".into()]))?;
-    let (workspace_root, workspace_root_is_virtual) = match resolved_workspace_root {
-        Some(resolved) => resolved,
-        None => config_dir
-            .join(&config.workspace_root)
-            .canonicalize()
-            .map(|path| (path, false))
-            .map_err(|error| invalid(vec![format!("invalid workspaceRoot: {error}")]))?,
-    };
-    if !workspace_root_is_virtual && !workspace_root.is_dir() {
+    let workspace_root = config_dir
+        .join(&config.workspace_root)
+        .canonicalize()
+        .map_err(|error| invalid(vec![format!("invalid workspaceRoot: {error}")]))?;
+    if !workspace_root.is_dir() {
         return Err(invalid(vec!["workspaceRoot is not a directory".into()]));
     }
 
@@ -335,12 +314,7 @@ fn validate_with_workspace_root(
         return Err(invalid(errors));
     }
 
-    let suite_directories = if workspace_root_is_virtual {
-        resolve_virtual_suite_directories(&suites, &workspace_root)
-    } else {
-        resolve_suite_directories(&suites, &workspace_root)
-    }
-    .map_err(invalid)?;
+    let suite_directories = resolve_suite_directories(&suites, &workspace_root).map_err(invalid)?;
     Ok(ValidatedConfig {
         config,
         path,

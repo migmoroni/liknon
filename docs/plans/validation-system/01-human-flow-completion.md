@@ -18,8 +18,9 @@ The status markers are normative:
 - All phase items below are `[x]`; no implementation work remains in this
   phase.
 
-The two final corrections complete filesystem equivalence during initialization
-and preserve the documented exit-code boundary for every inspection command.
+The inspection exit-code boundary and canonical initialization lifecycle are
+complete. Candidate validation and installed loading now use the same ordinary
+filesystem semantics.
 
 Preserve all accepted public contracts and regression coverage. A completed
 area may be touched only when a remaining item requires a narrowly scoped
@@ -110,8 +111,6 @@ parallel implementations.
 
 - [x] Ordinary configuration loading preserves filesystem-aware semantics when
       `..` follows an existing symlink.
-- [x] Initialization uses a dedicated resolution context for the future
-      canonical destination without changing the ordinary loader.
 - [x] Atomic publication has a deterministic pre-publication test seam and
       protects the canonical destination during recoverable failures.
 - [x] `explain group`, `explain suite`, and `explain check` share invocation
@@ -130,10 +129,9 @@ parallel implementations.
 
 ### 2.3 Completed Scope
 
-These two final corrections are complete:
-
-1. [x] Complete initialization equivalence when an existing symlink resolves to
-       the future `.validation/` directory only after that directory is created.
+1. [x] Provision the canonical `.validation/` directory while it is empty, then
+       validate candidate paths through the ordinary filesystem-aware
+       configuration path before publishing `config.json`.
 2. [x] Distinguish semantic `explain` failures from output failures so all three
        `explain` commands return exit code `4` when their output cannot be
        written.
@@ -182,61 +180,78 @@ examples, and documentation.
 
 ## 4. Final Completion Workstreams
 
-### 4.1 Complete Future-Destination Resolution
+### 4.1 Provision The Canonical Validation Directory
 
 Accepted foundation:
 
 - [x] Ordinary loading delegates path semantics to filesystem
       canonicalization.
 - [x] Existing symlinks adjacent to `..` retain operating-system semantics.
-- [x] Initialization resolution is isolated from the ordinary loader.
-- [x] Paths such as `../link/..` resolve identically before and after
-      installation.
+- [x] Candidate bytes are read from a contained regular file before any
+      destination is published.
+- [x] Atomic publication writes the exact validated bytes and never overwrites a
+      different destination.
 
-Completed work:
+Completed implementation:
 
-- [x] Support `workspaceRoot: "."` when the canonical `.validation/` directory
-      does not yet exist. The candidate must resolve to that future directory,
-      just as the installed configuration does after initialization creates it.
-- [x] Preserve equivalent current-contract forms, including repeated current
-      directory components and the empty path currently accepted by ordinary
-      loading and the versioned configuration schema.
-- [x] Support relative paths that leave and then resolve back to the future
-      `.validation/` directory when their installed filesystem interpretation is
-      valid.
-- [x] Reject paths whose required descendants will still not exist after the
-      canonical parent is created.
-- [x] Do not lexically collapse existing symlink components or alter ordinary
-      configuration loading.
-- [x] Test the same candidate with `.validation/` absent and pre-created, then
-      load the installed bytes and assert identical workspace roots and suite
-      directories.
+- [x] Parse the candidate as a complete `Config` document before creating a
+      destination directory. Malformed JSON and unknown fields must fail without
+      creating `.validation/`.
+- [x] Inspect `<workspace>/.validation` with symlink-aware metadata. If absent,
+      create exactly that directory with `create_dir` or equivalent exclusive
+      single-directory creation. If another actor creates it concurrently,
+      inspect the resulting entry before continuing. A file, symlink, or other
+      unsafe entry at this path remains a conflict.
+- [x] A directory created by the current invocation starts empty. Do not write a
+      temporary file, `config.json`, or any other resource before the candidate
+      has passed complete semantic and filesystem validation.
+- [x] After the directory exists, validate the candidate bytes for the exact
+      canonical destination `<workspace>/.validation/config.json` through the
+      same filesystem-aware path used by ordinary configuration loading. Keep
+      one source of truth for `workspaceRoot`, suite-directory containment,
+      symlink traversal, `..`, cycles, and operating-system path errors.
+- [x] Remove the initialization-only virtual path resolver, virtual location
+      states, manual symlink-depth accounting, and virtual suite-directory
+      resolution once they have no consumers. Do not retain a parallel fallback
+      or add another path-canonicalization implementation.
+- [x] Preserve `workspaceRoot` forms accepted by ordinary loading, including
+      `.`, an empty path, absolute paths, paths through internal or external
+      symlinks, and symlinks followed by `..`. The operating system remains the
+      authority for canonicalization and excessive-link errors.
+- [x] Whenever provisioning finishes without a created or reused `config.json`,
+      the config must remain unpublished. When the current invocation created
+      `.validation/`, attempt to remove it with `remove_dir` only; this may
+      succeed only while the directory is still empty. Cleanup is best-effort
+      and must never delete files or replace the primary result.
+- [x] A pre-existing real `.validation/` directory may contain other resources
+      and is not required to be empty. Preserve every existing entry and retain
+      the current `created`, `reused`, and `conflict` behavior for `config.json`.
+- [x] Keep directory preparation as an internal step of config provisioning.
+      Do not add a directory resource to `InitResult` or change configuration,
+      initialization-result, or report schema versions.
+- [x] Update initialization reference documentation to state that `init` may
+      create the canonical directory before filesystem-dependent validation,
+      while `config.json` is published only after complete validation.
 
-Completed work:
+Completed regression coverage:
 
-- [x] Resolve an existing symlink whose target is the future canonical
-      `.validation/` directory even though that target does not exist at
-      candidate-validation time. For example, with
-      `future-link -> .validation`, `workspaceRoot: "../future-link"` must have
-      the same meaning before publication and after installation.
-- [x] Preserve filesystem-aware traversal around that symlink. Paths that use
-      the link and then `..` must resolve as the operating system resolves the
-      installed path, rather than through lexical component collapse.
-- [x] Keep genuinely broken links and links to descendants that publication
-      does not create invalid. Recognizing the one future canonical directory
-      must not make arbitrary missing targets virtual.
-- [x] Keep candidate validation free of filesystem mutations. Do not create the
-      future directory merely to make canonicalization pass, and do not change
-      ordinary installed-configuration loading.
-- [x] Add a Unix regression matrix that validates the exact same candidate with
-      `.validation/` absent and present, installs it, and compares the resolved
-      workspace root and suite directories. Cover both the direct symlink and a
-      symlink followed by parent traversal, plus rejection of an unrelated
-      dangling target.
-
-The current configuration contract is the source of truth. Do not solve this
-by newly rejecting `.` or another path form already accepted after installation
-unless an explicit public contract change is separately requested.
+- [x] Prove malformed candidate bytes do not create `.validation/`.
+- [x] Prove a valid candidate succeeds when `.validation/` is absent, when it is
+      already empty, and when it contains an unrelated entry that must remain
+      untouched.
+- [x] Prove a semantic or filesystem validation failure never publishes
+      `config.json`; if the newly created directory remains, it must be a real
+      empty directory.
+- [x] Compare candidate validation with installed loading for `workspaceRoot: "."`,
+      empty and repeated current-directory forms, direct symlinks to the
+      canonical directory, symlink-plus-parent traversal, and an absolute
+      external symlink whose target is the canonical `.validation/` directory.
+- [x] Reject unrelated dangling links, missing descendants, unsafe canonical
+      directory entries, and a path exceeding the operating system's symlink
+      limit without publishing the candidate.
+- [x] Preserve Unix symlink coverage and the checked Windows build. Platform
+      tests must use native path semantics rather than impose Unix spellings on
+      Windows.
 
 ### 4.2 Make Atomic Temporaries Collision-Tolerant
 
@@ -308,12 +323,14 @@ Completed work:
 
 ## 5. Implementation Order
 
-1. Complete future-directory symlink resolution and its pre-install/post-install
-   equivalence tests.
-2. Separate semantic inspection failures from writer failures and complete
-   `explain` exit-code coverage.
-3. Run targeted tests after each correction.
-4. Repeat the complete final gate and update every remaining status marker in
+1. Add the narrowly scoped candidate preflight and canonical-directory
+   preparation lifecycle.
+2. Route initialization through ordinary filesystem-aware configuration
+   validation and remove virtual path resolution.
+3. Add the required initialization regressions and update the reference
+   documentation.
+4. Run targeted tests after each correction.
+5. Repeat the complete final gate and update every remaining status marker in
    this plan.
 
 ## 6. Verification
@@ -344,17 +361,22 @@ complete gate must be repeated after the pending work.
 - [x] Human and JSON repository path parity for gating and informational modes.
 - [x] Distributed examples loaded byte-for-byte from documented locations.
 - [x] Real CLI exit-code translation for `0`, `1`, `2`, `3`, and `130`.
-- [x] Candidate and installed loading equivalence for the future canonical
-      directory itself, including `workspaceRoot: "."`.
+- [x] Canonical-directory preparation from absent and pre-existing safe states,
+      with no pre-validation files.
+- [x] Candidate and installed loading equivalence for the canonical directory
+      itself, including `workspaceRoot: "."` and an empty path.
 - [x] Successful publication when the first exclusive temporary candidate
       already exists.
 - [x] Final validation-report and initialization-result write failures translate
       to exit code `4` without panic.
-- [x] Candidate and installed loading remain equivalent when an existing
-      symlink points to the not-yet-created canonical `.validation/` directory,
-      including parent traversal after the symlink.
-- [x] An unrelated dangling symlink or a link to a descendant not created by
-      initialization remains invalid.
+- [x] Candidate and installed loading remain equivalent through local and
+      absolute external symlinks to `.validation/`, including parent traversal.
+- [x] Excessive symlink traversal is rejected before publication by ordinary
+      filesystem canonicalization.
+- [x] An unrelated dangling symlink or a missing descendant remains invalid.
+- [x] Failed validation publishes no config and preserves or safely removes an
+      empty directory created by the current invocation.
+- [x] Existing unrelated entries under `.validation/` remain untouched.
 - [x] Writer failures from `explain group`, `explain suite`, and
       `explain check` return exit code `4`; semantic selection failures continue
       to return `3`.
@@ -381,8 +403,8 @@ complete gate must be repeated after the pending work.
 - [x] Complete human repository mutation evidence.
 - [x] Exact distributed examples and final-report exit-code coverage through
       `130`.
-- [x] Complete future canonical-directory semantics during initialization,
-      including an existing symlink whose target becomes valid at publication.
+- [x] Canonical-directory preparation and ordinary filesystem semantics during
+      initialization, including local and absolute external symlinks.
 - [x] Collision-tolerant atomic temporary allocation.
 - [x] Panic-free schema, initialization, and final-report output.
 - [x] Correct exit-code `4` classification for writer failures from every
