@@ -637,6 +637,60 @@ fn inspection_output_failure_returns_exit_four() {
 
 #[cfg(unix)]
 #[test]
+fn explain_output_failures_return_four_without_panicking() {
+    let temp = TempDir::new().unwrap();
+    let value = common::base_config("rustc");
+    let path = common::write_config(temp.path(), &value);
+    for (kind, id) in [
+        ("group", "all"),
+        ("suite", "fixture"),
+        ("check", "fixture.check"),
+    ] {
+        let output = Command::new("sh")
+            .args([
+                "-c",
+                "exec 1>/dev/full; exec \"$1\" explain \"$2\" \"$3\" --config \"$4\"",
+                "workspace-validator-test",
+                env!("CARGO_BIN_EXE_workspace-validator"),
+                kind,
+                id,
+            ])
+            .arg(&path)
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(4), "{kind}");
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains("internal executor failure"),
+            "{kind}: {stderr}"
+        );
+        assert!(!stderr.contains("panicked"), "{kind}: {stderr}");
+    }
+}
+
+#[test]
+fn unknown_explain_targets_remain_semantic_failures() {
+    let temp = TempDir::new().unwrap();
+    let value = common::base_config("rustc");
+    let path = common::write_config(temp.path(), &value);
+    for kind in ["group", "suite", "check"] {
+        let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+            .args(["explain", kind, "missing", "--config"])
+            .arg(&path)
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(3), "{kind}");
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("invalid configuration"), "{kind}: {stderr}");
+        assert!(
+            !stderr.contains("internal executor failure"),
+            "{kind}: {stderr}"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
 fn final_json_report_write_failure_returns_four_without_panicking() {
     let temp = TempDir::new().unwrap();
     let mut value = common::base_config("rustc");

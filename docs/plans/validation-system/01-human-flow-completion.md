@@ -18,6 +18,9 @@ The status markers are normative:
 - All phase items below are `[x]`; no implementation work remains in this
   phase.
 
+The two final corrections complete filesystem equivalence during initialization
+and preserve the documented exit-code boundary for every inspection command.
+
 Preserve all accepted public contracts and regression coverage. A completed
 area may be touched only when a remaining item requires a narrowly scoped
 correction. Do not add compatibility layers, deprecated aliases, migrations, or
@@ -122,19 +125,22 @@ parallel implementations.
 - [x] Human Flow and reference documentation use current product contracts and
       do not require copied schemas.
 - [x] Exit codes `0`, `1`, `2`, `3`, and `130` have real CLI coverage; exit code
-      `4` is covered for inspection writer failure.
+      `4` is covered for `list`, initialization output, and final validation
+      report writer failures.
 
 ### 2.3 Completed Scope
 
-These three final corrections are complete:
+These two final corrections are complete:
 
-1. [x] Make initialization resolution equivalent to installed loading for every
-       `workspaceRoot` accepted by the current contract, including the future
-       `.validation/` directory itself.
-2. [x] Make temporary-file allocation tolerate artifacts abandoned by an abrupt
-       interruption so they cannot block a later initialization attempt.
-3. [x] Make final CLI output fallible and translate write failures to exit code
-       `4` instead of allowing `println!` or `eprintln!` to panic.
+1. [x] Complete initialization equivalence when an existing symlink resolves to
+       the future `.validation/` directory only after that directory is created.
+2. [x] Distinguish semantic `explain` failures from output failures so all three
+       `explain` commands return exit code `4` when their output cannot be
+       written.
+
+Collision-tolerant temporary allocation and fallible schema, initialization,
+and final-report output are accepted and must remain unchanged except where a
+remaining correction requires shared error plumbing.
 
 ## 3. Human Workflow Contract
 
@@ -206,6 +212,28 @@ Completed work:
       load the installed bytes and assert identical workspace roots and suite
       directories.
 
+Completed work:
+
+- [x] Resolve an existing symlink whose target is the future canonical
+      `.validation/` directory even though that target does not exist at
+      candidate-validation time. For example, with
+      `future-link -> .validation`, `workspaceRoot: "../future-link"` must have
+      the same meaning before publication and after installation.
+- [x] Preserve filesystem-aware traversal around that symlink. Paths that use
+      the link and then `..` must resolve as the operating system resolves the
+      installed path, rather than through lexical component collapse.
+- [x] Keep genuinely broken links and links to descendants that publication
+      does not create invalid. Recognizing the one future canonical directory
+      must not make arbitrary missing targets virtual.
+- [x] Keep candidate validation free of filesystem mutations. Do not create the
+      future directory merely to make canonicalization pass, and do not change
+      ordinary installed-configuration loading.
+- [x] Add a Unix regression matrix that validates the exact same candidate with
+      `.validation/` absent and present, installs it, and compares the resolved
+      workspace root and suite directories. Cover both the direct symlink and a
+      symlink followed by parent traversal, plus rejection of an unrelated
+      dangling target.
+
 The current configuration contract is the source of truth. Do not solve this
 by newly rejecting `.` or another path form already accepted after installation
 unless an explicit public contract change is separately requested.
@@ -249,8 +277,8 @@ Completed work:
 
 - [x] Route schema output, initialization output, final human reports, and final
       JSON reports through fallible writers instead of `println!`.
-- [x] Convert standard-output write failures into `ValidatorError::Internal`
-      and exit code `4` without panicking.
+- [x] Convert standard-output write failures for those outputs into
+      `ValidatorError::Internal` and exit code `4` without panicking.
 - [x] Keep standard error best-effort and panic-free when reporting a failure;
       failure to emit its diagnostic must not replace the selected exit code
       with Rust's panic code.
@@ -262,13 +290,31 @@ Completed work:
 - [x] Retain the existing inspection writer-failure test and rename it if needed
       so its scope is explicit rather than implying coverage of final reports.
 
+Completed work:
+
+- [x] Stop representing every error returned by `explain group`,
+      `explain suite`, and `explain check` as `InvalidConfig`. Unknown IDs and
+      invalid selections remain semantic failures with exit code `3`; failures
+      from the output writer are internal reporting failures with exit code `4`.
+- [x] Establish an explicit typed boundary between inspection resolution and
+      inspection rendering, or an equivalent structure that cannot lose the
+      error category in a shared `String`.
+- [x] Preserve the current successful human output exactly and keep inspection
+      free of configured process execution.
+- [x] Add real CLI tests for `explain group`, `explain suite`, and
+      `explain check` with a failing standard-output sink. Assert exit code `4`,
+      an internal reporting diagnostic when standard error is available, and no
+      panic. Retain coverage proving an unknown target still returns `3`.
+
 ## 5. Implementation Order
 
-1. Complete virtual destination resolution and its equivalence tests.
-2. Make temporary allocation collision-tolerant and add stale-artifact coverage.
-3. Centralize fallible CLI output and complete exit-code `4` coverage.
-4. Run targeted tests after each workstream.
-5. Repeat the complete final gate and update every status marker in this plan.
+1. Complete future-directory symlink resolution and its pre-install/post-install
+   equivalence tests.
+2. Separate semantic inspection failures from writer failures and complete
+   `explain` exit-code coverage.
+3. Run targeted tests after each correction.
+4. Repeat the complete final gate and update every remaining status marker in
+   this plan.
 
 ## 6. Verification
 
@@ -304,6 +350,14 @@ complete gate must be repeated after the pending work.
       already exists.
 - [x] Final validation-report and initialization-result write failures translate
       to exit code `4` without panic.
+- [x] Candidate and installed loading remain equivalent when an existing
+      symlink points to the not-yet-created canonical `.validation/` directory,
+      including parent traversal after the symlink.
+- [x] An unrelated dangling symlink or a link to a descendant not created by
+      initialization remains invalid.
+- [x] Writer failures from `explain group`, `explain suite`, and
+      `explain check` return exit code `4`; semantic selection failures continue
+      to return `3`.
 
 ### 6.3 Final Gate To Repeat
 
@@ -325,11 +379,14 @@ complete gate must be repeated after the pending work.
 - [x] Typed JSON repository mutation evidence.
 - [x] Complete inspection context in every view.
 - [x] Complete human repository mutation evidence.
-- [x] Exact distributed examples and exit-code coverage through `130`, except
-      final-output failure translation.
-- [x] Complete future canonical-directory semantics during initialization.
+- [x] Exact distributed examples and final-report exit-code coverage through
+      `130`.
+- [x] Complete future canonical-directory semantics during initialization,
+      including an existing symlink whose target becomes valid at publication.
 - [x] Collision-tolerant atomic temporary allocation.
-- [x] Panic-free final CLI output with complete exit-code `4` coverage.
+- [x] Panic-free schema, initialization, and final-report output.
+- [x] Correct exit-code `4` classification for writer failures from every
+      `explain` command.
 - [x] Final regression and release-readiness gate after the remaining changes.
 
 ## 8. Acceptance Criteria
@@ -352,7 +409,8 @@ complete gate must be repeated after the pending work.
 - [x] Human and JSON report contents agree for every result class.
 - [x] JSON output can be captured byte-for-byte, validated against its schema,
       and hashed without removing terminal output.
-- [x] Every nonzero exit code has one documented and tested meaning.
+- [x] Every nonzero exit code has one documented and tested meaning across
+      execution, initialization, and inspection output failures.
 - [x] Every distributed example validates byte-for-byte at its documented
       canonical location.
 - [x] The validator does not read `.validation/policy.json`,

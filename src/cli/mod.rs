@@ -333,37 +333,16 @@ fn execute(
         Command::Explain { target } => {
             match target {
                 ExplainTarget::Group { group_id, .. } => {
-                    inspection::explain_group(&validated, &group_id, stdout).map_err(|details| {
-                        (
-                            ValidatorError::invalid(
-                                validated.configuration_path(),
-                                details.to_string(),
-                            ),
-                            3,
-                        )
-                    })?
+                    inspection::explain_group(&validated, &group_id, stdout)
+                        .map_err(|error| classify_explain_error(&validated, error))?
                 }
                 ExplainTarget::Suite { suite_id, .. } => {
-                    inspection::explain_suite(&validated, &suite_id, stdout).map_err(|details| {
-                        (
-                            ValidatorError::invalid(
-                                validated.configuration_path(),
-                                details.to_string(),
-                            ),
-                            3,
-                        )
-                    })?
+                    inspection::explain_suite(&validated, &suite_id, stdout)
+                        .map_err(|error| classify_explain_error(&validated, error))?
                 }
                 ExplainTarget::Check { check_id, .. } => {
-                    inspection::explain_check(&validated, &check_id, stdout).map_err(|details| {
-                        (
-                            ValidatorError::invalid(
-                                validated.configuration_path(),
-                                details.to_string(),
-                            ),
-                            3,
-                        )
-                    })?
+                    inspection::explain_check(&validated, &check_id, stdout)
+                        .map_err(|error| classify_explain_error(&validated, error))?
                 }
             };
             Ok(0)
@@ -416,6 +395,19 @@ fn execute(
         }
         Command::Schema { .. } => unreachable!(),
         Command::Init { .. } => unreachable!(),
+    }
+}
+
+fn classify_explain_error(
+    validated: &ValidatedConfig,
+    error: inspection::ExplainError,
+) -> (ValidatorError, u8) {
+    match error {
+        inspection::ExplainError::Selection(details) => (
+            ValidatorError::invalid(validated.configuration_path(), details),
+            3,
+        ),
+        inspection::ExplainError::Output(details) => (ValidatorError::Internal(details), 4),
     }
 }
 

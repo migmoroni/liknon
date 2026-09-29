@@ -14,8 +14,11 @@ rule have their installed meaning before any write occurs.
 This includes configurations whose `workspaceRoot` is the canonical
 `.validation` directory itself: current-directory components, an empty path,
 and paths that leave and return to that future directory resolve exactly as
-they do after installation. Required descendants that publication does not
-create remain invalid.
+they do after installation. On Unix, the same rule applies when an existing
+symlink resolves to the future `.validation` directory, including parent
+traversal after the symlink. Unrelated dangling links and required descendants
+that publication does not create remain invalid. Candidate validation does not
+create directories to perform this resolution.
 
 Successful publication is atomic and never overwrites a destination. Exact
 existing bytes produce `reused`; different bytes or an unsafe destination

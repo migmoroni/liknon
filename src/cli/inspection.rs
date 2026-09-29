@@ -2,7 +2,7 @@
 
 use crate::{
     config::{parameters, ValidatedConfig},
-    contracts::config::{GroupMemberRef, ParameterValue},
+    contracts::config::{CheckConfig, GroupMemberRef, ParameterValue},
     execution,
     planning::{self, ExecutionNodeRef, ValidationPlan},
 };
@@ -11,6 +11,11 @@ use std::{
     fmt::Write as _,
     io::Write,
 };
+
+pub(super) enum ExplainError {
+    Selection(String),
+    Output(String),
+}
 
 pub(super) fn config_validate(
     validated: &ValidatedConfig,
@@ -92,8 +97,18 @@ pub(super) fn explain_group(
     validated: &ValidatedConfig,
     id: &str,
     output: &mut impl Write,
+) -> Result<(), ExplainError> {
+    let plan = planning::group(validated, id)
+        .map_err(|error| ExplainError::Selection(error.to_string()))?;
+    render_group(validated, id, &plan, output).map_err(ExplainError::Output)
+}
+
+fn render_group(
+    validated: &ValidatedConfig,
+    id: &str,
+    plan: &ValidationPlan,
+    output: &mut impl Write,
 ) -> Result<(), String> {
-    let plan = planning::group(validated, id).map_err(|error| error.to_string())?;
     let group = plan.groups.iter().find(|group| group.id == id).unwrap();
     writeln!(
         output,
@@ -108,16 +123,26 @@ pub(super) fn explain_group(
     writeln!(output, "Membership paths:").map_err(|error| error.to_string())?;
     print_membership_paths(validated, ExecutionNodeRef::Group { id: id.into() }, output)?;
     writeln!(output, "Reachable hierarchy:").map_err(|error| error.to_string())?;
-    print_tree(&plan, ExecutionNodeRef::Group { id: id.into() }, output)?;
-    print_invocations_and_tools(validated, &plan, output)
+    print_tree(plan, ExecutionNodeRef::Group { id: id.into() }, output)?;
+    print_invocations_and_tools(validated, plan, output)
 }
 
 pub(super) fn explain_suite(
     validated: &ValidatedConfig,
     id: &str,
     output: &mut impl Write,
+) -> Result<(), ExplainError> {
+    let plan = planning::suite(validated, id)
+        .map_err(|error| ExplainError::Selection(error.to_string()))?;
+    render_suite(validated, id, &plan, output).map_err(ExplainError::Output)
+}
+
+fn render_suite(
+    validated: &ValidatedConfig,
+    id: &str,
+    plan: &ValidationPlan,
+    output: &mut impl Write,
 ) -> Result<(), String> {
-    let plan = planning::suite(validated, id).map_err(|error| error.to_string())?;
     let suite = &plan.suites[0];
     let definition = &validated.suites[id];
     writeln!(
@@ -137,18 +162,27 @@ pub(super) fn explain_suite(
     .map_err(|error| error.to_string())?;
     writeln!(output, "Membership paths:").map_err(|error| error.to_string())?;
     print_membership_paths(validated, ExecutionNodeRef::Suite { id: id.into() }, output)?;
-    print_invocations_and_tools(validated, &plan, output)
+    print_invocations_and_tools(validated, plan, output)
 }
 
 pub(super) fn explain_check(
     validated: &ValidatedConfig,
     id: &str,
     output: &mut impl Write,
-) -> Result<(), String> {
+) -> Result<(), ExplainError> {
     let check = validated
         .checks
         .get(id)
-        .ok_or_else(|| format!("check {id} does not exist"))?;
+        .ok_or_else(|| ExplainError::Selection(format!("check {id} does not exist")))?;
+    render_check(validated, id, check, output).map_err(ExplainError::Output)
+}
+
+fn render_check(
+    validated: &ValidatedConfig,
+    id: &str,
+    check: &CheckConfig,
+    output: &mut impl Write,
+) -> Result<(), String> {
     let direct_arguments = parameters::expand(&check.args, &Default::default());
     writeln!(
         output,

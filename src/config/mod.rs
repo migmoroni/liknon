@@ -69,34 +69,81 @@ enum InitializationLocation {
     Future,
 }
 
+const MAX_INITIALIZATION_SYMLINKS: usize = 40;
+
 fn resolve_virtual_workspace_root(
     declared: &Path,
     future_directory: &Path,
     canonical_workspace: &Path,
     configuration_path: &Path,
 ) -> Result<InitializationWorkspaceRoot, ValidatorError> {
-    use std::path::Component;
-
-    let (mut location, relative) = if declared.is_absolute() {
-        if let Ok(resolved) = declared.canonicalize() {
-            return finish_initialization_root(resolved, false, configuration_path);
-        }
-        let relative = declared.strip_prefix(canonical_workspace).map_err(|_| {
-            ValidatorError::invalid(
-                configuration_path,
-                format!(
-                    "invalid workspaceRoot: {} does not exist",
-                    declared.display()
-                ),
-            )
-        })?;
-        (
-            InitializationLocation::Existing(canonical_workspace.to_path_buf()),
-            relative,
-        )
+    let location = if declared.is_absolute() {
+        resolve_initialization_absolute(
+            declared,
+            future_directory,
+            canonical_workspace,
+            configuration_path,
+            0,
+        )?
     } else {
-        (InitializationLocation::Future, declared)
+        resolve_initialization_components(
+            InitializationLocation::Future,
+            declared,
+            future_directory,
+            canonical_workspace,
+            configuration_path,
+            0,
+        )?
     };
+
+    match location {
+        InitializationLocation::Future => {
+            finish_initialization_root(future_directory.to_path_buf(), true, configuration_path)
+        }
+        InitializationLocation::Existing(path) => {
+            finish_initialization_root(path, false, configuration_path)
+        }
+    }
+}
+
+fn resolve_initialization_absolute(
+    declared: &Path,
+    future_directory: &Path,
+    canonical_workspace: &Path,
+    configuration_path: &Path,
+    followed_symlinks: usize,
+) -> Result<InitializationLocation, ValidatorError> {
+    if let Ok(resolved) = declared.canonicalize() {
+        return Ok(InitializationLocation::Existing(resolved));
+    }
+    let relative = declared.strip_prefix(canonical_workspace).map_err(|_| {
+        ValidatorError::invalid(
+            configuration_path,
+            format!(
+                "invalid workspaceRoot: {} does not exist",
+                declared.display()
+            ),
+        )
+    })?;
+    resolve_initialization_components(
+        InitializationLocation::Existing(canonical_workspace.to_path_buf()),
+        relative,
+        future_directory,
+        canonical_workspace,
+        configuration_path,
+        followed_symlinks,
+    )
+}
+
+fn resolve_initialization_components(
+    mut location: InitializationLocation,
+    relative: &Path,
+    future_directory: &Path,
+    canonical_workspace: &Path,
+    configuration_path: &Path,
+    followed_symlinks: usize,
+) -> Result<InitializationLocation, ValidatorError> {
+    use std::path::Component;
 
     for component in relative.components() {
         location = match (location, component) {
@@ -128,6 +175,38 @@ fn resolve_virtual_workspace_root(
                 match candidate.canonicalize() {
                     Ok(resolved) => InitializationLocation::Existing(resolved),
                     Err(_) if candidate == future_directory => InitializationLocation::Future,
+                    Err(_) if candidate.is_symlink() => {
+                        if followed_symlinks >= MAX_INITIALIZATION_SYMLINKS {
+                            return Err(ValidatorError::invalid(
+                                configuration_path,
+                                "invalid workspaceRoot: too many symbolic links",
+                            ));
+                        }
+                        let target = std::fs::read_link(&candidate).map_err(|error| {
+                            ValidatorError::invalid(
+                                configuration_path,
+                                format!("invalid workspaceRoot: {error}"),
+                            )
+                        })?;
+                        if target.is_absolute() {
+                            resolve_initialization_absolute(
+                                &target,
+                                future_directory,
+                                canonical_workspace,
+                                configuration_path,
+                                followed_symlinks + 1,
+                            )?
+                        } else {
+                            resolve_initialization_components(
+                                InitializationLocation::Existing(path),
+                                &target,
+                                future_directory,
+                                canonical_workspace,
+                                configuration_path,
+                                followed_symlinks + 1,
+                            )?
+                        }
+                    }
                     Err(error) => {
                         return Err(ValidatorError::invalid(
                             configuration_path,
@@ -144,14 +223,7 @@ fn resolve_virtual_workspace_root(
             }
         };
     }
-    match location {
-        InitializationLocation::Future => {
-            finish_initialization_root(future_directory.to_path_buf(), true, configuration_path)
-        }
-        InitializationLocation::Existing(path) => {
-            finish_initialization_root(path, false, configuration_path)
-        }
-    }
+    Ok(location)
 }
 
 fn finish_initialization_root(
@@ -275,6 +347,73 @@ mod tests {
                     workspace.path().join(".validation")
                 );
             }
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn future_symlink_forms_match_precreated_and_installed_loading() {
+        for declared in ["../future-link", "../future-link/.."] {
+            for precreate in [false, true] {
+                let workspace = TempDir::new().unwrap();
+                if precreate {
+                    fs::create_dir(workspace.path().join(".validation")).unwrap();
+                }
+                symlink(".validation", workspace.path().join("future-link")).unwrap();
+                let candidate = workspace.path().join("candidate.json");
+                let contents = serde_json::to_vec(&document(declared)).unwrap();
+                fs::write(&candidate, &contents).unwrap();
+                let canonical_workspace = workspace.path().canonicalize().unwrap();
+                let destination = workspace.path().join(".validation/config.json");
+
+                let before = config::validate_at(
+                    &contents,
+                    &destination,
+                    &canonical_workspace,
+                )
+                .unwrap_or_else(|error| {
+                    panic!(
+                        "future symlink validation failed for {declared:?}, precreate={precreate}: {error}"
+                    )
+                });
+                let result = initialization::provision_config(&canonical_workspace, &candidate);
+                assert_eq!(result.status, crate::contracts::init::InitStatus::Success);
+                let installed = config::load(Some(&destination), workspace.path()).unwrap();
+
+                assert_eq!(before.workspace_root, installed.workspace_root);
+                assert_eq!(
+                    before.suite_directories["suite"].absolute,
+                    installed.suite_directories["suite"].absolute
+                );
+                let expected = if declared.ends_with("/..") {
+                    canonical_workspace.clone()
+                } else {
+                    workspace.path().join(".validation")
+                };
+                assert_eq!(installed.workspace_root, expected);
+            }
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn future_symlink_resolution_rejects_targets_not_created_by_initialization() {
+        for (link, target) in [
+            ("unrelated-link", "missing"),
+            ("descendant-link", ".validation/missing"),
+        ] {
+            let workspace = TempDir::new().unwrap();
+            symlink(target, workspace.path().join(link)).unwrap();
+            let destination = workspace.path().join(".validation/config.json");
+            let contents = serde_json::to_vec(&document(&format!("../{link}"))).unwrap();
+            let error = config::validate_at(
+                &contents,
+                &destination,
+                &workspace.path().canonicalize().unwrap(),
+            )
+            .unwrap_err();
+            assert!(error.to_string().contains("invalid workspaceRoot"));
+            assert!(!workspace.path().join(".validation").exists());
         }
     }
 
