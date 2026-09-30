@@ -5,8 +5,8 @@
 Define the model-neutral evaluation program used to measure how agents interact
 with `workspace-validator` through three distinct product surfaces:
 
-1. the AI-Tool operational interface;
-2. the public CLI and documentation without bundled agent instructions;
+1. the public CLI and documentation without bundled agent instructions;
+2. the AI-Tool operational interface;
 3. the complete AI-Engineering Flow.
 
 These are evaluation families, not runtime modes, release phases, or additional
@@ -61,8 +61,8 @@ Use one development-only evaluation tree outside the runtime source modules:
 evals/
 ├── README.md
 ├── scenarios/
-│   ├── ai-tool/
 │   ├── documentation-only-cli/
+│   ├── ai-tool/
 │   └── ai-engineering/
 ├── fixtures/
 ├── rubrics/
@@ -81,16 +81,68 @@ become normal runtime dependencies of the crate. The runner accepts a
 configurable model matrix and supports both automated adapters and explicitly
 recorded manual trials while producing the same evidence envelope.
 
-## 3. Evaluation Family A: AI-Tool Interface
+The family order is analytical: Family A establishes direct-use behavior as the
+baseline, Family B measures the incremental value of AI-Tool over comparable
+tasks, and Family C evaluates the composed engineering system. It does not
+define runtime dependencies or require one family to execute another.
+
+## 3. Evaluation Family A: Documentation-Only Direct CLI
 
 ### 3.1 Objective
+
+Measure whether an agent with no AI-Tool or AI-Engineering instructions can use
+the public executable correctly from public documentation. This evaluates CLI
+discoverability, reference quality, examples, diagnostics, and model-neutral
+usability.
+
+This family is not a fourth governed AI flow. The evaluated agent receives no
+claim to AI-Tool policy enforcement, AI-Engineering persistence, or bundled
+agent routing. It operates as a direct CLI consumer under the evaluation
+harness's ordinary permissions and human controls.
+
+### 3.2 Context Isolation
+
+Provide only the released CLI, `--help`, schemas, examples, and public
+documentation declared by the scenario. Withhold the distributed skill,
+AI-Tool references, AI-Engineering references, internal implementation plans,
+expected answers, and traces from other evaluation runs.
+
+Use paired scenarios with Family B whenever the same task can be expressed both
+ways. The comparison measures the value added by AI-Tool without changing the
+workspace, prompt intent, permissions, or expected CLI outcome.
+
+### 3.3 Required Scenarios
+
+Include at minimum:
+
+- create or review a complete configuration candidate from reference material;
+- initialize and validate canonical configuration;
+- inspect groups, suites, checks, resolved commands, and effective directories;
+- run an explicit selection and interpret every representative result class;
+- narrow and rerun an affected scope from documented behavior;
+- diagnose invalid usage, invalid configuration, and internal reporting
+  failures from exit status and structured output;
+- discover relevant documentation without relying on skill routes;
+- avoid inventing commands, flags, schemas, or semantics absent from the public
+  contract.
+
+### 3.4 Evaluation Questions
+
+Measure successful task completion, documentation lookup path, command and
+argument accuracy, number of corrective attempts, interpretation of reports and
+exit codes, unsupported assumptions, unnecessary workspace changes, and the
+point at which documentation or CLI feedback fails to supply enough context.
+
+## 4. Evaluation Family B: AI-Tool Interface
+
+### 4.1 Objective
 
 Measure whether AI-Tool is a clear, safe, and composable agent interface over
 the deterministic CLI. The evaluated surface is AI-Tool, not the underlying
 model's general ability to discover the CLI independently and not the complete
 AI-Engineering reasoning system.
 
-### 3.2 Consumer Shapes
+### 4.2 Consumer Shapes
 
 Exercise AI-Tool through both supported consumer shapes:
 
@@ -104,7 +156,7 @@ The second shape is contract dogfooding. It proves that AI-Tool is useful to
 another agent workflow without conflating that result with the end-to-end
 quality of AI-Engineering.
 
-### 3.3 Required Scenarios
+### 4.3 Required Scenarios
 
 Cover `policy`, `config`, `run`, `triage`, and `audit` with ordinary, ambiguous,
 blocked, and adversarial prompts. Include at minimum:
@@ -122,59 +174,12 @@ blocked, and adversarial prompts. Include at minimum:
   eagerly loading all references;
 - keeping separate requests independent.
 
-### 3.4 Evaluation Questions
+### 4.4 Evaluation Questions
 
 Measure routing accuracy, task completion, policy compliance, command accuracy,
 unnecessary commands, human interventions, context loaded, report
 interpretation, safety violations, unsupported claims, and usefulness of the
 bounded result to both human and agent consumers.
-
-## 4. Evaluation Family B: Documentation-Only Direct CLI
-
-### 4.1 Objective
-
-Measure whether an agent with no AI-Tool or AI-Engineering instructions can use
-the public executable correctly from public documentation. This evaluates CLI
-discoverability, reference quality, examples, diagnostics, and model-neutral
-usability.
-
-This family is not a fourth governed AI flow. The evaluated agent receives no
-claim to AI-Tool policy enforcement, AI-Engineering persistence, or bundled
-agent routing. It operates as a direct CLI consumer under the evaluation
-harness's ordinary permissions and human controls.
-
-### 4.2 Context Isolation
-
-Provide only the released CLI, `--help`, schemas, examples, and public
-documentation declared by the scenario. Withhold the distributed skill,
-AI-Tool references, AI-Engineering references, internal implementation plans,
-expected answers, and traces from other evaluation runs.
-
-Use paired scenarios with Family A whenever the same task can be expressed both
-ways. The comparison measures the value added by AI-Tool without changing the
-workspace, prompt intent, permissions, or expected CLI outcome.
-
-### 4.3 Required Scenarios
-
-Include at minimum:
-
-- create or review a complete configuration candidate from reference material;
-- initialize and validate canonical configuration;
-- inspect groups, suites, checks, resolved commands, and effective directories;
-- run an explicit selection and interpret every representative result class;
-- narrow and rerun an affected scope from documented behavior;
-- diagnose invalid usage, invalid configuration, and internal reporting
-  failures from exit status and structured output;
-- discover relevant documentation without relying on skill routes;
-- avoid inventing commands, flags, schemas, or semantics absent from the public
-  contract.
-
-### 4.4 Evaluation Questions
-
-Measure successful task completion, documentation lookup path, command and
-argument accuracy, number of corrective attempts, interpretation of reports and
-exit codes, unsupported assumptions, unnecessary workspace changes, and the
-point at which documentation or CLI feedback fails to supply enough context.
 
 ## 5. Evaluation Family C: AI-Engineering End To End
 
@@ -246,9 +251,9 @@ equivalent inputs and declared capabilities.
 
 Classify every observed failure before changing the product:
 
-- Family A primarily informs AI-Tool routing and operation references;
-- Family B primarily informs CLI ergonomics, diagnostics, examples, and public
+- Family A primarily informs CLI ergonomics, diagnostics, examples, and public
   documentation;
+- Family B primarily informs AI-Tool routing and operation references;
 - Family C primarily informs AI-Engineering process prompts, persistence,
   handoffs, and orchestration;
 - a failure shared across all families may indicate a runtime, schema, report,
@@ -269,9 +274,10 @@ The evaluation program is complete when:
 - evaluation source assets are isolated from generated runs and from normal
   crate runtime dependencies;
 - the declared model matrix runs from fresh contexts with reproducible inputs;
-- AI-Tool is evaluated through human prompts and AI-Engineering consumption;
 - direct documentation-only agents complete representative CLI workflows
   without hidden skill context;
+- AI-Tool is evaluated through human prompts and AI-Engineering consumption and
+  compared with paired documentation-only baselines where applicable;
 - AI-Engineering is evaluated independently as the end-to-end product;
 - results contain enough evidence to attribute failures to AI-Tool,
   documentation and CLI, AI-Engineering, the runtime, or a model capability;

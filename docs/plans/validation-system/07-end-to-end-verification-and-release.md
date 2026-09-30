@@ -28,7 +28,23 @@ composition; they do not replace an incomplete earlier contract.
 - diagnose and rerun a narrow scope manually;
 - operate successfully with only the CLI and `.validation/config.json`.
 
-### 3.2 AI-Tool Flow
+### 3.2 Documentation-Only Direct Agent Use
+
+- start from a human-like task prompt in a fresh context;
+- receive only the released CLI, help, schemas, examples, and public
+  documentation declared by the scenario;
+- configure, inspect, execute, and interpret representative validation without
+  loading AI-Tool or AI-Engineering references;
+- use only documented commands, arguments, schemas, report fields, and exit
+  semantics;
+- recover from invalid usage or configuration through public diagnostics and
+  reference material;
+- complete paired tasks also exercised through AI-Tool so the added value of
+  that interface can be measured;
+- remain classified as a direct CLI consumer rather than an additional governed
+  AI flow.
+
+### 3.3 AI-Tool Flow
 
 - explain a missing policy and direct the human to run `init --policy` without
   invoking that command;
@@ -46,22 +62,6 @@ composition; they do not replace an incomplete earlier contract.
 - complete every operation without mutating AI decision policy or creating
   process artifacts;
 - begin a later request without inherited authority or analytical context.
-
-### 3.3 Documentation-Only Direct Agent Use
-
-- start from a human-like task prompt in a fresh context;
-- receive only the released CLI, help, schemas, examples, and public
-  documentation declared by the scenario;
-- configure, inspect, execute, and interpret representative validation without
-  loading AI-Tool or AI-Engineering references;
-- use only documented commands, arguments, schemas, report fields, and exit
-  semantics;
-- recover from invalid usage or configuration through public diagnostics and
-  reference material;
-- complete paired tasks also exercised through AI-Tool so the added value of
-  that interface can be measured;
-- remain classified as a direct CLI consumer rather than an additional governed
-  AI flow.
 
 ### 3.4 AI-Engineering Setup
 
@@ -239,13 +239,14 @@ evaluation families isolated. Validate the skill folder, manifest routes,
 generated projections, and compatibility metadata deterministically before
 starting model-driven trials:
 
-1. **AI-Tool Interface** evaluates natural human prompts routed through
-   AI-Tool and controlled AI-Engineering consumption of the same operation
-   contracts. The measured surface is AI-Tool.
-2. **Documentation-Only Direct CLI** withholds all skill and process
+1. **Documentation-Only Direct CLI** withholds all skill and process
    instructions and evaluates whether an external agent can use the released
    CLI from public documentation alone. The measured surface is the CLI and its
    documentation.
+2. **AI-Tool Interface** evaluates natural human prompts routed through
+   AI-Tool and controlled AI-Engineering consumption of the same operation
+   contracts. The measured surface is AI-Tool and its incremental value over
+   the paired documentation-only baseline.
 3. **AI-Engineering End To End** uses representative projects, natural human
    prompts, the complete skill, policy, artifacts, and processes. The measured
    surface is AI-Engineering; AI-Tool is a required dependency rather than the
@@ -260,7 +261,7 @@ starting model-driven trials:
   can be evaluated without provider coupling in the crate;
 - repeat nondeterministic scenarios enough to expose variation rather than
   treating one success as representative;
-- pair applicable AI-Tool and documentation-only scenarios with the same task,
+- pair applicable documentation-only and AI-Tool scenarios with the same task,
   permissions, and expected CLI outcome;
 - never reveal hidden assertions, expected answers, or prior traces to the
   evaluated agent.
@@ -380,5 +381,5 @@ diagnosis, drift assessment, and cross-conversation continuity through exact
 artifact exchange without becoming an alternate executor. The executable and
 public documentation remain directly consumable by external agents, but that
 direct use is not represented as another governed flow. The release evidence
-separately measures AI-Tool, documentation-only direct CLI use, and complete
+separately measures documentation-only direct CLI use, AI-Tool, and complete
 AI-Engineering behavior.

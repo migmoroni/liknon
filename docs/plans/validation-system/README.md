@@ -457,9 +457,10 @@ classification, all category-level meanings, restrictive combination, and the
 canonical persistence profile and absolute boundaries every AI operation obeys.
 
 [Agent Evaluation Program](agent-evaluation-program.md) is the cross-cutting
-evaluation contract executed in Phase 7. It separates AI-Tool interface trials,
-documentation-only direct CLI trials, and complete AI-Engineering trials so
-failures can be attributed to the correct product surface.
+evaluation contract executed in Phase 7. It first establishes the
+documentation-only direct CLI baseline, then measures the incremental value of
+AI-Tool, and finally evaluates the complete AI-Engineering system so failures
+can be attributed to the correct product surface.
 
 ## 7. Planned Documentation And Skill Layout
 
@@ -587,7 +588,7 @@ The unified plan is complete only when:
 - every AI-triggered run still passes through the normal configuration and
   report contracts;
 - authorization boundaries are exercised by tests and realistic skill trials;
-- AI-Tool, documentation-only direct CLI use, and AI-Engineering are evaluated
+- documentation-only direct CLI use, AI-Tool, and AI-Engineering are evaluated
   independently across the declared model matrix with reproducible scenarios
   and observable evidence;
 - all outcome classes, mismatched-artifact cases, and drift cases have
