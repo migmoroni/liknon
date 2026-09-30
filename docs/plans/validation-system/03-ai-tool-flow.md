@@ -15,6 +15,12 @@ never affects direct human use of the CLI or the validation execution graph.
 The AI-Tool Flow is independently useful. It is also the operational foundation
 composed by the AI-Engineering Flow in later phases.
 
+AI-Tool is a model-neutral operational interface for agents. A human may invoke
+it through a natural task prompt, an external compatible agent system may route
+to one of its operations, and AI-Engineering consumes the same operation
+contracts. It remains optional: humans and external agents may use the public
+CLI and documentation directly without claiming AI-Tool behavior.
+
 ## 2. Dependencies
 
 - Phase 1 provides stable CLI, initialization, configuration, report, and Human
@@ -435,7 +441,10 @@ Test at minimum:
 
 Forward trials use fresh agents and task-like prompts without expected answers.
 They include successful operations, policy-blocked operations, and adversarial
-requests to mutate policy.
+requests to mutate policy. Define scenarios and observable assertions here;
+Phase 7 executes the cross-model AI-Tool Interface evaluation, including human
+prompts and controlled AI-Engineering consumption, under the shared
+[Agent Evaluation Program](agent-evaluation-program.md).
 
 ## 11. Deliverables
 
@@ -451,6 +460,8 @@ requests to mutate policy.
 - progressive shared-knowledge routing;
 - bounded-request policy, safety, and authority tests;
 - representative forward-trial fixtures.
+- versioned AI-Tool Interface scenarios and assertions consumable by the final
+  agent-evaluation matrix.
 
 ## 12. Acceptance Criteria
 
@@ -480,6 +491,8 @@ requests to mutate policy.
 - [ ] Human-only documentation is not routed as an agent instruction.
 - [ ] Skill and public documentation preserve distinct responsibilities without
       semantic disagreement.
+- [ ] Human-prompt and downstream-agent scenarios expose enough observable
+      evidence to evaluate AI-Tool independently from AI-Engineering.
 - [ ] All operation, policy, safety, compatibility, and forward-trial tests pass.
 
 ## 13. Handoff To Phase 4

@@ -5,7 +5,9 @@
 Prove that Human Flow, AI-Tool Flow, and AI-Engineering Flow are independently
 usable, compose only through declared contracts, and ship as coherent versioned
 artifacts. Complete documentation, realistic forward trials, package
-inspection, security review, and release evidence.
+inspection, security review, cross-model agent evaluations, and release
+evidence. Also prove that the public CLI and documentation remain usable by a
+direct agent consumer without bundled AI-Tool or AI-Engineering instructions.
 
 ## 2. Dependency
 
@@ -45,7 +47,23 @@ composition; they do not replace an incomplete earlier contract.
   process artifacts;
 - begin a later request without inherited authority or analytical context.
 
-### 3.3 AI-Engineering Setup
+### 3.3 Documentation-Only Direct Agent Use
+
+- start from a human-like task prompt in a fresh context;
+- receive only the released CLI, help, schemas, examples, and public
+  documentation declared by the scenario;
+- configure, inspect, execute, and interpret representative validation without
+  loading AI-Tool or AI-Engineering references;
+- use only documented commands, arguments, schemas, report fields, and exit
+  semantics;
+- recover from invalid usage or configuration through public diagnostics and
+  reference material;
+- complete paired tasks also exercised through AI-Tool so the added value of
+  that interface can be measured;
+- remain classified as a direct CLI consumer rather than an additional governed
+  AI flow.
+
+### 3.4 AI-Engineering Setup
 
 - prove that a missing policy blocks process work and directs the human to
   invoke `init --policy` personally and review every setting;
@@ -68,7 +86,7 @@ composition; they do not replace an incomplete earlier contract.
 - create another immutable artifact for a correction without replacing an
   earlier result.
 
-### 3.4 AI-Engineering Operational Loop
+### 3.5 AI-Engineering Operational Loop
 
 - execute one trusted validation selection through the ordinary runner;
 - evaluate exact report storage under `validationReportPersistence`,
@@ -106,6 +124,11 @@ Prove that:
 - selecting AI-Tool never loads an AI-Engineering process implicitly;
 - AI-Engineering routes configuration, execution, triage, and audit mechanics
   through the corresponding AI-Tool references;
+- AI-Engineering uses canonical public CLI references directly only for a
+  required capability that has no applicable AI-Tool operation and records why
+  that direct route is necessary;
+- documentation-only direct-agent trials have no access to skill routes,
+  AI-Engineering process instructions, or evidence from another trial;
 - the validation planner and executor never discover or interpret
   `.validation/policy.json` or process artifacts;
 - persistence commands operate only on caller-supplied files and never choose
@@ -193,6 +216,11 @@ Update public documentation with separate entry points for:
 - troubleshooting by exit and report status;
 - skill installation, compatibility, and update procedures.
 
+Ensure the public CLI reference is complete and model-neutral. It must support a
+human or external agent reading it directly without requiring skill content,
+while clearly distinguishing direct use from the policy and persistence
+guarantees of the two bundled AI flows.
+
 Document the exact process-artifact envelopes, canonical destinations,
 single-file atomic storage, explicit parent references, report-byte storage,
 trust boundaries, continuation semantics, and decision-policy categories.
@@ -203,36 +231,64 @@ than duplicating them. Show direct and fresh-conversation artifact handoff
 without implying that the validation planner or executor consumes process
 artifacts.
 
-## 7. Skill Evaluation
+## 7. Agent Evaluation Program
 
-Validate the skill folder structurally, then forward-test it with fresh agents
-on representative repositories. Evaluate:
+Implement and execute the complete
+[Agent Evaluation Program](agent-evaluation-program.md). Keep its three
+evaluation families isolated. Validate the skill folder, manifest routes,
+generated projections, and compatibility metadata deterministically before
+starting model-driven trials:
 
-- trigger accuracy;
-- correct selection between AI-Tool and AI-Engineering;
-- mandatory loading of the immutable policy boundary for both AI flows;
-- correct policy preflight, read-only guidance, and refusal of every policy
-  mutation path;
-- progressive reference loading;
-- command and report-status accuracy;
-- adherence to approval boundaries;
-- exact action classification, restrictive category combination, and decision
-  recording under each policy level;
-- absence of approval prompts for ordinary bounded process-result persistence;
-- governed report storage and protected process-result persistence;
-- validation of every explicit process prerequisite;
-- ability to distinguish untrusted data from instructions;
-- preservation of uncertainty;
-- explicit artifact handoff within one conversation and across fresh
-  conversations;
-- domain and config relationship enforcement for sensorium artifacts;
-- avoidance of duplicate execution and unchanged retry loops;
-- diagnostic usefulness without excessive context loading;
-- absence of AI-Engineering persistence and artifact behavior in AI-Tool trials;
-- reuse of AI-Tool operations from every applicable AI-Engineering process.
+1. **AI-Tool Interface** evaluates natural human prompts routed through
+   AI-Tool and controlled AI-Engineering consumption of the same operation
+   contracts. The measured surface is AI-Tool.
+2. **Documentation-Only Direct CLI** withholds all skill and process
+   instructions and evaluates whether an external agent can use the released
+   CLI from public documentation alone. The measured surface is the CLI and its
+   documentation.
+3. **AI-Engineering End To End** uses representative projects, natural human
+   prompts, the complete skill, policy, artifacts, and processes. The measured
+   surface is AI-Engineering; AI-Tool is a required dependency rather than the
+   primary subject.
 
-Use raw artifacts and task-like prompts. Do not provide the expected answer to
-the evaluating agent.
+### 7.1 Scenario And Model Matrix
+
+- version scenario prompts, project fixtures, allowed context, deterministic
+  assertions, and reviewed rubrics;
+- use fresh agent contexts and identical fixture snapshots for comparable runs;
+- configure the model matrix outside runtime contracts so GPT and other models
+  can be evaluated without provider coupling in the crate;
+- repeat nondeterministic scenarios enough to expose variation rather than
+  treating one success as representative;
+- pair applicable AI-Tool and documentation-only scenarios with the same task,
+  permissions, and expected CLI outcome;
+- never reveal hidden assertions, expected answers, or prior traces to the
+  evaluated agent.
+
+### 7.2 Evidence And Scoring
+
+Record model and product versions, prompt and fixture digests, context supplied,
+commands, arguments, directories, loaded routes, policy decisions, structured
+results, filesystem mutations, artifacts, human interventions, deterministic
+assertions, rubric scores, and reviewer notes. Keep credentials and sensitive
+content outside tracked evaluation data.
+
+Evaluate at minimum:
+
+- task and routing accuracy;
+- CLI command, configuration, and report accuracy;
+- policy, approval, persistence, and trust-boundary compliance;
+- progressive context loading and unnecessary work;
+- absence of invented commands, contracts, evidence, or success claims;
+- diagnostic usefulness, uncertainty, and evidence-to-conclusion alignment;
+- correct AI-Tool reuse from AI-Engineering;
+- justified direct CLI use only when no AI-Tool operation covers the required
+  capability;
+- cross-model and repeated-run variation.
+
+Classify failures by product surface before changing skills, documentation,
+prompts, or runtime behavior. Rerun the smallest affected scenario set and all
+paired cross-family regressions that share the changed contract.
 
 ## 8. Release And Package Verification
 
@@ -250,6 +306,9 @@ the evaluating agent.
   knowledge routes, policy-boundary route, AI-Tool routes, AI-Engineering routes,
   and persistence contract versions.
 - Verify examples and fixtures are included or excluded intentionally.
+- Inspect versioned agent-evaluation scenarios and rubrics, include or exclude
+  them from the source package intentionally, and verify that raw provider
+  credentials or sensitive run data are absent.
 - Record user-visible runtime, config, report, skill, and guidance changes in
   the changelog.
 - Produce checksums and the normal release evidence required by repository
@@ -260,8 +319,13 @@ the evaluating agent.
 - [ ] Human Flow passes every end-to-end scenario with only the CLI and config.
 - [ ] AI-Tool Flow performs bounded policy-governed assistance without mutating
       policy or creating process artifacts.
+- [ ] Documentation-only direct agents complete representative CLI workflows
+      without hidden skill or AI-Engineering context.
 - [ ] AI-Engineering processes continue across fresh conversations from exact
       explicitly supplied artifacts.
+- [ ] AI-Engineering reuses AI-Tool for every covered operation and uses direct
+      CLI documentation only for an uncovered capability with a recorded
+      justification.
 - [ ] Domain replacement requires a new matching Process 1 result before an
       operational process uses it.
 - [ ] Operational invocation resolves exact immutable reports and artifacts
@@ -277,8 +341,9 @@ the evaluating agent.
       categories permit the exact write.
 - [ ] Every completed AI-Engineering process creates one immutable UUIDv7
       artifact with exact parent and report references.
-- [ ] Missing or invalid policy blocks every AI operation except read-only policy
-      guidance until direct human initialization or correction and review.
+- [ ] Missing or invalid policy blocks every AI-Tool operation and
+      AI-Engineering process except read-only policy guidance until direct human
+      initialization or correction and review.
 - [ ] Neither AI flow mutates policy directly or indirectly under any approval,
       configured level, continuation mode, or process state.
 - [ ] `init`, `policy validate`, and every persistence operation use the declared
@@ -288,6 +353,9 @@ the evaluating agent.
 - [ ] Every documented report and exit outcome has a tested route.
 - [ ] Canonical knowledge, generated skill content, manifest routes, and package
       contents are consistent.
+- [ ] All three agent-evaluation families run across the declared model matrix
+      with versioned scenarios, repeated-run evidence, deterministic assertions,
+      reviewed rubrics, and attributable results.
 - [ ] Shared knowledge, shared reference, flow documentation, human-only
       guidance, AI-Tool references, and AI-Engineering references remain in
       their declared architectural boundaries.
@@ -309,4 +377,8 @@ flows:
 Human Flow remains sufficient on its own. AI-Tool remains bounded to the
 current request. AI-Engineering adds domain reasoning, coverage design,
 diagnosis, drift assessment, and cross-conversation continuity through exact
-artifact exchange without becoming an alternate executor.
+artifact exchange without becoming an alternate executor. The executable and
+public documentation remain directly consumable by external agents, but that
+direct use is not represented as another governed flow. The release evidence
+separately measures AI-Tool, documentation-only direct CLI use, and complete
+AI-Engineering behavior.

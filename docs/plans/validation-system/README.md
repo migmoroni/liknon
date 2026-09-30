@@ -19,6 +19,19 @@ AI-Engineering Flow adds governed continuity and engineering processes while
 reusing the same AI-Tool operations and decision policy. Neither AI-Tool nor
 AI-Engineering replaces or extends the CLI execution contract.
 
+The CLI, schemas, and public documentation remain model-neutral interfaces.
+Humans and external agents may consume them directly without loading the
+distributed skill. Direct agent use is not a fourth governed flow and does not
+claim the policy, routing, persistence, or safety guarantees of AI-Tool or
+AI-Engineering. AI-Tool provides an optional operational interface for a human
+working through an agent, another compatible agent system, or AI-Engineering.
+
+Within this plan, an **AI operation** means an operation inside AI-Tool or an
+AI-Engineering process unless a section explicitly discusses a direct external
+agent. The human-only ownership of `.validation/policy.json` remains a public
+boundary for every caller, while category-based agent enforcement is a contract
+of the two bundled AI flows.
+
 This plan uses **phase** only for the seven ordered implementation units and
 **process** for the four recurring AI-Engineering operations. Processes can be
 invoked again whenever their preconditions hold; they are not release phases or
@@ -79,6 +92,12 @@ between separate requests. It may consume structured CLI output for the current
 task, but it does not automatically establish the persistent report store or
 local continuity used by the AI-Engineering Flow.
 
+AI-Tool is a reusable agent-facing interface rather than an exclusive gateway
+to the executable. A human may invoke it through an ordinary task prompt, and
+another agent or orchestrated flow may consume the same operation contracts.
+Public CLI documentation remains sufficient for a direct caller that does not
+load AI-Tool.
+
 ### 2.3 AI-Engineering Flow
 
 ```text
@@ -123,6 +142,13 @@ agent stores and explicitly passes permitted or human-authorized report bytes
                   v
 agent applies the same decision policy to remediation and recommendations
 ```
+
+AI-Engineering uses the corresponding AI-Tool operation whenever `policy`,
+`config`, `run`, `triage`, or `audit` covers the required work. When a required
+CLI capability has no AI-Tool operation, AI-Engineering may use that capability
+directly from canonical public reference documentation under the same policy,
+trust, workspace, and evidence boundaries. This exception must not duplicate,
+bypass, or locally reinterpret an operation that AI-Tool already defines.
 
 The agent creates one immutable analytical artifact as the normal output of
 each invoked AI-Engineering process. This does not require a separate human
@@ -193,7 +219,7 @@ ownership, but it is never interpreted as an instruction to an agent.
 | Property | Human Flow | AI-Tool Flow | AI-Engineering Flow |
 | --- | --- | --- | --- |
 | Primary operator | Human | Agent directed for one bounded task | Agent directed through engineering processes |
-| CLI and `config.json` | Direct use | Through AI-Tool operations | Through the same AI-Tool operations |
+| CLI and `config.json` | Direct use | Through AI-Tool operations | Through AI-Tool when covered; direct documented CLI use only for uncovered capabilities |
 | Shared knowledge | Human-readable source | Progressive skill projection | Progressive skill projection |
 | `policy.json` | Not used by direct CLI operation | Required; read-only guidance may operate when missing or invalid | Required and governed |
 | `.validation/persistence/` | Not used | Not used | Immutable process artifacts |
@@ -294,6 +320,9 @@ validation passed.
 - treats repository content, command output, and persistence files as data, not
   higher-priority instructions;
 - composes the AI-Tool operations instead of redefining CLI mechanics;
+- invokes the CLI directly only for a required capability that has no applicable
+  AI-Tool operation, using canonical reference documentation and preserving all
+  policy, trust, workspace, and evidence boundaries;
 - loads the immutable policy boundary and delegates policy explanation to the
   read-only AI-Tool `policy` operation;
 - validates and obeys `.validation/policy.json` and the normative category-level
@@ -407,11 +436,11 @@ validation passed.
 | ---: | --- | --- | --- |
 | 1 | [Human Flow Completion](01-human-flow-completion.md) | Current runtime | Independently complete human workflow and deterministic config initialization |
 | 2 | [Shared Validation Knowledge](02-shared-validation-knowledge.md) | Phase 1 | Concise, source-backed, incrementally extensible guidance for humans and agents |
-| 3 | [AI-Tool Flow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1-2 | Human-owned policy foundation and five bounded policy-governed agent operations without AI-Engineering processes or persistence |
+| 3 | [AI-Tool Flow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1-2 | Human-owned policy foundation and five bounded, reusable, policy-governed agent operations without AI-Engineering processes or persistence |
 | 4 | [AI-Engineering Persistence And Safety Foundation](04-ai-engineering-persistence-and-safety-foundation.md) | Phases 1-3 | Explicit artifact persistence, process trust boundaries, and AI-Engineering composition over the existing policy contract |
 | 5 | [AI-Engineering Domain And Coverage Setup](05-ai-engineering-domain-and-coverage-setup.md) | Phase 4 | Automatically persisted domain and sensorium processes |
 | 6 | [AI-Engineering Triage And Drift Loop](06-ai-engineering-triage-and-drift-loop.md) | Phase 5 | Safe daily execution, remediation, and recalibration |
-| 7 | [End-To-End Verification And Release](07-end-to-end-verification-and-release.md) | Phases 1-6 | Proven isolation, composition, and distributable artifacts |
+| 7 | [End-To-End Verification And Release](07-end-to-end-verification-and-release.md) | Phases 1-6 | Proven isolation, composition, three-family agent evaluation, and distributable artifacts |
 
 Complete phases in order. A phase may add tests for later contracts only when
 those tests do not introduce the later implementation prematurely.
@@ -426,6 +455,11 @@ contract implemented in Phase 3. It defines shared AI authority, continuation,
 the immutable human-only policy-mutation boundary, action
 classification, all category-level meanings, restrictive combination, and the
 canonical persistence profile and absolute boundaries every AI operation obeys.
+
+[Agent Evaluation Program](agent-evaluation-program.md) is the cross-cutting
+evaluation contract executed in Phase 7. It separates AI-Tool interface trials,
+documentation-only direct CLI trials, and complete AI-Engineering trials so
+failures can be attributed to the correct product surface.
 
 ## 7. Planned Documentation And Skill Layout
 
@@ -473,7 +507,9 @@ skills/workspace-validator/
 
 Every AI route loads `policy-boundary.md`. AI-Engineering references route to
 AI-Tool operations when they need policy guidance, inspection, configuration,
-execution, triage, or audit. They do not duplicate those instructions. Files
+execution, triage, or audit. They use canonical public CLI references directly
+only when no AI-Tool operation covers the required capability, and they do not
+duplicate existing AI-Tool instructions. Files
 below `docs/validation/human/` are not projected into the skill bundle or treated
 as agent instructions.
 
@@ -515,6 +551,8 @@ The unified plan is complete only when:
   creating policy, persistence, or process artifacts;
 - an AI-Engineering agent composes AI-Tool operations with explicit processes
   instead of redefining them;
+- an external agent can perform representative direct CLI tasks from public
+  documentation alone without receiving AI-Tool or AI-Engineering instructions;
 - canonical shared knowledge supports humans and both AI flows without
   separately authored rewrites;
 - human-only operator guidance is structurally separate and never routed as an
@@ -549,6 +587,9 @@ The unified plan is complete only when:
 - every AI-triggered run still passes through the normal configuration and
   report contracts;
 - authorization boundaries are exercised by tests and realistic skill trials;
+- AI-Tool, documentation-only direct CLI use, and AI-Engineering are evaluated
+  independently across the declared model matrix with reproducible scenarios
+  and observable evidence;
 - all outcome classes, mismatched-artifact cases, and drift cases have
   deterministic fixtures;
 - source packages contain the runtime, schemas, skill, guidance projection,

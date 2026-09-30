@@ -246,7 +246,11 @@ Cover:
 - all continuation modes after a passing Process 2 result.
 
 Forward tests use raw reports and repositories without disclosing the intended
-conclusion to the agent.
+conclusion to the agent. Version their human-like prompts, observable
+assertions, and review rubrics for the AI-Engineering End-To-End family in the
+[Agent Evaluation Program](agent-evaluation-program.md). Controlled AI-Tool
+consumption is scored separately when the operation interface, rather than the
+complete incident or drift process, is under evaluation.
 
 ## 9. Acceptance Criteria
 

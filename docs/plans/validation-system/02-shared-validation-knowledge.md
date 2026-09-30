@@ -8,6 +8,11 @@ where to continue learning. The same authored Markdown serves both audiences;
 the distributed skill receives an exact generated projection of the content
 that currently exists.
 
+An external agent may read the canonical public documentation directly without
+installing or loading the skill. The generated projection improves routed,
+progressive AI-Tool and AI-Engineering consumption but is not the only valid
+machine-readable access path.
+
 The knowledge base is intentionally incremental. Its documents provide concise,
 directly useful orientation and link to authoritative primary documentation for
 depth. They do not reproduce complete standards, upstream manuals, or an offline

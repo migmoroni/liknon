@@ -255,6 +255,12 @@ Verify that the agent:
 - rejects operational use of a domain and sensorium whose declared relationship
   or config digest does not match.
 
+Version these fixtures, human-like prompts, observable assertions, and review
+rubrics for the AI-Engineering End-To-End family in the
+[Agent Evaluation Program](agent-evaluation-program.md). Controlled calls from
+these scenarios may also test AI-Tool as a downstream interface, but those runs
+score the AI-Tool boundary separately from setup-process quality.
+
 ## 9. Acceptance Criteria
 
 - [ ] A domain artifact distinguishes fact, human declaration, inference, and

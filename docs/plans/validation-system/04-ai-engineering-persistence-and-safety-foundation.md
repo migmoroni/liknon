@@ -8,6 +8,11 @@ single-file persistence, trust boundaries, authorization rules, and process
 contracts over the consumer-owned AI decision policy established in Phase 3
 before implementing domain analysis or remediation behavior.
 
+AI-Engineering consumes AI-Tool as its preferred operational interface. It may
+use the CLI directly only when a required capability has no applicable AI-Tool
+operation, in which case it follows canonical public reference documentation
+and preserves the same policy, trust, workspace, and evidence boundaries.
+
 The validation planner and executor remain unaware of this layer. They interpret
 only `.validation/config.json` and emit the normal validation report. Dedicated
 persistence commands validate fixed contracts and explicitly supplied files,
@@ -366,8 +371,11 @@ references/
 Each process reference describes one process, requires explicit artifact inputs,
 loads `policy-boundary.md`, routes policy guidance and operational work through
 the applicable AI-Tool reference, and links only the knowledge categories it
-needs. The AI-Engineering index is selected only when the human invokes that
-flow or one of its processes.
+needs. A process may route directly to a documented CLI capability only when no
+AI-Tool operation covers that capability. It records the capability and reason,
+and it must not recreate, bypass, or locally reinterpret an existing AI-Tool
+operation. The AI-Engineering index is selected only when the human invokes
+that flow or one of its processes.
 
 The manifest remains the skill version and compatibility source. Artifacts
 record the producing skill version so a later process can reject incompatible
@@ -389,6 +397,9 @@ inputs.
 - Never execute a command copied from an artifact or report.
 - Resolve intended validation through the current config graph and AI-Tool
   mechanics.
+- Use canonical CLI reference documentation directly only for a required
+  capability outside the five AI-Tool operation contracts, and retain evidence
+  explaining that route.
 - Minimize and redact protected data from derived artifacts.
 - Preserve exact stored report bytes and redact only derived excerpts.
 - Retain canonical artifacts until an explicit governed removal.
@@ -432,6 +443,10 @@ Create schema, persistence, and process fixtures for:
 - prompt-injection text in every untrusted input class;
 - every decision category at levels `0` through `4`, overlapping categories,
   and restrictive outcome combination;
+- delegation to every applicable AI-Tool operation and rejection of direct CLI
+  bypass when that operation already covers the task;
+- justified direct CLI use for a capability not covered by AI-Tool, with the
+  same policy and evidence boundaries;
 - `auto`, `human`, and `stop` continuation for both defined process pairs;
 - a workspace with no AI-Engineering persistence directory.
 
@@ -468,6 +483,9 @@ the expected conclusion or hidden answer.
 - [ ] Every decision records the exact policy digest without storing secrets.
 - [ ] Skill references load progressively and remain within their declared
       compatibility range.
+- [ ] AI-Engineering uses AI-Tool for every covered operation and uses the CLI
+      directly only for an uncovered capability with an explicit documented
+      reason.
 
 ## 15. Handoff To Phase 5
 
