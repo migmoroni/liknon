@@ -295,8 +295,8 @@ checks.
   policy.
 - Test policy classification, free-text human decisions, stop outcomes,
   persistence authority, and process continuation.
-- Evaluate direct CLI use by agents, AI-Tool use, and AI-Engineering end to end
-  across multiple models.
+- Evaluate CLI-only discovery, documentation-assisted direct CLI use, AI-Tool,
+  and AI-Engineering end to end across multiple models.
 
 ### 5.11 Internal Engineering And Release Quality
 
@@ -709,6 +709,8 @@ and
 to test:
 
 - humans using the CLI directly;
+- agents discovering the CLI through only its built-in help, diagnostics, and
+  other in-band output;
 - agents using only public CLI documentation;
 - humans or agents using AI-Tool operations;
 - AI-Engineering using AI-Tool and the four recurring processes;
@@ -779,8 +781,8 @@ following are true:
 - [ ] External tool identity, version, invocation, and result provenance are
       inspectable.
 - [ ] Human and JSON outputs remain semantically equivalent and accessible.
-- [ ] Agent evaluations cover direct CLI, AI-Tool, and AI-Engineering use across
-      more than one model family.
+- [ ] Agent evaluations cover CLI-only discovery, documentation-assisted direct
+      CLI use, AI-Tool, and AI-Engineering across more than one model family.
 - [ ] Adversarial tests distinguish enforceable CLI boundaries from agent
       instructions.
 - [ ] Independent workspaces demonstrate that the configuration and governance

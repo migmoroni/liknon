@@ -6,8 +6,9 @@ Prove that Human Flow, AI-Tool Flow, and AI-Engineering Flow are independently
 usable, compose only through declared contracts, and ship as coherent versioned
 artifacts. Complete documentation, realistic forward trials, package
 inspection, security review, cross-model agent evaluations, and release
-evidence. Also prove that the public CLI and documentation remain usable by a
-direct agent consumer without bundled AI-Tool or AI-Engineering instructions.
+evidence. Also prove that a direct agent consumer can discover the public CLI
+through its own in-band affordances and can use it with public documentation,
+without bundled AI-Tool or AI-Engineering instructions.
 
 ## 2. Dependency
 
@@ -28,7 +29,26 @@ composition; they do not replace an incomplete earlier contract.
 - diagnose and rerun a narrow scope manually;
 - operate successfully with only the CLI and `.validation/config.json`.
 
-### 3.2 Documentation-Only Direct Agent Use
+### 3.2 CLI-Only Discovery
+
+- start from a human-like task prompt in a fresh context with only the
+  executable name, workspace fixture, and ordinary execution permissions;
+- discover commands and arguments through `--help`, `--version`, diagnostics,
+  and other output exposed by the CLI itself;
+- initialize, inspect, execute, and interpret representative validation without
+  externally supplied validator documentation, schemas, examples, skills, or
+  validator source code;
+- use schema or explanation output only after discovering its producing command
+  through the CLI;
+- recover from invalid usage through in-band help and diagnostics;
+- retain access to the consumer project fixture while ensuring it contains no
+  hidden validator usage instructions;
+- disable external documentation lookup and unrestricted network access while
+  acknowledging that model pretraining cannot be removed by the harness;
+- avoid relying on hidden context, prior traces, invented commands, or
+  project-specific syntax supplied by the scenario.
+
+### 3.3 Documentation-Only Direct Agent Use
 
 - start from a human-like task prompt in a fresh context;
 - receive only the released CLI, help, schemas, examples, and public
@@ -44,7 +64,7 @@ composition; they do not replace an incomplete earlier contract.
 - remain classified as a direct CLI consumer rather than an additional governed
   AI flow.
 
-### 3.3 AI-Tool Flow
+### 3.4 AI-Tool Flow
 
 - explain a missing policy and direct the human to run `init --policy` without
   invoking that command;
@@ -63,7 +83,7 @@ composition; they do not replace an incomplete earlier contract.
   process artifacts;
 - begin a later request without inherited authority or analytical context.
 
-### 3.4 AI-Engineering Setup
+### 3.5 AI-Engineering Setup
 
 - prove that a missing policy blocks process work and directs the human to
   invoke `init --policy` personally and review every setting;
@@ -86,7 +106,7 @@ composition; they do not replace an incomplete earlier contract.
 - create another immutable artifact for a correction without replacing an
   earlier result.
 
-### 3.5 AI-Engineering Operational Loop
+### 3.6 AI-Engineering Operational Loop
 
 - execute one trusted validation selection through the ordinary runner;
 - evaluate exact report storage under `validationReportPersistence`,
@@ -127,6 +147,9 @@ Prove that:
 - AI-Engineering uses canonical public CLI references directly only for a
   required capability that has no applicable AI-Tool operation and records why
   that direct route is necessary;
+- CLI-only trials receive no external validator documentation, externally
+  supplied schemas, examples, skills, validator source code, process
+  instructions, or evidence from another trial;
 - documentation-only direct-agent trials have no access to skill routes,
   AI-Engineering process instructions, or evidence from another trial;
 - the validation planner and executor never discover or interpret
@@ -234,20 +257,24 @@ artifacts.
 ## 7. Agent Evaluation Program
 
 Implement and execute the complete
-[Agent Evaluation Program](agent-evaluation-program.md). Keep its three
+[Agent Evaluation Program](agent-evaluation-program.md). Keep its four
 evaluation families isolated. Validate the skill folder, manifest routes,
 generated projections, and compatibility metadata deterministically before
 starting model-driven trials:
 
-1. **Documentation-Only Direct CLI** withholds all skill and process
+1. **CLI-Only Discovery** provides only the executable name, workspace, task,
+   and ordinary permissions. It evaluates whether an external agent can find
+   and use the required behavior through built-in help, diagnostics, and other
+   in-band CLI output.
+2. **Documentation-Only Direct CLI** withholds all skill and process
    instructions and evaluates whether an external agent can use the released
    CLI from public documentation alone. The measured surface is the CLI and its
-   documentation.
-2. **AI-Tool Interface** evaluates natural human prompts routed through
+   documentation, measured against the paired CLI-only baseline.
+3. **AI-Tool Interface** evaluates natural human prompts routed through
    AI-Tool and controlled AI-Engineering consumption of the same operation
    contracts. The measured surface is AI-Tool and its incremental value over
    the paired documentation-only baseline.
-3. **AI-Engineering End To End** uses representative projects, natural human
+4. **AI-Engineering End To End** uses representative projects, natural human
    prompts, the complete skill, policy, artifacts, and processes. The measured
    surface is AI-Engineering; AI-Tool is a required dependency rather than the
    primary subject.
@@ -261,8 +288,9 @@ starting model-driven trials:
   can be evaluated without provider coupling in the crate;
 - repeat nondeterministic scenarios enough to expose variation rather than
   treating one success as representative;
-- pair applicable documentation-only and AI-Tool scenarios with the same task,
-  permissions, and expected CLI outcome;
+- pair applicable CLI-only, documentation-only, and AI-Tool scenarios with the
+  same task, permissions, and expected CLI outcome, varying only the declared
+  context bundle;
 - never reveal hidden assertions, expected answers, or prior traces to the
   evaluated agent.
 
@@ -277,7 +305,10 @@ content outside tracked evaluation data.
 Evaluate at minimum:
 
 - task and routing accuracy;
+- CLI help traversal, path to the first valid command, corrective attempts, and
+  dependence on assumptions not supplied by in-band output;
 - CLI command, configuration, and report accuracy;
+- compliance with each family's declared context boundary;
 - policy, approval, persistence, and trust-boundary compliance;
 - progressive context loading and unnecessary work;
 - absence of invented commands, contracts, evidence, or success claims;
@@ -285,6 +316,8 @@ Evaluate at minimum:
 - correct AI-Tool reuse from AI-Engineering;
 - justified direct CLI use only when no AI-Tool operation covers the required
   capability;
+- incremental outcome differences across paired CLI-only, documentation-only,
+  and AI-Tool scenarios;
 - cross-model and repeated-run variation.
 
 Classify failures by product surface before changing skills, documentation,
@@ -318,10 +351,12 @@ paired cross-family regressions that share the changed contract.
 ## 9. Acceptance Criteria
 
 - [ ] Human Flow passes every end-to-end scenario with only the CLI and config.
-- [ ] AI-Tool Flow performs bounded policy-governed assistance without mutating
-      policy or creating process artifacts.
+- [ ] CLI-only direct agents discover and complete representative workflows
+      using only the executable and its in-band output.
 - [ ] Documentation-only direct agents complete representative CLI workflows
       without hidden skill or AI-Engineering context.
+- [ ] AI-Tool Flow performs bounded policy-governed assistance without mutating
+      policy or creating process artifacts.
 - [ ] AI-Engineering processes continue across fresh conversations from exact
       explicitly supplied artifacts.
 - [ ] AI-Engineering reuses AI-Tool for every covered operation and uses direct
@@ -354,7 +389,7 @@ paired cross-family regressions that share the changed contract.
 - [ ] Every documented report and exit outcome has a tested route.
 - [ ] Canonical knowledge, generated skill content, manifest routes, and package
       contents are consistent.
-- [ ] All three agent-evaluation families run across the declared model matrix
+- [ ] All four agent-evaluation families run across the declared model matrix
       with versioned scenarios, repeated-run evidence, deterministic assertions,
       reviewed rubrics, and attributable results.
 - [ ] Shared knowledge, shared reference, flow documentation, human-only
@@ -381,5 +416,5 @@ diagnosis, drift assessment, and cross-conversation continuity through exact
 artifact exchange without becoming an alternate executor. The executable and
 public documentation remain directly consumable by external agents, but that
 direct use is not represented as another governed flow. The release evidence
-separately measures documentation-only direct CLI use, AI-Tool, and complete
-AI-Engineering behavior.
+separately measures CLI-only discovery, documentation-only direct CLI use,
+AI-Tool, and complete AI-Engineering behavior.
