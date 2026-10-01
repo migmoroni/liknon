@@ -71,7 +71,15 @@ fn source_package_manifest_includes_build_canonical_skill_and_trial_assets() {
         .unwrap();
     let development_dependencies = manifest.split("[dev-dependencies]").nth(1).unwrap();
     assert!(!normal_dependencies.contains("jsonschema"));
+    assert!(!normal_dependencies.contains("pulldown-cmark"));
     assert!(development_dependencies.contains("jsonschema"));
+    assert!(development_dependencies.contains("pulldown-cmark"));
+    assert!(repository()
+        .join("schemas/knowledge-editorial-profiles.schema.json")
+        .is_file());
+    assert!(repository()
+        .join("docs/validation/authoring/editorial-profiles.json")
+        .is_file());
     assert!(!repository()
         .join("skills/workspace-validator/references/knowledge")
         .exists());
@@ -88,6 +96,10 @@ fn registry_contracts_reject_missing_and_unknown_fields() {
         (
             knowledge::SchemaKind::Sources,
             "docs/validation/knowledge/sources.json",
+        ),
+        (
+            knowledge::SchemaKind::Profiles,
+            "docs/validation/authoring/editorial-profiles.json",
         ),
         (
             knowledge::SchemaKind::Routing,
@@ -115,6 +127,12 @@ fn registry_contracts_reject_missing_and_unknown_fields() {
     assert!(schemas
         .validate(knowledge::SchemaKind::Sources, "sources", &sources)
         .is_err());
+
+    let mut profiles = value("docs/validation/authoring/editorial-profiles.json");
+    profiles.as_object_mut().unwrap().remove("profiles");
+    assert!(schemas
+        .validate(knowledge::SchemaKind::Profiles, "profiles", &profiles)
+        .is_err());
 }
 
 #[test]
@@ -137,6 +155,23 @@ fn compiled_schemas_reject_enum_id_date_unique_path_and_config_failures() {
     sources["sources"][0]["lastReviewed"] = "2026-02-31".into();
     assert!(schemas
         .validate(knowledge::SchemaKind::Sources, "source date", &sources)
+        .is_err());
+
+    let mut profiles = value("docs/validation/authoring/editorial-profiles.json");
+    profiles["profiles"][0]["kind"] = "unknown".into();
+    assert!(schemas
+        .validate(knowledge::SchemaKind::Profiles, "profile kind", &profiles)
+        .is_err());
+
+    let mut profiles = value("docs/validation/authoring/editorial-profiles.json");
+    let duplicate = profiles["profiles"][0].clone();
+    profiles["profiles"].as_array_mut().unwrap().push(duplicate);
+    assert!(schemas
+        .validate(
+            knowledge::SchemaKind::Profiles,
+            "duplicate profile",
+            &profiles
+        )
         .is_err());
 
     let mut catalog = value("docs/validation/knowledge/catalog.json");
@@ -164,7 +199,7 @@ fn compiled_schemas_reject_enum_id_date_unique_path_and_config_failures() {
         .is_err());
 
     let recipe = fs::read_to_string(
-        repository().join("docs/validation/knowledge/recipes/rust-cli-release-gate.md"),
+        repository().join("docs/validation/knowledge/how-to/recipes/rust-cli-release-gate.md"),
     )
     .unwrap();
     let mut config = knowledge::extract_recipe_json(&recipe).unwrap();

@@ -24,8 +24,9 @@ the required creation or correction manually.
 Phase 4 provides explicit-input artifact validation, single-file persistence,
 governed report storage, authorization boundaries, and AI-Engineering routing.
 Phase 3 provides the human-owned decision policy, immutable policy boundary, and
-AI-Tool operations that these processes compose. Phase 2 provides the
-source-backed validation model used to reason about evidence.
+AI-Tool operations that these processes compose. Phases 2 and 2.1 provide the
+source-backed validation model and stable editorial profiles used to reason
+about evidence.
 
 ## 3. Process 0: Domain
 

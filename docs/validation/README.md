@@ -14,3 +14,8 @@ These areas have different responsibilities. Reference pages describe what the
 product does. Flow pages describe how a person uses it. Shared knowledge helps
 people and agents decide what evidence is relevant; it does not activate a flow,
 grant authority, or define workspace policy.
+
+Contributors who maintain the shared corpus use the separate
+[authoring contracts](authoring/README.md). Those contracts are packaged for
+maintainers but are not embedded knowledge and are never returned by
+`knowledge show`.

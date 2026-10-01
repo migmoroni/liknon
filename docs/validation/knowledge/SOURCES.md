@@ -111,22 +111,38 @@ This file is generated from `sources.json`. Do not edit it directly.
 - `modules` — Modules: CommonJS modules and ECMAScript modules. Supports: Node.js package module interpretation is a host/runtime concern distinct from ECMAScript language semantics [Open location](https://nodejs.org/docs/v22.16.0/api/packages.html)
 - `exit-codes` — Process, Exit codes. Supports: Node.js process exit status behavior used by command-line validation tools [Open location](https://nodejs.org/docs/v22.16.0/api/process.html#exit-codes)
 
-## pnpm CLI Documentation
+## pnpm 11 CLI Documentation
 
 - ID: `pnpm.cli-11`
 - Authority: pnpm maintainers
-- Revision: pnpm 11.22.0 (tag v11.22.0), with living CLI documentation reviewed 2026-09-30
+- Revision: pnpm 11.28.2 (tag v11.28.2), with versioned CLI documentation reviewed 2026-10-01
 - Status: `living`
 - Kind: `maintainer-documentation`
-- Scope: pnpm 11.22.0 installation, lockfile, offline, script, and exec behavior
-- Primary URI: <https://github.com/pnpm/pnpm/releases/tag/v11.22.0>
-- Last reviewed: `2026-09-30`
+- Scope: pnpm 11 major-line installation, lockfile, offline, script, and exec behavior
+- Primary URI: <https://github.com/pnpm/pnpm/releases/tag/v11.28.2>
+- Last reviewed: `2026-10-01`
 
 ### Locations
 
-- `frozen-lockfile` — pnpm install, --frozen-lockfile and --offline options. Supports: Frozen lockfile installation fails rather than updating an out-of-date lockfile [Open location](https://pnpm.io/cli/install#--frozen-lockfile)
-- `run-scripts` — pnpm run. Supports: Package scripts execute through pnpm with script arguments and lifecycle environment [Open location](https://pnpm.io/cli/run)
-- `exec` — pnpm exec. Supports: Project dependency binaries can be invoked without relying on a global installation [Open location](https://pnpm.io/cli/exec)
+- `release-line` — Immutable pnpm 11.28.2 release in the maintained 11.x line. Supports: The maintained pnpm 11 line and exact reviewed release provenance [Open location](https://github.com/pnpm/pnpm/releases/tag/v11.28.2)
+- `frozen-lockfile` — pnpm install, --frozen-lockfile and --offline options. Supports: Frozen lockfile installation fails rather than updating an out-of-date lockfile [Open location](https://pnpm.io/11.x/cli/install#--frozen-lockfile)
+- `run-scripts` — pnpm run. Supports: Package scripts execute through pnpm with script arguments and lifecycle environment [Open location](https://pnpm.io/11.x/cli/run)
+- `exec` — pnpm exec. Supports: Project dependency binaries can be invoked without relying on a global installation [Open location](https://pnpm.io/11.x/cli/exec)
+
+## pnpm 12 CLI Release Documentation
+
+- ID: `pnpm.cli-12`
+- Authority: pnpm maintainers
+- Revision: pnpm 12.8.1 (tag v12.8.1), reviewed 2026-10-01
+- Status: `final`
+- Kind: `maintainer-documentation`
+- Scope: pnpm 12 major-line command behavior and release provenance
+- Primary URI: <https://github.com/pnpm/pnpm/releases/tag/v12.8.1>
+- Last reviewed: `2026-10-01`
+
+### Locations
+
+- `release-line` — Immutable pnpm 12.8.1 release in the maintained 12.x line. Supports: The maintained pnpm 12 line, its Rust CLI identity, frozen install behavior, and exact reviewed release provenance [Open location](https://github.com/pnpm/pnpm/releases/tag/v12.8.1)
 
 ## Definitions — Reproducible Builds
 

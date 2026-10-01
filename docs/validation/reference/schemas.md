@@ -17,11 +17,13 @@ The source package also contains canonical copies at `schemas/config.schema.json
 and `schemas/report.schema.json`, verified against the Rust contract types.
 
 The repository additionally owns Draft 2020-12 schemas for the shared
-validation-knowledge catalog and source register at
+validation-knowledge catalog, source register, and maintainer-only editorial
+profile registry at
 `schemas/knowledge-catalog.schema.json` and
-`schemas/knowledge-sources.schema.json`. These schemas describe editorial and
-routing assets. The routing fixture, forward-trial registry, and evaluation
-rubric are separately governed by `schemas/knowledge-routing.schema.json`,
+`schemas/knowledge-sources.schema.json`, and
+`schemas/knowledge-editorial-profiles.schema.json`. These schemas describe
+editorial and routing assets. The routing fixture, forward-trial registry, and
+evaluation rubric are separately governed by `schemas/knowledge-routing.schema.json`,
 `schemas/knowledge-forward-trials.schema.json`, and
 `schemas/knowledge-rubric.schema.json`. The release task compiles these Draft
 2020-12 schemas with format assertions before typed and semantic validation;

@@ -208,7 +208,7 @@ jobs:
             "$binary" knowledge show tool.workspace-validator
           ) > "$document_output"
           cmp \
-            "$package_dir/docs/validation/knowledge/tools/workspace-validator.md" \
+            "$package_dir/docs/validation/knowledge/reference/tools/workspace-validator.md" \
             "$document_output"
 
           test -z "$(find "$knowledge_dir" -mindepth 1 -print -quit)"

@@ -21,7 +21,8 @@ but they never discover analytical context or influence an execution plan.
 ## 2. Dependencies
 
 - Phase 1 provides stable CLI, configuration, report, and Human Flow contracts.
-- Phase 2 provides source-backed reasoning guidance and progressive disclosure.
+- Phases 2 and 2.1 provide source-backed reasoning guidance, progressive
+  disclosure, and the stable editorial profiles consumed through document IDs.
 - Phase 3 provides the human-owned AI decision policy, immutable
   policy-mutation boundary, read-only policy guidance, and the bounded AI-Tool
   operations that AI-Engineering composes.

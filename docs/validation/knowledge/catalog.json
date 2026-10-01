@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schemas/knowledge-catalog.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "vocabularies": {
     "applicabilityTags": [
       { "id": "accessibility", "label": "Accessibility-sensitive interfaces" },
@@ -39,21 +39,25 @@
   "navigation": [
     "README.md",
     "SOURCES.md",
-    "concerns/README.md",
-    "foundations/README.md",
-    "frameworks/README.md",
-    "languages/README.md",
-    "patterns/README.md",
-    "recipes/README.md",
-    "standards/README.md",
-    "technologies/README.md",
-    "tools/README.md"
+    "explanations/README.md",
+    "explanations/concerns/README.md",
+    "explanations/foundations/README.md",
+    "explanations/frameworks/README.md",
+    "explanations/languages/README.md",
+    "explanations/patterns/README.md",
+    "explanations/technologies/README.md",
+    "how-to/README.md",
+    "how-to/recipes/README.md",
+    "reference/README.md",
+    "reference/standards/README.md",
+    "reference/tools/README.md"
   ],
   "documents": [
     {
       "id": "concern.reproducible-release-evidence",
+      "title": "Reproducible Release Evidence",
       "kind": "concern",
-      "path": "concerns/reproducible-release-evidence.md",
+      "path": "explanations/concerns/reproducible-release-evidence.md",
       "summary": "Selects ecosystem-neutral evidence for controlled inputs, generated assets, complete artifacts, and repeatable releases.",
       "questions": ["What evidence supports repeatable and complete source-to-artifact releases?"],
       "applicability": ["general", "generated-assets", "release"],
@@ -61,12 +65,13 @@
       "related": ["pattern.isolation-and-determinism", "recipe.javascript-typescript-package-gate", "recipe.rust-cli-release-gate"],
       "sources": ["reproducible-builds.definition"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "foundation.evidence-quality",
+      "title": "Evidence Quality",
       "kind": "foundation",
-      "path": "foundations/evidence-quality.md",
+      "path": "explanations/foundations/evidence-quality.md",
       "summary": "Explains when observations support bounded claims and how flakiness and oracle error weaken evidence.",
       "questions": ["When does an executed check meaningfully support a claim?"],
       "applicability": ["general"],
@@ -74,12 +79,13 @@
       "related": ["pattern.evidence-chain", "pattern.isolation-and-determinism", "pattern.oracles-and-failure-paths"],
       "sources": ["google.flaky-tests", "nist.ssdf-1.1"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "foundation.source-policy",
+      "title": "Source Policy",
       "kind": "foundation",
-      "path": "foundations/source-policy.md",
+      "path": "explanations/foundations/source-policy.md",
       "summary": "Defines authority, traceability, synthesis, offline usefulness, and explicit handling of missing coverage.",
       "questions": ["How should local guidance use and cite external knowledge?"],
       "applicability": ["general"],
@@ -87,12 +93,13 @@
       "related": ["foundation.validation-strategy"],
       "sources": ["json-schema.2020-12"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "foundation.test-types",
+      "title": "Test Types",
       "kind": "foundation",
-      "path": "foundations/test-types.md",
+      "path": "explanations/foundations/test-types.md",
       "summary": "Distinguishes unit, component, integration, contract, end-to-end, and smoke tests by concrete boundary.",
       "questions": ["Which test boundary can observe the relevant failure?"],
       "applicability": ["general"],
@@ -100,12 +107,13 @@
       "related": ["foundation.validation-model", "pattern.oracles-and-failure-paths"],
       "sources": ["ieee.swebok-v4"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "foundation.validation-model",
+      "title": "Validation Model",
       "kind": "foundation",
-      "path": "foundations/validation-model.md",
+      "path": "explanations/foundations/validation-model.md",
       "summary": "Maps independent evidence dimensions to the questions and limitations each can address.",
       "questions": ["What evidence dimensions may be relevant and what can each establish?"],
       "applicability": ["general"],
@@ -113,12 +121,13 @@
       "related": ["foundation.test-types", "foundation.validation-strategy", "pattern.evidence-chain"],
       "sources": ["nist.ssdf-1.1"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "foundation.validation-strategy",
+      "title": "Validation Strategy",
       "kind": "foundation",
-      "path": "foundations/validation-strategy.md",
+      "path": "explanations/foundations/validation-strategy.md",
       "summary": "Provides a consequence-first process for selecting proportional evidence, placement, tools, and residual risk.",
       "questions": ["How should a contextual validation strategy be selected?"],
       "applicability": ["general"],
@@ -126,12 +135,13 @@
       "related": ["foundation.validation-model", "pattern.evidence-chain", "standard.wcag-2.2"],
       "sources": ["nist.ssdf-1.1", "w3c.wcag-2.2"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "language.javascript",
+      "title": "JavaScript Validation",
       "kind": "language",
-      "path": "languages/javascript.md",
+      "path": "explanations/languages/javascript.md",
       "summary": "Bounds JavaScript language evidence separately from host runtimes, typed source, frameworks, and build tools.",
       "questions": ["Which language-level evidence is relevant for authored or emitted JavaScript?"],
       "applicability": ["javascript"],
@@ -139,12 +149,13 @@
       "related": ["language.typescript", "technology.nodejs", "tool.vitest"],
       "sources": ["ecma.ecmascript-2025"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "language.rust",
+      "title": "Rust Validation",
       "kind": "language",
-      "path": "languages/rust.md",
+      "path": "explanations/languages/rust.md",
       "summary": "Connects Cargo-era Rust failure modes to compilation, tests, lint, MSRV, and package evidence.",
       "questions": ["Which language-specific evidence supports a maintained Rust crate?"],
       "applicability": ["cargo", "rust"],
@@ -152,12 +163,13 @@
       "related": ["recipe.rust-cli-release-gate", "tool.cargo", "tool.clippy", "tool.rustfmt"],
       "sources": ["rust.cargo"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "language.typescript",
+      "title": "TypeScript Validation",
       "kind": "language",
-      "path": "languages/typescript.md",
+      "path": "explanations/languages/typescript.md",
       "summary": "Explains TypeScript project/type evidence and its boundary from emitted JavaScript and runtime behavior.",
       "questions": ["What additional evidence is useful for JavaScript authored through TypeScript?"],
       "applicability": ["javascript", "typescript"],
@@ -165,12 +177,13 @@
       "related": ["language.javascript", "tool.typescript-compiler", "tool.vitest"],
       "sources": ["typescript.docs-6"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "pattern.evidence-chain",
+      "title": "Evidence Chain",
       "kind": "pattern",
-      "path": "patterns/evidence-chain.md",
+      "path": "explanations/patterns/evidence-chain.md",
       "summary": "Connects consequences and invariants to bounded claims, failure modes, observations, mechanisms, and limits.",
       "questions": ["Why does this mechanism provide relevant evidence for this claim?"],
       "applicability": ["general"],
@@ -178,12 +191,13 @@
       "related": ["foundation.evidence-quality", "pattern.isolation-and-determinism", "pattern.oracles-and-failure-paths"],
       "sources": ["nist.ssdf-1.1"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "pattern.isolation-and-determinism",
+      "title": "Isolation And Determinism",
       "kind": "pattern",
-      "path": "patterns/isolation-and-determinism.md",
+      "path": "explanations/patterns/isolation-and-determinism.md",
       "summary": "Controls material inputs and treats flaky results explicitly so evidence remains repeatable and attributable.",
       "questions": ["How can validation results be reproducible and attributable?"],
       "applicability": ["general"],
@@ -191,12 +205,13 @@
       "related": ["foundation.evidence-quality", "pattern.evidence-chain"],
       "sources": ["google.flaky-tests", "reproducible-builds.definition"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "pattern.oracles-and-failure-paths",
+      "title": "Oracles And Failure Paths",
       "kind": "pattern",
-      "path": "patterns/oracles-and-failure-paths.md",
+      "path": "explanations/patterns/oracles-and-failure-paths.md",
       "summary": "Selects independent oracles and negative cases that expose safety, diagnostic, and recovery behavior.",
       "questions": ["How should a check distinguish correct behavior and exercise failure handling?"],
       "applicability": ["general"],
@@ -204,12 +219,13 @@
       "related": ["foundation.evidence-quality", "pattern.isolation-and-determinism"],
       "sources": ["ieee.swebok-v4"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "recipe.javascript-typescript-package-gate",
+      "title": "JavaScript/TypeScript Package Gate",
       "kind": "recipe",
-      "path": "recipes/javascript-typescript-package-gate.md",
+      "path": "how-to/recipes/javascript-typescript-package-gate.md",
       "summary": "Composes locked dependency, type, Vitest, build, and repository evidence for a pnpm-managed TypeScript package.",
       "questions": ["How can a Node.js TypeScript package be validated without cross-loading Rust guidance?"],
       "applicability": ["git", "javascript", "nodejs", "pnpm", "release", "typescript"],
@@ -217,25 +233,27 @@
       "related": ["concern.reproducible-release-evidence", "language.javascript", "language.typescript", "technology.nodejs", "tool.pnpm", "tool.typescript-compiler", "tool.vitest"],
       "sources": ["pnpm.cli-11", "vitest.docs-4"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "recipe.rust-cli-release-gate",
+      "title": "Rust CLI Release Gate",
       "kind": "recipe",
-      "path": "recipes/rust-cli-release-gate.md",
-      "summary": "Composes a complete schema-valid, non-publishing release gate for this Rust CLI repository shape.",
-      "questions": ["How can this Rust CLI's source, tests, docs, embedded knowledge, skill, and package be validated together?"],
-      "applicability": ["cargo", "cli", "generated-assets", "git", "release", "rust"],
+      "path": "how-to/recipes/rust-cli-release-gate.md",
+      "summary": "Composes a complete schema-valid, non-publishing release gate for an adaptable Cargo-managed Rust CLI.",
+      "questions": ["How can a Cargo-managed Rust CLI be validated before packaging?"],
+      "applicability": ["cargo", "cli", "git", "release", "rust"],
       "evidenceDimensions": ["build-package", "formatting-linting", "repository-reproducibility", "static-analysis", "unit-testing"],
       "related": ["concern.reproducible-release-evidence", "language.rust", "tool.workspace-validator"],
       "sources": ["rust.cargo"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "standard.wcag-2.2",
+      "title": "WCAG 2.2",
       "kind": "standard",
-      "path": "standards/wcag-22.md",
+      "path": "reference/standards/wcag-22.md",
       "summary": "Preserves WCAG 2.2 scope and A/AA/AAA conformance terminology while bounding automated evidence.",
       "questions": ["How should WCAG 2.2 evidence and conformance levels be interpreted?"],
       "applicability": ["accessibility", "web"],
@@ -243,12 +261,13 @@
       "related": ["foundation.validation-strategy"],
       "sources": ["w3c.wcag-2.2"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "technology.git",
+      "title": "Git Repository Evidence",
       "kind": "technology",
-      "path": "technologies/git.md",
+      "path": "explanations/technologies/git.md",
       "summary": "Explains what before-and-after Git evidence can reveal about validation mutations and what remains invisible.",
       "questions": ["Can Git-visible state detect unintended validation mutation?"],
       "applicability": ["git"],
@@ -256,12 +275,13 @@
       "related": ["concern.reproducible-release-evidence", "tool.git"],
       "sources": ["git.status"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "technology.nodejs",
+      "title": "Node.js Runtime Evidence",
       "kind": "technology",
-      "path": "technologies/nodejs.md",
+      "path": "explanations/technologies/nodejs.md",
       "summary": "Scopes runtime and platform evidence for JavaScript and emitted TypeScript that promises Node.js support.",
       "questions": ["Which runtime evidence supports a declared Node.js compatibility range?"],
       "applicability": ["javascript", "nodejs", "typescript"],
@@ -269,12 +289,13 @@
       "related": ["language.javascript", "language.typescript", "tool.pnpm", "tool.vitest"],
       "sources": ["nodejs.api-22"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "tool.cargo",
+      "title": "Cargo",
       "kind": "tool",
-      "path": "tools/cargo.md",
+      "path": "reference/tools/cargo.md",
       "summary": "Bounds Cargo evidence for checking, tests, documentation, lockfile discipline, and package verification.",
       "questions": ["Which Cargo command structure produces the required Rust evidence?"],
       "applicability": ["cargo", "release", "rust"],
@@ -282,12 +303,13 @@
       "related": ["language.rust", "tool.clippy", "tool.rustfmt"],
       "sources": ["rust.cargo"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "tool.clippy",
+      "title": "Clippy",
       "kind": "tool",
-      "path": "tools/clippy.md",
+      "path": "reference/tools/clippy.md",
       "summary": "Explains Clippy target and lint-level evidence, executable effects, overlap, and blind spots.",
       "questions": ["What can a selected Clippy run establish?"],
       "applicability": ["cargo", "rust"],
@@ -295,12 +317,13 @@
       "related": ["language.rust", "tool.cargo"],
       "sources": ["rust.clippy"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "tool.git",
+      "title": "Git",
       "kind": "tool",
-      "path": "tools/git.md",
+      "path": "reference/tools/git.md",
       "summary": "Documents Git status command identity, porcelain output, costs, and mutation-detection blind spots.",
       "questions": ["How should Git status be invoked and interpreted for repository evidence?"],
       "applicability": ["git"],
@@ -308,25 +331,27 @@
       "related": ["technology.git"],
       "sources": ["git.status"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "tool.pnpm",
+      "title": "pnpm",
       "kind": "tool",
-      "path": "tools/pnpm.md",
+      "path": "reference/tools/pnpm.md",
       "summary": "Bounds pnpm evidence for frozen dependency graphs, offline inputs, scripts, and project-local binary execution.",
       "questions": ["What can pnpm dependency and script commands establish and mutate?"],
       "applicability": ["javascript", "nodejs", "pnpm", "typescript"],
       "evidenceDimensions": ["build-package", "repository-reproducibility", "supply-chain"],
       "related": ["language.javascript", "language.typescript", "technology.nodejs", "tool.typescript-compiler", "tool.vitest"],
-      "sources": ["pnpm.cli-11"],
+      "sources": ["pnpm.cli-11", "pnpm.cli-12"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "tool.rustfmt",
+      "title": "rustfmt",
       "kind": "tool",
-      "path": "tools/rustfmt.md",
+      "path": "reference/tools/rustfmt.md",
       "summary": "Defines non-mutating Rust format checks, version sensitivity, output behavior, and strict limitations.",
       "questions": ["How can Rust formatting be checked without rewriting source?"],
       "applicability": ["cargo", "rust"],
@@ -334,12 +359,13 @@
       "related": ["language.rust", "tool.cargo"],
       "sources": ["rust.rustfmt"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "tool.typescript-compiler",
+      "title": "TypeScript Compiler",
       "kind": "tool",
-      "path": "tools/typescript-compiler.md",
+      "path": "reference/tools/typescript-compiler.md",
       "summary": "Defines project-scoped TypeScript checking without emission and separates static evidence from runtime behavior.",
       "questions": ["How can an exact TypeScript project be checked without emitting artifacts?"],
       "applicability": ["javascript", "nodejs", "pnpm", "typescript"],
@@ -347,12 +373,13 @@
       "related": ["language.typescript", "tool.pnpm", "tool.vitest"],
       "sources": ["typescript.docs-6"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "tool.vitest",
+      "title": "Vitest",
       "kind": "tool",
-      "path": "tools/vitest.md",
+      "path": "reference/tools/vitest.md",
       "summary": "Bounds one-shot Vitest evidence by discovery, environment, configuration, fixtures, timeouts, and oracles.",
       "questions": ["What can one configured Vitest run establish?"],
       "applicability": ["javascript", "nodejs", "pnpm", "typescript"],
@@ -360,12 +387,13 @@
       "related": ["language.javascript", "language.typescript", "technology.nodejs", "tool.pnpm", "tool.typescript-compiler"],
       "sources": ["vitest.docs-4"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     },
     {
       "id": "tool.workspace-validator",
+      "title": "workspace-validator",
       "kind": "tool",
-      "path": "tools/workspace-validator.md",
+      "path": "reference/tools/workspace-validator.md",
       "summary": "Bounds the validator as an executor and reporter that never chooses evidence or grants authority.",
       "questions": ["What does workspace-validator execute and what does a passing graph not establish?"],
       "applicability": ["cli", "general"],
@@ -373,7 +401,7 @@
       "related": ["foundation.validation-strategy", "recipe.rust-cli-release-gate"],
       "sources": ["workspace-validator.cli"],
       "status": "reviewed",
-      "lastReviewed": "2026-09-30"
+      "lastReviewed": "2026-10-01"
     }
   ]
 }

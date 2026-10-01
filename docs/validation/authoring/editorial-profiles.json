@@ -1,0 +1,169 @@
+{
+  "$schema": "../../../schemas/knowledge-editorial-profiles.schema.json",
+  "schemaVersion": 1,
+  "families": [
+    { "id": "explanation", "readerIntent": "Understand a concept, risk, pattern, or validation context." },
+    { "id": "how-to", "readerIntent": "Accomplish a bounded validation goal in an adaptable sequence." },
+    { "id": "reference", "readerIntent": "Look up precise behavior, terminology, commands, contracts, or normative scope." }
+  ],
+  "basisIds": [
+    "diataxis",
+    "google-developer-documentation-style-guide",
+    "iso-iec-ieee-26514-2022",
+    "microsoft-writing-style-guide",
+    "oasis-dita-1.3-errata-02",
+    "rfc-7322",
+    "rfc-8174",
+    "wcag-2.2"
+  ],
+  "profiles": [
+    {
+      "kind": "concern",
+      "family": "explanation",
+      "pathPrefix": "explanations/concerns/",
+      "profileDocument": "profiles/concern.md",
+      "sections": [
+        { "title": "Risk And Applicability", "required": true },
+        { "title": "Consequences", "required": true },
+        { "title": "Required Evidence", "required": true },
+        { "title": "Limitations", "required": true },
+        { "title": "Cost Mutation And External Services", "required": true },
+        { "title": "Response And Next Step", "required": true }
+      ],
+      "editorialBases": ["iso-iec-ieee-26514-2022", "oasis-dita-1.3-errata-02", "diataxis", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    },
+    {
+      "kind": "foundation",
+      "family": "explanation",
+      "pathPrefix": "explanations/foundations/",
+      "profileDocument": "profiles/foundation.md",
+      "sections": [
+        { "title": "Question", "required": true },
+        { "title": "Applicability And Boundaries", "required": true },
+        { "title": "Conceptual Model", "required": true },
+        { "title": "Decision Guidance", "required": true },
+        { "title": "Evidence And Limitations", "required": true },
+        { "title": "Related Knowledge", "required": true }
+      ],
+      "editorialBases": ["iso-iec-ieee-26514-2022", "oasis-dita-1.3-errata-02", "diataxis", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    },
+    {
+      "kind": "framework",
+      "family": "explanation",
+      "pathPrefix": "explanations/frameworks/",
+      "profileDocument": "profiles/framework.md",
+      "sections": [
+        { "title": "Role And Scope", "required": true },
+        { "title": "Framework-Specific Failure Modes", "required": true },
+        { "title": "Validation Layers", "required": true },
+        { "title": "Evidence And Limitations", "required": true },
+        { "title": "Version Scope", "required": true },
+        { "title": "Related Tools And Recipes", "required": true },
+        { "title": "Next Step", "required": true }
+      ],
+      "editorialBases": ["oasis-dita-1.3-errata-02", "diataxis", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    },
+    {
+      "kind": "language",
+      "family": "explanation",
+      "pathPrefix": "explanations/languages/",
+      "profileDocument": "profiles/language.md",
+      "sections": [
+        { "title": "Scope", "required": true },
+        { "title": "Failure Modes", "required": true },
+        { "title": "Validation Layers", "required": true },
+        { "title": "Evidence And Limitations", "required": true },
+        { "title": "Version Scope", "required": true },
+        { "title": "Related Tools And Recipes", "required": true },
+        { "title": "Next Step", "required": true }
+      ],
+      "editorialBases": ["oasis-dita-1.3-errata-02", "diataxis", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    },
+    {
+      "kind": "pattern",
+      "family": "explanation",
+      "pathPrefix": "explanations/patterns/",
+      "profileDocument": "profiles/pattern.md",
+      "sections": [
+        { "title": "Problem And Context", "required": true },
+        { "title": "Forces", "required": true },
+        { "title": "Pattern", "required": true },
+        { "title": "Consequences And Tradeoffs", "required": true },
+        { "title": "Example", "required": true },
+        { "title": "Failure Modes", "required": true },
+        { "title": "Related Knowledge", "required": true }
+      ],
+      "editorialBases": ["iso-iec-ieee-26514-2022", "oasis-dita-1.3-errata-02", "diataxis", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    },
+    {
+      "kind": "recipe",
+      "family": "how-to",
+      "pathPrefix": "how-to/recipes/",
+      "profileDocument": "profiles/recipe.md",
+      "sections": [
+        { "title": "Goal", "required": true },
+        { "title": "Applicability And Preconditions", "required": true },
+        { "title": "Risks And Invariants", "required": true },
+        { "title": "Inputs And Workspace Assumptions", "required": true },
+        { "title": "Procedure", "required": true },
+        { "title": "Complete Configuration Example", "required": true },
+        { "title": "Expected Evidence", "required": true },
+        { "title": "Failure Interpretation", "required": true },
+        { "title": "Limitations And Residual Risk", "required": true }
+      ],
+      "editorialBases": ["iso-iec-ieee-26514-2022", "oasis-dita-1.3-errata-02", "diataxis", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    },
+    {
+      "kind": "standard",
+      "family": "reference",
+      "pathPrefix": "reference/standards/",
+      "profileDocument": "profiles/standard.md",
+      "sections": [
+        { "title": "Authority Scope And Version", "required": true },
+        { "title": "Native Terminology And Conformance", "required": true },
+        { "title": "Applicability", "required": true },
+        { "title": "Evidence And Limitations", "required": true },
+        { "title": "Misuse To Avoid", "required": true },
+        { "title": "Sources And Next Step", "required": true }
+      ],
+      "editorialBases": ["oasis-dita-1.3-errata-02", "diataxis", "rfc-7322", "rfc-8174", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    },
+    {
+      "kind": "technology",
+      "family": "explanation",
+      "pathPrefix": "explanations/technologies/",
+      "profileDocument": "profiles/technology.md",
+      "sections": [
+        { "title": "Role And Scope", "required": true },
+        { "title": "Failure Modes", "required": true },
+        { "title": "Validation Surfaces", "required": true },
+        { "title": "Evidence And Limitations", "required": true },
+        { "title": "Version Scope", "required": true },
+        { "title": "Related Knowledge", "required": true },
+        { "title": "Next Step", "required": true }
+      ],
+      "editorialBases": ["oasis-dita-1.3-errata-02", "diataxis", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    },
+    {
+      "kind": "tool",
+      "family": "reference",
+      "pathPrefix": "reference/tools/",
+      "profileDocument": "profiles/tool.md",
+      "sections": [
+        { "title": "Purpose And Scope", "required": true },
+        { "title": "Version Lines And Sources", "required": true },
+        { "title": "Command Model", "required": true },
+        { "title": "Inputs Outputs And Exit Status", "required": true },
+        { "title": "Mutation Cost And External Services", "required": true },
+        { "title": "Evidence Produced", "required": true },
+        { "title": "Blind Spots", "required": true },
+        { "title": "Related Knowledge", "required": true }
+      ],
+      "editorialBases": ["oasis-dita-1.3-errata-02", "diataxis", "google-developer-documentation-style-guide", "microsoft-writing-style-guide"]
+    }
+  ],
+  "navigationProfile": {
+    "profileDocument": "profiles/navigation.md",
+    "editorialBases": ["iso-iec-ieee-26514-2022", "oasis-dita-1.3-errata-02", "diataxis", "wcag-2.2"]
+  }
+}

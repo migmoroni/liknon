@@ -130,7 +130,13 @@ mod tests {
 
     #[test]
     fn selectors_reject_paths_and_malformed_ids() {
-        for value in ["", "../escape", "/absolute", "tools/cargo.md", "Bad.ID"] {
+        for value in [
+            "",
+            "../escape",
+            "/absolute",
+            "reference/tools/cargo.md",
+            "Bad.ID",
+        ] {
             assert!(!valid_document_id(value), "accepted {value}");
         }
         assert!(valid_document_id("tool.cargo"));

@@ -162,31 +162,56 @@
     {
       "id": "pnpm.cli-11",
       "authority": "pnpm maintainers",
-      "title": "pnpm CLI Documentation",
-      "revision": "pnpm 11.22.0 (tag v11.22.0), with living CLI documentation reviewed 2026-09-30",
-      "uri": "https://github.com/pnpm/pnpm/releases/tag/v11.22.0",
-      "scope": "pnpm 11.22.0 installation, lockfile, offline, script, and exec behavior",
+      "title": "pnpm 11 CLI Documentation",
+      "revision": "pnpm 11.28.2 (tag v11.28.2), with versioned CLI documentation reviewed 2026-10-01",
+      "uri": "https://github.com/pnpm/pnpm/releases/tag/v11.28.2",
+      "scope": "pnpm 11 major-line installation, lockfile, offline, script, and exec behavior",
       "kind": "maintainer-documentation",
       "publicationStatus": "living",
-      "lastReviewed": "2026-09-30",
+      "lastReviewed": "2026-10-01",
       "locations": [
+        {
+          "id": "release-line",
+          "locator": "Immutable pnpm 11.28.2 release in the maintained 11.x line",
+          "uri": "https://github.com/pnpm/pnpm/releases/tag/v11.28.2",
+          "supports": "The maintained pnpm 11 line and exact reviewed release provenance"
+        },
         {
           "id": "frozen-lockfile",
           "locator": "pnpm install, --frozen-lockfile and --offline options",
-          "uri": "https://pnpm.io/cli/install#--frozen-lockfile",
+          "uri": "https://pnpm.io/11.x/cli/install#--frozen-lockfile",
           "supports": "Frozen lockfile installation fails rather than updating an out-of-date lockfile"
         },
         {
           "id": "run-scripts",
           "locator": "pnpm run",
-          "uri": "https://pnpm.io/cli/run",
+          "uri": "https://pnpm.io/11.x/cli/run",
           "supports": "Package scripts execute through pnpm with script arguments and lifecycle environment"
         },
         {
           "id": "exec",
           "locator": "pnpm exec",
-          "uri": "https://pnpm.io/cli/exec",
+          "uri": "https://pnpm.io/11.x/cli/exec",
           "supports": "Project dependency binaries can be invoked without relying on a global installation"
+        }
+      ]
+    },
+    {
+      "id": "pnpm.cli-12",
+      "authority": "pnpm maintainers",
+      "title": "pnpm 12 CLI Release Documentation",
+      "revision": "pnpm 12.8.1 (tag v12.8.1), reviewed 2026-10-01",
+      "uri": "https://github.com/pnpm/pnpm/releases/tag/v12.8.1",
+      "scope": "pnpm 12 major-line command behavior and release provenance",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-10-01",
+      "locations": [
+        {
+          "id": "release-line",
+          "locator": "Immutable pnpm 12.8.1 release in the maintained 12.x line",
+          "uri": "https://github.com/pnpm/pnpm/releases/tag/v12.8.1",
+          "supports": "The maintained pnpm 12 line, its Rust CLI identity, frozen install behavior, and exact reviewed release provenance"
         }
       ]
     },

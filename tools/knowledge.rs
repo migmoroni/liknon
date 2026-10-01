@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 
+use pulldown_cmark::{CodeBlockKind, Event, HeadingLevel, Parser, Tag, TagEnd};
 use serde::Deserialize;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
+    ops::Range,
     path::{Component, Path, PathBuf},
 };
 
@@ -13,6 +15,7 @@ pub const CANONICAL_ROOT: &str = "docs/validation/knowledge";
 const ROUTING_PATH: &str = "fixtures/knowledge/routing.json";
 const FORWARD_TRIALS_PATH: &str = "evals/scenarios/shared-knowledge/scenarios.json";
 const RUBRIC_PATH: &str = "evals/rubrics/shared-knowledge.json";
+const PROFILES_PATH: &str = "docs/validation/authoring/editorial-profiles.json";
 const REQUIRED_BEHAVIORS: [&str; 7] = [
     "minimal-selection",
     "synthesis-boundary",
@@ -26,6 +29,7 @@ const REQUIRED_BEHAVIORS: [&str; 7] = [
 pub struct CompiledSchemas {
     catalog: jsonschema::Validator,
     sources: jsonschema::Validator,
+    profiles: jsonschema::Validator,
     routing: jsonschema::Validator,
     forward_trials: jsonschema::Validator,
     rubric: jsonschema::Validator,
@@ -36,6 +40,7 @@ pub struct CompiledSchemas {
 pub enum SchemaKind {
     Catalog,
     Sources,
+    Profiles,
     Routing,
     ForwardTrials,
     Rubric,
@@ -47,6 +52,10 @@ impl CompiledSchemas {
         Ok(Self {
             catalog: compile_schema(repository, "schemas/knowledge-catalog.schema.json")?,
             sources: compile_schema(repository, "schemas/knowledge-sources.schema.json")?,
+            profiles: compile_schema(
+                repository,
+                "schemas/knowledge-editorial-profiles.schema.json",
+            )?,
             routing: compile_schema(repository, "schemas/knowledge-routing.schema.json")?,
             forward_trials: compile_schema(
                 repository,
@@ -61,6 +70,7 @@ impl CompiledSchemas {
         let validator = match kind {
             SchemaKind::Catalog => &self.catalog,
             SchemaKind::Sources => &self.sources,
+            SchemaKind::Profiles => &self.profiles,
             SchemaKind::Routing => &self.routing,
             SchemaKind::ForwardTrials => &self.forward_trials,
             SchemaKind::Rubric => &self.rubric,
@@ -123,6 +133,7 @@ pub struct VocabularyEntry {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Document {
     pub id: String,
+    pub title: String,
     pub kind: String,
     pub path: String,
     pub summary: String,
@@ -133,6 +144,50 @@ pub struct Document {
     pub sources: Vec<String>,
     pub status: String,
     pub last_reviewed: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct EditorialRegistry {
+    #[serde(rename = "$schema")]
+    schema: String,
+    schema_version: u32,
+    families: Vec<EditorialFamily>,
+    basis_ids: Vec<String>,
+    profiles: Vec<EditorialProfile>,
+    navigation_profile: NavigationProfile,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct EditorialFamily {
+    id: String,
+    reader_intent: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct EditorialProfile {
+    pub kind: String,
+    family: String,
+    path_prefix: String,
+    profile_document: String,
+    sections: Vec<EditorialSection>,
+    editorial_bases: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct EditorialSection {
+    title: String,
+    required: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct NavigationProfile {
+    profile_document: String,
+    editorial_bases: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -166,6 +221,202 @@ pub struct SourceLocation {
     pub locator: String,
     pub uri: String,
     pub supports: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MarkdownHeading {
+    pub level: u8,
+    pub text: String,
+    pub line: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct MarkdownLink {
+    label: String,
+    target: String,
+    line: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct MarkdownCodeBlock {
+    language: Option<String>,
+    content: String,
+    line: usize,
+    closed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParsedMarkdown {
+    headings: Vec<MarkdownHeading>,
+    links: Vec<MarkdownLink>,
+    code_blocks: Vec<MarkdownCodeBlock>,
+    text: String,
+}
+
+#[derive(Debug)]
+struct OpenHeading {
+    level: u8,
+    text: String,
+    line: usize,
+}
+
+#[derive(Debug)]
+struct OpenLink {
+    label: String,
+    target: String,
+    line: usize,
+}
+
+#[derive(Debug)]
+struct OpenCodeBlock {
+    language: Option<String>,
+    content: String,
+    line: usize,
+    range: Range<usize>,
+}
+
+impl ParsedMarkdown {
+    pub fn parse(markdown: &str) -> Result<Self, String> {
+        let mut headings = Vec::new();
+        let mut links = Vec::new();
+        let mut code_blocks = Vec::new();
+        let mut plain_text = String::new();
+        let mut heading = None;
+        let mut link = None;
+        let mut code_block = None;
+
+        for (event, range) in Parser::new(markdown).into_offset_iter() {
+            let line = line_number(markdown, range.start);
+            match event {
+                Event::Start(Tag::Heading { level, .. }) => {
+                    heading = Some(OpenHeading {
+                        level: heading_level(level),
+                        text: String::new(),
+                        line,
+                    });
+                }
+                Event::End(TagEnd::Heading(_)) => {
+                    let value = heading.take().ok_or("unbalanced Markdown heading")?;
+                    headings.push(MarkdownHeading {
+                        level: value.level,
+                        text: value.text.trim().to_owned(),
+                        line: value.line,
+                    });
+                }
+                Event::Start(Tag::Link { dest_url, .. }) => {
+                    link = Some(OpenLink {
+                        label: String::new(),
+                        target: dest_url.into_string(),
+                        line,
+                    });
+                }
+                Event::End(TagEnd::Link) => {
+                    let value = link.take().ok_or("unbalanced Markdown link")?;
+                    links.push(MarkdownLink {
+                        label: value.label.trim().to_owned(),
+                        target: value.target,
+                        line: value.line,
+                    });
+                }
+                Event::Start(Tag::CodeBlock(kind)) => {
+                    let language = match kind {
+                        CodeBlockKind::Fenced(info) => info
+                            .split_ascii_whitespace()
+                            .next()
+                            .filter(|value| !value.is_empty())
+                            .map(str::to_owned),
+                        CodeBlockKind::Indented => None,
+                    };
+                    code_block = Some(OpenCodeBlock {
+                        language,
+                        content: String::new(),
+                        line,
+                        range,
+                    });
+                }
+                Event::End(TagEnd::CodeBlock) => {
+                    let mut value = code_block.take().ok_or("unbalanced Markdown code block")?;
+                    value.range.end = range.end;
+                    code_blocks.push(MarkdownCodeBlock {
+                        language: value.language,
+                        content: value.content,
+                        line: value.line,
+                        closed: fenced_block_is_closed(markdown, &value.range),
+                    });
+                }
+                Event::Text(text) | Event::Code(text) => {
+                    if let Some(value) = code_block.as_mut() {
+                        value.content.push_str(&text);
+                    } else {
+                        plain_text.push_str(&text);
+                        plain_text.push('\n');
+                        if let Some(value) = heading.as_mut() {
+                            value.text.push_str(&text);
+                        }
+                        if let Some(value) = link.as_mut() {
+                            value.label.push_str(&text);
+                        }
+                    }
+                }
+                Event::SoftBreak | Event::HardBreak => {
+                    if let Some(value) = heading.as_mut() {
+                        value.text.push(' ');
+                    }
+                    if let Some(value) = link.as_mut() {
+                        value.label.push(' ');
+                    }
+                    if let Some(value) = code_block.as_mut() {
+                        value.content.push('\n');
+                    }
+                }
+                _ => {}
+            }
+        }
+        if heading.is_some() || link.is_some() || code_block.is_some() {
+            return Err("unbalanced Markdown structure".into());
+        }
+        Ok(Self {
+            headings,
+            links,
+            code_blocks,
+            text: plain_text,
+        })
+    }
+}
+
+fn heading_level(level: HeadingLevel) -> u8 {
+    match level {
+        HeadingLevel::H1 => 1,
+        HeadingLevel::H2 => 2,
+        HeadingLevel::H3 => 3,
+        HeadingLevel::H4 => 4,
+        HeadingLevel::H5 => 5,
+        HeadingLevel::H6 => 6,
+    }
+}
+
+fn line_number(markdown: &str, offset: usize) -> usize {
+    markdown.as_bytes()[..offset]
+        .iter()
+        .filter(|byte| **byte == b'\n')
+        .count()
+        + 1
+}
+
+fn fenced_block_is_closed(markdown: &str, range: &Range<usize>) -> bool {
+    let source = &markdown[range.clone()];
+    let Some(first) = source.lines().next() else {
+        return false;
+    };
+    let marker = first.trim_start().chars().next().unwrap_or(' ');
+    if !matches!(marker, '`' | '~') {
+        return true;
+    }
+    source
+        .lines()
+        .rev()
+        .find(|line| !line.trim().is_empty())
+        .is_some_and(|line| line.trim_start().starts_with(&marker.to_string().repeat(3)))
 }
 
 #[derive(Debug, Deserialize)]
@@ -250,6 +501,10 @@ pub fn load_catalog(repository: &Path) -> Result<Catalog, String> {
 
 pub fn load_sources(repository: &Path) -> Result<SourceRegister, String> {
     read_json(&repository.join(CANONICAL_ROOT).join("sources.json"))
+}
+
+pub fn load_editorial_registry(repository: &Path) -> Result<EditorialRegistry, String> {
+    read_json(&repository.join(PROFILES_PATH))
 }
 
 fn read_json<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T, String> {
@@ -344,16 +599,160 @@ pub fn validate_catalog_source_values(
         .map_err(|error| format!("cannot deserialize catalog.json: {error}"))?;
     let sources: SourceRegister = serde_json::from_value(sources_value)
         .map_err(|error| format!("cannot deserialize sources.json: {error}"))?;
-    validate_registers(repository, &catalog, &sources)?;
+    let profiles_value = read_value(&repository.join(PROFILES_PATH))?;
+    schemas.validate(SchemaKind::Profiles, PROFILES_PATH, &profiles_value)?;
+    let profiles: EditorialRegistry = serde_json::from_value(profiles_value)
+        .map_err(|error| format!("cannot deserialize {PROFILES_PATH}: {error}"))?;
+    validate_editorial_registry(repository, &profiles)?;
+    validate_registers(repository, &catalog, &sources, &profiles)?;
     Ok((catalog, sources))
+}
+
+fn validate_editorial_registry(
+    repository: &Path,
+    registry: &EditorialRegistry,
+) -> Result<(), String> {
+    if registry.schema_version != 1
+        || registry.schema != "../../../schemas/knowledge-editorial-profiles.schema.json"
+    {
+        return Err("editorial profile schema contract is unsupported".into());
+    }
+    let expected_families = ["explanation", "how-to", "reference"]
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let families = registry
+        .families
+        .iter()
+        .map(|family| family.id.as_str())
+        .collect::<BTreeSet<_>>();
+    if families != expected_families
+        || registry
+            .families
+            .iter()
+            .any(|family| family.reader_intent.trim().is_empty())
+    {
+        return Err("editorial families must define the three supported reader intents".into());
+    }
+    let basis_ids = registry
+        .basis_ids
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    if basis_ids.len() != registry.basis_ids.len() {
+        return Err("editorial basis IDs must be unique".into());
+    }
+
+    let mut kinds = BTreeSet::new();
+    let mut documents = BTreeSet::new();
+    for profile in &registry.profiles {
+        if !kinds.insert(profile.kind.as_str())
+            || !families.contains(profile.family.as_str())
+            || !documents.insert(profile.profile_document.as_str())
+            || profile.sections.is_empty()
+            || profile
+                .sections
+                .iter()
+                .map(|section| section.title.as_str())
+                .collect::<BTreeSet<_>>()
+                .len()
+                != profile.sections.len()
+            || profile
+                .editorial_bases
+                .iter()
+                .any(|basis| !basis_ids.contains(basis.as_str()))
+        {
+            return Err(format!(
+                "editorial profile {} is inconsistent",
+                profile.kind
+            ));
+        }
+        validate_profile_document(repository, profile)?;
+    }
+    let expected_kinds = [
+        "foundation",
+        "pattern",
+        "concern",
+        "language",
+        "technology",
+        "framework",
+        "recipe",
+        "tool",
+        "standard",
+    ]
+    .into_iter()
+    .collect::<BTreeSet<_>>();
+    if kinds != expected_kinds {
+        return Err("editorial registry does not map every supported catalog kind once".into());
+    }
+    if registry
+        .navigation_profile
+        .editorial_bases
+        .iter()
+        .any(|basis| !basis_ids.contains(basis.as_str()))
+    {
+        return Err("navigation profile uses an unknown editorial basis".into());
+    }
+    let navigation = EditorialProfile {
+        kind: "navigation".into(),
+        family: "navigation".into(),
+        path_prefix: String::new(),
+        profile_document: registry.navigation_profile.profile_document.clone(),
+        sections: Vec::new(),
+        editorial_bases: registry.navigation_profile.editorial_bases.clone(),
+    };
+    validate_profile_document(repository, &navigation)?;
+
+    let profile_root = repository.join("docs/validation/authoring/profiles");
+    let actual = collect_files(&profile_root)?
+        .into_iter()
+        .filter(|path| path.extension().and_then(|value| value.to_str()) == Some("md"))
+        .map(|path| format!("profiles/{}", slash_path(&path)))
+        .collect::<BTreeSet<_>>();
+    let mut declared = documents
+        .into_iter()
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    declared.insert(registry.navigation_profile.profile_document.clone());
+    if actual != declared {
+        return Err(format!(
+            "profile Markdown inventory differs from registry: actual {actual:?}, declared {declared:?}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_profile_document(repository: &Path, profile: &EditorialProfile) -> Result<(), String> {
+    let path = repository
+        .join("docs/validation/authoring")
+        .join(safe_relative(&profile.profile_document)?);
+    let markdown = fs::read_to_string(&path)
+        .map_err(|error| format!("cannot read profile {}: {error}", path.display()))?;
+    let parsed = ParsedMarkdown::parse(&markdown)
+        .map_err(|error| format!("cannot parse profile {}: {error}", path.display()))?;
+    let named_bases = profile
+        .editorial_bases
+        .iter()
+        .filter(|basis| parsed.text.lines().any(|line| line == basis.as_str()))
+        .count();
+    if !parsed.text.lines().any(|line| line == profile.kind)
+        || !parsed.text.lines().any(|line| line == profile.family)
+        || named_bases != profile.editorial_bases.len()
+    {
+        return Err(format!(
+            "profile Markdown {} disagrees with kind {}, family {}, or editorial bases",
+            profile.profile_document, profile.kind, profile.family
+        ));
+    }
+    Ok(())
 }
 
 fn validate_registers(
     repository: &Path,
     catalog: &Catalog,
     register: &SourceRegister,
+    profiles: &EditorialRegistry,
 ) -> Result<(), String> {
-    if catalog.schema_version != 1
+    if catalog.schema_version != 2
         || catalog.schema != "../../../schemas/knowledge-catalog.schema.json"
     {
         return Err("catalog schema contract is unsupported".into());
@@ -368,7 +767,12 @@ fn validate_registers(
     let dimensions = validate_vocabulary(&catalog.vocabularies.evidence_dimensions)?;
     let mut source_ids = BTreeSet::new();
     let mut locations = BTreeMap::new();
+    let mut previous_source_id = None;
     for source in &register.sources {
+        if previous_source_id.is_some_and(|previous| previous >= source.id.as_str()) {
+            return Err("source records must be ordered by stable ID".into());
+        }
+        previous_source_id = Some(source.id.as_str());
         if !valid_dot_id(&source.id) || !source_ids.insert(source.id.as_str()) {
             return Err(format!("invalid or duplicate source ID {}", source.id));
         }
@@ -417,9 +821,22 @@ fn validate_registers(
     }
 
     let root = repository.join(CANONICAL_ROOT);
+    let profiles_by_kind = profiles
+        .profiles
+        .iter()
+        .map(|profile| (profile.kind.as_str(), profile))
+        .collect::<BTreeMap<_, _>>();
     let mut document_ids = BTreeSet::new();
     let mut document_paths = BTreeSet::new();
+    let mut previous_document_id = None;
     for document in &catalog.documents {
+        if previous_document_id.is_some_and(|previous| previous >= document.id.as_str()) {
+            return Err("catalog documents must be ordered by stable ID".into());
+        }
+        previous_document_id = Some(document.id.as_str());
+        let profile = profiles_by_kind
+            .get(document.kind.as_str())
+            .ok_or_else(|| format!("document {} has no editorial profile", document.id))?;
         let expected_prefix = format!("{}.", document.kind);
         if !valid_dot_id(&document.id)
             || !document.id.starts_with(&expected_prefix)
@@ -427,6 +844,21 @@ fn validate_registers(
             || !document_paths.insert(document.path.as_str())
         {
             return Err(format!("invalid or duplicate document {}", document.id));
+        }
+        if !document.path.starts_with(&profile.path_prefix) {
+            return Err(format!(
+                "document {} path {} violates {} profile prefix {}",
+                document.id, document.path, profile.kind, profile.path_prefix
+            ));
+        }
+        if document.kind == "tool"
+            && (contains_patch_version(&document.title)
+                || contains_patch_version(&document.summary))
+        {
+            return Err(format!(
+                "tool {} uses a patch-only public title or summary",
+                document.id
+            ));
         }
         if !matches!(
             document.kind.as_str(),
@@ -442,6 +874,7 @@ fn validate_registers(
         ) || !matches!(document.status.as_str(), "draft" | "reviewed")
             || !valid_date(&document.last_reviewed)
             || document.summary.is_empty()
+            || document.title.trim().is_empty()
             || document.summary.len() > 240
             || document.questions.is_empty()
             || document
@@ -520,7 +953,10 @@ fn validate_registers(
         }
         let markdown = fs::read_to_string(root.join(&relative))
             .map_err(|error| format!("cannot read {}: {error}", document.path))?;
-        let cited = validate_citations(document, &markdown, &locations)?;
+        let parsed = ParsedMarkdown::parse(&markdown)
+            .map_err(|error| document_diagnostic(document, profile, None, &error))?;
+        validate_document_structure(document, profile, &parsed)?;
+        let cited = validate_citations(document, &parsed, &locations)?;
         let declared = document
             .sources
             .iter()
@@ -532,12 +968,18 @@ fn validate_registers(
                 document.id, cited, declared
             ));
         }
-        validate_links(&root, &relative, &markdown)?;
+        validate_links(&root, &relative, &parsed)?;
         let index = relative.parent().unwrap_or(Path::new("")).join("README.md");
-        let index_text = fs::read_to_string(root.join(index))
+        let index_text = fs::read_to_string(root.join(&index))
             .map_err(|error| format!("cannot read category index: {error}"))?;
+        let index_document = ParsedMarkdown::parse(&index_text)
+            .map_err(|error| format!("cannot parse navigation {}: {error}", index.display()))?;
         let file_name = relative.file_name().unwrap().to_string_lossy();
-        if !index_text.contains(&format!("]({file_name})")) {
+        if !index_document
+            .links
+            .iter()
+            .any(|link| link.target == file_name)
+        {
             return Err(format!("category index does not list {}", document.path));
         }
     }
@@ -586,6 +1028,8 @@ fn validate_registers(
         return Err("catalog navigation assets do not match current indexes".into());
     }
 
+    validate_navigation_indexes(&root, &catalog.navigation)?;
+
     for path in collect_files(&root)? {
         if path.extension().and_then(|value| value.to_str()) == Some("md") {
             let markdown = fs::read_to_string(root.join(&path))
@@ -596,7 +1040,9 @@ fn validate_registers(
                     path.display()
                 ));
             }
-            validate_links(&root, &path, &markdown)?;
+            let parsed = ParsedMarkdown::parse(&markdown)
+                .map_err(|error| format!("cannot parse {}: {error}", path.display()))?;
+            validate_links(&root, &path, &parsed)?;
         }
     }
     Ok(())
@@ -618,35 +1064,175 @@ fn validate_vocabulary(entries: &[VocabularyEntry]) -> Result<BTreeSet<&str>, St
     Ok(ids)
 }
 
+fn validate_document_structure(
+    document: &Document,
+    profile: &EditorialProfile,
+    markdown: &ParsedMarkdown,
+) -> Result<(), String> {
+    if let Some(block) = markdown.code_blocks.iter().find(|block| !block.closed) {
+        return Err(document_diagnostic(
+            document,
+            profile,
+            None,
+            &format!("unclosed fenced code block at line {}", block.line),
+        ));
+    }
+    if let Some(block) = markdown
+        .code_blocks
+        .iter()
+        .find(|block| block.language.is_none())
+    {
+        return Err(document_diagnostic(
+            document,
+            profile,
+            None,
+            &format!("code block at line {} has no language", block.line),
+        ));
+    }
+    let h1 = markdown
+        .headings
+        .iter()
+        .filter(|heading| heading.level == 1)
+        .collect::<Vec<_>>();
+    if h1.len() != 1 || h1[0].text != document.title {
+        return Err(document_diagnostic(
+            document,
+            profile,
+            None,
+            &format!(
+                "expected exactly one H1 titled {:?}; found {:?}",
+                document.title,
+                h1.iter().map(|heading| &heading.text).collect::<Vec<_>>()
+            ),
+        ));
+    }
+    let mut previous_level = 0;
+    for heading in &markdown.headings {
+        if heading.level > previous_level + 1 {
+            return Err(document_diagnostic(
+                document,
+                profile,
+                Some(&heading.text),
+                &format!(
+                    "heading level skips from H{previous_level} to H{} at line {}",
+                    heading.level, heading.line
+                ),
+            ));
+        }
+        previous_level = heading.level;
+    }
+
+    let actual = markdown
+        .headings
+        .iter()
+        .filter(|heading| heading.level == 2)
+        .collect::<Vec<_>>();
+    let mut seen = BTreeSet::new();
+    let mut cursor = 0;
+    for heading in actual {
+        if !seen.insert(heading.text.as_str()) {
+            return Err(document_diagnostic(
+                document,
+                profile,
+                Some(&heading.text),
+                "duplicate H2 section",
+            ));
+        }
+        let Some(position) = profile.sections[cursor..]
+            .iter()
+            .position(|section| section.title == heading.text)
+            .map(|position| position + cursor)
+        else {
+            return Err(document_diagnostic(
+                document,
+                profile,
+                Some(&heading.text),
+                "unknown or out-of-order H2 section",
+            ));
+        };
+        if profile.sections[cursor..position]
+            .iter()
+            .any(|section| section.required)
+        {
+            return Err(document_diagnostic(
+                document,
+                profile,
+                Some(&heading.text),
+                "a required earlier H2 section is missing",
+            ));
+        }
+        cursor = position + 1;
+    }
+    if let Some(missing) = profile.sections[cursor..]
+        .iter()
+        .find(|section| section.required)
+    {
+        return Err(document_diagnostic(
+            document,
+            profile,
+            Some(&missing.title),
+            "required H2 section is missing",
+        ));
+    }
+    Ok(())
+}
+
+fn document_diagnostic(
+    document: &Document,
+    profile: &EditorialProfile,
+    section: Option<&str>,
+    violation: &str,
+) -> String {
+    let expected = profile
+        .sections
+        .iter()
+        .map(|section| {
+            if section.required {
+                section.title.clone()
+            } else {
+                format!("{} (optional)", section.title)
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" -> ");
+    format!(
+        "document {} at {} violates profile {}{}: {}; expected H2 structure: {}",
+        document.id,
+        document.path,
+        profile.kind,
+        section
+            .map(|value| format!(" section {value:?}"))
+            .unwrap_or_default(),
+        violation,
+        expected
+    )
+}
+
 fn validate_citations<'a>(
     document: &Document,
-    markdown: &'a str,
+    markdown: &'a ParsedMarkdown,
     locations: &BTreeMap<String, &str>,
 ) -> Result<BTreeSet<&'a str>, String> {
-    let mut remaining = markdown;
     let mut cited = BTreeSet::new();
-    while let Some(start) = remaining.find("[Source: ") {
-        remaining = &remaining[start + 9..];
-        let label_end = remaining
-            .find("](")
-            .ok_or_else(|| format!("malformed citation in {}", document.path))?;
-        let label = &remaining[..label_end];
-        remaining = &remaining[label_end + 2..];
-        let uri_end = remaining
-            .find(')')
-            .ok_or_else(|| format!("malformed citation URI in {}", document.path))?;
-        let uri = &remaining[..uri_end];
-        let expected = locations
-            .get(label)
-            .ok_or_else(|| format!("unknown source location {label} in {}", document.path))?;
-        if uri != *expected {
+    for link in markdown
+        .links
+        .iter()
+        .filter(|link| link.label.starts_with("Source: "))
+    {
+        let label = link.label.trim_start_matches("Source: ");
+        let expected = locations.get(label).ok_or_else(|| {
+            format!(
+                "unknown source location {label} in {} at line {}",
+                document.path, link.line
+            )
+        })?;
+        if link.target != *expected {
             return Err(format!(
-                "citation {label} in {} does not use its registered URI",
-                document.path
+                "citation {label} in {} at line {} does not use its registered URI",
+                document.path, link.line
             ));
         }
         cited.insert(label.split_once('#').unwrap().0);
-        remaining = &remaining[uri_end + 1..];
     }
     if cited.is_empty() {
         return Err(format!(
@@ -657,15 +1243,9 @@ fn validate_citations<'a>(
     Ok(cited)
 }
 
-fn validate_links(root: &Path, relative: &Path, markdown: &str) -> Result<(), String> {
-    let mut remaining = markdown;
-    while let Some(start) = remaining.find("](") {
-        remaining = &remaining[start + 2..];
-        let Some(end) = remaining.find(')') else {
-            break;
-        };
-        let target = &remaining[..end];
-        remaining = &remaining[end + 1..];
+fn validate_links(root: &Path, relative: &Path, markdown: &ParsedMarkdown) -> Result<(), String> {
+    for link in &markdown.links {
+        let target = link.target.as_str();
         if target.is_empty()
             || target.starts_with('#')
             || target.starts_with("https://")
@@ -677,7 +1257,69 @@ fn validate_links(root: &Path, relative: &Path, markdown: &str) -> Result<(), St
         let parent = relative.parent().unwrap_or(Path::new(""));
         let resolved = normalize_relative(&parent.join(path))?;
         if !root.join(&resolved).exists() {
-            return Err(format!("broken link {target} in {}", relative.display()));
+            return Err(format!(
+                "broken link {target} in {} at line {}",
+                relative.display(),
+                link.line
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_navigation_indexes(root: &Path, navigation: &[String]) -> Result<(), String> {
+    for value in navigation
+        .iter()
+        .filter(|value| value.ends_with("README.md"))
+    {
+        let relative = safe_relative(value)?;
+        let markdown = fs::read_to_string(root.join(&relative))
+            .map_err(|error| format!("cannot read navigation {value}: {error}"))?;
+        let parsed = ParsedMarkdown::parse(&markdown)
+            .map_err(|error| format!("cannot parse navigation {value}: {error}"))?;
+        let h1_count = parsed
+            .headings
+            .iter()
+            .filter(|heading| heading.level == 1)
+            .count();
+        if h1_count != 1 {
+            return Err(format!("navigation {value} must contain exactly one H1"));
+        }
+        let parent = relative.parent().unwrap_or(Path::new(""));
+        let mut expected = Vec::new();
+        let mut entries = fs::read_dir(root.join(parent))
+            .map_err(|error| format!("cannot enumerate navigation {value}: {error}"))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|error| format!("cannot enumerate navigation {value}: {error}"))?;
+        entries.sort_by_key(|entry| entry.file_name());
+        for entry in entries {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let kind = entry
+                .file_type()
+                .map_err(|error| format!("cannot inspect navigation child: {error}"))?;
+            if kind.is_dir() && entry.path().join("README.md").is_file() {
+                expected.push(format!("{name}/README.md"));
+            } else if kind.is_file()
+                && name.ends_with(".md")
+                && name != "README.md"
+                && name != "SOURCES.md"
+            {
+                expected.push(name);
+            }
+        }
+        let listed = parsed
+            .links
+            .iter()
+            .filter_map(|link| {
+                expected
+                    .contains(&link.target)
+                    .then_some(link.target.clone())
+            })
+            .collect::<Vec<_>>();
+        if listed != expected {
+            return Err(format!(
+                "navigation {value} must list direct children in order: {expected:?}; found {listed:?}"
+            ));
         }
     }
     Ok(())
@@ -895,10 +1537,10 @@ fn validate_recipes(
         let markdown = fs::read_to_string(repository.join(CANONICAL_ROOT).join(&recipe.path))
             .map_err(|error| format!("cannot read recipe {}: {error}", recipe.path))?;
         let authored = extract_recipe_json_text(&markdown)?;
-        let value: Value = serde_json::from_str(authored)
+        let value: Value = serde_json::from_str(&authored)
             .map_err(|error| format!("invalid recipe JSON in {}: {error}", recipe.path))?;
         schemas.validate(SchemaKind::Config, &recipe.path, &value)?;
-        validate_recipe_with_ordinary_loader(recipe, authored, &value)?;
+        validate_recipe_with_ordinary_loader(recipe, &authored, &value)?;
     }
     Ok(())
 }
@@ -961,23 +1603,30 @@ fn safe_directory_shape(value: &str) -> Result<PathBuf, String> {
     Ok(path.to_path_buf())
 }
 
-pub fn extract_recipe_json_text(markdown: &str) -> Result<&str, String> {
-    let start = markdown
-        .find("```json\n")
-        .ok_or("recipe has no JSON example")?
-        + 8;
-    let end = markdown[start..]
-        .find("\n```")
-        .ok_or("recipe JSON fence is not closed")?
-        + start;
-    if markdown[end + 4..].contains("```json\n") {
+pub fn extract_recipe_json_text(markdown: &str) -> Result<String, String> {
+    let parsed = ParsedMarkdown::parse(markdown)?;
+    let json = parsed
+        .code_blocks
+        .iter()
+        .filter(|block| block.language.as_deref() == Some("json"))
+        .collect::<Vec<_>>();
+    if json.is_empty() {
+        return Err("recipe has no JSON example".into());
+    }
+    if json.len() != 1 {
         return Err("recipe must contain exactly one complete JSON example".into());
     }
-    Ok(&markdown[start..end])
+    if !json[0].closed {
+        return Err(format!(
+            "recipe JSON fence at line {} is not closed",
+            json[0].line
+        ));
+    }
+    Ok(json[0].content.trim_end_matches('\n').to_owned())
 }
 
 pub fn extract_recipe_json(markdown: &str) -> Result<Value, String> {
-    serde_json::from_str(extract_recipe_json_text(markdown)?)
+    serde_json::from_str(&extract_recipe_json_text(markdown)?)
         .map_err(|error| format!("invalid recipe JSON: {error}"))
 }
 
@@ -1144,6 +1793,18 @@ fn valid_date(value: &str) -> bool {
             .all(|(index, byte)| index == 4 || index == 7 || byte.is_ascii_digit())
 }
 
+fn contains_patch_version(value: &str) -> bool {
+    value
+        .split(|character: char| !(character.is_ascii_digit() || character == '.'))
+        .any(|token| {
+            let parts = token.split('.').collect::<Vec<_>>();
+            parts.len() == 3
+                && parts
+                    .iter()
+                    .all(|part| !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit()))
+        })
+}
+
 fn slash_path(path: &Path) -> String {
     path.components()
         .map(|component| component.as_os_str().to_string_lossy())
@@ -1154,6 +1815,47 @@ fn slash_path(path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn document() -> Document {
+        Document {
+            id: "foundation.fixture".into(),
+            title: "Fixture".into(),
+            kind: "foundation".into(),
+            path: "explanations/foundations/fixture.md".into(),
+            summary: "Fixture summary".into(),
+            questions: vec!["What is the fixture?".into()],
+            applicability: vec!["general".into()],
+            evidence_dimensions: vec!["strategy".into()],
+            related: Vec::new(),
+            sources: vec!["source.fixture".into()],
+            status: "reviewed".into(),
+            last_reviewed: "2026-10-01".into(),
+        }
+    }
+
+    fn profile() -> EditorialProfile {
+        EditorialProfile {
+            kind: "foundation".into(),
+            family: "explanation".into(),
+            path_prefix: "explanations/foundations/".into(),
+            profile_document: "profiles/foundation.md".into(),
+            sections: vec![
+                EditorialSection {
+                    title: "Question".into(),
+                    required: true,
+                },
+                EditorialSection {
+                    title: "Optional Context".into(),
+                    required: false,
+                },
+                EditorialSection {
+                    title: "Evidence And Limitations".into(),
+                    required: true,
+                },
+            ],
+            editorial_bases: vec!["diataxis".into()],
+        }
+    }
 
     #[test]
     fn unsafe_relative_paths_and_escaping_links_are_rejected() {
@@ -1178,5 +1880,150 @@ mod tests {
         let missing = &catalog.documents[0].path;
         assets.retain(|(path, _)| path != missing);
         assert!(validate_embedded_asset_inventory(&catalog, &assets).is_err());
+    }
+
+    #[test]
+    fn parsed_markdown_uses_commonmark_structure_offsets_and_exact_fences() {
+        let markdown = "# Fixture\n\nText with `## inline` and [nested](guide_(one).md).\n\n```text\n## not a heading\n```\n\n## Question\n\n[Source: source.fixture#claim](https://example.com/a_(b)).\n\n```json\n{\"value\":\"✓\"}\n```\n\n## Evidence And Limitations\n";
+        let parsed = ParsedMarkdown::parse(markdown).unwrap();
+        assert_eq!(
+            parsed
+                .headings
+                .iter()
+                .map(|heading| (heading.level, heading.text.as_str(), heading.line))
+                .collect::<Vec<_>>(),
+            vec![
+                (1, "Fixture", 1),
+                (2, "Question", 9),
+                (2, "Evidence And Limitations", 17),
+            ]
+        );
+        assert_eq!(parsed.links[0].target, "guide_(one).md");
+        assert_eq!(parsed.links[1].label, "Source: source.fixture#claim");
+        assert_eq!(parsed.links[1].target, "https://example.com/a_(b)");
+        assert_eq!(parsed.code_blocks.len(), 2);
+        assert_eq!(parsed.code_blocks[0].language.as_deref(), Some("text"));
+        assert_eq!(parsed.code_blocks[1].language.as_deref(), Some("json"));
+        assert_eq!(parsed.code_blocks[1].content, "{\"value\":\"✓\"}\n");
+        assert!(parsed.code_blocks.iter().all(|block| block.closed));
+    }
+
+    #[test]
+    fn recipe_parser_rejects_missing_duplicate_malformed_and_unclosed_json() {
+        assert!(extract_recipe_json("# Recipe\n").is_err());
+        assert!(extract_recipe_json("```json\n{}\n```\n```json\n{}\n```\n").is_err());
+        assert!(extract_recipe_json("```json\n{broken}\n```\n").is_err());
+        assert!(extract_recipe_json("```json\n{}\n").is_err());
+    }
+
+    #[test]
+    fn profile_structure_allows_optional_omission_and_rejects_failure_classes() {
+        let document = document();
+        let profile = profile();
+        let valid = ParsedMarkdown::parse(
+            "# Fixture\n\n## Question\n\nPurpose.\n\n## Evidence And Limitations\n\nBounded.\n",
+        )
+        .unwrap();
+        validate_document_structure(&document, &profile, &valid).unwrap();
+
+        for markdown in [
+            "# Fixture\n\n## Evidence And Limitations\n",
+            "# Fixture\n\n## Question\n\n## Unknown\n\n## Evidence And Limitations\n",
+            "# Fixture\n\n## Question\n\n## Question\n\n## Evidence And Limitations\n",
+            "# Fixture\n\n# Duplicate\n\n## Question\n\n## Evidence And Limitations\n",
+            "# Fixture\n\n### Skipped\n\n## Question\n\n## Evidence And Limitations\n",
+            "# Wrong Title\n\n## Question\n\n## Evidence And Limitations\n",
+            "# Fixture\n\n## Evidence And Limitations\n\n## Question\n",
+        ] {
+            let parsed = ParsedMarkdown::parse(markdown).unwrap();
+            assert!(
+                validate_document_structure(&document, &profile, &parsed).is_err(),
+                "accepted invalid Markdown:\n{markdown}"
+            );
+        }
+    }
+
+    #[test]
+    fn version_identity_detection_rejects_only_patch_shapes() {
+        assert!(contains_patch_version("pnpm 12.8.1 reference"));
+        assert!(!contains_patch_version("pnpm major lines 11 and 12"));
+        assert!(!contains_patch_version("WCAG 2.2"));
+    }
+
+    #[test]
+    fn canonical_profile_markdown_and_registry_agree() {
+        let repository = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let registry = load_editorial_registry(repository).unwrap();
+        validate_editorial_registry(repository, &registry).unwrap();
+
+        let mut value = read_value(&repository.join(PROFILES_PATH)).unwrap();
+        value["profiles"][0]["family"] = "reference".into();
+        let registry: EditorialRegistry = serde_json::from_value(value).unwrap();
+        assert!(validate_editorial_registry(repository, &registry).is_err());
+    }
+
+    #[test]
+    fn every_profile_accepts_its_sequence_and_rejects_a_missing_required_section() {
+        let repository = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let registry = load_editorial_registry(repository).unwrap();
+        for profile in &registry.profiles {
+            let mut document = document();
+            document.id = format!("{}.fixture", profile.kind);
+            document.kind = profile.kind.clone();
+            document.path = format!("{}fixture.md", profile.path_prefix);
+
+            let mut markdown = String::from("# Fixture\n");
+            for section in &profile.sections {
+                markdown.push_str(&format!("\n## {}\n\nContent.\n", section.title));
+            }
+            let parsed = ParsedMarkdown::parse(&markdown).unwrap();
+            validate_document_structure(&document, profile, &parsed).unwrap_or_else(|error| {
+                panic!("{} positive fixture failed: {error}", profile.kind)
+            });
+
+            let first_required = profile
+                .sections
+                .iter()
+                .position(|section| section.required)
+                .unwrap();
+            let mut missing = String::from("# Fixture\n");
+            for (index, section) in profile.sections.iter().enumerate() {
+                if index != first_required {
+                    missing.push_str(&format!("\n## {}\n\nContent.\n", section.title));
+                }
+            }
+            let parsed = ParsedMarkdown::parse(&missing).unwrap();
+            assert!(
+                validate_document_structure(&document, profile, &parsed).is_err(),
+                "{} accepted a missing required section",
+                profile.kind
+            );
+        }
+    }
+
+    #[test]
+    fn navigation_validation_rejects_missing_and_out_of_order_children() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path();
+        fs::write(root.join("a.md"), "# A\n").unwrap();
+        fs::write(root.join("b.md"), "# B\n").unwrap();
+        let navigation = vec!["README.md".to_owned()];
+
+        fs::write(root.join("README.md"), "# Index\n\n1. [B](b.md)\n").unwrap();
+        assert!(validate_navigation_indexes(root, &navigation).is_err());
+
+        fs::write(
+            root.join("README.md"),
+            "# Index\n\n1. [B](b.md)\n2. [A](a.md)\n",
+        )
+        .unwrap();
+        assert!(validate_navigation_indexes(root, &navigation).is_err());
+
+        fs::write(
+            root.join("README.md"),
+            "# Index\n\n1. [A](a.md)\n2. [B](b.md)\n",
+        )
+        .unwrap();
+        validate_navigation_indexes(root, &navigation).unwrap();
     }
 }

@@ -480,7 +480,7 @@ fn knowledge_show_rejects_non_ids_paths_and_unknown_documents() {
     for selector in [
         "../escape",
         "/absolute",
-        "tools/cargo.md",
+        "reference/tools/cargo.md",
         "tool.not-present",
     ] {
         let output = Command::new(binary)

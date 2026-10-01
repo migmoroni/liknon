@@ -7,7 +7,7 @@
   "required": ["$schema", "schemaVersion", "vocabularies", "navigation", "documents"],
   "properties": {
     "$schema": { "const": "../../../schemas/knowledge-catalog.schema.json" },
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "vocabularies": {
       "type": "object",
       "additionalProperties": false,
@@ -51,9 +51,10 @@
     "document": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "kind", "path", "summary", "questions", "applicability", "evidenceDimensions", "related", "sources", "status", "lastReviewed"],
+      "required": ["id", "title", "kind", "path", "summary", "questions", "applicability", "evidenceDimensions", "related", "sources", "status", "lastReviewed"],
       "properties": {
         "id": { "$ref": "#/$defs/id" },
+        "title": { "$ref": "#/$defs/nonEmpty" },
         "kind": { "enum": ["foundation", "pattern", "language", "framework", "technology", "tool", "concern", "standard", "recipe"] },
         "path": { "$ref": "#/$defs/path" },
         "summary": { "type": "string", "minLength": 1, "maxLength": 240 },
