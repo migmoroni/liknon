@@ -3,8 +3,9 @@
 ## Identity And Reviewed Scope
 
 - Executable/package: `workspace-validator` crate and CLI.
-- Reviewed version: `0.1.0`, compatible range `>=0.1.0, <0.2.0` as declared by
-  the distributed skill manifest.
+- Reviewed version: `0.1.0` at commit
+  `7bb373f9e57af82f2b5d857b933063f0b6c72d11`; compatible range
+  `>=0.1.0, <0.2.0` as declared by the distributed skill manifest.
 - Evidence class: deterministic orchestration and reporting of a
   workspace-owned declarative validation graph.
 
@@ -20,7 +21,7 @@ workspace-validator check <check-id> --format=json
 
 The canonical local CLI contract defines structured reports, exit statuses,
 selection, and inspection behavior.
-[Source: workspace-validator.cli#structured-report](https://github.com/migmoroni/workspace-validator/blob/main/docs/validation/reference/reports.md)
+[Source: workspace-validator.cli#structured-report](https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md)
 
 ## Output, Exit, Cost, And Mutation
 

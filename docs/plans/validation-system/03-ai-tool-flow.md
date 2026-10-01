@@ -28,6 +28,9 @@ CLI and documentation directly without claiming AI-Tool behavior.
 - Phase 2 provides the canonical shared-knowledge tree and the read-only
   `workspace-validator knowledge` retrieval interface. It preserves the
   operational skill without a copied knowledge subtree.
+- Phase 2.1 provides the standards-informed editorial architecture, canonical
+  family paths, stable profile contracts, and version-neutral corpus consumed
+  through that interface.
 
 ## 3. Flow Contract
 

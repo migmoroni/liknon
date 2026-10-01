@@ -3,8 +3,8 @@
 ## Identity And Reviewed Scope
 
 - Executable/package: `pnpm` command-line package manager.
-- Reviewed behavior: pnpm 11.x documentation snapshot; confirm the active
-  version and lockfile format for the workspace.
+- Reviewed behavior: pnpm `11.22.0` and its CLI documentation; confirm the
+  active version and lockfile format for the workspace.
 - Evidence class: dependency graph consistency, workspace script invocation,
   and project-local binary selection.
 

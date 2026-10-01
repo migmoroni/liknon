@@ -84,15 +84,16 @@ knowledge trees, or a second knowledge source.
       rubric, and recipe configurations receive structural and semantic
       validation.
 - [x] Formatting, Clippy with warnings denied, regular tests, MSRV `1.87.0`,
-      canonical knowledge verification, and package verification pass.
+      canonical knowledge verification, and current source-package construction
+      pass.
 
-### 2.2 Remaining Completion Work
+### 2.2 Accepted CLI And Packaging Implementation
 
 1. [x] Remove the tracked
        `skills/workspace-validator/references/knowledge/` subtree and every
        contract that projects shared knowledge into the skill. Preserve
-       `SKILL.md`, `manifest.json`, the immutable policy boundary, and the
-       AI-Tool and AI-Engineering operational references.
+       `SKILL.md`, `manifest.json`, and the current `run`, `triage`, `config`,
+       and `audit` operational references.
 2. [x] Incorporate the canonical `docs/validation/knowledge/` tree into the
        compiled binary through deterministic build output under `OUT_DIR`, with
        no generated file committed to the repository.
@@ -108,9 +109,31 @@ knowledge trees, or a second knowledge source.
 6. [x] Prove that knowledge commands work from an empty directory without
        `.validation/`, do not create workspace files, and return content matching
        the canonical source bytes.
-7. [x] Rerun the complete verification and package matrix.
+7. [x] Rerun formatting, Clippy, regular tests, doctests, MSRV, source-package
+       construction, canonical knowledge verification, and the existing
+       package matrix.
 
-### 2.3 Dependency
+### 2.3 Remaining Correction Work
+
+1. [x] Add automated installed-package coverage to the package CI job. Build
+       and install the source package, run `knowledge catalog --format=json`
+       and `knowledge show tool.workspace-validator` from an empty temporary
+       directory, and compare both outputs byte-for-byte with the corresponding
+       canonical files inside the packaged source. The check must exercise the
+       installed binary and must not resolve knowledge through repository-local
+       runtime paths.
+2. [x] Correct the two confirmed source-revision mismatches. Replace the
+       unbounded `pnpm 11.x` review claim with the exact release, tag, or commit
+       actually reviewed, and replace the `workspace-validator 0.1.0` source
+       links that target `blob/main` with an immutable release tag or exact
+       commit. Update affected locations, adjacent guide wording, and generated
+       `SOURCES.md` together without changing unrelated guidance.
+3. [x] Rerun the focused knowledge release check, installed-package smoke test,
+       complete Rust verification matrix, MSRV verification, package listing,
+       dependency audit, and repository-integrity check after the two
+       corrections above.
+
+### 2.4 Dependency
 
 Phase 1 is complete. Guidance describes stable CLI and configuration behavior
 rather than compensating for unfinished runtime contracts.
@@ -289,6 +312,24 @@ an exact supporting location, or remove that Rust-specific example from the
 general oracle pattern. Living documentation records the precise reviewed
 revision or review snapshot available from its publisher; an unbounded version
 range is not an exact revision.
+
+Complete the remaining source correction without weakening this contract:
+
+- `pnpm.cli-11` must identify the exact pnpm release, documentation tag, or
+  source commit whose behavior was reviewed. `pnpm 11.x` is not an acceptable
+  revision because it denotes multiple releases;
+- `workspace-validator.cli` must use an immutable release tag or exact commit in
+  its primary and named-location URIs. A revision labeled `0.1.0` must not point
+  to `blob/main`;
+- when the authoritative documentation uses a living public page for a precise
+  location, retain that deep link for continued study but pair it with an exact
+  reviewed release or immutable source snapshot in the source record;
+- regenerate `SOURCES.md` from the corrected register and update a local guide
+  only when its declared reviewed scope or citation text no longer matches the
+  exact source revision.
+
+Do not broaden this correction into a rewrite of the initial knowledge corpus.
+The task is to make existing source identity and review claims reproducible.
 
 Links provide direction, not implicit network authority. The local guide must
 still contain enough information to explain relevance, evidence, limitations,
@@ -512,13 +553,12 @@ manifest metadata, or tests that preserve that copied subtree. Do not keep it as
 ignored output: the repository build does not create it at all.
 
 Preserve the distributed skill as a separate agent-facing concern. `SKILL.md`,
-`manifest.json`, `references/policy-boundary.md`, and the namespaced AI-Tool and
-AI-Engineering references contain routing, authority, and operational
-instructions rather than shared validation knowledge. Factual CLI behavior
-belongs in the applicable canonical document below
-`docs/validation/reference/`. Phase 3 owns the public AI-Tool documents and the
-corresponding operational skill references without copying shared knowledge
-into either surface.
+`manifest.json`, and the current `run`, `triage`, `config`, and `audit`
+references contain routing and operational instructions rather than shared
+validation knowledge. Factual CLI behavior belongs in the applicable canonical
+document below `docs/validation/reference/`. Phase 3 owns the immutable policy
+boundary, the public AI-Tool documents, and the corresponding new operational
+skill references without copying shared knowledge into either surface.
 
 The build incorporates the canonical tree directly into the executable. Use a
 small deterministic build step that:
@@ -694,6 +734,24 @@ Verify mechanically:
   `skills/workspace-validator/references/knowledge/` subtree, and can build and
   query knowledge from the packaged source.
 
+Extend the existing package workflow with a regression gate over the installed
+artifact. After `cargo package --locked` and `cargo install --path
+<package-dir>`, the workflow must:
+
+1. change to an empty temporary directory that has no `.validation/` ancestor;
+2. run the installed binary's `knowledge catalog --format=json` command and
+   compare its standard output byte-for-byte with
+   `<package-dir>/docs/validation/knowledge/catalog.json`;
+3. run the installed binary's `knowledge show tool.workspace-validator`
+   command and compare its standard output byte-for-byte with
+   `<package-dir>/docs/validation/knowledge/tools/workspace-validator.md`;
+4. fail on any command error or byte mismatch and confirm that neither command
+   creates files in the temporary directory.
+
+This gate complements the in-repository integration tests. It specifically
+proves that package inclusion, build-time embedding, installation, and runtime
+retrieval remain connected in the artifact distributed to users.
+
 Validate the recipe JSON exactly as authored. Place that unchanged document at
 a deterministic temporary configuration path, create only the filesystem shape
 needed for its declared `workspaceRoot` and suite directories, and call the
@@ -788,8 +846,9 @@ Add CLI integration coverage that proves:
 - repeated queries do not create or mutate files in the current directory;
 - validation commands continue to use only `.validation/config.json` and do not
   load knowledge as execution policy;
-- packaged-source verification builds a binary whose knowledge catalog and
-  documents remain queryable.
+- automated packaged-source verification installs the packaged binary, runs it
+  from an empty temporary directory, and proves that its catalog and selected
+  document bytes equal the canonical files contained in that package.
 
 ## 10. Acceptance Criteria
 
@@ -813,9 +872,9 @@ Add CLI integration coverage that proves:
       shared-knowledge tree in the repository.
 - [x] No `skills/workspace-validator/references/knowledge/`, generated knowledge
       mirror, or release projection remains in the source tree or Cargo package.
-- [x] The distributed skill remains packaged with its router, manifest, policy
-      boundary, and operational references, and retrieves shared knowledge only
-      through the CLI.
+- [x] The distributed skill remains packaged with its router, manifest, and
+      current `run`, `triage`, `config`, and `audit` operational references, and
+      retrieves shared knowledge only through the CLI.
 - [x] The Cargo build embeds the complete canonical knowledge tree through
       deterministic untracked output under `OUT_DIR`.
 - [x] `workspace-validator knowledge catalog` exposes compact human and JSON
@@ -843,22 +902,33 @@ Add CLI integration coverage that proves:
       retrieval even though the binary embeds and serves the guidance.
 - [x] The source package contains the canonical docs and builds a binary whose
       knowledge commands work without repository-relative runtime files.
+- [x] Package CI installs that source package and compares catalog and document
+      output from the installed binary byte-for-byte with the canonical files
+      contained in the package.
+- [x] `pnpm.cli-11` identifies one exact reviewed release, tag, or commit, and
+      `workspace-validator.cli` no longer labels a `blob/main` URI as version
+      `0.1.0`.
+- [x] The focused release checks, complete verification matrix, MSRV checks,
+      package checks, dependency audit, and repository-integrity gate pass after
+      the remaining corrections.
 - [x] Future initialization is documented as flag-selective materialization of
       essential consumer resources, never an implicit copy of all knowledge.
 - [x] Shared knowledge contains no Human Flow, AI-Tool, AI-Engineering, or
       human-only operator instructions.
 
-## 11. Handoff To Phase 3
+## 11. Handoff To Phase 2.1
 
-Complete every unchecked Phase 2 acceptance criterion before beginning Phase 3.
-Do not use Phase 3 to compensate for stack-biased shared guidance, incomplete
-schema enforcement, citation mismatches, or malformed evaluation assets.
+Complete every Phase 2 acceptance criterion before beginning Phase 2.1. The
+knowledge tree, catalog, source register, embedding pipeline, read-only CLI,
+routing fixtures, and package verification form the accepted operational
+baseline for the editorial refoundation.
 
-Phase 3 uses the minimum useful knowledge corpus through the read-only
-`workspace-validator knowledge` namespace. Its public AI-Tool documents live
-below `docs/validation/flows/ai-tool/`, while its operational agent instructions
-remain in the distributed `skills/workspace-validator/` bundle. Phase 3 updates
-the skill router and references to retrieve selected knowledge by stable CLI
-document ID. It does not copy the shared knowledge tree into the skill or
-`.validation/`, or turn educational material into executable policy or
-AI-Engineering context.
+Phase 2.1 reorganizes that corpus by reader intent, establishes
+standards-informed editorial profiles, removes incidental version coupling,
+and refounds the current content under one mechanically verified authoring
+contract. It preserves stable document IDs and the read-only
+`workspace-validator knowledge` interface.
+
+Phase 3 begins only after Phase 2.1 is complete. It retrieves selected shared
+knowledge by stable CLI document ID and does not copy the knowledge or
+maintainer-only authoring trees into the skill or `.validation/`.

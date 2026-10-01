@@ -115,11 +115,11 @@ This file is generated from `sources.json`. Do not edit it directly.
 
 - ID: `pnpm.cli-11`
 - Authority: pnpm maintainers
-- Revision: pnpm 11.x documentation snapshot reviewed 2026-09-30
+- Revision: pnpm 11.22.0 (tag v11.22.0), with living CLI documentation reviewed 2026-09-30
 - Status: `living`
 - Kind: `maintainer-documentation`
-- Scope: pnpm installation, lockfile, offline, script, and exec behavior
-- Primary URI: <https://pnpm.io/cli/install>
+- Scope: pnpm 11.22.0 installation, lockfile, offline, script, and exec behavior
+- Primary URI: <https://github.com/pnpm/pnpm/releases/tag/v11.22.0>
 - Last reviewed: `2026-09-30`
 
 ### Locations
@@ -245,14 +245,14 @@ This file is generated from `sources.json`. Do not edit it directly.
 
 - ID: `workspace-validator.cli`
 - Authority: workspace-validator project
-- Revision: workspace-validator 0.1.0
+- Revision: workspace-validator 0.1.0 at commit 7bb373f9e57af82f2b5d857b933063f0b6c72d11
 - Status: `living`
 - Kind: `maintainer-documentation`
 - Scope: Current workspace-validator structured report contract
-- Primary URI: <https://github.com/migmoroni/workspace-validator/blob/main/docs/validation/reference/reports.md>
+- Primary URI: <https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md>
 - Last reviewed: `2026-09-30`
 
 ### Locations
 
-- `structured-report` — Validation Reports reference. Supports: Structured report fields and interpretation contract [Open location](https://github.com/migmoroni/workspace-validator/blob/main/docs/validation/reference/reports.md)
+- `structured-report` — Validation Reports reference. Supports: Structured report fields and interpretation contract [Open location](https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md)
 

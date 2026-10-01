@@ -163,9 +163,9 @@
       "id": "pnpm.cli-11",
       "authority": "pnpm maintainers",
       "title": "pnpm CLI Documentation",
-      "revision": "pnpm 11.x documentation snapshot reviewed 2026-09-30",
-      "uri": "https://pnpm.io/cli/install",
-      "scope": "pnpm installation, lockfile, offline, script, and exec behavior",
+      "revision": "pnpm 11.22.0 (tag v11.22.0), with living CLI documentation reviewed 2026-09-30",
+      "uri": "https://github.com/pnpm/pnpm/releases/tag/v11.22.0",
+      "scope": "pnpm 11.22.0 installation, lockfile, offline, script, and exec behavior",
       "kind": "maintainer-documentation",
       "publicationStatus": "living",
       "lastReviewed": "2026-09-30",
@@ -375,8 +375,8 @@
       "id": "workspace-validator.cli",
       "authority": "workspace-validator project",
       "title": "Validation Report Reference",
-      "revision": "workspace-validator 0.1.0",
-      "uri": "https://github.com/migmoroni/workspace-validator/blob/main/docs/validation/reference/reports.md",
+      "revision": "workspace-validator 0.1.0 at commit 7bb373f9e57af82f2b5d857b933063f0b6c72d11",
+      "uri": "https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md",
       "scope": "Current workspace-validator structured report contract",
       "kind": "maintainer-documentation",
       "publicationStatus": "living",
@@ -385,7 +385,7 @@
         {
           "id": "structured-report",
           "locator": "Validation Reports reference",
-          "uri": "https://github.com/migmoroni/workspace-validator/blob/main/docs/validation/reference/reports.md",
+          "uri": "https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md",
           "supports": "Structured report fields and interpretation contract"
         }
       ]

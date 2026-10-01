@@ -120,9 +120,12 @@ jobs:
       - name: Install and smoke-test packaged CLI
         shell: bash
         run: |
-          package_dir="target/package/workspace-validator-0.1.0"
+          package_dir="$GITHUB_WORKSPACE/target/package/workspace-validator-0.1.0"
           install_root="$RUNNER_TEMP/workspace-validator-install"
           smoke_dir="$RUNNER_TEMP/workspace-validator-smoke"
+          knowledge_dir="$(mktemp -d "$RUNNER_TEMP/workspace-validator-knowledge.XXXXXX")"
+          catalog_output="$RUNNER_TEMP/workspace-validator-catalog.json"
+          document_output="$RUNNER_TEMP/workspace-validator-tool.md"
           binary="$install_root/bin/workspace-validator"
 
           cargo install --path "$package_dir" --root "$install_root" --locked
@@ -185,6 +188,30 @@ jobs:
           "$binary" schema config > /dev/null
           "$binary" schema report > /dev/null
           "$binary" config validate --config "$smoke_dir/config.json"
+
+          ancestor="$knowledge_dir"
+          while true; do
+            test ! -e "$ancestor/.validation"
+            test "$ancestor" = "/" && break
+            ancestor="$(dirname "$ancestor")"
+          done
+          test -z "$(find "$knowledge_dir" -mindepth 1 -print -quit)"
+
+          (
+            cd "$knowledge_dir"
+            "$binary" knowledge catalog --format=json
+          ) > "$catalog_output"
+          cmp "$package_dir/docs/validation/knowledge/catalog.json" "$catalog_output"
+
+          (
+            cd "$knowledge_dir"
+            "$binary" knowledge show tool.workspace-validator
+          ) > "$document_output"
+          cmp \
+            "$package_dir/docs/validation/knowledge/tools/workspace-validator.md" \
+            "$document_output"
+
+          test -z "$(find "$knowledge_dir" -mindepth 1 -print -quit)"
       - name: Record package size
         shell: bash
         run: |

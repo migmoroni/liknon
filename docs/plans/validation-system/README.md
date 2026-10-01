@@ -32,7 +32,7 @@ agent. The human-only ownership of `.validation/policy.json` remains a public
 boundary for every caller, while category-based agent enforcement is a contract
 of the two bundled AI flows.
 
-This plan uses **phase** only for the seven ordered implementation units and
+This plan uses **phase** only for the eight ordered implementation units and
 **process** for the four recurring AI-Engineering operations. Processes can be
 invoked again whenever their preconditions hold; they are not release phases or
 mandatory steps in one linear lifecycle.
@@ -445,7 +445,8 @@ validation passed.
 | ---: | --- | --- | --- |
 | 1 | [Human Flow Completion](01-human-flow-completion.md) | Current runtime | Independently complete human workflow and deterministic config initialization |
 | 2 | [Shared Validation Knowledge](02-shared-validation-knowledge.md) | Phase 1 | Cataloged minimum knowledge corpus with concise source-backed guidance, reusable patterns, and precise routes to authoritative depth |
-| 3 | [AI-Tool Flow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1-2 | Human-owned policy foundation and five bounded, reusable, policy-governed agent operations without AI-Engineering processes or persistence |
+| 2.1 | [Knowledge Editorial Refoundation](02.1-knowledge-editorial-refoundation.md) | Phase 2 | Standards-informed editorial families, profiles, version policy, canonical paths, and mechanically verified content structure |
+| 3 | [AI-Tool Flow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1, 2, and 2.1 | Human-owned policy foundation and five bounded, reusable, policy-governed agent operations without AI-Engineering processes or persistence |
 | 4 | [AI-Engineering Persistence And Safety Foundation](04-ai-engineering-persistence-and-safety-foundation.md) | Phases 1-3 | Explicit artifact persistence, process trust boundaries, and AI-Engineering composition over the existing policy contract |
 | 5 | [AI-Engineering Domain And Coverage Setup](05-ai-engineering-domain-and-coverage-setup.md) | Phase 4 | Automatically persisted domain and sensorium processes |
 | 6 | [AI-Engineering Triage And Drift Loop](06-ai-engineering-triage-and-drift-loop.md) | Phase 5 | Safe daily execution, remediation, and recalibration |
@@ -479,20 +480,29 @@ reference, flow contracts, and human-only operator guidance:
 ```text
 docs/validation/
 ├── README.md
+├── authoring/                     # Maintainer-only editorial contracts
+│   ├── README.md
+│   ├── editorial-standard.md
+│   ├── editorial-bases.md
+│   ├── editorial-profiles.json
+│   └── profiles/
 ├── knowledge/                       # Shared by humans and both AI flows
 │   ├── README.md
 │   ├── catalog.json                 # Compact routing metadata
 │   ├── sources.json                 # Canonical source register
 │   ├── SOURCES.md                   # Generated human-readable source index
-│   ├── foundations/
-│   ├── patterns/
-│   ├── languages/
-│   ├── frameworks/
-│   ├── technologies/
-│   ├── tools/
-│   ├── concerns/
-│   ├── standards/
-│   └── recipes/
+│   ├── explanations/
+│   │   ├── foundations/
+│   │   ├── patterns/
+│   │   ├── concerns/
+│   │   ├── languages/
+│   │   ├── technologies/
+│   │   └── frameworks/
+│   ├── how-to/
+│   │   └── recipes/
+│   └── reference/
+│       ├── tools/
+│       └── standards/
 ├── reference/                       # CLI, config, report, schema, and AI policy contracts
 ├── flows/
 │   ├── human/                       # Human Flow contract and operation
