@@ -102,6 +102,10 @@ The source distribution includes one versioned, agent-neutral skill at
 [`skills/workspace-validator`](skills/workspace-validator). Its `SKILL.md` is a
 small router that checks CLI compatibility and loads only the requested
 workflow reference: execution, triage, configuration, or coverage auditing.
+When a task needs source-backed reasoning about evidence, the router can load
+the generated shared-knowledge index and compact catalog, then only the exact
+matching guides. The canonical human-readable tree remains available at
+[`docs/validation/knowledge`](docs/validation/knowledge/README.md).
 
 Copy the complete directory from the source release that matches the installed
 CLI into the skill directory recognized by the consumer workspace. For an

@@ -15,3 +15,10 @@ does not infer, convert, or maintain compatibility with replaced contracts.
 
 The source package also contains canonical copies at `schemas/config.schema.json`
 and `schemas/report.schema.json`, verified against the Rust contract types.
+
+The repository additionally owns Draft 2020-12 schemas for the shared
+validation-knowledge catalog and source register at
+`schemas/knowledge-catalog.schema.json` and
+`schemas/knowledge-sources.schema.json`. These schemas describe editorial and
+routing assets; they are not runtime CLI contracts and are verified by the
+knowledge release task.

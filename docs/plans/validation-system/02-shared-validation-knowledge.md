@@ -410,31 +410,31 @@ make the local package nondeterministic.
 
 ## 10. Acceptance Criteria
 
-- [ ] A human can understand the validation reasoning model without reading a
+- [x] A human can understand the validation reasoning model without reading a
       JSON schema.
-- [ ] An agent can inspect the compact catalog and load only the guidance needed
+- [x] An agent can inspect the compact catalog and load only the guidance needed
       for one decision.
-- [ ] Initial guidance explains relevance, evidence, limitations, and safe next
+- [x] Initial guidance explains relevance, evidence, limitations, and safe next
       steps without external access.
-- [ ] Precise source locations direct deeper study without reproducing upstream
+- [x] Precise source locations direct deeper study without reproducing upstream
       manuals.
-- [ ] The minimum corpus supports at least one complete real validation recipe.
-- [ ] Foundations, patterns, topic guides, tools, standards, and recipes retain
+- [x] The minimum corpus supports at least one complete real validation recipe.
+- [x] Foundations, patterns, topic guides, tools, standards, and recipes retain
       distinct responsibilities.
-- [ ] Directory placement remains editorial while catalog metadata provides
+- [x] Directory placement remains editorial while catalog metadata provides
       cross-facet discovery.
-- [ ] `docs/validation/knowledge/` is the sole canonical shared-knowledge source.
-- [ ] The distributed knowledge is an exact generated projection.
-- [ ] Missing topic coverage is explicit and never replaced by invented advice
+- [x] `docs/validation/knowledge/` is the sole canonical shared-knowledge source.
+- [x] The distributed knowledge is an exact generated projection.
+- [x] Missing topic coverage is explicit and never replaced by invented advice
       or empty placeholders.
-- [ ] Recommendations begin with consequence, invariant, and required evidence,
+- [x] Recommendations begin with consequence, invariant, and required evidence,
       not a fashionable tool.
-- [ ] External standards retain their native versions, levels, and scopes.
-- [ ] Recipes are valid examples and never implicit global policy.
-- [ ] Routing fixtures define the expected minimal document sets for Phase 7
+- [x] External standards retain their native versions, levels, and scopes.
+- [x] Recipes are valid examples and never implicit global policy.
+- [x] Routing fixtures define the expected minimal document sets for Phase 7
       forward trials without encouraging eager category loading.
-- [ ] The runtime remains independent from guidance and tool selection.
-- [ ] Shared knowledge contains no Human Flow, AI-Tool, AI-Engineering, or
+- [x] The runtime remains independent from guidance and tool selection.
+- [x] Shared knowledge contains no Human Flow, AI-Tool, AI-Engineering, or
       human-only operator instructions.
 
 ## 11. Handoff To Phase 3

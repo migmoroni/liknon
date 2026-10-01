@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "shared-knowledge-forward-trials",
+  "suiteVersion": 1,
+  "rubric": "../../rubrics/shared-knowledge.json",
+  "context": {
+    "allowed": ["docs/validation/knowledge/README.md", "docs/validation/knowledge/catalog.json", "catalog-selected local documents"],
+    "network": "scenario-defined",
+    "forbidden": ["implementation plans", "expected prose answers", "other scenario traces"]
+  },
+  "scenarios": [
+    {
+      "id": "minimal-selection",
+      "version": 1,
+      "prompt": "prompts/minimal-selection.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["language.rust", "tool.rustfmt"],
+      "assertions": ["loads-catalog-before-topic", "loads-only-expected-documents", "does-not-execute"]
+    },
+    {
+      "id": "synthesis-boundary",
+      "version": 1,
+      "prompt": "prompts/synthesis-boundary.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["foundation.source-policy", "foundation.validation-strategy", "standard.wcag-2.2"],
+      "assertions": ["labels-local-synthesis", "preserves-wcag-native-levels", "does-not-claim-universal-scale"]
+    },
+    {
+      "id": "evidence-before-tool",
+      "version": 1,
+      "prompt": "prompts/evidence-before-tool.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["pattern.evidence-chain", "concern.reproducible-release-evidence", "tool.cargo"],
+      "assertions": ["states-consequence-first", "states-invariant", "selects-evidence-before-command"]
+    },
+    {
+      "id": "bounded-proof",
+      "version": 1,
+      "prompt": "prompts/bounded-proof.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["foundation.evidence-quality", "tool.clippy"],
+      "assertions": ["states-what-pass-cannot-prove", "records-residual-uncertainty"]
+    },
+    {
+      "id": "precise-source-location",
+      "version": 1,
+      "prompt": "prompts/precise-source-location.md",
+      "networkAccess": "available-and-authorized",
+      "expectedDocumentIds": ["standard.wcag-2.2"],
+      "assertions": ["uses-registered-location-label", "uses-exact-deep-uri"]
+    },
+    {
+      "id": "offline-depth",
+      "version": 1,
+      "prompt": "prompts/offline-depth.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["foundation.source-policy", "foundation.evidence-quality"],
+      "assertions": ["answers-from-local-guidance", "reports-inaccessible-depth", "does-not-invent-source-content"]
+    },
+    {
+      "id": "missing-topic",
+      "version": 1,
+      "prompt": "prompts/missing-topic.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": [],
+      "assertions": ["reports-missing-local-coverage", "does-not-route-rust-guidance", "does-not-invent-commands"]
+    }
+  ]
+}

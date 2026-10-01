@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/migmoroni/workspace-validator/schemas/knowledge-catalog.schema.json",
+  "title": "Workspace Validator Knowledge Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "vocabularies", "navigation", "documents"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "vocabularies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicabilityTags", "evidenceDimensions"],
+      "properties": {
+        "applicabilityTags": { "$ref": "#/$defs/vocabulary" },
+        "evidenceDimensions": { "$ref": "#/$defs/vocabulary" }
+      }
+    },
+    "navigation": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/path" }
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/document" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$" },
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" },
+    "date": { "type": "string", "format": "date" },
+    "nonEmpty": { "type": "string", "minLength": 1 },
+    "vocabulary": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "$ref": "#/$defs/nonEmpty" }
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "path", "summary", "questions", "applicability", "evidenceDimensions", "related", "sources", "status", "lastReviewed"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["foundation", "pattern", "language", "framework", "technology", "tool", "concern", "standard", "recipe"] },
+        "path": { "$ref": "#/$defs/path" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "questions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nonEmpty" } },
+        "applicability": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "evidenceDimensions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "related": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "sources": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "status": { "enum": ["draft", "reviewed"] },
+        "lastReviewed": { "$ref": "#/$defs/date" }
+      }
+    }
+  }
+}
