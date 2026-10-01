@@ -2,26 +2,38 @@
 
 ## 1. Objective
 
-Establish one curated, source-backed validation knowledge foundation that helps
-humans and agents decide what evidence a project needs, why it matters, and
-where to continue learning. The same authored Markdown serves both audiences;
-the distributed skill receives an exact generated projection of the content
-that currently exists.
+Establish one concise, curated, source-backed validation knowledge foundation
+that helps humans and agents answer four questions:
+
+1. what can fail in the current context;
+2. what evidence would meaningfully address that failure;
+3. what the selected evidence can and cannot establish;
+4. where to continue learning when deeper implementation detail is required.
+
+The foundation provides orientation and decision support. It is not an offline
+encyclopedia, an exhaustive tool catalog, a replacement for upstream
+documentation, or an autonomous source of project policy. Local guidance
+contains enough context to identify applicability, evidence, limitations, and a
+safe next step. Precise links point to authoritative material for depth.
+
+Canonical Markdown remains the readable knowledge content shared by humans and
+agents. Small structured JSON catalogs make that content discoverable,
+traceable, and mechanically verifiable without duplicating its prose. The
+distributed skill receives an exact generated projection of the canonical
+knowledge assets that currently exist.
 
 An external agent may read the canonical public documentation directly without
 installing or loading the skill. The generated projection improves routed,
 progressive AI-Tool and AI-Engineering consumption but is not the only valid
-machine-readable access path.
+access path.
 
-The knowledge base is intentionally incremental. Its documents provide concise,
-directly useful orientation and link to authoritative primary documentation for
-depth. They do not reproduce complete standards, upstream manuals, or an offline
-encyclopedia. This phase establishes the structure, editorial contract, source
-policy, and initial foundations; later work adds topic guides only when a real
-validation need justifies them.
+The knowledge base grows only from demonstrated validation needs. This phase
+establishes its editorial and retrieval contracts, source policy, initial
+foundations, reusable patterns, and a minimum useful corpus. Later phases add a
+topic before relying on that topic in a flow, fixture, or recommendation.
 
-This phase supplies reasoning and reference material. It does not move policy
-selection into the runtime or claim comprehensive coverage of validation.
+This phase supplies reasoning and reference material. It does not select AI
+authority, activate a flow, execute validation, or claim comprehensive coverage.
 
 ## 2. Dependency
 
@@ -30,19 +42,28 @@ rather than compensating for unfinished runtime contracts.
 
 ## 3. Canonical Layout
 
-Create the canonical authored knowledge tree:
+Create the canonical knowledge tree:
 
 ```text
 docs/validation/
 ├── README.md
 └── knowledge/
     ├── README.md
-    ├── SOURCES.md
+    ├── catalog.json
+    ├── sources.json
+    ├── SOURCES.md                  # Generated human-readable source index
     ├── foundations/
+    │   ├── README.md
     │   ├── source-policy.md
     │   ├── validation-model.md
+    │   ├── evidence-quality.md
     │   ├── test-types.md
     │   └── validation-strategy.md
+    ├── patterns/
+    │   ├── README.md
+    │   ├── evidence-chain.md
+    │   ├── isolation-and-determinism.md
+    │   └── oracles-and-failure-paths.md
     ├── languages/
     │   ├── README.md
     │   └── <language>.md
@@ -58,67 +79,171 @@ docs/validation/
     ├── concerns/
     │   ├── README.md
     │   └── <concern>.md
+    ├── standards/
+    │   ├── README.md
+    │   └── <standard>.md
     └── recipes/
         ├── README.md
         └── <scenario>.md
 ```
 
-The root index distinguishes shared knowledge from reference material and the
-three flows without duplicating their contracts. The knowledge index explains
-how to move from validation concepts to a project strategy. Foundation
-documents provide the reasoning model. Language, framework, technology, tool,
-and concern documents remain semantically separate. Recipes compose them for
-concrete project shapes.
+The directories are editorial facets, not a rigid ontology. A document has one
+canonical path and may relate to documents in several other facets through the
+catalog. Do not duplicate guidance merely because it applies to more than one
+language, framework, technology, or concern.
 
-Phase 2 requires the root indexes, `SOURCES.md`, the four foundation documents,
-and one index for each expandable category. Topic and recipe documents are added
-only when their content supports an actual use case. Do not create empty topic
-files, speculative catalogs, or placeholder pages merely to populate the tree.
-The absence of a topic means that the knowledge base does not yet provide local
-guidance for it; it never authorizes an agent to invent that guidance.
+The root index distinguishes shared knowledge from CLI reference material and
+the three product flows without duplicating their contracts. The knowledge
+index explains how to move from concepts to patterns, stack guidance, tools,
+standards, and concrete recipes. Foundation documents provide the reasoning
+model. Patterns capture reusable validation approaches independently from one
+specific tool. Recipes compose the smallest relevant set of these materials for
+one real scenario.
 
 Everything below `knowledge/` is audience-neutral. It contains no process
 activation, persistence behavior, decision authority, flow-specific control,
 or human-only conversational guidance. Human Flow documentation, AI-Tool
 instructions, AI-Engineering process contracts, and human-only operator guides
-are authored in their dedicated locations in later phases.
+remain in their dedicated locations.
 
-## 4. Source And Traceability Contract
+## 4. Knowledge Catalog Contract
 
-Create `knowledge/SOURCES.md` as a versioned source register. Each source
-records:
+Create `knowledge/catalog.json` as the machine-verifiable inventory and routing
+map for every substantive knowledge document. Validate it through the crate-owned
+`schemas/knowledge-catalog.schema.json`.
+
+Each document entry records:
+
+- stable document ID;
+- document kind: `foundation`, `pattern`, `language`, `framework`,
+  `technology`, `tool`, `concern`, `standard`, or `recipe`;
+- canonical relative path;
+- concise summary;
+- questions the document helps answer;
+- applicability tags and relevant evidence dimensions;
+- related document IDs;
+- source IDs used by the document;
+- document status and last review date.
+
+Document IDs use stable dot-delimited namespaces such as
+`pattern.evidence-chain` and `tool.rust.clippy`. Evidence-dimension IDs and
+applicability tags come from compact vocabularies declared by the catalog; do
+not create synonymous free-form tags in individual entries. Document status is
+either `draft` or `reviewed`.
+
+The catalog contains routing metadata, not a second copy of the guidance. Its
+summaries are short enough to inspect before loading a document. Paths resolve
+inside `knowledge/`, document IDs are unique, and every substantive Markdown
+guide appears exactly once. Category indexes and generated `SOURCES.md` are
+declared separately as navigation assets rather than topic guides.
+
+Applicability metadata identifies where guidance may be relevant; it never
+claims that a document is automatically applicable to a workspace. The agent
+still confirms versions, repository evidence, product consequences, and human
+constraints before making a recommendation.
+
+## 5. Source And Traceability Contract
+
+Create `knowledge/sources.json` as the canonical versioned source register and
+validate it through the crate-owned `schemas/knowledge-sources.schema.json`.
+Generate `knowledge/SOURCES.md` deterministically from that register for human
+reading. Do not maintain the JSON and Markdown source indexes independently.
+
+Each source records:
 
 - stable source ID;
 - authority and exact title;
 - edition, release, or revision;
 - primary URI;
-- supported scope;
-- normative, framework, official-documentation, or local-synthesis status;
-- last review date.
+- supported scope and source kind;
+- publication status, including draft status when applicable;
+- last review date;
+- one or more named locations when the source supports specific local claims.
 
-The register is shared evidence infrastructure for the knowledge base and for
-source-backed flow contracts. Registering a source used by AI-Engineering does
-not place that flow's behavioral rules inside `knowledge/`.
+Each named location records:
 
-Every substantive local recommendation links to an applicable source ID and,
-when available, a section, requirement, control, or success criterion. Each
-topic guide also links directly to the best primary documentation for further
-study. Local interpretation is marked as synthesis and is not presented as
-quoted or normative source material.
+- stable location ID within the source;
+- exact chapter, section, requirement, control, success criterion, or
+  documentation path;
+- a deep URI when the publisher provides one;
+- the local question or recommendation the location supports.
 
-The initial register contains only sources cited by the initial foundation.
-Later phases and topic additions register their sources before relying on them.
-Do not pre-populate entries for subjects that have no authored guidance. Prefer
+Source IDs use stable dot-delimited namespaces such as `rust.clippy`. Location
+IDs are source-local kebab-case identifiers such as `lint-levels`.
+
+Substantive recommendations cite the narrowest applicable location with a
+machine-verifiable Markdown link label such as:
+
+```text
+[Source: rust.clippy#lint-levels](https://doc.rust-lang.org/clippy/...)
+```
+
+When a stable deep URI does not exist, the link uses the primary URI and the
+source location still records the exact textual locator. Local interpretation
+is explicitly marked as synthesis and remains linked to the primary material
+that supports it. Synthesis is not presented as a quotation or normative rule.
+
+The initial register contains only sources cited by current guidance. Prefer
 official specifications, standards bodies, maintainers' documentation, and
-primary research over secondary summaries. A source entry is a navigational and
-traceability aid, not a requirement to summarize the complete source locally.
+primary research over secondary summaries. Restricted standards are cited and
+summarized rather than copied. Draft publications remain labeled as drafts and
+do not silently replace final editions.
 
-Draft publications remain labeled as drafts and do not silently replace final
-editions. Restricted standards are cited and summarized rather than copied.
+Links provide direction, not implicit network authority. The local guide must
+still contain enough information to explain relevance, evidence, limitations,
+and the safe next step when external access is unavailable. If deeper detail is
+required and cannot be accessed, the agent reports that limitation instead of
+inventing the missing content.
 
-## 5. Foundation Model
+## 6. Common Editorial Contract
 
-### 5.1 Validation Model
+Every substantive guide uses stable headings that answer, when applicable:
+
+- what question the guide addresses;
+- when it applies and when it does not;
+- relevant failure modes or consequences;
+- evidence the approach can produce;
+- what that evidence cannot establish;
+- prerequisites, relative cost, mutation behavior, and external services;
+- useful combinations and meaningful overlap with other evidence;
+- practical selection guidance;
+- precise next steps and source locations.
+
+Documents remain concise. Prefer one directly useful explanation and precise
+navigation to authoritative depth over copied manuals, long option catalogs, or
+generic prose. Clearly separate sourced fact, local synthesis, example, and
+unresolved uncertainty.
+
+Language, framework, technology, and concern guides apply this common contract
+to their subject. Standard guides preserve the standard's own version, scope,
+levels, and terminology rather than translating them into a universal assurance
+scale.
+
+A tool guide additionally records:
+
+- executable and package identity;
+- versions or ranges for which commands were reviewed;
+- covered defect or evidence class;
+- useful command structure rather than an exhaustive command reference;
+- output and exit behavior;
+- overlap with other tools and known blind spots.
+
+A recipe additionally records:
+
+- one concrete scenario and its assumptions;
+- risks, invariants, and required evidence;
+- selected patterns and topic guides;
+- tools only after required evidence is established;
+- execution contexts and ordering;
+- one complete schema-valid example for the declared scenario;
+- known gaps, rejected alternatives when material, and residual uncertainty.
+
+Recipes demonstrate composition. They never become mandatory project policy or
+universal stack presets.
+
+## 7. Foundation And Minimum Useful Corpus
+
+### 7.1 Validation Model
 
 Provide a concise map of independent evidence dimensions, including:
 
@@ -133,145 +258,189 @@ Provide a concise map of independent evidence dimensions, including:
 - platform and runtime support;
 - performance, load, property-based, fuzz, and mutation testing.
 
-For each dimension, explain what question it helps answer, name its principal
-limitations, and point to the most relevant primary sources. Do not attempt to
-catalog every technique or tool. No single tool or universal checklist
-establishes complete correctness.
+For each dimension, explain the question it helps answer, its principal
+limitations, and its relationship to adjacent evidence. No single dimension,
+tool, or universal checklist establishes complete correctness.
 
-### 5.2 Test Types
+### 7.2 Evidence Quality
 
-Establish practical distinctions among the core test types by summarizing their
-purpose, boundary, ownership, relative cost, limitations, and common overlaps.
-Keep each explanation short and link to authoritative material for detailed
-methodology. Where a terminology difference materially changes a validation
-decision, identify the competing definitions rather than selecting one silently.
+Explain the chain from consequence or invariant to claim, failure mode,
+observable evidence, validation mechanism, result, limitation, and residual
+uncertainty. Cover test oracles, false confidence, false positive and false
+negative outcomes, determinism, flakiness, representative fixtures, and the
+difference between executing a check and establishing a claim.
 
-### 5.3 Validation Strategy
+### 7.3 Test Types
+
+Establish practical distinctions among core test types by summarizing purpose,
+boundary, ownership, relative cost, limitations, and common overlaps. Where a
+terminology difference changes a decision, identify the competing definitions
+rather than selecting one silently.
+
+### 7.4 Validation Strategy
 
 Teach this decision process:
 
 1. identify the product, change, or operation;
 2. identify affected users, assets, data, platforms, and obligations;
-3. assess relevant likelihood and impact;
-4. identify applicable quality characteristics and domain standards;
-5. select required evidence dimensions and test types;
-6. select tools after the evidence is understood;
-7. decide where and when each validation runs;
-8. record gaps, uncertainty, and accepted residual risk.
+3. identify concrete consequences, invariants, and uncertainty;
+4. assess relevant likelihood and impact without inventing a universal score;
+5. identify applicable quality characteristics and domain standards;
+6. select required evidence dimensions, patterns, and test types;
+7. select tools after the evidence is understood;
+8. decide where and when each validation runs;
+9. record gaps, overlap, uncertainty, and accepted residual risk.
 
-Do not invent a universal project-wide assurance ladder. Preserve official
-levels such as WCAG conformance, ASVS verification, SLSA tracks, SAMM maturity,
-and OSPS maturity within their native version and scope.
+Preserve official levels such as WCAG conformance, ASVS verification, SLSA
+tracks, SAMM maturity, and OSPS maturity within their native version and scope.
 
-## 6. Tool Guides And Recipes
+### 7.5 Initial Reusable Patterns
 
-Define this concise template for each tool guide that is actually added:
+The initial pattern set establishes:
 
-- purpose and covered defect class;
-- executable and package identity;
-- scope and relative cost;
-- mutation behavior;
-- prerequisites and external services;
-- useful command structure and flags;
-- output and exit behavior;
-- limitations and evidence overlap;
-- official sources.
+- an evidence chain from risk or invariant to bounded validation evidence;
+- isolation, deterministic inputs, reproducible execution, and explicit
+  treatment of flaky evidence;
+- suitable oracles, negative cases, failure paths, and limits of success-only
+  validation.
 
-Tool guides explain enough to decide whether and how to evaluate a tool. They do
-not mirror complete command references, configuration manuals, or upstream
-tutorials. Exhaustive options remain in the linked official documentation.
+These patterns remain tool-neutral. Later patterns are added only when a real
+scenario cannot be explained adequately by the existing set.
 
-Define a recipe template that records scenario, assumptions, risks, selected
-evidence, source basis, execution contexts, and known gaps. An authored recipe
-contains a complete schema-valid example for its declared scenario, but Phase 2
-does not require a recipe for every supported language or stack. Recipes are
-added as concrete reusable scenarios emerge and never become mandatory project
-policy.
+### 7.6 Minimum Corpus Boundary
 
-## 7. Skill Projection
+Phase 2 requires:
+
+- the root and category indexes;
+- valid catalog and source registries plus generated `SOURCES.md`;
+- the five foundation documents;
+- the three initial reusable pattern documents;
+- at least one complete worked recipe drawn from a maintained repository or
+  evaluation fixture;
+- only the topic guides needed to support that recipe, the current repository,
+  and Phase 3 acceptance scenarios.
+
+Do not populate every category, language, framework, technology, standard, or
+tool. Do not create empty topic files, speculative catalogs, or placeholder
+pages. The absence of a topic is explicit and never authorizes an agent to
+invent local guidance.
+
+When a later phase introduces a fixture or recommendation that depends on a new
+topic, that phase first adds the smallest source-backed guide needed for the
+scenario and regenerates the projection. Knowledge growth follows demonstrated
+use, not anticipation.
+
+## 8. Skill Projection And Progressive Disclosure
 
 Keep `skills/workspace-validator/SKILL.md` as a small router. Extend the skill
-manifest with:
-
-- maintenance metadata pointing to `docs/validation/knowledge/` in the source
-  tree;
-- one active runtime root below `references/knowledge/`;
-- explicit catalog routes for the index, source register, foundations, category
-  indexes, and only the topic or recipe documents that currently exist.
-
-This phase adds only the shared-knowledge branch. Phase 3 implements the shared
-AI policy boundary and explicit AI-Tool routing, and Phase 4 adds AI-Engineering
-routing. The knowledge branch must not infer or select either flow.
+manifest with maintenance metadata pointing to the canonical knowledge tree and
+one active knowledge route below `references/knowledge/`. Do not duplicate the
+complete document catalog in the skill manifest.
 
 A deterministic repository release task copies the current canonical tree to
-the distributed skill while preserving paths and bytes. Adding a topic later
-extends the same projection without requiring another knowledge architecture.
-The generated copy is never edited independently.
+the distributed skill while preserving paths and bytes. The generated copy is
+never edited independently. Its root index points to the projected
+`catalog.json`, which remains the authoritative inventory for progressive
+loading inside the knowledge branch.
+
+Progressive disclosure follows this sequence:
+
+1. load the knowledge index and compact catalog;
+2. match the current question and confirmed workspace evidence to the smallest
+   applicable document set;
+3. load foundations or patterns only when the decision requires them;
+4. load exact topic guides and recipes instead of whole categories;
+5. follow an external source location only when deeper detail is required and
+   access is available and authorized;
+6. report missing local coverage or inaccessible depth explicitly.
+
+The catalog narrows context; it does not make the decision. AI-Tool and
+AI-Engineering references remain distinct from shared knowledge. Loading
+knowledge never selects a flow, starts a process, writes an artifact, grants
+authority, or authorizes network access.
 
 Tests reject:
 
 - missing, extra, stale, or modified generated files;
-- unsafe or traversing manifest paths;
+- unsafe or traversing catalog and manifest paths;
 - routes outside the active knowledge root;
 - package contents that omit routed knowledge;
 - a version declared independently from the skill manifest.
 
-## 8. Progressive Disclosure
+## 9. Verification And Forward Trials
 
-The skill loads only the references relevant to the current decision:
+Verify mechanically:
 
-- the validation model for evidence questions;
-- test types for boundary questions;
-- validation strategy for context and risk selection;
-- source policy for authority questions;
-- exact available language, framework, technology, tool, concern, and recipe
-  guides relevant to the workspace under analysis.
+- catalog and source registries satisfy their schemas;
+- every stable ID is unique and every relationship resolves;
+- every substantive Markdown guide has exactly one catalog entry;
+- catalog paths, internal links, and source-location citations resolve;
+- generated `SOURCES.md` is deterministic and matches `sources.json`;
+- canonical and projected trees have identical paths and bytes;
+- the projected tree digest is deterministic across supported hosts;
+- every authored recipe contains a complete schema-valid example without
+  executing its checks;
+- category indexes list only documents that currently exist;
+- no empty topic or recipe placeholders enter the tree;
+- the source package contains the intended canonical and projected assets.
 
-When no local topic guide exists, the skill reports that absence and uses the
-foundation plus registered primary sources. It does not fabricate a missing
-guide or load unrelated material as a substitute.
+Version small routing fixtures that map representative questions and workspace
+facts to expected document IDs. Cover exact selection, valid multi-document
+composition, absent local coverage, inaccessible external sources, overlapping
+guidance, and rejection of unrelated documents.
 
-AI-Tool and AI-Engineering references remain distinct from shared knowledge.
-Loading knowledge never selects a flow, starts a process, writes an artifact,
-or grants authority. Later phases may route to the generated knowledge
-projection without modifying it.
+Define model-neutral forward-trial scenarios in which an agent must:
 
-## 9. Tests
+- select only relevant guidance through the catalog;
+- distinguish sourced fact, synthesis, example, and inference;
+- move from consequence or invariant to required evidence before naming tools;
+- state what selected evidence cannot prove;
+- use precise source locations for requested depth;
+- remain useful without network access and report unavailable depth;
+- decline to invent guidance for a missing topic.
 
-- Verify canonical and generated trees have identical paths and bytes.
-- Verify the generated tree digest is deterministic across supported hosts.
-- Validate every manifest route and internal documentation link.
-- Validate every authored recipe without executing its checks.
-- Verify every substantive recommendation has traceability or an explicit
-  local-synthesis marker.
-- Verify every registered source has its required version and review metadata.
-- Verify category indexes route only to documents that currently exist.
-- Verify the initial tree contains no empty topic or recipe placeholders.
-- Inspect source package contents and the assembled skill bundle.
+Phase 2 versions prompts, fixtures, deterministic assertions, and review
+rubrics. Phase 7 executes cross-model trials under the shared Agent Evaluation
+Program, avoiding an AI-provider dependency in the knowledge implementation.
+
+Normal deterministic tests validate URI structure and registered locators
+without depending on external network availability. Link-health checks may run
+separately and update review metadata; transient publisher availability does not
+make the local package nondeterministic.
 
 ## 10. Acceptance Criteria
 
-- [ ] A human can learn the validation model without reading a JSON schema.
-- [ ] An agent can load only the guidance required for one decision.
-- [ ] Initial documents provide concise decision support and primary-source
-      paths without attempting to reproduce upstream documentation.
-- [ ] `docs/validation/knowledge/` is the sole authored shared-knowledge source.
+- [ ] A human can understand the validation reasoning model without reading a
+      JSON schema.
+- [ ] An agent can inspect the compact catalog and load only the guidance needed
+      for one decision.
+- [ ] Initial guidance explains relevance, evidence, limitations, and safe next
+      steps without external access.
+- [ ] Precise source locations direct deeper study without reproducing upstream
+      manuals.
+- [ ] The minimum corpus supports at least one complete real validation recipe.
+- [ ] Foundations, patterns, topic guides, tools, standards, and recipes retain
+      distinct responsibilities.
+- [ ] Directory placement remains editorial while catalog metadata provides
+      cross-facet discovery.
+- [ ] `docs/validation/knowledge/` is the sole canonical shared-knowledge source.
 - [ ] The distributed knowledge is an exact generated projection.
-- [ ] New topic guides and recipes can be added independently without changing
-      the knowledge architecture or runtime contracts.
 - [ ] Missing topic coverage is explicit and never replaced by invented advice
       or empty placeholders.
-- [ ] Recommendations begin with risk and required evidence, not a fashionable
-      tool.
+- [ ] Recommendations begin with consequence, invariant, and required evidence,
+      not a fashionable tool.
 - [ ] External standards retain their native versions, levels, and scopes.
 - [ ] Recipes are valid examples and never implicit global policy.
+- [ ] Routing fixtures define the expected minimal document sets for Phase 7
+      forward trials without encouraging eager category loading.
 - [ ] The runtime remains independent from guidance and tool selection.
 - [ ] Shared knowledge contains no Human Flow, AI-Tool, AI-Engineering, or
       human-only operator instructions.
 
 ## 11. Handoff To Phase 3
 
-Phase 3 uses the available knowledge foundation in the policy-governed AI-Tool
+Phase 3 uses the minimum useful knowledge corpus in the policy-governed AI-Tool
 Flow while keeping each operational skill bounded to one request. It registers
-the source entries required by its own normative policy contract, but it does not
-turn educational material into executable policy or AI-Engineering context.
+the source entries and smallest topic guides required by its own acceptance
+scenarios before relying on them. It does not turn educational material into
+executable policy or AI-Engineering context.

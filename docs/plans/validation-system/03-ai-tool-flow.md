@@ -368,10 +368,11 @@ absolute policy-mutation prohibition. The skill projection is generated from
 that canonical source rather than maintained independently.
 
 Register every standard, primary research work, and official reference used by
-the policy contract in `docs/validation/knowledge/SOURCES.md` before citing it.
-Add only sources the contract actually uses; do not expand the shared knowledge
-tree merely to summarize those sources. Regenerate the exact distributed
-knowledge projection after updating the register.
+the policy contract in `docs/validation/knowledge/sources.json` before citing
+it. Generate `docs/validation/knowledge/SOURCES.md` from that canonical
+register. Add only sources the contract actually uses; do not expand the shared
+knowledge tree merely to summarize those sources. Regenerate the exact
+distributed knowledge projection after updating the register.
 
 The root validation index clearly distinguishes AI-Tool from Human Flow and
 AI-Engineering. It states that both AI flows require a valid human-owned policy,

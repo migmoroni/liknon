@@ -201,8 +201,9 @@ its domain and config digests match their explicit inputs.
 
 - requires and verifies one exact domain artifact;
 - audits the current config without running checks;
-- loads only relevant language, framework, technology, concern, tool, and recipe
-  guides;
+- loads only relevant foundations, patterns, language, framework, technology,
+  concern, standard, tool, and recipe guides selected through the knowledge
+  catalog;
 - constructs the evidence matrix and proposed config diff;
 - delegates configuration mechanics to `ai-tool/config.md`;
 - delegates every effect classification to the normative decision policy;

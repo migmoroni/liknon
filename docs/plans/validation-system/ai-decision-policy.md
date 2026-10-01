@@ -41,11 +41,13 @@ workspace-validator contract as a local synthesis:
   explicit previews, reversibility, human-in-the-loop controls, and audit
   trails.
 
-The shared source register at `docs/validation/knowledge/SOURCES.md` contains
-exact editions, stable source IDs, primary URIs, scope, and review dates. The
-five numeric levels and category tables are this
-project's normative synthesis; the document must not misrepresent them as a
-standard published verbatim by any one source.
+The canonical shared source register at
+`docs/validation/knowledge/sources.json` contains exact editions, stable source
+IDs, primary URIs, precise locations, scope, and review dates.
+`docs/validation/knowledge/SOURCES.md` is its generated human-readable
+projection. The five numeric levels and category tables are this project's
+normative synthesis; the document must not misrepresent them as a standard
+published verbatim by any one source.
 
 ## 2. Separate Policies
 

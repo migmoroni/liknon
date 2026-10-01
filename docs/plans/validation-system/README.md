@@ -435,12 +435,12 @@ validation passed.
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
 | 1 | [Human Flow Completion](01-human-flow-completion.md) | Current runtime | Independently complete human workflow and deterministic config initialization |
-| 2 | [Shared Validation Knowledge](02-shared-validation-knowledge.md) | Phase 1 | Concise, source-backed, incrementally extensible guidance for humans and agents |
+| 2 | [Shared Validation Knowledge](02-shared-validation-knowledge.md) | Phase 1 | Cataloged minimum knowledge corpus with concise source-backed guidance, reusable patterns, and precise routes to authoritative depth |
 | 3 | [AI-Tool Flow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1-2 | Human-owned policy foundation and five bounded, reusable, policy-governed agent operations without AI-Engineering processes or persistence |
 | 4 | [AI-Engineering Persistence And Safety Foundation](04-ai-engineering-persistence-and-safety-foundation.md) | Phases 1-3 | Explicit artifact persistence, process trust boundaries, and AI-Engineering composition over the existing policy contract |
 | 5 | [AI-Engineering Domain And Coverage Setup](05-ai-engineering-domain-and-coverage-setup.md) | Phase 4 | Automatically persisted domain and sensorium processes |
 | 6 | [AI-Engineering Triage And Drift Loop](06-ai-engineering-triage-and-drift-loop.md) | Phase 5 | Safe daily execution, remediation, and recalibration |
-| 7 | [End-To-End Verification And Release](07-end-to-end-verification-and-release.md) | Phases 1-6 | Proven isolation, composition, three-family agent evaluation, and distributable artifacts |
+| 7 | [End-To-End Verification And Release](07-end-to-end-verification-and-release.md) | Phases 1-6 | Proven isolation, composition, four-family agent evaluation, and distributable artifacts |
 
 Complete phases in order. A phase may add tests for later contracts only when
 those tests do not introduce the later implementation prematurely.
@@ -472,13 +472,17 @@ docs/validation/
 ├── README.md
 ├── knowledge/                       # Shared by humans and both AI flows
 │   ├── README.md
-│   ├── SOURCES.md
+│   ├── catalog.json                 # Compact routing metadata
+│   ├── sources.json                 # Canonical source register
+│   ├── SOURCES.md                   # Generated human-readable source index
 │   ├── foundations/
+│   ├── patterns/
 │   ├── languages/
 │   ├── frameworks/
 │   ├── technologies/
 │   ├── tools/
 │   ├── concerns/
+│   ├── standards/
 │   └── recipes/
 ├── reference/                       # CLI, config, report, schema, and AI policy contracts
 ├── flows/
@@ -548,12 +552,14 @@ schema copies.
 The unified plan is complete only when:
 
 - a human can configure, inspect, execute, and diagnose validation without AI;
+- an external agent can discover representative CLI workflows from only the
+  executable and its in-band output;
+- an external agent can perform representative direct CLI tasks from public
+  documentation alone without receiving AI-Tool or AI-Engineering instructions;
 - an agent can complete bounded policy-governed AI-Tool operations without
   creating policy, persistence, or process artifacts;
 - an AI-Engineering agent composes AI-Tool operations with explicit processes
   instead of redefining them;
-- an external agent can perform representative direct CLI tasks from public
-  documentation alone without receiving AI-Tool or AI-Engineering instructions;
 - canonical shared knowledge supports humans and both AI flows without
   separately authored rewrites;
 - human-only operator guidance is structurally separate and never routed as an
