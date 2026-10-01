@@ -1,6 +1,7 @@
 //! CLI parsing, command dispatch, cancellation, and exit-code translation.
 
 mod inspection;
+mod knowledge;
 
 use crate::{
     config::{self, ValidatedConfig},
@@ -110,6 +111,11 @@ enum Command {
         #[arg(value_enum)]
         contract: Contract,
     },
+    /// Reads validation guidance embedded in this binary.
+    Knowledge {
+        #[command(subcommand)]
+        command: KnowledgeCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -118,6 +124,17 @@ enum ConfigCommand {
         #[arg(long)]
         config: Option<PathBuf>,
     },
+}
+
+#[derive(Subcommand)]
+enum KnowledgeCommand {
+    /// Lists the embedded catalog used for progressive discovery.
+    Catalog {
+        #[arg(long, value_enum, default_value = "human")]
+        format: Format,
+    },
+    /// Writes one canonical Markdown document selected by stable ID.
+    Show { document_id: String },
 }
 
 #[derive(Subcommand)]
@@ -246,6 +263,23 @@ fn execute(
         write_output(stdout, &rendered)?;
         return Ok(0);
     }
+    if let Command::Knowledge { command } = &cli.command {
+        let result = match command {
+            KnowledgeCommand::Catalog { format } => {
+                knowledge::catalog(matches!(format, Format::Json), stdout)
+            }
+            KnowledgeCommand::Show { document_id } => knowledge::show(document_id, stdout),
+        };
+        return match result {
+            Ok(()) => Ok(0),
+            Err(knowledge::KnowledgeError::Selection(details)) => {
+                Err((ValidatorError::Usage(details), 3))
+            }
+            Err(knowledge::KnowledgeError::Internal(details)) => {
+                Err((ValidatorError::Internal(details), 4))
+            }
+        };
+    }
     if matches!(
         &cli.command,
         Command::Validate {
@@ -317,6 +351,7 @@ fn execute(
             | ExplainTarget::Check { config, .. } => config.as_deref(),
         },
         Command::Schema { .. } => unreachable!(),
+        Command::Knowledge { .. } => unreachable!(),
     };
     let validated = config::load(explicit, &current).map_err(|error| (error, 3))?;
     match cli.command {
@@ -394,6 +429,7 @@ fn execute(
             )
         }
         Command::Schema { .. } => unreachable!(),
+        Command::Knowledge { .. } => unreachable!(),
         Command::Init { .. } => unreachable!(),
     }
 }

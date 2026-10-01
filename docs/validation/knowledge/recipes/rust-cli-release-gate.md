@@ -4,16 +4,18 @@
 
 This worked recipe validates a maintained Cargo workspace that ships a CLI,
 declares Rust 1.87 as its MSRV, commits `Cargo.lock`, distributes documentation
-and a generated agent skill, and must not publish or modify source during the
-gate. It is an example, not mandatory policy.
+and an operational agent skill, embeds canonical knowledge in the CLI, and must
+not publish or modify source during the gate. It is an example, not mandatory
+policy.
 
 ## Risks, Invariants, And Evidence
 
 - Source must remain formatted and free of denied selected lints.
 - Current and documented Rust examples must pass on the active toolchain.
 - The declared minimum toolchain must compile every selected target.
-- The crate archive must contain canonical schemas, documentation, and the
-  exact generated skill projection, then verify without publication.
+- The crate archive must contain canonical schemas, documentation, embedding
+  logic, and the operational skill, then build and serve the canonical
+  knowledge without publication.
 - Validation must preserve the initial Git-visible state.
 
 These claims use the [evidence chain](../patterns/evidence-chain.md),
@@ -38,7 +40,7 @@ requires a populated Cargo cache. Publishing is excluded.
 ```json
 {
   "schemaVersion": 6,
-  "workspaceRoot": ".",
+  "workspaceRoot": "..",
   "defaultGroup": "release",
   "outputLimitBytes": 1048576,
   "repository": {
@@ -67,8 +69,8 @@ requires a populated Cargo cache. Publishing is excluded.
   "checks": [
     {
       "id": "knowledge.check",
-      "label": "Generated knowledge",
-      "description": "Verifies registries, links, sources, fixtures, and the exact skill projection.",
+      "label": "Knowledge assets",
+      "description": "Verifies registries, links, sources, fixtures, and embedded-asset inputs.",
       "toolId": "cargo",
       "args": ["run", "--locked", "--example", "knowledge_release", "--", "--check"],
       "requiresTools": [],

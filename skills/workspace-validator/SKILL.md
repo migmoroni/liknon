@@ -10,11 +10,12 @@ description: Safely run, diagnose, configure, and audit declarative validation w
 Use this file as the only entry point. Load exactly one workflow reference at a
 time unless the task genuinely crosses workflow boundaries.
 
-Shared validation knowledge is available through
-`references/knowledge/README.md`. Load that index and its compact catalog only
-when the task requires validation reasoning beyond the selected workflow. Then
-load the smallest matching document set. Knowledge does not select a workflow,
-grant authority, authorize network access, or execute validation.
+Shared validation knowledge is embedded in the compatible CLI. When the task
+requires validation reasoning beyond the selected workflow, run
+`workspace-validator knowledge catalog --format=json`, select the smallest
+matching document set, and retrieve each selected document with
+`workspace-validator knowledge show <document-id>`. Knowledge does not select a
+workflow, grant authority, authorize network access, or execute validation.
 
 ## Check Compatibility
 

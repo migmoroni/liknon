@@ -2,11 +2,26 @@
 
 This file is generated from `sources.json`. Do not edit it directly.
 
+## ECMAScript 2025 Language Specification
+
+- ID: `ecma.ecmascript-2025`
+- Authority: Ecma International
+- Revision: ECMA-262, 16th edition, June 2025
+- Status: `final`
+- Kind: `specification`
+- Scope: ECMAScript language syntax and runtime semantics
+- Primary URI: <https://262.ecma-international.org/16.0/>
+- Last reviewed: `2026-09-30`
+
+### Locations
+
+- `language-overview` — Clause 4, Overview. Supports: The distinction between the ECMAScript language specification and host-provided facilities [Open location](https://262.ecma-international.org/16.0/#sec-overview)
+
 ## git-status Documentation
 
 - ID: `git.status`
 - Authority: Git project
-- Revision: Git 2.x living documentation
+- Revision: Living Git documentation snapshot reviewed 2026-09-30
 - Status: `living`
 - Kind: `maintainer-documentation`
 - Scope: Git work-tree and index status output
@@ -78,28 +93,61 @@ This file is generated from `sources.json`. Do not edit it directly.
 - `practice-model` — Section 2 and Table 1, practices, tasks, and implementation examples. Supports: Outcome-oriented practices should be adapted rather than reduced to one prescribed tool [Open location](https://csrc.nist.gov/pubs/sp/800/218/final)
 - `verify-software` — Practice PW.7, Review and/or Analyze Human-Readable Code. Supports: Code review and analysis are scoped mechanisms for identifying vulnerabilities [Open location](https://csrc.nist.gov/pubs/sp/800/218/final)
 - `risk-based-customization` — Section 2, risk-based approach and SSDF customization. Supports: Organizations select and adapt practices according to risk and context [Open location](https://csrc.nist.gov/pubs/sp/800/218/final)
-- `tasks-and-evidence` — Table 1, tasks and notional implementation examples. Supports: Evidence mechanisms serve defined outcomes rather than replacing them [Open location](https://csrc.nist.gov/pubs/sp/800/218/final)
+- `tasks-and-evidence` — Table 1, tasks and notional implementation examples. Supports: SSDF practices are expressed through tasks and notional implementation examples [Open location](https://csrc.nist.gov/pubs/sp/800/218/final)
 
-## The Rust Programming Language: Test Organization
+## Node.js v22 API Documentation
 
-- ID: `rust.book-testing`
-- Authority: Rust project
-- Revision: Rust 2021 edition living documentation
-- Status: `living`
+- ID: `nodejs.api-22`
+- Authority: OpenJS Foundation and Node.js contributors
+- Revision: Node.js v22.16.0 documentation
+- Status: `final`
 - Kind: `maintainer-documentation`
-- Scope: Rust unit and integration test organization
-- Primary URI: <https://doc.rust-lang.org/book/ch11-03-test-organization.html>
+- Scope: Node.js 22 runtime, process, module, and environment behavior
+- Primary URI: <https://nodejs.org/docs/v22.16.0/api/>
 - Last reviewed: `2026-09-30`
 
 ### Locations
 
-- `test-organization` — Chapter 11.3, Test Organization. Supports: Rust unit and integration test boundaries and test outcome mechanisms [Open location](https://doc.rust-lang.org/book/ch11-03-test-organization.html)
+- `modules` — Modules: CommonJS modules and ECMAScript modules. Supports: Node.js package module interpretation is a host/runtime concern distinct from ECMAScript language semantics [Open location](https://nodejs.org/docs/v22.16.0/api/packages.html)
+- `exit-codes` — Process, Exit codes. Supports: Node.js process exit status behavior used by command-line validation tools [Open location](https://nodejs.org/docs/v22.16.0/api/process.html#exit-codes)
+
+## pnpm CLI Documentation
+
+- ID: `pnpm.cli-11`
+- Authority: pnpm maintainers
+- Revision: pnpm 11.x documentation snapshot reviewed 2026-09-30
+- Status: `living`
+- Kind: `maintainer-documentation`
+- Scope: pnpm installation, lockfile, offline, script, and exec behavior
+- Primary URI: <https://pnpm.io/cli/install>
+- Last reviewed: `2026-09-30`
+
+### Locations
+
+- `frozen-lockfile` — pnpm install, --frozen-lockfile and --offline options. Supports: Frozen lockfile installation fails rather than updating an out-of-date lockfile [Open location](https://pnpm.io/cli/install#--frozen-lockfile)
+- `run-scripts` — pnpm run. Supports: Package scripts execute through pnpm with script arguments and lifecycle environment [Open location](https://pnpm.io/cli/run)
+- `exec` — pnpm exec. Supports: Project dependency binaries can be invoked without relying on a global installation [Open location](https://pnpm.io/cli/exec)
+
+## Definitions — Reproducible Builds
+
+- ID: `reproducible-builds.definition`
+- Authority: Reproducible Builds project
+- Revision: Living definition snapshot reviewed 2026-09-30
+- Status: `living`
+- Kind: `maintainer-documentation`
+- Scope: Build reproducibility as identical outputs from the same source, environment, instructions, and dependencies
+- Primary URI: <https://reproducible-builds.org/docs/definition/>
+- Last reviewed: `2026-09-30`
+
+### Locations
+
+- `definition` — What is a reproducible build?. Supports: Reproducibility depends on declared source, build environment, instructions, and dependencies [Open location](https://reproducible-builds.org/docs/definition/)
 
 ## The Cargo Book and Command Reference
 
 - ID: `rust.cargo`
 - Authority: Rust project
-- Revision: Cargo 1.87+ living documentation
+- Revision: Living Cargo documentation snapshot reviewed 2026-09-30
 - Status: `living`
 - Kind: `maintainer-documentation`
 - Scope: Cargo checking, testing, packaging, lockfile, target, and MSRV behavior
@@ -118,7 +166,7 @@ This file is generated from `sources.json`. Do not edit it directly.
 
 - ID: `rust.clippy`
 - Authority: Rust project
-- Revision: Rust 1.87+ living documentation
+- Revision: Living Clippy documentation snapshot reviewed 2026-09-30
 - Status: `living`
 - Kind: `maintainer-documentation`
 - Scope: Clippy invocation, lint groups, levels, and configuration
@@ -133,7 +181,7 @@ This file is generated from `sources.json`. Do not edit it directly.
 
 - ID: `rust.rustfmt`
 - Authority: Rust project
-- Revision: rustfmt living documentation for Rust 1.87+
+- Revision: rustfmt documentation snapshot reviewed 2026-09-30
 - Status: `living`
 - Kind: `maintainer-documentation`
 - Scope: Rust source formatting and CI check mode
@@ -143,6 +191,39 @@ This file is generated from `sources.json`. Do not edit it directly.
 ### Locations
 
 - `check-mode` — Checking style on a CI server. Supports: Non-mutating cargo fmt check invocation [Open location](https://github.com/rust-lang/rustfmt#checking-style-on-a-ci-server)
+
+## TypeScript Documentation
+
+- ID: `typescript.docs-6`
+- Authority: Microsoft and TypeScript contributors
+- Revision: TypeScript 6.0.3 documentation snapshot reviewed 2026-09-30
+- Status: `living`
+- Kind: `maintainer-documentation`
+- Scope: TypeScript static type checking, compiler configuration, and JavaScript emission
+- Primary URI: <https://www.typescriptlang.org/docs/>
+- Last reviewed: `2026-09-30`
+
+### Locations
+
+- `typescript-for-javascript` — TypeScript for the New Programmer. Supports: TypeScript performs static checking before JavaScript execution and erases types from emitted output [Open location](https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html)
+- `no-emit` — TSConfig Reference, noEmit. Supports: The compiler can type-check a project without emitting JavaScript files [Open location](https://www.typescriptlang.org/tsconfig/noEmit.html)
+- `project-option` — Compiler Options, --project. Supports: The project option selects a specific tsconfig configuration [Open location](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
+
+## Vitest Guide and CLI Reference
+
+- ID: `vitest.docs-4`
+- Authority: Vitest maintainers
+- Revision: Vitest 4.1.10 documentation snapshot reviewed 2026-09-30
+- Status: `living`
+- Kind: `maintainer-documentation`
+- Scope: Vitest test discovery, non-watch execution, configuration, and exit behavior
+- Primary URI: <https://vitest.dev/guide/>
+- Last reviewed: `2026-09-30`
+
+### Locations
+
+- `run-mode` — CLI Guide, vitest run. Supports: The run command performs one non-watch test execution [Open location](https://vitest.dev/guide/cli.html#vitest-run)
+- `test-timeout` — Config Reference, testTimeout. Supports: Vitest applies a configured per-test timeout with a documented default [Open location](https://vitest.dev/config/testtimeout.html)
 
 ## Web Content Accessibility Guidelines (WCAG) 2.2
 

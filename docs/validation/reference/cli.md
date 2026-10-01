@@ -13,6 +13,20 @@ workspace-validator schema config
 workspace-validator schema report
 ```
 
+Embedded knowledge commands are read-only and operate before configuration
+discovery. They work outside an initialized workspace, do not inspect or create
+`.validation/`, and do not execute configured programs:
+
+```text
+workspace-validator knowledge catalog [--format=human|json]
+workspace-validator knowledge show <document-id>
+```
+
+The JSON catalog is the complete embedded canonical `catalog.json`.
+`knowledge show` accepts only a stable catalog document ID and writes the exact
+canonical Markdown bytes. Malformed or unknown selectors return exit code `3`;
+embedded-asset or output failures return exit code `4`.
+
 Execution commands run configured programs after full validation and tool
 preflight:
 

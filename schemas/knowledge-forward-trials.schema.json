@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/migmoroni/workspace-validator/schemas/knowledge-forward-trials.schema.json",
+  "title": "Workspace Validator Shared-Knowledge Forward Trials",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "suiteId", "suiteVersion", "rubric", "requiredBehaviors", "context", "scenarios"],
+  "properties": {
+    "$schema": { "const": "../../../schemas/knowledge-forward-trials.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "suiteId": { "$ref": "#/$defs/kebabId" },
+    "suiteVersion": { "type": "integer", "minimum": 1 },
+    "rubric": { "$ref": "#/$defs/safePath" },
+    "requiredBehaviors": { "type": "array", "minItems": 7, "uniqueItems": true, "items": { "$ref": "#/$defs/behavior" } },
+    "context": { "$ref": "#/$defs/context" },
+    "scenarios": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/scenario" } }
+  },
+  "$defs": {
+    "kebabId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+    "documentId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$" },
+    "nonEmpty": { "type": "string", "minLength": 1, "pattern": "\\S" },
+    "safePath": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$" },
+    "behavior": {
+      "enum": [
+        "minimal-selection",
+        "synthesis-boundary",
+        "evidence-before-tool",
+        "bounded-proof",
+        "precise-source-location",
+        "offline-depth",
+        "missing-topic"
+      ]
+    },
+    "assertion": {
+      "enum": [
+        "loads-catalog-before-topic",
+        "loads-only-expected-documents",
+        "does-not-execute",
+        "labels-local-synthesis",
+        "preserves-wcag-native-levels",
+        "does-not-claim-universal-scale",
+        "states-consequence-first",
+        "states-invariant",
+        "selects-evidence-before-command",
+        "states-what-pass-cannot-prove",
+        "records-residual-uncertainty",
+        "uses-registered-location-label",
+        "uses-exact-deep-uri",
+        "answers-from-local-guidance",
+        "reports-inaccessible-depth",
+        "does-not-invent-source-content",
+        "reports-missing-local-coverage",
+        "does-not-route-rust-guidance",
+        "does-not-route-javascript-guidance",
+        "does-not-invent-commands",
+        "selects-javascript-typescript-slice",
+        "does-not-route-rust-stack"
+      ]
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed", "network", "forbidden"],
+      "properties": {
+        "allowed": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/nonEmpty" } },
+        "network": { "$ref": "#/$defs/nonEmpty" },
+        "forbidden": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/nonEmpty" } }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "prompt", "networkAccess", "expectedDocumentIds", "rejectedDocumentIds", "behaviors", "assertions", "rubricCriteria"],
+      "properties": {
+        "id": { "$ref": "#/$defs/kebabId" },
+        "version": { "type": "integer", "minimum": 1 },
+        "prompt": { "$ref": "#/$defs/safePath" },
+        "networkAccess": { "enum": ["unavailable", "available-and-authorized"] },
+        "expectedDocumentIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/documentId" } },
+        "rejectedDocumentIds": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/documentId" } },
+        "behaviors": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/behavior" } },
+        "assertions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/assertion" } },
+        "rubricCriteria": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/kebabId" } }
+      }
+    }
+  }
+}

@@ -3,10 +3,29 @@
   "schemaVersion": 1,
   "sources": [
     {
+      "id": "ecma.ecmascript-2025",
+      "authority": "Ecma International",
+      "title": "ECMAScript 2025 Language Specification",
+      "revision": "ECMA-262, 16th edition, June 2025",
+      "uri": "https://262.ecma-international.org/16.0/",
+      "scope": "ECMAScript language syntax and runtime semantics",
+      "kind": "specification",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "language-overview",
+          "locator": "Clause 4, Overview",
+          "uri": "https://262.ecma-international.org/16.0/#sec-overview",
+          "supports": "The distinction between the ECMAScript language specification and host-provided facilities"
+        }
+      ]
+    },
+    {
       "id": "git.status",
       "authority": "Git project",
       "title": "git-status Documentation",
-      "revision": "Git 2.x living documentation",
+      "revision": "Living Git documentation snapshot reviewed 2026-09-30",
       "uri": "https://git-scm.com/docs/git-status",
       "scope": "Git work-tree and index status output",
       "kind": "maintainer-documentation",
@@ -111,26 +130,82 @@
           "id": "tasks-and-evidence",
           "locator": "Table 1, tasks and notional implementation examples",
           "uri": "https://csrc.nist.gov/pubs/sp/800/218/final",
-          "supports": "Evidence mechanisms serve defined outcomes rather than replacing them"
+          "supports": "SSDF practices are expressed through tasks and notional implementation examples"
         }
       ]
     },
     {
-      "id": "rust.book-testing",
-      "authority": "Rust project",
-      "title": "The Rust Programming Language: Test Organization",
-      "revision": "Rust 2021 edition living documentation",
-      "uri": "https://doc.rust-lang.org/book/ch11-03-test-organization.html",
-      "scope": "Rust unit and integration test organization",
+      "id": "nodejs.api-22",
+      "authority": "OpenJS Foundation and Node.js contributors",
+      "title": "Node.js v22 API Documentation",
+      "revision": "Node.js v22.16.0 documentation",
+      "uri": "https://nodejs.org/docs/v22.16.0/api/",
+      "scope": "Node.js 22 runtime, process, module, and environment behavior",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "modules",
+          "locator": "Modules: CommonJS modules and ECMAScript modules",
+          "uri": "https://nodejs.org/docs/v22.16.0/api/packages.html",
+          "supports": "Node.js package module interpretation is a host/runtime concern distinct from ECMAScript language semantics"
+        },
+        {
+          "id": "exit-codes",
+          "locator": "Process, Exit codes",
+          "uri": "https://nodejs.org/docs/v22.16.0/api/process.html#exit-codes",
+          "supports": "Node.js process exit status behavior used by command-line validation tools"
+        }
+      ]
+    },
+    {
+      "id": "pnpm.cli-11",
+      "authority": "pnpm maintainers",
+      "title": "pnpm CLI Documentation",
+      "revision": "pnpm 11.x documentation snapshot reviewed 2026-09-30",
+      "uri": "https://pnpm.io/cli/install",
+      "scope": "pnpm installation, lockfile, offline, script, and exec behavior",
       "kind": "maintainer-documentation",
       "publicationStatus": "living",
       "lastReviewed": "2026-09-30",
       "locations": [
         {
-          "id": "test-organization",
-          "locator": "Chapter 11.3, Test Organization",
-          "uri": "https://doc.rust-lang.org/book/ch11-03-test-organization.html",
-          "supports": "Rust unit and integration test boundaries and test outcome mechanisms"
+          "id": "frozen-lockfile",
+          "locator": "pnpm install, --frozen-lockfile and --offline options",
+          "uri": "https://pnpm.io/cli/install#--frozen-lockfile",
+          "supports": "Frozen lockfile installation fails rather than updating an out-of-date lockfile"
+        },
+        {
+          "id": "run-scripts",
+          "locator": "pnpm run",
+          "uri": "https://pnpm.io/cli/run",
+          "supports": "Package scripts execute through pnpm with script arguments and lifecycle environment"
+        },
+        {
+          "id": "exec",
+          "locator": "pnpm exec",
+          "uri": "https://pnpm.io/cli/exec",
+          "supports": "Project dependency binaries can be invoked without relying on a global installation"
+        }
+      ]
+    },
+    {
+      "id": "reproducible-builds.definition",
+      "authority": "Reproducible Builds project",
+      "title": "Definitions — Reproducible Builds",
+      "revision": "Living definition snapshot reviewed 2026-09-30",
+      "uri": "https://reproducible-builds.org/docs/definition/",
+      "scope": "Build reproducibility as identical outputs from the same source, environment, instructions, and dependencies",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "definition",
+          "locator": "What is a reproducible build?",
+          "uri": "https://reproducible-builds.org/docs/definition/",
+          "supports": "Reproducibility depends on declared source, build environment, instructions, and dependencies"
         }
       ]
     },
@@ -138,7 +213,7 @@
       "id": "rust.cargo",
       "authority": "Rust project",
       "title": "The Cargo Book and Command Reference",
-      "revision": "Cargo 1.87+ living documentation",
+      "revision": "Living Cargo documentation snapshot reviewed 2026-09-30",
       "uri": "https://doc.rust-lang.org/cargo/",
       "scope": "Cargo checking, testing, packaging, lockfile, target, and MSRV behavior",
       "kind": "maintainer-documentation",
@@ -181,7 +256,7 @@
       "id": "rust.clippy",
       "authority": "Rust project",
       "title": "Clippy Documentation: Usage",
-      "revision": "Rust 1.87+ living documentation",
+      "revision": "Living Clippy documentation snapshot reviewed 2026-09-30",
       "uri": "https://doc.rust-lang.org/clippy/usage.html",
       "scope": "Clippy invocation, lint groups, levels, and configuration",
       "kind": "maintainer-documentation",
@@ -200,7 +275,7 @@
       "id": "rust.rustfmt",
       "authority": "Rust project",
       "title": "rustfmt README",
-      "revision": "rustfmt living documentation for Rust 1.87+",
+      "revision": "rustfmt documentation snapshot reviewed 2026-09-30",
       "uri": "https://github.com/rust-lang/rustfmt",
       "scope": "Rust source formatting and CI check mode",
       "kind": "maintainer-documentation",
@@ -212,6 +287,62 @@
           "locator": "Checking style on a CI server",
           "uri": "https://github.com/rust-lang/rustfmt#checking-style-on-a-ci-server",
           "supports": "Non-mutating cargo fmt check invocation"
+        }
+      ]
+    },
+    {
+      "id": "typescript.docs-6",
+      "authority": "Microsoft and TypeScript contributors",
+      "title": "TypeScript Documentation",
+      "revision": "TypeScript 6.0.3 documentation snapshot reviewed 2026-09-30",
+      "uri": "https://www.typescriptlang.org/docs/",
+      "scope": "TypeScript static type checking, compiler configuration, and JavaScript emission",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "typescript-for-javascript",
+          "locator": "TypeScript for the New Programmer",
+          "uri": "https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html",
+          "supports": "TypeScript performs static checking before JavaScript execution and erases types from emitted output"
+        },
+        {
+          "id": "no-emit",
+          "locator": "TSConfig Reference, noEmit",
+          "uri": "https://www.typescriptlang.org/tsconfig/noEmit.html",
+          "supports": "The compiler can type-check a project without emitting JavaScript files"
+        },
+        {
+          "id": "project-option",
+          "locator": "Compiler Options, --project",
+          "uri": "https://www.typescriptlang.org/docs/handbook/compiler-options.html",
+          "supports": "The project option selects a specific tsconfig configuration"
+        }
+      ]
+    },
+    {
+      "id": "vitest.docs-4",
+      "authority": "Vitest maintainers",
+      "title": "Vitest Guide and CLI Reference",
+      "revision": "Vitest 4.1.10 documentation snapshot reviewed 2026-09-30",
+      "uri": "https://vitest.dev/guide/",
+      "scope": "Vitest test discovery, non-watch execution, configuration, and exit behavior",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "run-mode",
+          "locator": "CLI Guide, vitest run",
+          "uri": "https://vitest.dev/guide/cli.html#vitest-run",
+          "supports": "The run command performs one non-watch test execution"
+        },
+        {
+          "id": "test-timeout",
+          "locator": "Config Reference, testTimeout",
+          "uri": "https://vitest.dev/config/testtimeout.html",
+          "supports": "Vitest applies a configured per-test timeout with a documented default"
         }
       ]
     },

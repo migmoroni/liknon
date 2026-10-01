@@ -71,7 +71,10 @@ agent loads the immutable policy boundary and validates policy.json
                   +-- missing or invalid --> policy guidance; human acts manually
                   |
                   v valid
-agent loads only the required AI-Tool operation and shared knowledge
+agent loads only the required AI-Tool operation
+                  |
+                  v
+agent retrieves selected shared knowledge through the CLI
                   |
                   v
 agent guides policy, inspects, configures, runs, triages, or audits as requested
@@ -104,10 +107,10 @@ load AI-Tool.
 human invokes and directs the agent
                   |
                   v
-agent loads the workspace-validator skill, AI-Tool operations, and relevant knowledge
+agent loads the workspace-validator skill and immutable policy boundary
                   |
                   v
-agent loads the immutable policy boundary and verifies CLI and skill compatibility
+agent verifies CLI and skill compatibility
                   |
                   v
 agent validates the existing human-owned .validation/policy.json through the CLI
@@ -116,6 +119,12 @@ agent validates the existing human-owned .validation/policy.json through the CLI
                   |                         human acts, reviews, and invokes again
                   |
                   v valid
+agent loads required AI-Tool operations
+                  |
+                  v
+agent retrieves only relevant shared knowledge through the CLI
+                  |
+                  v
 agent validates every explicitly supplied artifact and report
                   |
                   v
@@ -220,7 +229,7 @@ ownership, but it is never interpreted as an instruction to an agent.
 | --- | --- | --- | --- |
 | Primary operator | Human | Agent directed for one bounded task | Agent directed through engineering processes |
 | CLI and `config.json` | Direct use | Through AI-Tool operations | Through AI-Tool when covered; direct documented CLI use only for uncovered capabilities |
-| Shared knowledge | Human-readable source | Progressive skill projection | Progressive skill projection |
+| Shared knowledge | Canonical source or installed CLI | Progressive CLI retrieval by stable document ID | Progressive CLI retrieval by stable document ID |
 | `policy.json` | Not used by direct CLI operation | Required; read-only guidance may operate when missing or invalid | Required and governed |
 | `.validation/persistence/` | Not used | Not used | Immutable process artifacts |
 | Persisted analytical context | Not used | Not used | Explicit immutable artifacts supplied by exact path and digest |
@@ -505,7 +514,6 @@ skills/workspace-validator/
 ├── manifest.json
 └── references/
     ├── policy-boundary.md            # Mandatory human-only policy mutation rule
-    ├── knowledge/                    # Exact generated shared-knowledge projection
     ├── ai-tool/                      # policy, config, run, triage, and audit
     └── ai-engineering/               # Processes 0 through 3
 ```
@@ -514,9 +522,11 @@ Every AI route loads `policy-boundary.md`. AI-Engineering references route to
 AI-Tool operations when they need policy guidance, inspection, configuration,
 execution, triage, or audit. They use canonical public CLI references directly
 only when no AI-Tool operation covers the required capability, and they do not
-duplicate existing AI-Tool instructions. Files
-below `docs/validation/human/` are not projected into the skill bundle or treated
-as agent instructions.
+duplicate existing AI-Tool instructions. The skill contains no shared-knowledge
+subtree. Both AI flows discover and retrieve only the needed documents through
+`workspace-validator knowledge catalog` and `workspace-validator knowledge
+show`. Files below `docs/validation/human/` are not projected into the skill
+bundle or treated as agent instructions.
 
 ## 8. Planned Consumer Layout
 
@@ -599,5 +609,7 @@ The unified plan is complete only when:
   with reproducible scenarios and observable evidence;
 - all outcome classes, mismatched-artifact cases, and drift cases have
   deterministic fixtures;
-- source packages contain the runtime, schemas, skill, guidance projection,
-  examples, and documentation required by their declared contracts.
+- source packages contain the runtime, schemas, operational skill, embedded
+  canonical knowledge, AI guidance projections, examples, and documentation
+  required by their declared contracts, without a copied knowledge subtree in
+  the skill.

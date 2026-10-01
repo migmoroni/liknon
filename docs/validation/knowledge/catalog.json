@@ -9,8 +9,12 @@
       { "id": "general", "label": "Technology-neutral validation decisions" },
       { "id": "generated-assets", "label": "Generated and projected assets" },
       { "id": "git", "label": "Git work trees" },
+      { "id": "javascript", "label": "JavaScript source and artifacts" },
+      { "id": "nodejs", "label": "Node.js runtime" },
+      { "id": "pnpm", "label": "pnpm-managed projects" },
       { "id": "release", "label": "Release and distribution validation" },
       { "id": "rust", "label": "Rust source and toolchains" },
+      { "id": "typescript", "label": "TypeScript source and compiler projects" },
       { "id": "web", "label": "Web content and interfaces" }
     ],
     "evidenceDimensions": [
@@ -50,12 +54,12 @@
       "id": "concern.reproducible-release-evidence",
       "kind": "concern",
       "path": "concerns/reproducible-release-evidence.md",
-      "summary": "Selects complementary evidence for locked, complete, generated-asset-aware release packages.",
-      "questions": ["What evidence supports repeatable and complete release contents?"],
-      "applicability": ["cargo", "generated-assets", "release"],
+      "summary": "Selects ecosystem-neutral evidence for controlled inputs, generated assets, complete artifacts, and repeatable releases.",
+      "questions": ["What evidence supports repeatable and complete source-to-artifact releases?"],
+      "applicability": ["general", "generated-assets", "release"],
       "evidenceDimensions": ["build-package", "repository-reproducibility", "supply-chain"],
-      "related": ["pattern.isolation-and-determinism", "recipe.rust-cli-release-gate", "tool.cargo"],
-      "sources": ["rust.cargo"],
+      "related": ["pattern.isolation-and-determinism", "recipe.javascript-typescript-package-gate", "recipe.rust-cli-release-gate"],
+      "sources": ["reproducible-builds.definition"],
       "status": "reviewed",
       "lastReviewed": "2026-09-30"
     },
@@ -125,6 +129,19 @@
       "lastReviewed": "2026-09-30"
     },
     {
+      "id": "language.javascript",
+      "kind": "language",
+      "path": "languages/javascript.md",
+      "summary": "Bounds JavaScript language evidence separately from host runtimes, typed source, frameworks, and build tools.",
+      "questions": ["Which language-level evidence is relevant for authored or emitted JavaScript?"],
+      "applicability": ["javascript"],
+      "evidenceDimensions": ["integration-testing", "platform-runtime", "unit-testing"],
+      "related": ["language.typescript", "technology.nodejs", "tool.vitest"],
+      "sources": ["ecma.ecmascript-2025"],
+      "status": "reviewed",
+      "lastReviewed": "2026-09-30"
+    },
+    {
       "id": "language.rust",
       "kind": "language",
       "path": "languages/rust.md",
@@ -134,6 +151,19 @@
       "evidenceDimensions": ["build-package", "formatting-linting", "platform-runtime", "static-analysis", "unit-testing"],
       "related": ["recipe.rust-cli-release-gate", "tool.cargo", "tool.clippy", "tool.rustfmt"],
       "sources": ["rust.cargo"],
+      "status": "reviewed",
+      "lastReviewed": "2026-09-30"
+    },
+    {
+      "id": "language.typescript",
+      "kind": "language",
+      "path": "languages/typescript.md",
+      "summary": "Explains TypeScript project/type evidence and its boundary from emitted JavaScript and runtime behavior.",
+      "questions": ["What additional evidence is useful for JavaScript authored through TypeScript?"],
+      "applicability": ["javascript", "typescript"],
+      "evidenceDimensions": ["build-package", "static-analysis"],
+      "related": ["language.javascript", "tool.typescript-compiler", "tool.vitest"],
+      "sources": ["typescript.docs-6"],
       "status": "reviewed",
       "lastReviewed": "2026-09-30"
     },
@@ -159,7 +189,7 @@
       "applicability": ["general"],
       "evidenceDimensions": ["repository-reproducibility", "strategy"],
       "related": ["foundation.evidence-quality", "pattern.evidence-chain"],
-      "sources": ["google.flaky-tests", "rust.cargo"],
+      "sources": ["google.flaky-tests", "reproducible-builds.definition"],
       "status": "reviewed",
       "lastReviewed": "2026-09-30"
     },
@@ -172,7 +202,20 @@
       "applicability": ["general"],
       "evidenceDimensions": ["contract-testing", "integration-testing", "strategy", "unit-testing"],
       "related": ["foundation.evidence-quality", "pattern.isolation-and-determinism"],
-      "sources": ["rust.book-testing"],
+      "sources": ["ieee.swebok-v4"],
+      "status": "reviewed",
+      "lastReviewed": "2026-09-30"
+    },
+    {
+      "id": "recipe.javascript-typescript-package-gate",
+      "kind": "recipe",
+      "path": "recipes/javascript-typescript-package-gate.md",
+      "summary": "Composes locked dependency, type, Vitest, build, and repository evidence for a pnpm-managed TypeScript package.",
+      "questions": ["How can a Node.js TypeScript package be validated without cross-loading Rust guidance?"],
+      "applicability": ["git", "javascript", "nodejs", "pnpm", "release", "typescript"],
+      "evidenceDimensions": ["build-package", "repository-reproducibility", "static-analysis", "unit-testing"],
+      "related": ["concern.reproducible-release-evidence", "language.javascript", "language.typescript", "technology.nodejs", "tool.pnpm", "tool.typescript-compiler", "tool.vitest"],
+      "sources": ["pnpm.cli-11", "vitest.docs-4"],
       "status": "reviewed",
       "lastReviewed": "2026-09-30"
     },
@@ -181,7 +224,7 @@
       "kind": "recipe",
       "path": "recipes/rust-cli-release-gate.md",
       "summary": "Composes a complete schema-valid, non-publishing release gate for this Rust CLI repository shape.",
-      "questions": ["How can this Rust CLI's source, tests, docs, generated knowledge, and package be validated together?"],
+      "questions": ["How can this Rust CLI's source, tests, docs, embedded knowledge, skill, and package be validated together?"],
       "applicability": ["cargo", "cli", "generated-assets", "git", "release", "rust"],
       "evidenceDimensions": ["build-package", "formatting-linting", "repository-reproducibility", "static-analysis", "unit-testing"],
       "related": ["concern.reproducible-release-evidence", "language.rust", "tool.workspace-validator"],
@@ -212,6 +255,19 @@
       "evidenceDimensions": ["repository-reproducibility"],
       "related": ["concern.reproducible-release-evidence", "tool.git"],
       "sources": ["git.status"],
+      "status": "reviewed",
+      "lastReviewed": "2026-09-30"
+    },
+    {
+      "id": "technology.nodejs",
+      "kind": "technology",
+      "path": "technologies/nodejs.md",
+      "summary": "Scopes runtime and platform evidence for JavaScript and emitted TypeScript that promises Node.js support.",
+      "questions": ["Which runtime evidence supports a declared Node.js compatibility range?"],
+      "applicability": ["javascript", "nodejs", "typescript"],
+      "evidenceDimensions": ["integration-testing", "platform-runtime", "unit-testing"],
+      "related": ["language.javascript", "language.typescript", "tool.pnpm", "tool.vitest"],
+      "sources": ["nodejs.api-22"],
       "status": "reviewed",
       "lastReviewed": "2026-09-30"
     },
@@ -255,6 +311,19 @@
       "lastReviewed": "2026-09-30"
     },
     {
+      "id": "tool.pnpm",
+      "kind": "tool",
+      "path": "tools/pnpm.md",
+      "summary": "Bounds pnpm evidence for frozen dependency graphs, offline inputs, scripts, and project-local binary execution.",
+      "questions": ["What can pnpm dependency and script commands establish and mutate?"],
+      "applicability": ["javascript", "nodejs", "pnpm", "typescript"],
+      "evidenceDimensions": ["build-package", "repository-reproducibility", "supply-chain"],
+      "related": ["language.javascript", "language.typescript", "technology.nodejs", "tool.typescript-compiler", "tool.vitest"],
+      "sources": ["pnpm.cli-11"],
+      "status": "reviewed",
+      "lastReviewed": "2026-09-30"
+    },
+    {
       "id": "tool.rustfmt",
       "kind": "tool",
       "path": "tools/rustfmt.md",
@@ -264,6 +333,32 @@
       "evidenceDimensions": ["formatting-linting"],
       "related": ["language.rust", "tool.cargo"],
       "sources": ["rust.rustfmt"],
+      "status": "reviewed",
+      "lastReviewed": "2026-09-30"
+    },
+    {
+      "id": "tool.typescript-compiler",
+      "kind": "tool",
+      "path": "tools/typescript-compiler.md",
+      "summary": "Defines project-scoped TypeScript checking without emission and separates static evidence from runtime behavior.",
+      "questions": ["How can an exact TypeScript project be checked without emitting artifacts?"],
+      "applicability": ["javascript", "nodejs", "pnpm", "typescript"],
+      "evidenceDimensions": ["build-package", "static-analysis"],
+      "related": ["language.typescript", "tool.pnpm", "tool.vitest"],
+      "sources": ["typescript.docs-6"],
+      "status": "reviewed",
+      "lastReviewed": "2026-09-30"
+    },
+    {
+      "id": "tool.vitest",
+      "kind": "tool",
+      "path": "tools/vitest.md",
+      "summary": "Bounds one-shot Vitest evidence by discovery, environment, configuration, fixtures, timeouts, and oracles.",
+      "questions": ["What can one configured Vitest run establish?"],
+      "applicability": ["javascript", "nodejs", "pnpm", "typescript"],
+      "evidenceDimensions": ["integration-testing", "unit-testing"],
+      "related": ["language.javascript", "language.typescript", "technology.nodejs", "tool.pnpm", "tool.typescript-compiler"],
+      "sources": ["vitest.docs-4"],
       "status": "reviewed",
       "lastReviewed": "2026-09-30"
     },

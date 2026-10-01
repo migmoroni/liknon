@@ -426,6 +426,97 @@ fn root_help_and_version_are_successful_cli_outcomes() {
 }
 
 #[test]
+fn embedded_knowledge_is_exact_read_only_and_independent_from_configuration() {
+    let temp = TempDir::new().unwrap();
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let canonical_root =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("docs/validation/knowledge");
+    let canonical_catalog = fs::read(canonical_root.join("catalog.json")).unwrap();
+
+    let json = Command::new(binary)
+        .args(["knowledge", "catalog", "--format=json"])
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert!(json.status.success());
+    assert!(json.stderr.is_empty());
+    assert_eq!(json.stdout, canonical_catalog);
+
+    let human = Command::new(binary)
+        .args(["knowledge", "catalog"])
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert!(human.status.success());
+    let human = String::from_utf8(human.stdout).unwrap();
+    assert!(human.starts_with("Embedded validation knowledge ("));
+
+    let catalog: Value = serde_json::from_slice(&canonical_catalog).unwrap();
+    for document in catalog["documents"].as_array().unwrap() {
+        let id = document["id"].as_str().unwrap();
+        let path = document["path"].as_str().unwrap();
+        let output = Command::new(binary)
+            .args(["knowledge", "show", id])
+            .current_dir(temp.path())
+            .output()
+            .unwrap();
+        assert!(output.status.success(), "{id}");
+        assert!(output.stderr.is_empty(), "{id}");
+        assert_eq!(
+            output.stdout,
+            fs::read(canonical_root.join(path)).unwrap(),
+            "{id}"
+        );
+    }
+
+    assert!(!temp.path().join(".validation").exists());
+    assert_eq!(fs::read_dir(temp.path()).unwrap().count(), 0);
+}
+
+#[test]
+fn knowledge_show_rejects_non_ids_paths_and_unknown_documents() {
+    let temp = TempDir::new().unwrap();
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    for selector in [
+        "../escape",
+        "/absolute",
+        "tools/cargo.md",
+        "tool.not-present",
+    ] {
+        let output = Command::new(binary)
+            .args(["knowledge", "show", selector])
+            .current_dir(temp.path())
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(3), "{selector}");
+        assert!(output.stdout.is_empty(), "{selector}");
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains("knowledge document ID"),
+            "{selector}"
+        );
+    }
+    assert_eq!(fs::read_dir(temp.path()).unwrap().count(), 0);
+}
+
+#[cfg(unix)]
+#[test]
+fn knowledge_output_failure_returns_four_without_panicking() {
+    let output = Command::new("sh")
+        .args([
+            "-c",
+            "exec 1>/dev/full; exec \"$1\" knowledge show tool.cargo",
+            "workspace-validator-test",
+            env!("CARGO_BIN_EXE_workspace-validator"),
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(4));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("cannot write standard output"), "{stderr}");
+    assert!(!stderr.contains("panicked"), "{stderr}");
+}
+
+#[test]
 fn config_validate_and_inspection_do_not_run_declared_tools() {
     let temp = TempDir::new().unwrap();
     let value = common::base_config("definitely-missing");

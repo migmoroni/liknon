@@ -25,8 +25,9 @@ CLI and documentation directly without claiming AI-Tool behavior.
 
 - Phase 1 provides stable CLI, initialization, configuration, report, and Human
   Flow contracts.
-- Phase 2 provides the canonical shared-knowledge tree and its generated skill
-  projection.
+- Phase 2 provides the canonical shared-knowledge tree and the read-only
+  `workspace-validator knowledge` retrieval interface. It preserves the
+  operational skill without a copied knowledge subtree.
 
 ## 3. Flow Contract
 
@@ -234,7 +235,6 @@ skills/workspace-validator/
 ├── manifest.json
 └── references/
     ├── policy-boundary.md            # Mandatory non-configurable AI prohibition
-    ├── knowledge/                    # Generated in Phase 2
     └── ai-tool/
         ├── index.md
         ├── policy.md
@@ -263,8 +263,11 @@ AI-Tool reference when the current request genuinely requires both, but it must
 not eagerly load all operations.
 
 The five operational references are authored skill instructions. Shared
-knowledge is generated from `docs/validation/knowledge/` and remains
-audience-neutral. Human-only files are not included in skill routing.
+knowledge remains audience-neutral under `docs/validation/knowledge/`, is
+embedded in the CLI by Phase 2, and is never copied into the skill. `SKILL.md`
+and the operation references use `workspace-validator knowledge catalog` and
+`workspace-validator knowledge show <document-id>` for progressive disclosure.
+Human-only files are not included in skill routing.
 
 ## 7. Operation Requirements
 
@@ -371,8 +374,9 @@ Register every standard, primary research work, and official reference used by
 the policy contract in `docs/validation/knowledge/sources.json` before citing
 it. Generate `docs/validation/knowledge/SOURCES.md` from that canonical
 register. Add only sources the contract actually uses; do not expand the shared
-knowledge tree merely to summarize those sources. Regenerate the exact
-distributed knowledge projection after updating the register.
+knowledge tree merely to summarize those sources. Regenerate the canonical
+source index and rebuild the embedded knowledge assets after updating the
+register.
 
 The root validation index clearly distinguishes AI-Tool from Human Flow and
 AI-Engineering. It states that both AI flows require a valid human-owned policy,
@@ -410,8 +414,8 @@ Test at minimum:
 - policy category and continuation semantics from the normative contract;
 - complete source-register entries and valid primary links for every policy
   design source actually cited;
-- byte-equivalence between the updated canonical source register and its
-  distributed knowledge projection;
+- exact CLI retrieval of every selected shared-knowledge document after the
+  canonical source register and embedded assets are updated;
 - policy guidance for missing, invalid, and valid documents;
 - refusal to create, edit, format, replace, delete, move, rename, restore, or
   indirectly mutate policy, including after explicit user authorization and
@@ -452,13 +456,14 @@ prompts and controlled AI-Engineering consumption, under the shared
 - explicit AI-Tool Flow contract with five operations;
 - policy schema, conservative default, read-only validation, and human-only
   deterministic initialization;
-- canonical AI decision-policy documentation and generated skill projection;
+- canonical AI decision-policy documentation and generated policy skill
+  projection;
 - source-register entries for the policy contract's cited design foundations;
 - mandatory `policy-boundary.md` skill reference;
 - namespaced AI-Tool skill references, including advisory `policy.md`;
 - top-level flow routing;
 - dedicated public AI-Tool documentation;
-- progressive shared-knowledge routing;
+- progressive shared-knowledge routing through the read-only CLI namespace;
 - bounded-request policy, safety, and authority tests;
 - representative forward-trial fixtures.
 - versioned AI-Tool Interface scenarios and assertions consumable by the final
@@ -489,6 +494,8 @@ prompts and controlled AI-Engineering consumption, under the shared
       contracts.
 - [ ] The validation planner and executor never read or interpret policy.
 - [ ] Shared knowledge is loaded progressively and never activates a flow.
+- [ ] The skill contains no copied shared-knowledge subtree and retrieves
+      selected knowledge only through `workspace-validator knowledge`.
 - [ ] Human-only documentation is not routed as an agent instruction.
 - [ ] Skill and public documentation preserve distinct responsibilities without
       semantic disagreement.

@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use serde::Deserialize;
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -9,7 +10,89 @@ use std::{
 };
 
 pub const CANONICAL_ROOT: &str = "docs/validation/knowledge";
-pub const PROJECTED_ROOT: &str = "skills/workspace-validator/references/knowledge";
+const ROUTING_PATH: &str = "fixtures/knowledge/routing.json";
+const FORWARD_TRIALS_PATH: &str = "evals/scenarios/shared-knowledge/scenarios.json";
+const RUBRIC_PATH: &str = "evals/rubrics/shared-knowledge.json";
+const REQUIRED_BEHAVIORS: [&str; 7] = [
+    "minimal-selection",
+    "synthesis-boundary",
+    "evidence-before-tool",
+    "bounded-proof",
+    "precise-source-location",
+    "offline-depth",
+    "missing-topic",
+];
+
+pub struct CompiledSchemas {
+    catalog: jsonschema::Validator,
+    sources: jsonschema::Validator,
+    routing: jsonschema::Validator,
+    forward_trials: jsonschema::Validator,
+    rubric: jsonschema::Validator,
+    config: jsonschema::Validator,
+}
+
+#[derive(Clone, Copy)]
+pub enum SchemaKind {
+    Catalog,
+    Sources,
+    Routing,
+    ForwardTrials,
+    Rubric,
+    Config,
+}
+
+impl CompiledSchemas {
+    pub fn compile(repository: &Path) -> Result<Self, String> {
+        Ok(Self {
+            catalog: compile_schema(repository, "schemas/knowledge-catalog.schema.json")?,
+            sources: compile_schema(repository, "schemas/knowledge-sources.schema.json")?,
+            routing: compile_schema(repository, "schemas/knowledge-routing.schema.json")?,
+            forward_trials: compile_schema(
+                repository,
+                "schemas/knowledge-forward-trials.schema.json",
+            )?,
+            rubric: compile_schema(repository, "schemas/knowledge-rubric.schema.json")?,
+            config: compile_schema(repository, "schemas/config.schema.json")?,
+        })
+    }
+
+    pub fn validate(&self, kind: SchemaKind, name: &str, instance: &Value) -> Result<(), String> {
+        let validator = match kind {
+            SchemaKind::Catalog => &self.catalog,
+            SchemaKind::Sources => &self.sources,
+            SchemaKind::Routing => &self.routing,
+            SchemaKind::ForwardTrials => &self.forward_trials,
+            SchemaKind::Rubric => &self.rubric,
+            SchemaKind::Config => &self.config,
+        };
+        let diagnostics = validator
+            .iter_errors(instance)
+            .map(|error| {
+                format!(
+                    "instance {} schema {}: {}",
+                    error.instance_path, error.schema_path, error
+                )
+            })
+            .collect::<Vec<_>>();
+        if diagnostics.is_empty() {
+            Ok(())
+        } else {
+            Err(format!(
+                "{name} does not satisfy its schema: {}",
+                diagnostics.join("; ")
+            ))
+        }
+    }
+}
+
+fn compile_schema(repository: &Path, relative: &str) -> Result<jsonschema::Validator, String> {
+    let schema: Value = read_json(&repository.join(relative))?;
+    jsonschema::draft202012::options()
+        .should_validate_formats(true)
+        .build(&schema)
+        .map_err(|error| format!("cannot compile {relative}: {error}"))
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -85,6 +168,82 @@ pub struct SourceLocation {
     pub supports: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct RoutingRegistry {
+    #[serde(rename = "$schema")]
+    schema: String,
+    schema_version: u32,
+    cases: Vec<RoutingCase>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct RoutingCase {
+    id: String,
+    question: String,
+    workspace_facts: Vec<String>,
+    network_access: String,
+    expected_document_ids: Vec<String>,
+    rejected_document_ids: Vec<String>,
+    expected_behavior: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ForwardTrialRegistry {
+    #[serde(rename = "$schema")]
+    schema: String,
+    schema_version: u32,
+    suite_id: String,
+    suite_version: u32,
+    rubric: String,
+    required_behaviors: Vec<String>,
+    context: TrialContext,
+    scenarios: Vec<ForwardTrial>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TrialContext {
+    allowed: Vec<String>,
+    network: String,
+    forbidden: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ForwardTrial {
+    id: String,
+    version: u32,
+    prompt: String,
+    network_access: String,
+    expected_document_ids: Vec<String>,
+    rejected_document_ids: Vec<String>,
+    behaviors: Vec<String>,
+    assertions: Vec<String>,
+    rubric_criteria: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct Rubric {
+    #[serde(rename = "$schema")]
+    schema: String,
+    schema_version: u32,
+    rubric_id: String,
+    scale: BTreeMap<String, String>,
+    criteria: Vec<RubricCriterion>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct RubricCriterion {
+    id: String,
+    question: String,
+    failure_example: String,
+}
+
 pub fn load_catalog(repository: &Path) -> Result<Catalog, String> {
     read_json(&repository.join(CANONICAL_ROOT).join("catalog.json"))
 }
@@ -97,6 +256,10 @@ fn read_json<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T, String> {
     let bytes =
         fs::read(path).map_err(|error| format!("cannot read {}: {error}", path.display()))?;
     serde_json::from_slice(&bytes).map_err(|error| format!("invalid {}: {error}", path.display()))
+}
+
+fn read_value(path: &Path) -> Result<Value, String> {
+    read_json(path)
 }
 
 pub fn render_sources(register: &SourceRegister) -> String {
@@ -132,57 +295,57 @@ pub fn render_sources(register: &SourceRegister) -> String {
 
 pub fn write_generated(repository: &Path) -> Result<String, String> {
     let canonical = repository.join(CANONICAL_ROOT);
-    let sources = load_sources(repository)?;
+    let schemas = CompiledSchemas::compile(repository)?;
+    let source_value = read_value(&canonical.join("sources.json"))?;
+    schemas.validate(SchemaKind::Sources, "sources.json", &source_value)?;
+    let sources: SourceRegister = serde_json::from_value(source_value)
+        .map_err(|error| format!("cannot deserialize sources.json: {error}"))?;
     fs::write(canonical.join("SOURCES.md"), render_sources(&sources))
         .map_err(|error| format!("cannot generate SOURCES.md: {error}"))?;
-
-    let projected = repository.join(PROJECTED_ROOT);
-    if projected.exists() {
-        fs::remove_dir_all(&projected)
-            .map_err(|error| format!("cannot replace {}: {error}", projected.display()))?;
-    }
-    copy_tree(&canonical, &projected)?;
     verify(repository)
 }
 
 pub fn verify(repository: &Path) -> Result<String, String> {
-    validate_schemas(repository)?;
-    let catalog = load_catalog(repository)?;
-    let sources = load_sources(repository)?;
-    validate_registers(repository, &catalog, &sources)?;
+    let schemas = CompiledSchemas::compile(repository)?;
+    let catalog_value = read_value(&repository.join(CANONICAL_ROOT).join("catalog.json"))?;
+    let sources_value = read_value(&repository.join(CANONICAL_ROOT).join("sources.json"))?;
+    let (catalog, sources) =
+        validate_catalog_source_values(repository, &schemas, catalog_value, sources_value)?;
 
     let expected_sources = render_sources(&sources);
     let actual_sources = fs::read_to_string(repository.join(CANONICAL_ROOT).join("SOURCES.md"))
         .map_err(|error| format!("cannot read generated SOURCES.md: {error}"))?;
-    if actual_sources != expected_sources {
-        return Err("SOURCES.md is stale; run the knowledge release task with --write".into());
-    }
+    validate_generated_sources(&expected_sources, &actual_sources)?;
 
-    compare_trees(
-        &repository.join(CANONICAL_ROOT),
-        &repository.join(PROJECTED_ROOT),
-    )?;
-    validate_routing_fixture(repository, &catalog)?;
-    validate_forward_trials(repository, &catalog)?;
+    let assets = embedded_source_assets(repository)?;
+    validate_embedded_asset_inventory(&catalog, &assets)?;
+    validate_structured_trials(repository, &schemas, &catalog)?;
+    validate_recipes(repository, &schemas, &catalog)?;
     tree_digest(&repository.join(CANONICAL_ROOT))
 }
 
-fn validate_schemas(repository: &Path) -> Result<(), String> {
-    for name in [
-        "schemas/knowledge-catalog.schema.json",
-        "schemas/knowledge-sources.schema.json",
-    ] {
-        let value: serde_json::Value = read_json(&repository.join(name))?;
-        if value["$schema"] != "https://json-schema.org/draft/2020-12/schema"
-            || value["type"] != "object"
-            || value["additionalProperties"] != false
-        {
-            return Err(format!(
-                "{name} must be a closed Draft 2020-12 object schema"
-            ));
-        }
+pub fn validate_generated_sources(expected: &str, actual: &str) -> Result<(), String> {
+    if actual == expected {
+        Ok(())
+    } else {
+        Err("SOURCES.md is stale; run the knowledge release task with --write".into())
     }
-    Ok(())
+}
+
+pub fn validate_catalog_source_values(
+    repository: &Path,
+    schemas: &CompiledSchemas,
+    catalog_value: Value,
+    sources_value: Value,
+) -> Result<(Catalog, SourceRegister), String> {
+    schemas.validate(SchemaKind::Catalog, "catalog.json", &catalog_value)?;
+    schemas.validate(SchemaKind::Sources, "sources.json", &sources_value)?;
+    let catalog: Catalog = serde_json::from_value(catalog_value)
+        .map_err(|error| format!("cannot deserialize catalog.json: {error}"))?;
+    let sources: SourceRegister = serde_json::from_value(sources_value)
+        .map_err(|error| format!("cannot deserialize sources.json: {error}"))?;
+    validate_registers(repository, &catalog, &sources)?;
+    Ok((catalog, sources))
 }
 
 fn validate_registers(
@@ -311,6 +474,33 @@ fn validate_registers(
                     document.id
                 ));
             }
+        }
+        if matches!(document.kind.as_str(), "foundation" | "pattern")
+            && document.applicability != ["general"]
+        {
+            return Err(format!(
+                "{} must have only ecosystem-neutral general applicability",
+                document.id
+            ));
+        }
+        let stack_tags = [
+            "cargo",
+            "javascript",
+            "nodejs",
+            "pnpm",
+            "rust",
+            "typescript",
+        ];
+        if document.applicability.iter().any(|tag| tag == "general")
+            && document
+                .applicability
+                .iter()
+                .any(|tag| stack_tags.contains(&tag.as_str()))
+        {
+            return Err(format!(
+                "{} mixes general and stack-specific applicability",
+                document.id
+            ));
         }
         for dimension in &document.evidence_dimensions {
             if !dimensions.contains(dimension.as_str()) {
@@ -493,106 +683,285 @@ fn validate_links(root: &Path, relative: &Path, markdown: &str) -> Result<(), St
     Ok(())
 }
 
-fn validate_routing_fixture(repository: &Path, catalog: &Catalog) -> Result<(), String> {
-    let value: serde_json::Value = read_json(&repository.join("fixtures/knowledge/routing.json"))?;
-    if value["schemaVersion"] != 1 {
-        return Err("unsupported routing fixture schemaVersion".into());
+fn validate_structured_trials(
+    repository: &Path,
+    schemas: &CompiledSchemas,
+    catalog: &Catalog,
+) -> Result<(), String> {
+    let routing_value = read_value(&repository.join(ROUTING_PATH))?;
+    let rubric_value = read_value(&repository.join(RUBRIC_PATH))?;
+    let trials_value = read_value(&repository.join(FORWARD_TRIALS_PATH))?;
+    validate_routing_value(schemas, catalog, routing_value)?;
+    validate_forward_trial_values(repository, schemas, catalog, trials_value, rubric_value)?;
+    Ok(())
+}
+
+pub fn validate_routing_value(
+    schemas: &CompiledSchemas,
+    catalog: &Catalog,
+    value: Value,
+) -> Result<(), String> {
+    schemas.validate(SchemaKind::Routing, ROUTING_PATH, &value)?;
+    let routing: RoutingRegistry = serde_json::from_value(value)
+        .map_err(|error| format!("cannot deserialize {ROUTING_PATH}: {error}"))?;
+    validate_routing_semantics(&routing, catalog)
+}
+
+pub fn validate_forward_trial_values(
+    repository: &Path,
+    schemas: &CompiledSchemas,
+    catalog: &Catalog,
+    trials_value: Value,
+    rubric_value: Value,
+) -> Result<(), String> {
+    schemas.validate(SchemaKind::Rubric, RUBRIC_PATH, &rubric_value)?;
+    let rubric: Rubric = serde_json::from_value(rubric_value)
+        .map_err(|error| format!("cannot deserialize {RUBRIC_PATH}: {error}"))?;
+    let mut criterion_ids = BTreeSet::new();
+    for criterion in &rubric.criteria {
+        if !criterion_ids.insert(criterion.id.as_str()) {
+            return Err(format!("duplicate rubric criterion {}", criterion.id));
+        }
     }
+
+    schemas.validate(
+        SchemaKind::ForwardTrials,
+        FORWARD_TRIALS_PATH,
+        &trials_value,
+    )?;
+    let trials: ForwardTrialRegistry = serde_json::from_value(trials_value)
+        .map_err(|error| format!("cannot deserialize {FORWARD_TRIALS_PATH}: {error}"))?;
+    validate_forward_trial_semantics(repository, &trials, &criterion_ids, catalog)
+}
+
+fn validate_routing_semantics(routing: &RoutingRegistry, catalog: &Catalog) -> Result<(), String> {
     let ids = catalog
         .documents
         .iter()
         .map(|document| document.id.as_str())
         .collect::<BTreeSet<_>>();
-    let cases = value["cases"]
-        .as_array()
-        .ok_or("routing cases must be an array")?;
-    if cases.len() < 5 {
-        return Err("routing fixture must cover at least five representative cases".into());
-    }
     let mut case_ids = BTreeSet::new();
-    for case in cases {
-        let id = case["id"].as_str().ok_or("routing case needs an ID")?;
-        if !case_ids.insert(id) {
-            return Err(format!("duplicate routing case {id}"));
+    let mut rust_coverage = false;
+    let mut javascript_coverage = false;
+    for case in &routing.cases {
+        if !case_ids.insert(case.id.as_str()) {
+            return Err(format!("duplicate routing case {}", case.id));
         }
-        for field in ["expectedDocumentIds", "rejectedDocumentIds"] {
-            for document in case[field]
-                .as_array()
-                .ok_or("routing expectations must be arrays")?
-            {
-                let document = document
-                    .as_str()
-                    .ok_or("routing document ID must be a string")?;
-                if !ids.contains(document) {
-                    return Err(format!(
-                        "routing case {id} uses unknown document {document}"
-                    ));
-                }
+        let expected = case
+            .expected_document_ids
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+        let rejected = case
+            .rejected_document_ids
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+        if let Some(overlap) = expected.intersection(&rejected).next() {
+            return Err(format!(
+                "routing case {} both expects and rejects {overlap}",
+                case.id
+            ));
+        }
+        for document in expected.iter().chain(rejected.iter()) {
+            if !ids.contains(document) {
+                return Err(format!(
+                    "routing case {} uses unknown document {document}",
+                    case.id
+                ));
             }
         }
+        rust_coverage |= expected.contains("language.rust")
+            && !expected.iter().any(|id| {
+                id.starts_with("language.javascript") || id.starts_with("language.typescript")
+            });
+        javascript_coverage |= expected.contains("language.javascript")
+            && expected.contains("language.typescript")
+            && rejected.contains("language.rust");
+    }
+    if !rust_coverage || !javascript_coverage {
+        return Err(
+            "positive routing cases must independently cover Rust and JavaScript/TypeScript".into(),
+        );
     }
     Ok(())
 }
 
-fn validate_forward_trials(repository: &Path, catalog: &Catalog) -> Result<(), String> {
-    let value: serde_json::Value =
-        read_json(&repository.join("evals/scenarios/shared-knowledge/scenarios.json"))?;
-    if value["schemaVersion"] != 1 {
-        return Err("unsupported forward-trial schemaVersion".into());
-    }
+fn validate_forward_trial_semantics(
+    repository: &Path,
+    trials: &ForwardTrialRegistry,
+    criterion_ids: &BTreeSet<&str>,
+    catalog: &Catalog,
+) -> Result<(), String> {
     let ids = catalog
         .documents
         .iter()
         .map(|document| document.id.as_str())
         .collect::<BTreeSet<_>>();
-    let scenarios = value["scenarios"]
-        .as_array()
-        .ok_or("forward trials must be an array")?;
-    if scenarios.len() < 7 {
-        return Err("forward trials must cover all seven required behaviors".into());
+    let required = REQUIRED_BEHAVIORS.into_iter().collect::<BTreeSet<_>>();
+    let declared = trials
+        .required_behaviors
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    if declared != required {
+        return Err("forward trials declare an incomplete required behavior set".into());
     }
+    let rubric = safe_relative(&trials.rubric)?;
+    if !repository.join("evals").join(rubric).is_file() {
+        return Err("forward-trial rubric path does not resolve inside evals".into());
+    }
+
     let mut scenario_ids = BTreeSet::new();
-    for scenario in scenarios {
-        let id = scenario["id"].as_str().ok_or("scenario needs an ID")?;
-        if !scenario_ids.insert(id) {
-            return Err(format!("duplicate forward-trial scenario {id}"));
+    let mut covered_behaviors = BTreeSet::new();
+    let mut rust_coverage = false;
+    let mut javascript_coverage = false;
+    for scenario in &trials.scenarios {
+        if !scenario_ids.insert(scenario.id.as_str()) {
+            return Err(format!("duplicate forward-trial scenario {}", scenario.id));
         }
-        let prompt = safe_relative(
-            scenario["prompt"]
-                .as_str()
-                .ok_or("scenario needs a prompt")?,
-        )?;
+        let prompt = safe_relative(&scenario.prompt)?;
         if !repository
             .join("evals/scenarios/shared-knowledge")
             .join(prompt)
             .is_file()
         {
-            return Err(format!("scenario {id} prompt is missing"));
+            return Err(format!("scenario {} prompt is missing", scenario.id));
         }
-        for document in scenario["expectedDocumentIds"]
-            .as_array()
-            .ok_or("scenario expectations must be an array")?
-        {
-            let document = document
-                .as_str()
-                .ok_or("scenario document ID must be a string")?;
+        let expected = scenario
+            .expected_document_ids
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+        let rejected = scenario
+            .rejected_document_ids
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+        if let Some(overlap) = expected.intersection(&rejected).next() {
+            return Err(format!(
+                "scenario {} both expects and rejects {overlap}",
+                scenario.id
+            ));
+        }
+        for document in expected.iter().chain(rejected.iter()) {
             if !ids.contains(document) {
-                return Err(format!("scenario {id} uses unknown document {document}"));
+                return Err(format!(
+                    "scenario {} uses unknown document {document}",
+                    scenario.id
+                ));
             }
         }
-        if scenario["assertions"].as_array().is_none_or(Vec::is_empty) {
-            return Err(format!("scenario {id} needs deterministic assertions"));
+        for behavior in &scenario.behaviors {
+            covered_behaviors.insert(behavior.as_str());
         }
+        for criterion in &scenario.rubric_criteria {
+            if !criterion_ids.contains(criterion.as_str()) {
+                return Err(format!(
+                    "scenario {} uses unknown rubric criterion {criterion}",
+                    scenario.id
+                ));
+            }
+        }
+        rust_coverage |=
+            expected.contains("language.rust") && rejected.contains("language.javascript");
+        javascript_coverage |= expected.contains("language.javascript")
+            && expected.contains("language.typescript")
+            && rejected.contains("language.rust");
     }
-    let rubric: serde_json::Value =
-        read_json(&repository.join("evals/rubrics/shared-knowledge.json"))?;
-    if rubric["schemaVersion"] != 1 || rubric["criteria"].as_array().is_none_or(Vec::is_empty) {
-        return Err("shared-knowledge rubric is incomplete".into());
+    if covered_behaviors != required {
+        return Err(
+            "forward-trial scenarios do not cover every required reasoning behavior".into(),
+        );
+    }
+    if !rust_coverage || !javascript_coverage {
+        return Err(
+            "forward trials must independently cover Rust and JavaScript/TypeScript".into(),
+        );
     }
     Ok(())
 }
 
-pub fn extract_recipe_json(markdown: &str) -> Result<serde_json::Value, String> {
+fn validate_recipes(
+    repository: &Path,
+    schemas: &CompiledSchemas,
+    catalog: &Catalog,
+) -> Result<(), String> {
+    for recipe in catalog
+        .documents
+        .iter()
+        .filter(|document| document.kind == "recipe")
+    {
+        let markdown = fs::read_to_string(repository.join(CANONICAL_ROOT).join(&recipe.path))
+            .map_err(|error| format!("cannot read recipe {}: {error}", recipe.path))?;
+        let authored = extract_recipe_json_text(&markdown)?;
+        let value: Value = serde_json::from_str(authored)
+            .map_err(|error| format!("invalid recipe JSON in {}: {error}", recipe.path))?;
+        schemas.validate(SchemaKind::Config, &recipe.path, &value)?;
+        validate_recipe_with_ordinary_loader(recipe, authored, &value)?;
+    }
+    Ok(())
+}
+
+fn validate_recipe_with_ordinary_loader(
+    recipe: &Document,
+    authored: &str,
+    value: &Value,
+) -> Result<(), String> {
+    let temporary = tempfile::tempdir()
+        .map_err(|error| format!("cannot create temporary recipe workspace: {error}"))?;
+    let workspace = temporary.path().join("workspace");
+    let config_directory = workspace.join(".validation");
+    fs::create_dir_all(&config_directory)
+        .map_err(|error| format!("cannot create recipe config directory: {error}"))?;
+    let config_path = config_directory.join("config.json");
+    fs::write(&config_path, authored.as_bytes())
+        .map_err(|error| format!("cannot write authored recipe config: {error}"))?;
+
+    let workspace_root = value["workspaceRoot"]
+        .as_str()
+        .ok_or_else(|| format!("recipe {} has no workspaceRoot", recipe.id))?;
+    let resolved_root = match workspace_root {
+        "." => config_directory.clone(),
+        ".." => workspace.clone(),
+        _ => {
+            return Err(format!(
+                "recipe {} must use a deterministic . or .. workspaceRoot",
+                recipe.id
+            ))
+        }
+    };
+    for suite in value["suites"]
+        .as_array()
+        .ok_or("recipe suites must be an array")?
+    {
+        let directory = suite["workingDirectory"].as_str().unwrap_or(".");
+        let relative = safe_directory_shape(directory)?;
+        fs::create_dir_all(resolved_root.join(relative))
+            .map_err(|error| format!("cannot create recipe suite directory: {error}"))?;
+    }
+    workspace_validator::config::load(Some(&config_path), &workspace).map_err(|error| {
+        format!(
+            "recipe {} fails ordinary configuration validation: {error}",
+            recipe.id
+        )
+    })?;
+    Ok(())
+}
+
+fn safe_directory_shape(value: &str) -> Result<PathBuf, String> {
+    let path = Path::new(value);
+    if path.is_absolute()
+        || !path
+            .components()
+            .all(|component| matches!(component, Component::Normal(_) | Component::CurDir))
+    {
+        return Err(format!("unsafe recipe directory {value}"));
+    }
+    Ok(path.to_path_buf())
+}
+
+pub fn extract_recipe_json_text(markdown: &str) -> Result<&str, String> {
     let start = markdown
         .find("```json\n")
         .ok_or("recipe has no JSON example")?
@@ -604,7 +973,11 @@ pub fn extract_recipe_json(markdown: &str) -> Result<serde_json::Value, String> 
     if markdown[end + 4..].contains("```json\n") {
         return Err("recipe must contain exactly one complete JSON example".into());
     }
-    serde_json::from_str(&markdown[start..end])
+    Ok(&markdown[start..end])
+}
+
+pub fn extract_recipe_json(markdown: &str) -> Result<Value, String> {
+    serde_json::from_str(extract_recipe_json_text(markdown)?)
         .map_err(|error| format!("invalid recipe JSON: {error}"))
 }
 
@@ -623,34 +996,44 @@ pub fn tree_digest(root: &Path) -> Result<String, String> {
     Ok(format!("{:x}", digest.finalize()))
 }
 
-fn compare_trees(canonical: &Path, projected: &Path) -> Result<(), String> {
-    let canonical_files = collect_files(canonical)?;
-    let projected_files = collect_files(projected)?;
-    if canonical_files != projected_files {
-        return Err("projected knowledge has missing, extra, or stale paths".into());
-    }
-    for relative in canonical_files {
-        let left = fs::read(canonical.join(&relative)).map_err(|error| error.to_string())?;
-        let right = fs::read(projected.join(&relative)).map_err(|error| error.to_string())?;
-        if left != right {
-            return Err(format!(
-                "projected knowledge differs at {}",
-                relative.display()
-            ));
-        }
-    }
-    Ok(())
+pub fn embedded_source_assets(repository: &Path) -> Result<Vec<(String, Vec<u8>)>, String> {
+    let root = repository.join(CANONICAL_ROOT);
+    collect_files(&root)?
+        .into_iter()
+        .map(|relative| {
+            let path = slash_path(&relative);
+            let bytes = fs::read(root.join(&relative))
+                .map_err(|error| format!("cannot read embedded source {path}: {error}"))?;
+            Ok((path, bytes))
+        })
+        .collect()
 }
 
-fn copy_tree(source: &Path, destination: &Path) -> Result<(), String> {
-    fs::create_dir_all(destination)
-        .map_err(|error| format!("cannot create {}: {error}", destination.display()))?;
-    for relative in collect_files(source)? {
-        let target = destination.join(&relative);
-        fs::create_dir_all(target.parent().unwrap())
-            .map_err(|error| format!("cannot create parent for {}: {error}", target.display()))?;
-        fs::copy(source.join(&relative), &target)
-            .map_err(|error| format!("cannot copy {}: {error}", relative.display()))?;
+pub fn validate_embedded_asset_inventory(
+    catalog: &Catalog,
+    assets: &[(String, Vec<u8>)],
+) -> Result<(), String> {
+    let mut paths = BTreeSet::new();
+    for (path, bytes) in assets {
+        let relative = safe_relative(path)?;
+        if slash_path(&relative) != *path || !paths.insert(path.as_str()) {
+            return Err(format!(
+                "duplicate or non-normalized embedded asset path {path}"
+            ));
+        }
+        std::str::from_utf8(bytes)
+            .map_err(|error| format!("embedded asset {path} is not UTF-8: {error}"))?;
+    }
+    if !paths.contains("catalog.json") {
+        return Err("embedded asset inventory omits catalog.json".into());
+    }
+    for document in &catalog.documents {
+        if !paths.contains(document.path.as_str()) {
+            return Err(format!(
+                "catalog document {} has no embedded asset at {}",
+                document.id, document.path
+            ));
+        }
     }
     Ok(())
 }
@@ -677,7 +1060,7 @@ fn collect_files_at(root: &Path, relative: &Path, files: &mut Vec<PathBuf>) -> R
         let kind = entry.file_type().map_err(|error| error.to_string())?;
         if kind.is_symlink() {
             return Err(format!(
-                "generated knowledge cannot contain symlink {}",
+                "canonical knowledge cannot contain symlink {}",
                 child.display()
             ));
         } else if kind.is_dir() {
@@ -785,21 +1168,15 @@ mod tests {
     }
 
     #[test]
-    fn projection_comparison_rejects_missing_extra_and_modified_files() {
-        let temporary = tempfile::tempdir().unwrap();
-        let canonical = temporary.path().join("canonical");
-        let projected = temporary.path().join("projected");
-        fs::create_dir_all(&canonical).unwrap();
-        fs::create_dir_all(&projected).unwrap();
-        fs::write(canonical.join("guide.md"), "canonical").unwrap();
+    fn embedded_inventory_rejects_unsafe_paths_and_missing_documents() {
+        let catalog = load_catalog(Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap();
+        let mut assets = embedded_source_assets(Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap();
+        assets.push(("../escape.md".into(), b"unsafe".to_vec()));
+        assert!(validate_embedded_asset_inventory(&catalog, &assets).is_err());
 
-        assert!(compare_trees(&canonical, &projected).is_err());
-        fs::write(projected.join("guide.md"), "modified").unwrap();
-        assert!(compare_trees(&canonical, &projected).is_err());
-        fs::write(projected.join("guide.md"), "canonical").unwrap();
-        fs::write(projected.join("extra.md"), "extra").unwrap();
-        assert!(compare_trees(&canonical, &projected).is_err());
-        fs::remove_file(projected.join("extra.md")).unwrap();
-        assert!(compare_trees(&canonical, &projected).is_ok());
+        let mut assets = embedded_source_assets(Path::new(env!("CARGO_MANIFEST_DIR"))).unwrap();
+        let missing = &catalog.documents[0].path;
+        assets.retain(|(path, _)| path != missing);
+        assert!(validate_embedded_asset_inventory(&catalog, &assets).is_err());
     }
 }

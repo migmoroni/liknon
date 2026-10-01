@@ -351,7 +351,6 @@ and add direct references for AI-Engineering:
 
 ```text
 references/
-├── knowledge/
 ├── policy-boundary.md
 ├── ai-tool/
 │   ├── index.md
@@ -370,12 +369,15 @@ references/
 
 Each process reference describes one process, requires explicit artifact inputs,
 loads `policy-boundary.md`, routes policy guidance and operational work through
-the applicable AI-Tool reference, and links only the knowledge categories it
-needs. A process may route directly to a documented CLI capability only when no
-AI-Tool operation covers that capability. It records the capability and reason,
-and it must not recreate, bypass, or locally reinterpret an existing AI-Tool
-operation. The AI-Engineering index is selected only when the human invokes
-that flow or one of its processes.
+the applicable AI-Tool reference, and identifies only the knowledge categories
+it needs. The agent resolves those categories through `workspace-validator
+knowledge catalog` and retrieves the selected documents through
+`workspace-validator knowledge show <document-id>`; no knowledge files live in
+the skill. A process may route directly to a documented CLI capability only
+when no AI-Tool operation covers that capability. It records the capability and
+reason, and it must not recreate, bypass, or locally reinterpret an existing
+AI-Tool operation. The AI-Engineering index is selected only when the human
+invokes that flow or one of its processes.
 
 The manifest remains the skill version and compatibility source. Artifacts
 record the producing skill version so a later process can reject incompatible
@@ -483,6 +485,8 @@ the expected conclusion or hidden answer.
 - [ ] Every decision records the exact policy digest without storing secrets.
 - [ ] Skill references load progressively and remain within their declared
       compatibility range.
+- [ ] AI-Engineering retrieves shared knowledge progressively through the CLI
+      and the distributed skill contains no copied knowledge subtree.
 - [ ] AI-Engineering uses AI-Tool for every covered operation and uses the CLI
       directly only for an uncovered capability with an explicit documented
       reason.

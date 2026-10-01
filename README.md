@@ -102,10 +102,12 @@ The source distribution includes one versioned, agent-neutral skill at
 [`skills/workspace-validator`](skills/workspace-validator). Its `SKILL.md` is a
 small router that checks CLI compatibility and loads only the requested
 workflow reference: execution, triage, configuration, or coverage auditing.
-When a task needs source-backed reasoning about evidence, the router can load
-the generated shared-knowledge index and compact catalog, then only the exact
-matching guides. The canonical human-readable tree remains available at
-[`docs/validation/knowledge`](docs/validation/knowledge/README.md).
+When a task needs source-backed reasoning about evidence, the router uses
+`workspace-validator knowledge catalog --format=json` and then
+`workspace-validator knowledge show <document-id>` for only the exact matching
+guides. The canonical human-readable source remains available at
+[`docs/validation/knowledge`](docs/validation/knowledge/README.md); the skill
+contains no copied knowledge tree.
 
 Copy the complete directory from the source release that matches the installed
 CLI into the skill directory recognized by the consumer workspace. For an
@@ -170,6 +172,8 @@ workspace-validator explain suite <suite-id> [--config <path>]
 workspace-validator explain check <check-id> [--config <path>]
 workspace-validator schema config
 workspace-validator schema report
+workspace-validator knowledge catalog [--format=human|json]
+workspace-validator knowledge show <document-id>
 ```
 
 Without `--config`, the CLI discovers the nearest
@@ -178,6 +182,8 @@ Without `--config`, the CLI discovers the nearest
 and `explain` inspect configuration without running preflight or checks.
 `init` performs no discovery and installs only explicitly requested resources;
 an omitted `--workspace` means exactly the process current directory.
+Knowledge commands read only assets embedded in the binary and do not discover
+configuration or require an initialized workspace.
 
 The focused [Human Flow](docs/validation/flows/human/README.md) walks through
 authoring, deterministic initialization, inspection, execution, interpretation,

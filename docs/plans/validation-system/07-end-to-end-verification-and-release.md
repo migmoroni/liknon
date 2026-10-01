@@ -174,11 +174,11 @@ Prove that:
   its SHA-256 path;
 - declined report storage leaves no canonical report or dependent process
   artifact;
-- generated skill knowledge is byte-equivalent to
-  `docs/validation/knowledge/`;
+- every document returned by `workspace-validator knowledge show` is
+  byte-equivalent to its canonical file under `docs/validation/knowledge/`;
 - the generated shared AI decision-policy contract is byte-equivalent to
   its canonical public document;
-- human-only operator guidance is absent from skill routes and generated skill
+- human-only operator guidance is absent from skill routes and operational skill
   content;
 - skill compatibility gates prevent unsupported runtime interaction.
 
@@ -259,8 +259,8 @@ artifacts.
 Implement and execute the complete
 [Agent Evaluation Program](agent-evaluation-program.md). Keep its four
 evaluation families isolated. Validate the skill folder, manifest routes,
-generated projections, and compatibility metadata deterministically before
-starting model-driven trials:
+operational projections, embedded knowledge retrieval, and compatibility
+metadata deterministically before starting model-driven trials:
 
 1. **CLI-Only Discovery** provides only the executable name, workspace, task,
    and ordinary permissions. It evaluates whether an external agent can find
@@ -329,16 +329,16 @@ paired cross-family regressions that share the changed contract.
 - Run formatting, Clippy with warnings denied, all targets, Rustdoc tests, and
   ignored outcome fixtures.
 - Validate the declared MSRV and supported platform behavior.
-- Build shared-knowledge, shared AI decision-policy, and immutable policy-boundary
-  projections and
-  verify their independent digests.
+- Build embedded shared-knowledge assets plus the shared AI decision-policy and
+  immutable policy-boundary projections, then verify their independent digests.
 - Validate every process-artifact schema, explicit-reference fixture,
   report-storage fixture, and persistence-command contract included in the
   package.
 - Inspect `cargo package --list` and the packaged crate contents.
 - Verify skill manifest version, compatible CLI range, source crate version,
-  knowledge routes, policy-boundary route, AI-Tool routes, AI-Engineering routes,
-  and persistence contract versions.
+  policy-boundary route, AI-Tool routes, AI-Engineering routes, absence of
+  knowledge-projection metadata, use of the CLI knowledge commands, and
+  persistence contract versions.
 - Verify examples and fixtures are included or excluded intentionally.
 - Inspect versioned agent-evaluation scenarios and rubrics, include or exclude
   them from the source package intentionally, and verify that raw provider
@@ -387,8 +387,9 @@ paired cross-family regressions that share the changed contract.
 - [ ] Trust, approval, redaction, containment, and atomic-write boundaries
       survive adversarial fixtures.
 - [ ] Every documented report and exit outcome has a tested route.
-- [ ] Canonical knowledge, generated skill content, manifest routes, and package
-      contents are consistent.
+- [ ] Canonical and embedded knowledge, operational skill content, manifest
+      routes, and package contents are consistent without a copied knowledge
+      subtree in the skill.
 - [ ] All four agent-evaluation families run across the declared model matrix
       with versioned scenarios, repeated-run evidence, deterministic assertions,
       reviewed rubrics, and attributable results.

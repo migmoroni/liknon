@@ -12,6 +12,7 @@ repository = "https://github.com/migmoroni/workspace-validator"
 keywords = ["validation", "workspace", "monorepo", "cli", "automation"]
 categories = ["command-line-utilities", "development-tools", "development-tools::testing"]
 include = [
+  "/build.rs",
   "/src/**",
   "/examples/**",
   "/schemas/**",
@@ -48,4 +49,5 @@ windows-sys = { version = "0.61.2", features = [
 ] }
 
 [dev-dependencies]
+jsonschema = { version = "0.26.2", default-features = false }
 tempfile = "3.27"

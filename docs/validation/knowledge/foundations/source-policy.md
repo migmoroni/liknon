@@ -48,6 +48,6 @@ identify the exact missing question, and stop before inventing an answer.
 
 Review a source when guidance depending on it changes, a cited edition is
 superseded, or link-health monitoring reports a persistent move. Update
-`sources.json`, regenerate `SOURCES.md` and the skill projection, then run the
-knowledge verification suite. A transient unavailable publisher does not alter
-the deterministic local package.
+`sources.json`, regenerate `SOURCES.md`, then run the knowledge verification
+suite and rebuild the binary's embedded assets. A
+transient unavailable publisher does not alter the deterministic local package.

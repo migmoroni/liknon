@@ -12,10 +12,11 @@ invariant, protocol/schema contract, known example, model, property, or
 externally visible consequence. When exact output is unstable, assert the
 stable semantic fields and explicitly exclude incidental presentation.
 
-The Rust testing documentation distinguishes ordinary assertions, expected
-panic behavior, and `Result`-returning tests; each observes a different outcome
-and none automatically covers failure recovery.
-[Source: rust.book-testing#test-organization](https://doc.rust-lang.org/book/ch11-03-test-organization.html)
+The SWEBOK testing knowledge area treats test techniques and measures as
+separate concerns within a wider testing process. Local synthesis: choosing an
+input technique does not supply an oracle, and recording a result does not show
+that the oracle observed the intended consequence.
+[Source: ieee.swebok-v4#testing](https://www.computer.org/education/bodies-of-knowledge/software-engineering)
 
 ## Failure Paths
 

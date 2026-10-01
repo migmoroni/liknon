@@ -16,19 +16,21 @@ How can a validation mechanism be justified from a real risk or invariant?
 8. Interpret the result only within those conditions.
 9. State blind spots and residual uncertainty.
 
-NIST SSDF tasks pair outcomes with examples of evidence rather than treating a
-named tool as the outcome. That supports the direction of this local pattern,
-not every detail of it.
+NIST SSDF presents practices with tasks and notional implementation examples
+rather than treating a named tool as the practice outcome. That supports the
+direction of this local synthesis, not every detail of it.
 [Source: nist.ssdf-1.1#tasks-and-evidence](https://csrc.nist.gov/pubs/sp/800/218/final)
 
 ## Example
 
-Consequence: a release archive omits the distributed skill. Claim: the archive
-contains every routed skill file. Failure mode: package include rules omit the
-generated knowledge projection. Observable: archive path list. Oracle: every
-manifest route and projected file is present exactly once. Mechanism: inspect
-the package list without publishing. Limitation: presence does not establish
-byte identity, so a separate projection comparison is required.
+Consequence: an installed CLI cannot retrieve a required guide. Claim: the
+source archive contains the canonical knowledge tree and build entrypoint.
+Failure mode: package include rules omit a guide or the embedding build logic.
+Observable: archive path list plus queries made with a binary built from that
+archive. Oracle: every catalog document ID returns bytes equal to its canonical
+Markdown. Mechanism: inspect and verify the package without publishing.
+Limitation: this does not establish that the guidance is sufficient for every
+future validation question.
 
 ## Failure Modes
 

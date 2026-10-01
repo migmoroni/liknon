@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schemas/knowledge-routing.schema.json",
   "schemaVersion": 1,
   "cases": [
     {
@@ -12,8 +13,8 @@
     },
     {
       "id": "valid-release-composition",
-      "question": "Design evidence that generated knowledge is present and unchanged in a Rust crate release.",
-      "workspaceFacts": ["Cargo package", "generated skill projection", "Git repository"],
+      "question": "Design evidence that embedded knowledge remains queryable and byte-equivalent in a Rust crate release.",
+      "workspaceFacts": ["Cargo package", "canonical knowledge tree", "OUT_DIR embedding build", "Git repository"],
       "networkAccess": "unavailable",
       "expectedDocumentIds": ["pattern.evidence-chain", "concern.reproducible-release-evidence", "recipe.rust-cli-release-gate"],
       "rejectedDocumentIds": ["standard.wcag-2.2"],
@@ -54,6 +55,15 @@
       "expectedDocumentIds": ["foundation.validation-strategy", "standard.wcag-2.2"],
       "rejectedDocumentIds": ["recipe.rust-cli-release-gate"],
       "expectedBehavior": "preserve-native-standard-terminology"
+    },
+    {
+      "id": "javascript-typescript-gate",
+      "question": "Which bounded evidence validates a pnpm-managed TypeScript package with Vitest without loading Rust guidance?",
+      "workspaceFacts": ["package.json and pnpm-lock.yaml exist", "TypeScript compiler and Vitest are declared dependencies", "Node.js runtime is supported"],
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["language.javascript", "language.typescript", "technology.nodejs", "tool.pnpm", "tool.typescript-compiler", "tool.vitest", "recipe.javascript-typescript-package-gate"],
+      "rejectedDocumentIds": ["language.rust", "tool.cargo", "tool.clippy"],
+      "expectedBehavior": "route-javascript-typescript-local-guidance"
     }
   ]
 }

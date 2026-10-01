@@ -4,13 +4,14 @@
   "title": "Workspace Validator Knowledge Sources",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "sources"],
+  "required": ["$schema", "schemaVersion", "sources"],
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": { "const": "../../../schemas/knowledge-sources.schema.json" },
     "schemaVersion": { "const": 1 },
     "sources": {
       "type": "array",
       "minItems": 1,
+      "uniqueItems": true,
       "items": { "$ref": "#/$defs/source" }
     }
   },
@@ -45,7 +46,7 @@
         "kind": { "enum": ["specification", "standard", "maintainer-documentation", "primary-research"] },
         "publicationStatus": { "enum": ["final", "draft", "living"] },
         "lastReviewed": { "$ref": "#/$defs/date" },
-        "locations": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/location" } }
+        "locations": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/location" } }
       }
     }
   }

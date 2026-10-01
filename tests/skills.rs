@@ -36,13 +36,10 @@ fn is_safe_relative_path(path: &Path) -> bool {
 }
 
 #[test]
-fn unsafe_or_out_of_root_knowledge_routes_are_rejected_by_the_contract() {
+fn unsafe_skill_routes_are_rejected_by_the_contract() {
     for path in ["", "/absolute", "../escape", "references/../escape"] {
         assert!(!is_safe_relative_path(Path::new(path)));
     }
-    let active_root = Path::new("references/knowledge");
-    assert!(!Path::new("references/run.md").starts_with(active_root));
-    assert!(Path::new("references/knowledge/README.md").starts_with(active_root));
 }
 
 #[test]
@@ -122,49 +119,8 @@ fn bundled_skill_matches_the_crate_and_routes_every_workflow() {
         }
     }
 
-    let knowledge = manifest["knowledge"]
-        .as_object()
-        .expect("knowledge maintenance metadata must be an object");
-    assert_eq!(knowledge["canonicalRoot"], "docs/validation/knowledge");
-    assert_eq!(knowledge["projectedRoot"], "references/knowledge");
-    assert_eq!(knowledge["digestAlgorithm"], "sha256-tree-v1");
-
-    let projected_root = PathBuf::from(
-        knowledge["projectedRoot"]
-            .as_str()
-            .expect("projectedRoot must be a relative path"),
-    );
-    let route = PathBuf::from(
-        knowledge["route"]
-            .as_str()
-            .expect("knowledge route must be a relative path"),
-    );
-    assert_safe_relative_path(&projected_root);
-    assert_safe_relative_path(&route);
-    assert!(route.starts_with(&projected_root));
-    assert_eq!(
-        route.file_name().and_then(|value| value.to_str()),
-        Some("README.md")
-    );
-    assert!(root.join(&route).is_file());
-    assert!(entrypoint_document.contains(&format!("`{}`", route.display())));
-
-    let canonical_root = PathBuf::from(
-        knowledge["canonicalRoot"]
-            .as_str()
-            .expect("canonicalRoot must be a repository-relative path"),
-    );
-    assert_safe_relative_path(&canonical_root);
-    assert!(Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join(canonical_root)
-        .is_dir());
-
-    for duplicated in ["sourceCrateVersion", "skillBundleVersion", "compatibleCli"] {
-        for entry in fs::read_dir(root.join(&projected_root)).unwrap() {
-            let entry = entry.unwrap();
-            if entry.file_type().unwrap().is_file() {
-                assert!(!read(entry.path()).contains(duplicated));
-            }
-        }
-    }
+    assert!(manifest.get("knowledge").is_none());
+    assert!(!root.join("references/knowledge").exists());
+    assert!(entrypoint_document.contains("`workspace-validator knowledge catalog --format=json`"));
+    assert!(entrypoint_document.contains("`workspace-validator knowledge show <document-id>`"));
 }

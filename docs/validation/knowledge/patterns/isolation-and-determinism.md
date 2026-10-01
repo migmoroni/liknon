@@ -7,17 +7,23 @@ change?
 
 ## Apply The Pattern
 
-Declare inputs, tool versions, environment variables, time, randomness,
+Declare inputs, dependency identities, tool versions, environment variables, time, randomness,
 locale, platform, filesystem state, network/service state, and concurrency that
 can affect the result. Control or record each material input. Give each run an
 isolated mutable area, stable fixtures, explicit cleanup ownership, and a
-bounded working directory. Prefer locked dependencies and deterministic
-generation when the ecosystem supports them.
+bounded working directory. Prefer an immutable dependency mechanism and
+deterministic generation when the ecosystem supports them. The Reproducible
+Builds definition makes the build environment, instructions, and dependencies
+part of the inputs required for repeatable output.
+[Source: reproducible-builds.definition#definition](https://reproducible-builds.org/docs/definition/)
 
-Cargo's `--locked` option requires the existing lock file to remain unchanged,
-which is useful evidence about dependency resolution but does not make compiler
-output or tests universally reproducible.
-[Source: rust.cargo#locked](https://doc.rust-lang.org/cargo/commands/cargo-test.html#manifest-options)
+## Bounded Ecosystem Examples
+
+Cargo `--locked` and pnpm `--frozen-lockfile` are examples of mechanisms that
+can reject dependency-resolution drift. Each supplies only bounded evidence
+about its own manifest/lockfile contract; neither makes compilation, tests, or
+artifacts universally reproducible. Load the relevant tool guide only after the
+workspace ecosystem is confirmed.
 
 ## Evidence And Limits
 

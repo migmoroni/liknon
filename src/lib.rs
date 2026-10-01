@@ -36,6 +36,7 @@
 mod cli;
 mod dag;
 mod error;
+mod knowledge;
 mod process;
 
 pub mod config;

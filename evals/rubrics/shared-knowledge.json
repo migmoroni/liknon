@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schemas/knowledge-rubric.schema.json",
   "schemaVersion": 1,
   "rubricId": "shared-knowledge-v1",
   "scale": {

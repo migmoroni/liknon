@@ -40,3 +40,9 @@ diagnostics. Resource statuses are `created`, `reused`, `conflict`, `failed`,
 and `not_written`; aggregate statuses are `success`, `conflict`, `failed`, and
 `partial`. The shared result keeps provisioning capabilities composable within
 one initialization namespace.
+
+Initialization is capability-selective: every consumer-owned resource requires
+its own explicit flag, and a flag materializes only that resource. Adding
+another capability does not make `--config` install it implicitly. Shared
+validation knowledge is versioned inside the CLI and is never copied into
+`.validation/` by initialization.
