@@ -20,7 +20,7 @@ include = [
   "/docs/validation/**",
   "/evals/**",
   "/fixtures/knowledge/**",
-  "/tools/knowledge.rs",
+  "/tools/knowledge/**",
   "/README.md",
   "/CONFIG_DESIGN.md",
   "/CHANGELOG.md",
@@ -52,3 +52,7 @@ windows-sys = { version = "0.61.2", features = [
 jsonschema = { version = "0.26.2", default-features = false }
 pulldown-cmark = { version = "0.13.4", default-features = false }
 tempfile = "3.27"
+
+[[example]]
+name = "knowledge_release"
+path = "tools/knowledge/main.rs"

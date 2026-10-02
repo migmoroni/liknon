@@ -31,8 +31,8 @@ duplication, and canonical path on 2026-10-01.
 | `tool.rustfmt` | tool; `reference/tools/rustfmt.md` | How can Rust formatting be checked without rewriting? | Cargo, Rust; `rust.rustfmt` | Follows maintained Rust toolchain lines; version sensitivity stated. |
 | `tool.typescript-compiler` | tool; `reference/tools/typescript-compiler.md` | How can one TypeScript project be checked without emission? | JavaScript, Node.js, pnpm, TypeScript; `typescript.docs-6` | TypeScript 6 major line; exact patch remains provenance. |
 | `tool.vitest` | tool; `reference/tools/vitest.md` | What can one configured Vitest run establish? | JavaScript, Node.js, pnpm, TypeScript; `vitest.docs-4` | Vitest 4 major line; exact patch remains provenance. |
-| `tool.workspace-validator` | tool; `reference/tools/workspace-validator.md` | What does workspace-validator execute and report? | CLI, general; `workspace-validator.cli` | Installed crate version defines applicability; source commit remains provenance. |
 
-No guide was split or merged because each stable ID retains one semantic
-purpose. Navigation assets moved with their families and remain uncataloged.
-No forwarding file, alias, or duplicate tree remains.
+No retained guide was split or merged because each stable ID retains one
+semantic purpose. Product behavior remains in direct product documentation,
+outside shared knowledge. Navigation assets moved with their families and
+remain uncataloged. No forwarding file, alias, or duplicate tree remains.

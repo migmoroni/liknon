@@ -257,18 +257,3 @@ This file is generated from `sources.json`. Do not edit it directly.
 - `status-and-scope` — Abstract and Status of This Document. Supports: WCAG 2.2 scope, principles, and Recommendation status [Open location](https://www.w3.org/TR/WCAG22/#abstract)
 - `conformance-levels` — Section 5.2, Conformance Requirements, Level of Conformance. Supports: Levels A, AA, AAA and their scoped conformance meaning [Open location](https://www.w3.org/TR/WCAG22/#levels-of-conformance)
 
-## Validation Report Reference
-
-- ID: `workspace-validator.cli`
-- Authority: workspace-validator project
-- Revision: workspace-validator 0.1.0 at commit 7bb373f9e57af82f2b5d857b933063f0b6c72d11
-- Status: `living`
-- Kind: `maintainer-documentation`
-- Scope: Current workspace-validator structured report contract
-- Primary URI: <https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md>
-- Last reviewed: `2026-09-30`
-
-### Locations
-
-- `structured-report` — Validation Reports reference. Supports: Structured report fields and interpretation contract [Open location](https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md)
-

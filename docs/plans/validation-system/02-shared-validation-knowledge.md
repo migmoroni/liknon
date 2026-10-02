@@ -117,17 +117,15 @@ knowledge trees, or a second knowledge source.
 
 1. [x] Add automated installed-package coverage to the package CI job. Build
        and install the source package, run `knowledge catalog --format=json`
-       and `knowledge show tool.workspace-validator` from an empty temporary
+       and `knowledge show foundation.validation-model` from an empty temporary
        directory, and compare both outputs byte-for-byte with the corresponding
        canonical files inside the packaged source. The check must exercise the
        installed binary and must not resolve knowledge through repository-local
        runtime paths.
-2. [x] Correct the two confirmed source-revision mismatches. Replace the
-       unbounded `pnpm 11.x` review claim with the exact release, tag, or commit
-       actually reviewed, and replace the `workspace-validator 0.1.0` source
-       links that target `blob/main` with an immutable release tag or exact
-       commit. Update affected locations, adjacent guide wording, and generated
-       `SOURCES.md` together without changing unrelated guidance.
+2. [x] Correct the confirmed source-revision mismatch. Replace the unbounded
+       `pnpm 11.x` review claim with the exact release, tag, or commit actually
+       reviewed. Update affected locations, adjacent guide wording, and
+       generated `SOURCES.md` together without changing unrelated guidance.
 3. [x] Rerun the focused knowledge release check, installed-package smoke test,
        complete Rust verification matrix, MSRV verification, package listing,
        dependency audit, and repository-integrity check after the two
@@ -318,9 +316,6 @@ Complete the remaining source correction without weakening this contract:
 - `pnpm.cli-11` must identify the exact pnpm release, documentation tag, or
   source commit whose behavior was reviewed. `pnpm 11.x` is not an acceptable
   revision because it denotes multiple releases;
-- `workspace-validator.cli` must use an immutable release tag or exact commit in
-  its primary and named-location URIs. A revision labeled `0.1.0` must not point
-  to `blob/main`;
 - when the authoritative documentation uses a living public page for a precise
   location, retain that deep link for continued study but pair it with an exact
   reviewed release or immutable source snapshot in the source record;
@@ -689,7 +684,7 @@ minimum:
 - preserve the root README's skill-installation procedure while documenting
   that installed skills retrieve shared knowledge through
   `workspace-validator knowledge`;
-- refactor `tools/knowledge.rs` and `tests/knowledge.rs` around canonical and
+- refactor `tools/knowledge/` and `tests/knowledge.rs` around canonical and
   embedded assets;
 - update `tests/skills.rs` to verify skill routing, compatibility metadata, the
   absence of a copied knowledge subtree, and use of the CLI retrieval contract;
@@ -742,9 +737,9 @@ artifact. After `cargo package --locked` and `cargo install --path
 2. run the installed binary's `knowledge catalog --format=json` command and
    compare its standard output byte-for-byte with
    `<package-dir>/docs/validation/knowledge/catalog.json`;
-3. run the installed binary's `knowledge show tool.workspace-validator`
+3. run the installed binary's `knowledge show foundation.validation-model`
    command and compare its standard output byte-for-byte with
-   `<package-dir>/docs/validation/knowledge/tools/workspace-validator.md`;
+   `<package-dir>/docs/validation/knowledge/explanations/foundations/validation-model.md`;
 4. fail on any command error or byte mismatch and confirm that neither command
    creates files in the temporary directory.
 
@@ -905,9 +900,7 @@ Add CLI integration coverage that proves:
 - [x] Package CI installs that source package and compares catalog and document
       output from the installed binary byte-for-byte with the canonical files
       contained in the package.
-- [x] `pnpm.cli-11` identifies one exact reviewed release, tag, or commit, and
-      `workspace-validator.cli` no longer labels a `blob/main` URI as version
-      `0.1.0`.
+- [x] `pnpm.cli-11` identifies one exact reviewed release, tag, or commit.
 - [x] The focused release checks, complete verification matrix, MSRV checks,
       package checks, dependency audit, and repository-integrity gate pass after
       the remaining corrections.

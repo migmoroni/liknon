@@ -11,8 +11,9 @@ runtime behavior or dependency safety by itself.
 - pnpm 11: maintained TypeScript CLI line, reviewed against an immutable 11.x
   release and its versioned/living command documentation.
   [Source: pnpm.cli-11#release-line](https://github.com/pnpm/pnpm/releases/tag/v11.28.2)
-- pnpm 12: maintained Rust CLI line, reviewed against the immutable 12.8.1
-  release family. [Source: pnpm.cli-12#release-line](https://github.com/pnpm/pnpm/releases/tag/v12.8.1)
+- pnpm 12: maintained Rust CLI line, reviewed against an immutable 12.x release
+  and its versioned/living command documentation.
+  [Source: pnpm.cli-12#release-line](https://github.com/pnpm/pnpm/releases/tag/v12.8.1)
 
 Both lines support the validation roles below, but implementation and some edge
 behavior differ. Confirm the workspace's active line with `pnpm --version` and

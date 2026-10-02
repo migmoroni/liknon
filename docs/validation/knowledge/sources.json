@@ -395,25 +395,6 @@
           "supports": "Levels A, AA, AAA and their scoped conformance meaning"
         }
       ]
-    },
-    {
-      "id": "workspace-validator.cli",
-      "authority": "workspace-validator project",
-      "title": "Validation Report Reference",
-      "revision": "workspace-validator 0.1.0 at commit 7bb373f9e57af82f2b5d857b933063f0b6c72d11",
-      "uri": "https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md",
-      "scope": "Current workspace-validator structured report contract",
-      "kind": "maintainer-documentation",
-      "publicationStatus": "living",
-      "lastReviewed": "2026-09-30",
-      "locations": [
-        {
-          "id": "structured-report",
-          "locator": "Validation Reports reference",
-          "uri": "https://github.com/migmoroni/workspace-validator/blob/7bb373f9e57af82f2b5d857b933063f0b6c72d11/docs/validation/reference/reports.md",
-          "supports": "Structured report fields and interpretation contract"
-        }
-      ]
     }
   ]
 }

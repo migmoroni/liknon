@@ -15,15 +15,17 @@ but is not embedded as shared validation knowledge and cannot be selected with
 4. Update `knowledge/catalog.json`, `knowledge/sources.json`, relationships, and
    navigation indexes.
 5. Run `cargo run --locked --example knowledge_release -- --write`, then run it
-   again with `--check`.
+   again with `--check` to verify contracts, references, files, recipes,
+   generated assets, and deterministic packaging.
 6. Review the rendered guide, stable-ID routing, operational effects, source
    support, and duplication with the [review rubric](review-rubric.md).
 
 Use the [editorial standard](editorial-standard.md), consult the
 [editorial bases](editorial-bases.md), and follow the profile named in
-[`editorial-profiles.json`](editorial-profiles.json). The JSON registry is the
-machine-readable source of truth for family mapping, path prefixes, and H2
-order. The Markdown profiles explain editorial intent.
+[`editorial-profiles.json`](editorial-profiles.json). The JSON registry records
+the authoring model for family mapping, path prefixes, and H2 order. The
+Markdown profiles explain editorial intent. These editorial materials guide
+review and are not release-blocking validation rules.
 
 The [corpus refoundation review](corpus-review.md) records the completed
 classification and substantive review. Future changes use the same

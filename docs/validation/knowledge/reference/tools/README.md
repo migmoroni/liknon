@@ -11,4 +11,3 @@ manuals and do not choose a validation strategy.
 5. [rustfmt](rustfmt.md) — non-mutating Rust formatting checks.
 6. [TypeScript Compiler](typescript-compiler.md) — project-scoped static checking without emission.
 7. [Vitest](vitest.md) — one-shot configured test execution.
-8. [workspace-validator](workspace-validator.md) — declarative orchestration and report evidence.

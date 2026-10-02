@@ -125,7 +125,7 @@ jobs:
           smoke_dir="$RUNNER_TEMP/workspace-validator-smoke"
           knowledge_dir="$(mktemp -d "$RUNNER_TEMP/workspace-validator-knowledge.XXXXXX")"
           catalog_output="$RUNNER_TEMP/workspace-validator-catalog.json"
-          document_output="$RUNNER_TEMP/workspace-validator-tool.md"
+          document_output="$RUNNER_TEMP/workspace-validator-foundation.md"
           binary="$install_root/bin/workspace-validator"
 
           cargo install --path "$package_dir" --root "$install_root" --locked
@@ -205,10 +205,10 @@ jobs:
 
           (
             cd "$knowledge_dir"
-            "$binary" knowledge show tool.workspace-validator
+            "$binary" knowledge show foundation.validation-model
           ) > "$document_output"
           cmp \
-            "$package_dir/docs/validation/knowledge/reference/tools/workspace-validator.md" \
+            "$package_dir/docs/validation/knowledge/explanations/foundations/validation-model.md" \
             "$document_output"
 
           test -z "$(find "$knowledge_dir" -mindepth 1 -print -quit)"

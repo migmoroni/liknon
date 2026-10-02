@@ -244,7 +244,7 @@
       "questions": ["How can a Cargo-managed Rust CLI be validated before packaging?"],
       "applicability": ["cargo", "cli", "git", "release", "rust"],
       "evidenceDimensions": ["build-package", "formatting-linting", "repository-reproducibility", "static-analysis", "unit-testing"],
-      "related": ["concern.reproducible-release-evidence", "language.rust", "tool.workspace-validator"],
+      "related": ["concern.reproducible-release-evidence", "language.rust"],
       "sources": ["rust.cargo"],
       "status": "reviewed",
       "lastReviewed": "2026-10-01"
@@ -386,20 +386,6 @@
       "evidenceDimensions": ["integration-testing", "unit-testing"],
       "related": ["language.javascript", "language.typescript", "technology.nodejs", "tool.pnpm", "tool.typescript-compiler"],
       "sources": ["vitest.docs-4"],
-      "status": "reviewed",
-      "lastReviewed": "2026-10-01"
-    },
-    {
-      "id": "tool.workspace-validator",
-      "title": "workspace-validator",
-      "kind": "tool",
-      "path": "reference/tools/workspace-validator.md",
-      "summary": "Bounds the validator as an executor and reporter that never chooses evidence or grants authority.",
-      "questions": ["What does workspace-validator execute and what does a passing graph not establish?"],
-      "applicability": ["cli", "general"],
-      "evidenceDimensions": ["repository-reproducibility", "strategy"],
-      "related": ["foundation.validation-strategy", "recipe.rust-cli-release-gate"],
-      "sources": ["workspace-validator.cli"],
       "status": "reviewed",
       "lastReviewed": "2026-10-01"
     }

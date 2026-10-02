@@ -1,4 +1,4 @@
-#[path = "../tools/knowledge.rs"]
+#[path = "../tools/knowledge/main.rs"]
 mod knowledge;
 
 use std::{fs, path::Path};
@@ -21,7 +21,7 @@ fn canonical_knowledge_and_embedded_source_inventory_are_current() {
 }
 
 #[test]
-fn every_recipe_contains_one_complete_configuration_validated_by_the_release_path() {
+fn every_recipe_contains_one_configuration_validated_by_the_release_path() {
     knowledge::verify(repository()).expect("release validation includes every recipe");
     let catalog = knowledge::load_catalog(repository()).unwrap();
     let recipes = catalog
@@ -49,16 +49,14 @@ fn every_recipe_contains_one_complete_configuration_validated_by_the_release_pat
 }
 
 #[test]
-fn source_package_manifest_includes_build_canonical_skill_and_trial_assets() {
+fn source_package_manifest_includes_the_knowledge_release_inputs() {
     let manifest = fs::read_to_string(repository().join("Cargo.toml")).unwrap();
     for path in [
         "\"/build.rs\"",
         "\"/docs/validation/**\"",
         "\"/skills/**\"",
         "\"/schemas/**\"",
-        "\"/evals/**\"",
-        "\"/fixtures/knowledge/**\"",
-        "\"/tools/knowledge.rs\"",
+        "\"/tools/knowledge/**\"",
     ] {
         assert!(manifest.contains(path), "package include omits {path}");
     }
@@ -74,12 +72,6 @@ fn source_package_manifest_includes_build_canonical_skill_and_trial_assets() {
     assert!(!normal_dependencies.contains("pulldown-cmark"));
     assert!(development_dependencies.contains("jsonschema"));
     assert!(development_dependencies.contains("pulldown-cmark"));
-    assert!(repository()
-        .join("schemas/knowledge-editorial-profiles.schema.json")
-        .is_file());
-    assert!(repository()
-        .join("docs/validation/authoring/editorial-profiles.json")
-        .is_file());
     assert!(!repository()
         .join("skills/workspace-validator/references/knowledge")
         .exists());
@@ -97,22 +89,6 @@ fn registry_contracts_reject_missing_and_unknown_fields() {
             knowledge::SchemaKind::Sources,
             "docs/validation/knowledge/sources.json",
         ),
-        (
-            knowledge::SchemaKind::Profiles,
-            "docs/validation/authoring/editorial-profiles.json",
-        ),
-        (
-            knowledge::SchemaKind::Routing,
-            "fixtures/knowledge/routing.json",
-        ),
-        (
-            knowledge::SchemaKind::ForwardTrials,
-            "evals/scenarios/shared-knowledge/scenarios.json",
-        ),
-        (
-            knowledge::SchemaKind::Rubric,
-            "evals/rubrics/shared-knowledge.json",
-        ),
     ] {
         let mut asset = value(path);
         asset["unknown"] = true.into();
@@ -127,16 +103,10 @@ fn registry_contracts_reject_missing_and_unknown_fields() {
     assert!(schemas
         .validate(knowledge::SchemaKind::Sources, "sources", &sources)
         .is_err());
-
-    let mut profiles = value("docs/validation/authoring/editorial-profiles.json");
-    profiles.as_object_mut().unwrap().remove("profiles");
-    assert!(schemas
-        .validate(knowledge::SchemaKind::Profiles, "profiles", &profiles)
-        .is_err());
 }
 
 #[test]
-fn compiled_schemas_reject_enum_id_date_unique_path_and_config_failures() {
+fn compiled_schemas_reject_invalid_catalog_source_and_config_values() {
     let schemas = knowledge::CompiledSchemas::compile(repository()).unwrap();
 
     let mut catalog = value("docs/validation/knowledge/catalog.json");
@@ -157,23 +127,6 @@ fn compiled_schemas_reject_enum_id_date_unique_path_and_config_failures() {
         .validate(knowledge::SchemaKind::Sources, "source date", &sources)
         .is_err());
 
-    let mut profiles = value("docs/validation/authoring/editorial-profiles.json");
-    profiles["profiles"][0]["kind"] = "unknown".into();
-    assert!(schemas
-        .validate(knowledge::SchemaKind::Profiles, "profile kind", &profiles)
-        .is_err());
-
-    let mut profiles = value("docs/validation/authoring/editorial-profiles.json");
-    let duplicate = profiles["profiles"][0].clone();
-    profiles["profiles"].as_array_mut().unwrap().push(duplicate);
-    assert!(schemas
-        .validate(
-            knowledge::SchemaKind::Profiles,
-            "duplicate profile",
-            &profiles
-        )
-        .is_err());
-
     let mut catalog = value("docs/validation/knowledge/catalog.json");
     let duplicate = catalog["navigation"][0].clone();
     catalog["navigation"]
@@ -185,16 +138,6 @@ fn compiled_schemas_reject_enum_id_date_unique_path_and_config_failures() {
             knowledge::SchemaKind::Catalog,
             "catalog uniqueItems",
             &catalog
-        )
-        .is_err());
-
-    let mut trials = value("evals/scenarios/shared-knowledge/scenarios.json");
-    trials["scenarios"][0]["prompt"] = "../escape.md".into();
-    assert!(schemas
-        .validate(
-            knowledge::SchemaKind::ForwardTrials,
-            "unsafe prompt",
-            &trials
         )
         .is_err());
 
@@ -210,7 +153,7 @@ fn compiled_schemas_reject_enum_id_date_unique_path_and_config_failures() {
 }
 
 #[test]
-fn shared_semantic_validators_reject_relationship_overlap_and_duplicate_ids() {
+fn semantic_integrity_rejects_unknown_relationships_and_duplicate_ids() {
     let schemas = knowledge::CompiledSchemas::compile(repository()).unwrap();
 
     let mut catalog = value("docs/validation/knowledge/catalog.json");
@@ -221,30 +164,15 @@ fn shared_semantic_validators_reject_relationship_overlap_and_duplicate_ids() {
             .is_err()
     );
 
-    let catalog = knowledge::load_catalog(repository()).unwrap();
-    let mut routing = value("fixtures/knowledge/routing.json");
-    let overlap = routing["cases"][0]["expectedDocumentIds"][0].clone();
-    routing["cases"][0]["rejectedDocumentIds"]
-        .as_array_mut()
-        .unwrap()
-        .push(overlap);
-    assert!(knowledge::validate_routing_value(&schemas, &catalog, routing).is_err());
-
-    let mut routing = value("fixtures/knowledge/routing.json");
-    routing["cases"][1]["id"] = routing["cases"][0]["id"].clone();
-    assert!(knowledge::validate_routing_value(&schemas, &catalog, routing).is_err());
-
-    let trials = value("evals/scenarios/shared-knowledge/scenarios.json");
-    let mut rubric = value("evals/rubrics/shared-knowledge.json");
-    rubric["criteria"][1]["id"] = rubric["criteria"][0]["id"].clone();
-    assert!(knowledge::validate_forward_trial_values(
-        repository(),
-        &schemas,
-        &catalog,
-        trials,
-        rubric
-    )
-    .is_err());
+    let mut catalog = value("docs/validation/knowledge/catalog.json");
+    let mut duplicate = catalog["documents"][0].clone();
+    duplicate["title"] = "A different title with the same ID".into();
+    catalog["documents"].as_array_mut().unwrap().push(duplicate);
+    let sources = value("docs/validation/knowledge/sources.json");
+    assert!(
+        knowledge::validate_catalog_source_values(repository(), &schemas, catalog, sources)
+            .is_err()
+    );
 }
 
 #[test]

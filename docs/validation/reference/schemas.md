@@ -21,10 +21,14 @@ validation-knowledge catalog, source register, and maintainer-only editorial
 profile registry at
 `schemas/knowledge-catalog.schema.json` and
 `schemas/knowledge-sources.schema.json`, and
-`schemas/knowledge-editorial-profiles.schema.json`. These schemas describe
-editorial and routing assets. The routing fixture, forward-trial registry, and
-evaluation rubric are separately governed by `schemas/knowledge-routing.schema.json`,
+`schemas/knowledge-editorial-profiles.schema.json`. The routing fixture,
+forward-trial registry, and evaluation rubric are separately described by
+`schemas/knowledge-routing.schema.json`,
 `schemas/knowledge-forward-trials.schema.json`, and
-`schemas/knowledge-rubric.schema.json`. The release task compiles these Draft
-2020-12 schemas with format assertions before typed and semantic validation;
-they are not runtime CLI contracts.
+`schemas/knowledge-rubric.schema.json`.
+
+The knowledge release task compiles the catalog and source-register schemas
+with format assertions, then validates recipe examples through the ordinary
+configuration schema and loader. Editorial profiles, routing fixtures, forward
+trials, and rubrics support authoring or evaluation workflows; they are not
+release-blocking knowledge checks and are not runtime CLI contracts.
