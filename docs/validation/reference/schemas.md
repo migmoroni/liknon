@@ -32,3 +32,10 @@ with format assertions, then validates recipe examples through the ordinary
 configuration schema and loader. Editorial profiles, routing fixtures, forward
 trials, and rubrics support authoring or evaluation workflows; they are not
 release-blocking knowledge checks and are not runtime CLI contracts.
+
+A catalog document with `status: "draft"` requires only its stable identity,
+kind, path, and status. Metadata may be added incrementally while it is being
+authored. A document with `status: "reviewed"` requires the complete catalog
+metadata declared by the schema. Recipe examples may use any relative
+`workspaceRoot` that remains inside the isolated release-check sandbox; the
+ordinary configuration loader remains the authority for its final validation.

@@ -83,6 +83,9 @@ major-line assumptions rather than an incidental workstation patch.
 
 Keep IDs stable while semantic purpose remains stable. Update paths, catalog
 metadata, navigation, links, sources, embedding, and package checks atomically.
+Draft catalog entries require only `id`, `kind`, `path`, and `status`; their
+editorial metadata may remain absent while work is in progress. Complete every
+catalog metadata field before changing an entry to `reviewed`.
 Do not leave redirects, aliases, forwarding files, duplicated trees, or
 compatibility readers. Run the technical release check and complete the human
 review rubric before marking a guide reviewed.

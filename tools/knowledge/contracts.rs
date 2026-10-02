@@ -90,16 +90,24 @@ pub struct VocabularyEntry {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Document {
     pub id: String,
+    #[serde(default)]
     pub title: String,
     pub kind: String,
     pub path: String,
+    #[serde(default)]
     pub summary: String,
+    #[serde(default)]
     pub questions: Vec<String>,
+    #[serde(default)]
     pub applicability: Vec<String>,
+    #[serde(default)]
     pub evidence_dimensions: Vec<String>,
+    #[serde(default)]
     pub related: Vec<String>,
+    #[serde(default)]
     pub sources: Vec<String>,
     pub status: String,
+    #[serde(default)]
     pub last_reviewed: String,
 }
 

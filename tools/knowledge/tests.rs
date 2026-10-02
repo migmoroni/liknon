@@ -76,6 +76,39 @@ fn integrity_accepts_incomplete_draft_prose_without_editorial_structure() {
 }
 
 #[test]
+fn recipe_loader_accepts_confined_relative_workspace_roots() {
+    let authored = fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("docs/validation/examples/single-crate.json"),
+    )
+    .unwrap();
+    let mut value: serde_json::Value = serde_json::from_str(&authored).unwrap();
+    value["workspaceRoot"] = "../nested/project".into();
+    let authored = serde_json::to_string_pretty(&value).unwrap();
+    let document = catalog("drafts/fixture.md").documents.remove(0);
+
+    validate_recipe_with_ordinary_loader(&document, &authored, &value).unwrap();
+}
+
+#[test]
+fn recipe_loader_rejects_workspace_roots_outside_its_sandbox() {
+    let authored = fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("docs/validation/examples/single-crate.json"),
+    )
+    .unwrap();
+    let document = catalog("drafts/fixture.md").documents.remove(0);
+
+    for workspace_root in ["../../..", "/outside"] {
+        let mut value: serde_json::Value = serde_json::from_str(&authored).unwrap();
+        value["workspaceRoot"] = workspace_root.into();
+        let authored = serde_json::to_string_pretty(&value).unwrap();
+        assert!(
+            validate_recipe_with_ordinary_loader(&document, &authored, &value).is_err(),
+            "accepted unsafe workspaceRoot {workspace_root}"
+        );
+    }
+}
+
+#[test]
 fn integrity_rejects_unsafe_missing_duplicate_and_unknown_references() {
     let repository = fixture_repository("Draft.\n");
 

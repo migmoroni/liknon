@@ -32,7 +32,7 @@ pub(super) fn validate_recipes(
     Ok(())
 }
 
-fn validate_recipe_with_ordinary_loader(
+pub(super) fn validate_recipe_with_ordinary_loader(
     recipe: &Document,
     authored: &str,
     value: &Value,
@@ -50,16 +50,12 @@ fn validate_recipe_with_ordinary_loader(
     let workspace_root = value["workspaceRoot"]
         .as_str()
         .ok_or_else(|| format!("recipe {} has no workspaceRoot", recipe.id))?;
-    let resolved_root = match workspace_root {
-        "." => config_directory.clone(),
-        ".." => workspace.clone(),
-        _ => {
-            return Err(format!(
-                "recipe {} must use a deterministic . or .. workspaceRoot",
-                recipe.id
-            ))
-        }
-    };
+    let resolved_root = materialize_workspace_root(
+        temporary.path(),
+        &config_directory,
+        workspace_root,
+        &recipe.id,
+    )?;
     for suite in value["suites"]
         .as_array()
         .ok_or("recipe suites must be an array")?
@@ -76,6 +72,61 @@ fn validate_recipe_with_ordinary_loader(
         )
     })?;
     Ok(())
+}
+
+/// Materializes a recipe's relative workspace root inside its isolated sandbox.
+fn materialize_workspace_root(
+    sandbox: &Path,
+    config_directory: &Path,
+    declared: &str,
+    recipe_id: &str,
+) -> Result<PathBuf, String> {
+    if declared.as_bytes().contains(&0) {
+        return Err(format!(
+            "recipe {recipe_id} has a workspaceRoot containing NUL"
+        ));
+    }
+
+    let declared_path = Path::new(declared);
+    if declared_path.is_absolute() {
+        return Err(format!("recipe {recipe_id} workspaceRoot must be relative"));
+    }
+
+    let mut relative = config_directory
+        .strip_prefix(sandbox)
+        .map_err(|_| format!("recipe {recipe_id} config directory is outside its sandbox"))?
+        .to_path_buf();
+    for component in declared_path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::Normal(value) => relative.push(value),
+            Component::ParentDir if relative.pop() => {}
+            Component::ParentDir => {
+                return Err(format!(
+                    "recipe {recipe_id} workspaceRoot escapes its validation sandbox"
+                ));
+            }
+            Component::RootDir | Component::Prefix(_) => {
+                return Err(format!("recipe {recipe_id} workspaceRoot must be relative"));
+            }
+        }
+    }
+
+    let root = sandbox.join(relative);
+    fs::create_dir_all(&root)
+        .map_err(|error| format!("cannot create recipe workspaceRoot: {error}"))?;
+    let canonical_sandbox = sandbox
+        .canonicalize()
+        .map_err(|error| format!("cannot resolve recipe sandbox: {error}"))?;
+    let canonical_root = root
+        .canonicalize()
+        .map_err(|error| format!("cannot resolve recipe workspaceRoot: {error}"))?;
+    if !canonical_root.starts_with(&canonical_sandbox) {
+        return Err(format!(
+            "recipe {recipe_id} workspaceRoot escapes its validation sandbox"
+        ));
+    }
+    Ok(canonical_root)
 }
 
 fn safe_directory_shape(value: &str) -> Result<PathBuf, String> {

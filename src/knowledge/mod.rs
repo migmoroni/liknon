@@ -20,7 +20,9 @@ pub(crate) struct CatalogDocument {
     pub(crate) id: String,
     pub(crate) kind: String,
     pub(crate) path: String,
+    #[serde(default)]
     pub(crate) summary: String,
+    #[serde(default)]
     pub(crate) applicability: Vec<String>,
 }
 
@@ -140,6 +142,17 @@ mod tests {
             assert!(!valid_document_id(value), "accepted {value}");
         }
         assert!(valid_document_id("tool.cargo"));
+    }
+
+    #[test]
+    fn runtime_catalog_accepts_minimal_draft_metadata() {
+        let catalog: Catalog = serde_json::from_str(
+            r#"{"documents":[{"id":"draft.fixture","kind":"foundation","path":"draft.md","status":"draft"}]}"#,
+        )
+        .unwrap();
+        let document = &catalog.documents[0];
+        assert!(document.summary.is_empty());
+        assert!(document.applicability.is_empty());
     }
 
     fn collect_source_paths(root: &Path, relative: &Path, paths: &mut BTreeSet<String>) {

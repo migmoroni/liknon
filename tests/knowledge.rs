@@ -106,6 +106,59 @@ fn registry_contracts_reject_missing_and_unknown_fields() {
 }
 
 #[test]
+fn draft_metadata_is_optional_and_reviewed_metadata_is_complete() {
+    const REVIEWED_METADATA: &[&str] = &[
+        "title",
+        "summary",
+        "questions",
+        "applicability",
+        "evidenceDimensions",
+        "related",
+        "sources",
+        "lastReviewed",
+    ];
+
+    let schemas = knowledge::CompiledSchemas::compile(repository()).unwrap();
+    let canonical = value("docs/validation/knowledge/catalog.json");
+
+    let mut draft = canonical.clone();
+    let document = draft["documents"][0].as_object_mut().unwrap();
+    document.insert("status".into(), "draft".into());
+    for field in REVIEWED_METADATA {
+        document.remove(*field);
+    }
+    schemas
+        .validate(knowledge::SchemaKind::Catalog, "minimal draft", &draft)
+        .unwrap();
+    let (_, sources) = knowledge::validate_catalog_source_values(
+        repository(),
+        &schemas,
+        draft,
+        value("docs/validation/knowledge/sources.json"),
+    )
+    .unwrap();
+    assert!(!sources.sources.is_empty());
+
+    for field in REVIEWED_METADATA {
+        let mut reviewed = canonical.clone();
+        reviewed["documents"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove(*field);
+        assert!(
+            schemas
+                .validate(
+                    knowledge::SchemaKind::Catalog,
+                    &format!("reviewed document without {field}"),
+                    &reviewed,
+                )
+                .is_err(),
+            "reviewed document accepted without {field}"
+        );
+    }
+}
+
+#[test]
 fn compiled_schemas_reject_invalid_catalog_source_and_config_values() {
     let schemas = knowledge::CompiledSchemas::compile(repository()).unwrap();
 

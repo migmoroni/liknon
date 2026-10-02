@@ -51,7 +51,18 @@
     "document": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "title", "kind", "path", "summary", "questions", "applicability", "evidenceDimensions", "related", "sources", "status", "lastReviewed"],
+      "required": ["id", "kind", "path", "status"],
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "reviewed" } },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["title", "summary", "questions", "applicability", "evidenceDimensions", "related", "sources", "lastReviewed"]
+          }
+        }
+      ],
       "properties": {
         "id": { "$ref": "#/$defs/id" },
         "title": { "$ref": "#/$defs/nonEmpty" },
