@@ -5,6 +5,22 @@ use std::process::Stdio;
 use std::{fs, process::Command};
 use tempfile::TempDir;
 
+fn command_help(arguments: &[&str]) -> String {
+    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .args(arguments)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{} returned {:?}: {}",
+        arguments.join(" "),
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stderr.is_empty());
+    String::from_utf8(output.stdout).unwrap()
+}
+
 fn init_candidate(root: &std::path::Path) -> (std::path::PathBuf, Vec<u8>) {
     let mut value = common::base_config("definitely-missing");
     value["workspaceRoot"] = "..".into();
@@ -380,12 +396,7 @@ fn visual_usage_rejects_ambiguous_unknown_and_json_combinations() {
 
 #[test]
 fn help_lists_palettes_and_presentations_as_distinct_options() {
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
-        .args(["validate", "--help"])
-        .output()
-        .unwrap();
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = command_help(&["validate", "--help"]);
     for palette in [
         "standard",
         "high-contrast",
@@ -398,31 +409,242 @@ fn help_lists_palettes_and_presentations_as_distinct_options() {
     }
     assert!(stdout.contains("--color[=<PALETTE>]"), "{stdout}");
     assert!(stdout.contains("--presentation=<MODE>"), "{stdout}");
-    assert!(
-        stdout.contains("[possible values: standard, high-contrast, protanopia, deuteranopia, tritanopia, achromatopsia]"),
-        "{stdout}"
-    );
-    assert!(
-        stdout.contains("[possible values: standard, low-vision]"),
-        "{stdout}"
-    );
-    assert!(!stdout.contains("[possible values: standard, high-contrast, low-vision]"));
-    assert!(!stdout.contains("plain"));
+    for description in [
+        "Standard semantic terminal palette",
+        "Higher-contrast semantic terminal palette",
+        "Semantic palette adapted for protanopia",
+        "Semantic palette adapted for deuteranopia",
+        "Semantic palette adapted for tritanopia",
+        "Semantic palette that does not rely on hue distinctions",
+        "Compact terminal layout and standard emphasis",
+        "Expanded spacing and stronger emphasis for low-vision readability",
+    ] {
+        assert!(
+            stdout.contains(description),
+            "missing {description:?} in:\n{stdout}"
+        );
+    }
+    assert!(!stdout.contains("- plain:"));
 }
 
 #[test]
-fn root_help_and_version_are_successful_cli_outcomes() {
-    let binary = env!("CARGO_BIN_EXE_workspace-validator");
-    for argument in ["--help", "--version"] {
-        let output = Command::new(binary).arg(argument).output().unwrap();
+fn root_help_describes_every_command() {
+    let stdout = command_help(&["--help"]);
+    for description in [
+        "Provisions validated consumer-owned resources without executing checks",
+        "Runs a configured group or suite after configuration and tool preflight",
+        "Runs one reusable check directly at the workspace root",
+        "Inspects and validates configuration without executing configured programs",
+        "Lists configured groups, suites, checks, and tools without executing them",
+        "Explains one configured group, suite, or check without executing it",
+        "Prints the generated JSON Schema for a public CLI contract",
+        "Reads validation guidance embedded in this binary without loading configuration",
+        "workspace-validator <COMMAND> --help",
+        "The '-h' flag prints a compact summary",
+    ] {
         assert!(
-            output.status.success(),
-            "{argument} returned {:?}: {}",
-            output.status.code(),
-            String::from_utf8_lossy(&output.stderr)
+            stdout.contains(description),
+            "missing {description:?} in:\n{stdout}"
         );
-        assert!(!output.stdout.is_empty());
     }
+}
+
+#[test]
+fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
+    let short = command_help(&["-h"]);
+    assert!(short.contains("Commands:"), "{short}");
+    assert!(short.contains("validate"), "{short}");
+    assert!(!short.contains("workspace-validator validate:"), "{short}");
+    assert!(!short.contains("--color[=<PALETTE>]"), "{short}");
+
+    let long = command_help(&["--help"]);
+    for command in [
+        "workspace-validator init:",
+        "workspace-validator validate:",
+        "workspace-validator check:",
+        "workspace-validator config:",
+        "workspace-validator config validate:",
+        "workspace-validator list:",
+        "workspace-validator explain:",
+        "workspace-validator explain group:",
+        "workspace-validator explain suite:",
+        "workspace-validator explain check:",
+        "workspace-validator schema:",
+        "workspace-validator knowledge:",
+        "workspace-validator knowledge catalog:",
+        "workspace-validator knowledge show:",
+    ] {
+        assert!(long.contains(command), "missing {command:?} in:\n{long}");
+    }
+    for option in [
+        "--config <CONFIG>",
+        "--workspace <WORKSPACE>",
+        "--format <FORMAT>",
+        "--color[=<PALETTE>]",
+        "--presentation=<MODE>",
+        "--tree",
+    ] {
+        assert!(long.contains(option), "missing {option:?} in:\n{long}");
+    }
+    for argument in [
+        "[TARGET]",
+        "<CHECK_ID>",
+        "<GROUP_ID>",
+        "<SUITE_ID>",
+        "<CONTRACT>",
+        "<DOCUMENT_ID>",
+    ] {
+        assert!(long.contains(argument), "missing {argument:?} in:\n{long}");
+    }
+    assert!(
+        long.contains("Without this flag, output contains no ANSI color"),
+        "{long}"
+    );
+}
+
+#[test]
+fn command_help_describes_every_argument_and_option() {
+    let cases: &[(&[&str], &[&str])] = &[
+        (
+            &["init", "--help"],
+            &[
+                "Path to the complete configuration candidate to install",
+                "does not discover an existing workspace configuration",
+                "Sets the destination workspace boundary",
+                "must remain within this boundary",
+                "Selects the initialization result format",
+                "machine-readable initialization result without terminal styling",
+            ],
+        ),
+        (
+            &["validate", "--help"],
+            &[
+                "Group or suite ID; defaults to the configured default group",
+                "Uses an explicit configuration file instead of discovery",
+                "discovery walks upward from the process current directory",
+                "Selects the validation report format",
+                "JSON emits only the versioned ValidationReport",
+                "Enables ANSI color in human output",
+                "Without this flag, output contains no ANSI color",
+                "named palettes require --color=<PALETTE>",
+                "Status and hierarchy never rely on color alone",
+                "Selects the human-output presentation independently from color",
+                "Low-vision expands spacing and removes dim styling",
+                "Named modes require --presentation=<MODE>",
+            ],
+        ),
+        (
+            &["check", "--help"],
+            &[
+                "ID of the configured check to run",
+                "Uses an explicit configuration file instead of discovery",
+                "discovery walks upward from the process current directory",
+                "Selects the validation report format",
+                "JSON emits only the versioned ValidationReport",
+                "Enables ANSI color in human output",
+                "Without this flag, output contains no ANSI color",
+                "named palettes require --color=<PALETTE>",
+                "Status and hierarchy never rely on color alone",
+                "Selects the human-output presentation independently from color",
+                "Low-vision expands spacing and removes dim styling",
+                "Named modes require --presentation=<MODE>",
+            ],
+        ),
+        (
+            &["config", "--help"],
+            &["Validates configuration and filesystem semantics without starting configured tools"],
+        ),
+        (
+            &["config", "validate", "--help"],
+            &[
+                "Uses an explicit configuration file instead of discovery",
+                "discovery walks upward from the process current directory",
+            ],
+        ),
+        (
+            &["list", "--help"],
+            &[
+                "Also prints the configured default group's reachable execution hierarchy",
+                "Without this flag, the command lists the available groups",
+                "Uses an explicit configuration file instead of discovery",
+            ],
+        ),
+        (
+            &["explain", "--help"],
+            &[
+                "Shows membership, hierarchy, resolved invocations, and required tools for a group",
+                "Shows directory, membership, resolved invocations, and required tools for a suite",
+                "Shows the template and resolved direct and suite-bound invocations for a check",
+            ],
+        ),
+        (
+            &["explain", "group", "--help"],
+            &[
+                "ID of the configured group to explain",
+                "Uses an explicit configuration file instead of discovery",
+            ],
+        ),
+        (
+            &["explain", "suite", "--help"],
+            &[
+                "ID of the configured suite to explain",
+                "Uses an explicit configuration file instead of discovery",
+            ],
+        ),
+        (
+            &["explain", "check", "--help"],
+            &[
+                "ID of the configured check to explain",
+                "Uses an explicit configuration file instead of discovery",
+            ],
+        ),
+        (
+            &["schema", "--help"],
+            &["Public contract whose JSON Schema is written to standard output"],
+        ),
+        (
+            &["knowledge", "--help"],
+            &[
+                "Lists the embedded catalog used for progressive discovery",
+                "Writes one canonical Markdown document selected by stable ID",
+            ],
+        ),
+        (
+            &["knowledge", "catalog", "--help"],
+            &[
+                "Selects the embedded catalog format",
+                "exact embedded canonical catalog for machine consumption",
+            ],
+        ),
+        (
+            &["knowledge", "show", "--help"],
+            &["Stable document ID returned by the embedded knowledge catalog"],
+        ),
+    ];
+
+    for (arguments, descriptions) in cases {
+        let stdout = command_help(arguments);
+        for description in *descriptions {
+            assert!(
+                stdout.contains(description),
+                "missing {description:?} from `{}` help:\n{stdout}",
+                arguments.join(" ")
+            );
+        }
+    }
+}
+
+#[test]
+fn root_version_is_a_successful_cli_outcome() {
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let output = Command::new(binary).arg("--version").output().unwrap();
+    assert!(
+        output.status.success(),
+        "--version returned {:?}: {}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(!output.stdout.is_empty());
 }
 
 #[test]

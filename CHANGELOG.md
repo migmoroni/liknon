@@ -19,6 +19,10 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- CLI help describes every command, nested command, positional argument,
+  option, default, interaction, and accepted enum value at its corresponding
+  help level; root `--help` consolidates the complete command tree while root
+  `-h` remains compact.
 - Knowledge catalog entries use minimal structural metadata while `draft` and
   require complete routing and review metadata when marked `reviewed`.
 - Recipe release validation accepts relative `workspaceRoot` layouts while

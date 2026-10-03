@@ -1,7 +1,14 @@
 //! CLI parsing, command dispatch, cancellation, and exit-code translation.
 
+mod arguments;
+mod help;
 mod inspection;
 mod knowledge;
+
+use arguments::{
+    Cli, ColorPaletteArgument, Command, ConfigCommand, Contract, ExplainTarget, Format,
+    KnowledgeCommand, PresentationArgument,
+};
 
 use crate::{
     config::{self, ValidatedConfig},
@@ -18,193 +25,14 @@ use crate::{
         theme::{PaletteProfile, PresentationProfile},
     },
 };
-use clap::{error::ErrorKind, Parser, Subcommand, ValueEnum};
+use clap::{error::ErrorKind, Parser, ValueEnum};
 use schemars::schema_for;
 use std::{
     fmt::Write as _,
     io::Write,
-    path::PathBuf,
     process::ExitCode,
     sync::{atomic::AtomicBool, Arc},
 };
-
-#[derive(Parser)]
-#[command(
-    name = "workspace-validator",
-    version,
-    about = "Runs declarative workspace validation pipelines"
-)]
-struct Cli {
-    #[command(subcommand)]
-    command: Command,
-}
-
-#[derive(Subcommand)]
-enum Command {
-    /// Provisions validated consumer-owned resources without executing checks.
-    Init {
-        /// Complete configuration candidate to install.
-        #[arg(long)]
-        config: Option<PathBuf>,
-        /// Workspace boundary; defaults exactly to the process current directory.
-        #[arg(long)]
-        workspace: Option<PathBuf>,
-        #[arg(long, value_enum, default_value = "human")]
-        format: Format,
-    },
-    Validate {
-        /// Group or suite ID; defaults to the configured default group.
-        target: Option<String>,
-        #[arg(long)]
-        config: Option<PathBuf>,
-        #[arg(long, value_enum, default_value = "human")]
-        format: Format,
-        /// Selects a semantic color palette; bare --color selects standard.
-        #[arg(
-            long,
-            value_enum,
-            num_args = 0..=1,
-            default_missing_value = "standard",
-            require_equals = true,
-            value_name = "PALETTE"
-        )]
-        color: Option<ColorPaletteArgument>,
-        /// Selects layout and emphasis independently from the color palette.
-        #[arg(long, value_enum, require_equals = true, value_name = "MODE")]
-        presentation: Option<PresentationArgument>,
-    },
-    Check {
-        check_id: String,
-        #[arg(long)]
-        config: Option<PathBuf>,
-        #[arg(long, value_enum, default_value = "human")]
-        format: Format,
-        /// Selects a semantic color palette; bare --color selects standard.
-        #[arg(
-            long,
-            value_enum,
-            num_args = 0..=1,
-            default_missing_value = "standard",
-            require_equals = true,
-            value_name = "PALETTE"
-        )]
-        color: Option<ColorPaletteArgument>,
-        /// Selects layout and emphasis independently from the color palette.
-        #[arg(long, value_enum, require_equals = true, value_name = "MODE")]
-        presentation: Option<PresentationArgument>,
-    },
-    Config {
-        #[command(subcommand)]
-        command: ConfigCommand,
-    },
-    List {
-        #[arg(long)]
-        tree: bool,
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-    Explain {
-        #[command(subcommand)]
-        target: ExplainTarget,
-    },
-    Schema {
-        #[arg(value_enum)]
-        contract: Contract,
-    },
-    /// Reads validation guidance embedded in this binary.
-    Knowledge {
-        #[command(subcommand)]
-        command: KnowledgeCommand,
-    },
-}
-
-#[derive(Subcommand)]
-enum ConfigCommand {
-    Validate {
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-}
-
-#[derive(Subcommand)]
-enum KnowledgeCommand {
-    /// Lists the embedded catalog used for progressive discovery.
-    Catalog {
-        #[arg(long, value_enum, default_value = "human")]
-        format: Format,
-    },
-    /// Writes one canonical Markdown document selected by stable ID.
-    Show { document_id: String },
-}
-
-#[derive(Subcommand)]
-enum ExplainTarget {
-    Group {
-        group_id: String,
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-    Suite {
-        suite_id: String,
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-    Check {
-        check_id: String,
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-enum Format {
-    Human,
-    Json,
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-enum ColorPaletteArgument {
-    Standard,
-    HighContrast,
-    Protanopia,
-    Deuteranopia,
-    Tritanopia,
-    Achromatopsia,
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-enum PresentationArgument {
-    Standard,
-    LowVision,
-}
-
-impl From<ColorPaletteArgument> for PaletteProfile {
-    fn from(value: ColorPaletteArgument) -> Self {
-        match value {
-            ColorPaletteArgument::Standard => Self::Standard,
-            ColorPaletteArgument::HighContrast => Self::HighContrast,
-            ColorPaletteArgument::Protanopia => Self::Protanopia,
-            ColorPaletteArgument::Deuteranopia => Self::Deuteranopia,
-            ColorPaletteArgument::Tritanopia => Self::Tritanopia,
-            ColorPaletteArgument::Achromatopsia => Self::Achromatopsia,
-        }
-    }
-}
-
-impl From<PresentationArgument> for PresentationProfile {
-    fn from(value: PresentationArgument) -> Self {
-        match value {
-            PresentationArgument::Standard => Self::Standard,
-            PresentationArgument::LowVision => Self::LowVision,
-        }
-    }
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-enum Contract {
-    Config,
-    Report,
-}
 
 /// Parses process arguments, executes the requested command, and returns its exit status.
 ///
@@ -217,6 +45,17 @@ enum Contract {
 /// interrupted validation.
 pub fn run_cli() -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
+    if help::root::requested(&arguments) {
+        let mut stdout = std::io::stdout().lock();
+        let rendered = help::root::render::<Cli>();
+        return match write_output(&mut stdout, rendered.trim_end()) {
+            Ok(()) => ExitCode::from(0),
+            Err((error, code)) => {
+                write_stderr(&format!("workspace-validator: {error}"));
+                ExitCode::from(code)
+            }
+        };
+    }
     if color_value_without_equals(&arguments) {
         write_stderr("error: named --color palettes require --color=<PALETTE>");
         return ExitCode::from(3);
