@@ -1,7 +1,8 @@
 # Shared Knowledge Review Rubric
 
 Automation establishes structure and resolvable contracts. A reviewer remains
-responsible for the judgments below.
+responsible for the judgments below. Complete this review before changing a
+catalog entry from `draft` to `reviewed`.
 
 ## Reader Intent
 
@@ -32,5 +33,6 @@ responsible for the judgments below.
 - Is terminology consistent with the foundations?
 - Does the guide link instead of duplicating another guide's substantive
   guidance?
-- Are summaries, questions, relationships, sources, status, and review date in
-  the catalog accurate?
+- Are all catalog metadata fields present and accurate, including summaries,
+  questions, applicability, evidence dimensions, relationships, sources,
+  status, and review date?

@@ -16,6 +16,9 @@ requires validation reasoning beyond the selected workflow, run
 matching document set, and retrieve each selected document with
 `workspace-validator knowledge show <document-id>`. Knowledge does not select a
 workflow, grant authority, authorize network access, or execute validation.
+Treat `reviewed` entries as complete catalog metadata. A `draft` may omit
+routing fields; do not infer absent values or present draft guidance as
+reviewed.
 
 ## Check Compatibility
 

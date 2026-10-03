@@ -20,6 +20,12 @@ report the gap instead of inventing local guidance. Loading this tree never
 selects a product flow, starts a process, executes a command, persists an
 artifact, or authorizes network access.
 
+Use `status` when interpreting catalog entries. A `draft` may contain only
+`id`, `kind`, `path`, and `status`; absent summaries, questions, applicability,
+evidence dimensions, relationships, sources, or review dates remain unknown.
+A `reviewed` entry contains every catalog metadata field. Neither status
+replaces contextual judgment about whether a document applies to a workspace.
+
 `sources.json` is the canonical source register; `SOURCES.md` is generated.
 In a source checkout, read this tree directly. Installed binaries embed the
 same versioned assets and expose them without a repository checkout:

@@ -10,6 +10,8 @@ The same pipeline is available as a CLI and as a Rust library.
 
 ## Installation
 
+### From crates.io
+
 Install the published binary with Cargo:
 
 ```sh
@@ -17,6 +19,25 @@ cargo install workspace-validator --locked
 ```
 
 Rust 1.87 or newer is required.
+
+### From a source checkout
+
+Install the exact code from a cloned repository without waiting for a crates.io
+release:
+
+```sh
+git clone https://github.com/migmoroni/workspace-validator.git
+cd workspace-validator
+cargo install --path . --locked --force
+workspace-validator --version
+```
+
+`--force` replaces an existing installed copy even when it has the same crate
+version. Cargo copies the compiled binary into its installation root, normally
+`~/.cargo/bin`; it does not keep the command linked to the checkout. Run the
+`cargo install --path . --locked --force` command again after updating or
+modifying the cloned source. Ensure Cargo's binary directory is present in
+`PATH` before invoking `workspace-validator` directly.
 
 ## Quick Start
 
@@ -96,6 +117,24 @@ Use `--format=json` when a machine-readable report is required:
 workspace-validator validate --format=json
 ```
 
+## Embedded Validation Knowledge
+
+The binary includes a read-only, source-backed knowledge base for selecting and
+interpreting validation evidence. Inspect its compact catalog, then retrieve
+only the documents relevant to the current question:
+
+```sh
+workspace-validator knowledge catalog --format=json
+workspace-validator knowledge show <document-id>
+```
+
+These commands work without configuration or workspace initialization and
+never execute a configured program. Catalog entries marked `draft` may contain
+only stable identity, kind, path, and status while their routing metadata is
+being authored. Entries marked `reviewed` contain the complete catalog
+metadata required by the knowledge schema. The status describes editorial
+readiness; it does not make guidance universal project policy.
+
 ## Agent Skill
 
 The source distribution includes one versioned, agent-neutral skill at
@@ -105,7 +144,8 @@ workflow reference: execution, triage, configuration, or coverage auditing.
 When a task needs source-backed reasoning about evidence, the router uses
 `workspace-validator knowledge catalog --format=json` and then
 `workspace-validator knowledge show <document-id>` for only the exact matching
-guides. The canonical human-readable source remains available at
+guides. It does not infer metadata omitted from a draft entry. The canonical
+human-readable source remains available at
 [`docs/validation/knowledge`](docs/validation/knowledge/README.md); the skill
 contains no copied knowledge tree.
 
@@ -288,8 +328,12 @@ rejected rather than inferred or converted.
 
 Published package contents include:
 
-- [`schemas/config.schema.json`](schemas/config.schema.json);
-- [`schemas/report.schema.json`](schemas/report.schema.json);
+- the configuration, report, and knowledge contracts under the
+  [`schemas` directory](schemas/);
+- the human flow, stable reference, embedded knowledge source, and maintainer
+  guidance under [`docs/validation`](docs/validation/README.md);
+- the agent-neutral workflow bundle under
+  [`skills/workspace-validator`](skills/workspace-validator/SKILL.md);
 - [`CONFIG_DESIGN.md`](CONFIG_DESIGN.md);
 - [`CHANGELOG.md`](CHANGELOG.md);
 - [`SECURITY.md`](SECURITY.md);
@@ -310,3 +354,14 @@ the CLI. `cargo audit` rejects known RustSec advisories, while `cargo deny`
 applies the license, source, and duplicate-dependency policy in
 [`deny.toml`](deny.toml). The package job verifies the isolated crate archive
 and smoke-tests the packaged binary. The CI workflow never publishes a package.
+
+Knowledge maintainers verify the machine-readable contracts, declared assets,
+references, recipe configurations, generated source index, and deterministic
+tree digest with:
+
+```sh
+cargo run --locked --example knowledge_release -- --check
+```
+
+Use `--write` only when `sources.json` changed and `SOURCES.md` must be
+regenerated. Editorial quality remains a human review responsibility.

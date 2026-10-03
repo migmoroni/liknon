@@ -8,17 +8,27 @@ but is not embedded as shared validation knowledge and cannot be selected with
 
 1. State the reader's primary question and select the profile that serves that
    intent.
-2. Confirm applicability facets, evidence dimensions, version scope, and
-   authoritative sources.
-3. Author or revise the smallest sufficient guide under the profile's canonical
-   path prefix.
-4. Update `knowledge/catalog.json`, `knowledge/sources.json`, relationships, and
-   navigation indexes.
-5. Run `cargo run --locked --example knowledge_release -- --write`, then run it
-   again with `--check` to verify contracts, references, files, recipes,
-   generated assets, and deterministic packaging.
+2. Create or revise the canonical Markdown file and register its stable `id`,
+   `kind`, `path`, and `status`. A work in progress may remain `draft` while its
+   remaining catalog metadata is absent.
+3. Author the smallest sufficient guide under the profile's canonical path
+   prefix. Add applicability facets, evidence dimensions, relationships,
+   version scope, and authoritative sources as they become established.
+4. Update `knowledge/sources.json` and navigation indexes when the document
+   requires them.
+5. Run `cargo run --locked --example knowledge_release -- --write` when the
+   generated source index needs regeneration, then run it with `--check` to
+   verify contracts, references, declared files, recipes, embedded assets, and
+   the deterministic tree digest.
 6. Review the rendered guide, stable-ID routing, operational effects, source
-   support, and duplication with the [review rubric](review-rubric.md).
+   support, and duplication with the [review rubric](review-rubric.md). Complete
+   every catalog metadata field before changing its status to `reviewed`.
+
+Draft status relaxes editorial metadata completeness only. Stable identifiers,
+safe paths, declared UTF-8 files, supplied references, generated artifacts, and
+packaged assets remain technically valid. A document whose `kind` is `recipe`
+must contain one complete configuration example accepted by the ordinary
+configuration schema and loader, including while it is a draft.
 
 Use the [editorial standard](editorial-standard.md), consult the
 [editorial bases](editorial-bases.md), and follow the profile named in

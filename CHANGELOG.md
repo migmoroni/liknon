@@ -11,6 +11,18 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Versioned agent skill bundle for safe validation execution, report triage,
   configuration, and coverage auditing with progressive disclosure.
+- Read-only embedded validation knowledge with catalog discovery and exact
+  document retrieval through the CLI.
+- A technical knowledge release checker for schemas, references, declared
+  assets, recipe configurations, generated source indexes, embedded inventory,
+  and deterministic tree evidence.
+
+### Changed
+
+- Knowledge catalog entries use minimal structural metadata while `draft` and
+  require complete routing and review metadata when marked `reviewed`.
+- Recipe release validation accepts relative `workspaceRoot` layouts while
+  confining materialized examples to an isolated temporary workspace.
 
 ## [0.1.0]
 

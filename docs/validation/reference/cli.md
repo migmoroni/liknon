@@ -27,6 +27,10 @@ The JSON catalog is the complete embedded canonical `catalog.json`.
 canonical Markdown bytes. Malformed or unknown selectors return exit code `3`;
 embedded-asset or output failures return exit code `4`.
 
+JSON consumers must inspect each entry's `status`. Draft entries guarantee
+`id`, `kind`, `path`, and `status` and may omit the remaining routing metadata;
+reviewed entries provide every metadata field required by the catalog schema.
+
 Execution commands run configured programs after full validation and tool
 preflight:
 
