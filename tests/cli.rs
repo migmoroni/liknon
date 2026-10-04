@@ -463,23 +463,38 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
     assert!(!short.contains("--color[=<PALETTE>]"), "{short}");
 
     let long = command_help(&["--help"]);
-    for command in [
+    let commands = [
         "workspace-validator init:",
         "workspace-validator validate:",
         "workspace-validator check:",
         "workspace-validator config:",
         "workspace-validator config validate:",
+        "workspace-validator config help:",
         "workspace-validator list:",
         "workspace-validator explain:",
         "workspace-validator explain group:",
         "workspace-validator explain suite:",
         "workspace-validator explain check:",
+        "workspace-validator explain help:",
         "workspace-validator schema:",
         "workspace-validator knowledge:",
         "workspace-validator knowledge catalog:",
         "workspace-validator knowledge show:",
-    ] {
+        "workspace-validator knowledge help:",
+        "workspace-validator help:",
+    ];
+    let separator = "─".repeat(78);
+    assert_eq!(
+        long.lines().filter(|line| *line == separator).count(),
+        commands.len(),
+        "{long}"
+    );
+    for command in commands {
         assert!(long.contains(command), "missing {command:?} in:\n{long}");
+        assert!(
+            long.contains(&format!("{separator}\n{command}")),
+            "missing separator before {command:?} in:\n{long}"
+        );
     }
     for option in [
         "--config <CONFIG>",
@@ -505,6 +520,9 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
         long.contains("Without this flag, output contains no ANSI color"),
         "{long}"
     );
+
+    let focused = command_help(&["validate", "--help"]);
+    assert!(!focused.contains(&separator), "{focused}");
 }
 
 #[test]
