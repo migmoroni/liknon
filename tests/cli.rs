@@ -469,19 +469,15 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
         "workspace-validator check:",
         "workspace-validator config:",
         "workspace-validator config validate:",
-        "workspace-validator config help:",
         "workspace-validator list:",
         "workspace-validator explain:",
         "workspace-validator explain group:",
         "workspace-validator explain suite:",
         "workspace-validator explain check:",
-        "workspace-validator explain help:",
         "workspace-validator schema:",
         "workspace-validator knowledge:",
         "workspace-validator knowledge catalog:",
         "workspace-validator knowledge show:",
-        "workspace-validator knowledge help:",
-        "workspace-validator help:",
     ];
     let separator = "─".repeat(78);
     assert_eq!(
@@ -494,6 +490,17 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
         assert!(
             long.contains(&format!("{separator}\n{command}")),
             "missing separator before {command:?} in:\n{long}"
+        );
+    }
+    for generated in [
+        "workspace-validator help:",
+        "workspace-validator config help:",
+        "workspace-validator explain help:",
+        "workspace-validator knowledge help:",
+    ] {
+        assert!(
+            !long.contains(generated),
+            "unexpected {generated:?} in:\n{long}"
         );
     }
     for option in [
@@ -523,6 +530,26 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
 
     let focused = command_help(&["validate", "--help"]);
     assert!(!focused.contains(&separator), "{focused}");
+}
+
+#[test]
+fn generated_help_subcommands_are_disabled() {
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    for arguments in [
+        &["help"][..],
+        &["config", "help"][..],
+        &["explain", "help"][..],
+        &["knowledge", "help"][..],
+    ] {
+        let output = Command::new(binary).args(arguments).output().unwrap();
+        assert_eq!(output.status.code(), Some(3), "{}", arguments.join(" "));
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        assert!(
+            stderr.contains("unrecognized subcommand 'help'"),
+            "{}:\n{stderr}",
+            arguments.join(" ")
+        );
+    }
 }
 
 #[test]

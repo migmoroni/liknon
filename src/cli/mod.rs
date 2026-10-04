@@ -44,7 +44,7 @@ use std::{
 pub fn run_cli() -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
     let palette = requested_palette(&arguments);
-    let command = theme::clap::apply(Cli::command(), palette);
+    let command = theme::clap::apply(help::root::configure(Cli::command()), palette);
     if help::root::requested(&arguments) {
         let mut stdout = std::io::stdout().lock();
         let rendered = help::root::render(command);

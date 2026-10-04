@@ -15,6 +15,13 @@ pub(in crate::cli) const COLOR: &str = "Enables ANSI color in human CLI output";
 
 pub(in crate::cli) const COLOR_LONG: &str = "Enables ANSI color in human CLI output.\n\nWithout this flag, output contains no ANSI color. Bare --color selects the standard palette; named palettes require --color=<PALETTE>. An explicit command-line palette overrides NO_COLOR. Status and hierarchy never rely on color alone.";
 
+/// Removes Clap's synthetic `help` routes while retaining `-h` and `--help`.
+pub(in crate::cli) fn configure(command: clap::Command) -> clap::Command {
+    command
+        .disable_help_subcommand(true)
+        .mut_subcommands(configure)
+}
+
 /// Renders every nested command through Clap's own themed help tree.
 pub(in crate::cli) fn render(command: clap::Command) -> String {
     let root_name = command.get_name().to_owned();
@@ -59,8 +66,7 @@ fn separate_commands(rendered: String, root_name: &str) -> String {
     let mut separated = String::with_capacity(rendered.len());
 
     // Clap has no per-command hook in flattened help. Detecting its completed
-    // heading lines avoids rebuilding the command tree and also covers the
-    // auxiliary `help` commands Clap adds while rendering.
+    // heading lines avoids rebuilding the command tree solely for presentation.
     for line in rendered.split_inclusive('\n') {
         let content = line.strip_suffix('\n').unwrap_or(line);
         let plain = strip_ansi_codes(content);
