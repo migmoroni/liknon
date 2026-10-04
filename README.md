@@ -246,13 +246,20 @@ these process-composition outcomes precisely.
 
 ## Human And JSON Output
 
-Human output is plain by default. `--color` selects the standard palette, and
-`--color=<palette>` selects `high-contrast`, `protanopia`, `deuteranopia`,
-`tritanopia`, or `achromatopsia`. Layout is independent:
+Human CLI output is plain by default, including short help, long help, parser
+diagnostics, and validation reports. This default follows `NO_COLOR` without
+requiring terminal detection. An explicit global `--color` overrides
+`NO_COLOR` and selects the standard palette; `--color=<palette>` selects
+`high-contrast`, `protanopia`, `deuteranopia`, `tritanopia`, or
+`achromatopsia`. The same semantic palette styles help and reports without
+changing their text. Layout is independent:
 `--presentation=low-vision` increases spacing and removes dim styling. Color
 never carries the only indication of status, node type, hierarchy, or errors.
 
 ```sh
+workspace-validator --color -h
+workspace-validator --color=high-contrast --help
+workspace-validator validate --color=deuteranopia --help
 workspace-validator validate --color=high-contrast
 workspace-validator validate --color=deuteranopia --presentation=low-vision
 workspace-validator validate --presentation=low-vision
@@ -290,7 +297,9 @@ println!("{json}");
 `execution::run_with_progress` accepts an implementation of
 `execution::progress::ProgressReporter` for typed lifecycle events. The
 checked-in [`examples/inspect.rs`](examples/inspect.rs) demonstrates
-non-destructive configuration and plan inspection.
+non-destructive configuration and plan inspection. Human renderers consume
+`theme::Theme`; palette and presentation profiles remain composable and usable
+independently from the CLI.
 
 The Rust API, CLI commands and exit codes, schema shapes, JSON report, execution
 semantics, palette names, and presentation names are observable contracts.

@@ -6,8 +6,13 @@ use std::{fs, process::Command};
 use tempfile::TempDir;
 
 fn command_help(arguments: &[&str]) -> String {
+    command_help_with_environment(arguments, &[])
+}
+
+fn command_help_with_environment(arguments: &[&str], environment: &[(&str, &str)]) -> String {
     let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
         .args(arguments)
+        .envs(environment.iter().copied())
         .output()
         .unwrap();
     assert!(
@@ -503,6 +508,82 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
 }
 
 #[test]
+fn short_and_long_help_share_accessible_palette_semantics() {
+    let cases: &[(&[&str], &[&str])] = &[
+        (&["-h"], &["--color=standard", "-h"]),
+        (&["--help"], &["--color=standard", "--help"]),
+        (&["validate", "-h"], &["validate", "--color=standard", "-h"]),
+        (
+            &["validate", "--help"],
+            &["validate", "--color=standard", "--help"],
+        ),
+    ];
+
+    for (plain_arguments, colored_arguments) in cases {
+        let plain = command_help_with_environment(plain_arguments, &[("NO_COLOR", "1")]);
+        assert!(!plain.contains('\u{1b}'), "{}", plain_arguments.join(" "));
+
+        let colored = command_help_with_environment(colored_arguments, &[("NO_COLOR", "1")]);
+        assert!(
+            colored.contains('\u{1b}'),
+            "{}",
+            colored_arguments.join(" ")
+        );
+        assert_eq!(
+            console::strip_ansi_codes(&colored),
+            plain,
+            "{}",
+            colored_arguments.join(" ")
+        );
+    }
+
+    let plain = command_help(&["--help"]);
+    for palette in [
+        "standard",
+        "high-contrast",
+        "protanopia",
+        "deuteranopia",
+        "tritanopia",
+        "achromatopsia",
+    ] {
+        let option = format!("--color={palette}");
+        let colored = command_help(&[&option, "--help"]);
+        assert!(colored.contains('\u{1b}'), "palette {palette}");
+        assert_eq!(
+            console::strip_ansi_codes(&colored),
+            plain,
+            "palette {palette}"
+        );
+    }
+}
+
+#[test]
+fn parser_diagnostics_follow_the_global_palette() {
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let plain = Command::new(binary)
+        .arg("unknown")
+        .env("NO_COLOR", "1")
+        .output()
+        .unwrap();
+    let colored = Command::new(binary)
+        .args(["--color=high-contrast", "unknown"])
+        .env("NO_COLOR", "1")
+        .output()
+        .unwrap();
+
+    assert_eq!(plain.status.code(), Some(3));
+    assert_eq!(colored.status.code(), Some(3));
+    assert!(plain.stdout.is_empty());
+    assert!(colored.stdout.is_empty());
+    assert!(!plain.stderr.contains(&0x1b));
+    assert!(colored.stderr.contains(&0x1b));
+    assert_eq!(
+        console::strip_ansi_codes(&String::from_utf8_lossy(&colored.stderr)),
+        String::from_utf8_lossy(&plain.stderr)
+    );
+}
+
+#[test]
 fn command_help_describes_every_argument_and_option() {
     let cases: &[(&[&str], &[&str])] = &[
         (
@@ -524,7 +605,7 @@ fn command_help_describes_every_argument_and_option() {
                 "discovery walks upward from the process current directory",
                 "Selects the validation report format",
                 "JSON emits only the versioned ValidationReport",
-                "Enables ANSI color in human output",
+                "Enables ANSI color in human CLI output",
                 "Without this flag, output contains no ANSI color",
                 "named palettes require --color=<PALETTE>",
                 "Status and hierarchy never rely on color alone",
@@ -541,7 +622,7 @@ fn command_help_describes_every_argument_and_option() {
                 "discovery walks upward from the process current directory",
                 "Selects the validation report format",
                 "JSON emits only the versioned ValidationReport",
-                "Enables ANSI color in human output",
+                "Enables ANSI color in human CLI output",
                 "Without this flag, output contains no ANSI color",
                 "named palettes require --color=<PALETTE>",
                 "Status and hierarchy never rely on color alone",

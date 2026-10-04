@@ -1,5 +1,6 @@
-//! Composable, accessible visual themes for human reporting.
+//! Composable, accessible visual themes shared by human CLI surfaces.
 
+pub(crate) mod clap;
 mod palette;
 mod presentation;
 mod style;
@@ -98,7 +99,7 @@ impl Theme {
         self.presentation_profile
     }
 
-    pub(super) fn paint(&self, role: Role, text: impl std::fmt::Display) -> String {
+    pub(crate) fn paint(&self, role: Role, text: impl std::fmt::Display) -> String {
         let style = self.styles[role as usize];
         if style == StyleSpec::plain() {
             text.to_string()
@@ -107,27 +108,27 @@ impl Theme {
         }
     }
 
-    pub(super) fn indicatif_modifier(&self, role: Role) -> String {
+    pub(crate) fn indicatif_modifier(&self, role: Role) -> String {
         self.styles[role as usize].indicatif_modifier()
     }
 
-    pub(super) fn progress_width(&self) -> usize {
+    pub(crate) fn progress_width(&self) -> usize {
         self.metrics.progress_width
     }
 
-    pub(super) fn section_gap(&self) -> usize {
+    pub(crate) fn section_gap(&self) -> usize {
         self.metrics.section_gap
     }
 
-    pub(super) fn item_gap(&self) -> usize {
+    pub(crate) fn item_gap(&self) -> usize {
         self.metrics.item_gap
     }
 
-    pub(super) fn execution_gap(&self) -> usize {
+    pub(crate) fn execution_gap(&self) -> usize {
         self.metrics.execution_gap
     }
 
-    pub(super) fn frame_rule(&self, edge: char, label: &str, label_role: Role) -> String {
+    pub(crate) fn frame_rule(&self, edge: char, label: &str, label_role: Role) -> String {
         let leading = format!("{edge}─ ");
         let occupied = leading.chars().count() + label.chars().count() + 1;
         let trailing = format!(" {}", "─".repeat(FRAME_WIDTH.saturating_sub(occupied)));
@@ -142,7 +143,7 @@ impl Theme {
 
 #[derive(Clone, Copy, Debug)]
 #[repr(usize)]
-pub(super) enum Role {
+pub(crate) enum Role {
     Heading,
     Section,
     Border,

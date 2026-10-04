@@ -5,7 +5,6 @@
 //! checks, or repository operations.
 
 use super::format::{format_duration, format_selection, format_summary, status_label};
-use super::theme::{Role, Theme};
 use super::tree;
 use crate::{
     contracts::{
@@ -17,6 +16,7 @@ use crate::{
     },
     execution::progress::{ProgressPhase, ProgressReporter},
     planning::{ExecutionNodeRef, PlannedGroup, PlannedSuite},
+    theme::{Role, Theme},
 };
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use std::{
@@ -535,7 +535,7 @@ mod tests {
         styled_placeholder, tree_gap_size, TerminalExecutionReporter,
     };
     use crate::contracts::report::Status;
-    use crate::reporting::theme::{PaletteProfile, PresentationProfile, Theme};
+    use crate::theme::{PaletteProfile, PresentationProfile, Theme};
     use console::strip_ansi_codes;
 
     #[test]

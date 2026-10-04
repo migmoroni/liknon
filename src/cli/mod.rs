@@ -6,8 +6,8 @@ mod inspection;
 mod knowledge;
 
 use arguments::{
-    Cli, ColorPaletteArgument, Command, ConfigCommand, Contract, ExplainTarget, Format,
-    KnowledgeCommand, PresentationArgument,
+    requested_palette, Cli, ColorPaletteArgument, Command, ConfigCommand, Contract, ExplainTarget,
+    Format, KnowledgeCommand, PresentationArgument,
 };
 
 use crate::{
@@ -20,12 +20,10 @@ use crate::{
     error::ValidatorError,
     execution, initialization,
     planning::{self, ValidationPlan},
-    reporting::{
-        self,
-        theme::{PaletteProfile, PresentationProfile},
-    },
+    reporting,
+    theme::{self, PaletteProfile, PresentationProfile},
 };
-use clap::{error::ErrorKind, Parser, ValueEnum};
+use clap::{error::ErrorKind, CommandFactory, FromArgMatches, ValueEnum};
 use schemars::schema_for;
 use std::{
     fmt::Write as _,
@@ -45,9 +43,11 @@ use std::{
 /// interrupted validation.
 pub fn run_cli() -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
+    let palette = requested_palette(&arguments);
+    let command = theme::clap::apply(Cli::command(), palette);
     if help::root::requested(&arguments) {
         let mut stdout = std::io::stdout().lock();
-        let rendered = help::root::render::<Cli>();
+        let rendered = help::root::render(command);
         return match write_output(&mut stdout, rendered.trim_end()) {
             Ok(()) => ExitCode::from(0),
             Err((error, code)) => {
@@ -64,8 +64,14 @@ pub fn run_cli() -> ExitCode {
         write_stderr("error: named presentation modes require --presentation=<MODE>");
         return ExitCode::from(3);
     }
-    let cli = match Cli::try_parse_from(arguments) {
-        Ok(value) => value,
+    let cli = match command.try_get_matches_from(arguments) {
+        Ok(matches) => match Cli::from_arg_matches(&matches) {
+            Ok(value) => value,
+            Err(error) => {
+                write_stderr(&format!("workspace-validator: {error}"));
+                return ExitCode::from(4);
+            }
+        },
         Err(error) => {
             let code = match error.kind() {
                 ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 0,
@@ -92,6 +98,7 @@ fn execute(
     stdout: &mut impl Write,
     stderr: &mut impl Write,
 ) -> Result<i32, (ValidatorError, u8)> {
+    let color = cli.color;
     if let Command::Schema { contract } = cli.command {
         let schema = match contract {
             Contract::Config => schema_for!(Config),
@@ -119,26 +126,20 @@ fn execute(
             }
         };
     }
-    if matches!(
-        &cli.command,
+    let visual_json = match &cli.command {
         Command::Validate {
             format: Format::Json,
-            color: Some(_),
-            ..
-        } | Command::Validate {
-            format: Format::Json,
-            presentation: Some(_),
-            ..
-        } | Command::Check {
-            format: Format::Json,
-            color: Some(_),
-            ..
-        } | Command::Check {
-            format: Format::Json,
-            presentation: Some(_),
+            presentation,
             ..
         }
-    ) {
+        | Command::Check {
+            format: Format::Json,
+            presentation,
+            ..
+        } => color.is_some() || presentation.is_some(),
+        _ => false,
+    };
+    if visual_json {
         return Err((
             ValidatorError::Usage(
                 "--color and --presentation cannot be combined with --format=json".into(),
@@ -224,7 +225,6 @@ fn execute(
         Command::Validate {
             target,
             format,
-            color,
             presentation,
             ..
         } => {
@@ -247,7 +247,6 @@ fn execute(
         Command::Check {
             check_id,
             format,
-            color,
             presentation,
             ..
         } => {
@@ -341,7 +340,7 @@ fn execute_run(
     )?;
     let (outcome, theme, separate_result) = match format {
         Format::Human => {
-            let theme = reporting::theme::Theme::resolve(
+            let theme = theme::Theme::resolve(
                 color
                     .map(PaletteProfile::from)
                     .unwrap_or(PaletteProfile::Plain),

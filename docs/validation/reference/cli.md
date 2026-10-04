@@ -45,10 +45,14 @@ Provisioning is separate from both categories:
 workspace-validator init --config <candidate-path> [--workspace <path>] [--format=human|json]
 ```
 
-Human validation output is plain by default. `--color[=<palette>]` and
-`--presentation=<mode>` apply only to execution output and are rejected with
-`--format=json`. JSON execution output contains exactly one complete report on
-standard output.
+Human CLI output is plain by default. The global `--color[=<palette>]` option
+styles short help, complete help, parser diagnostics, and human validation
+reports through one semantic palette. An explicit palette overrides
+`NO_COLOR`. The execution-only `--presentation=<mode>` option changes report
+layout independently from color. Color and presentation are rejected with JSON
+validation reports; JSON execution output contains exactly one complete report
+on standard output.
+
 Standard-output delivery is part of command completion. If inspection output, a
 schema, an initialization result, or a final validation report cannot be written
 and flushed, the command returns exit code `4`; diagnostic output remains

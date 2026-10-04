@@ -5,8 +5,8 @@ use crate::contracts::{
     report::{CheckContext, CheckExecutionResult, Status, ValidationReport, ValidationSelection},
 };
 use crate::reporting::format::{format_duration, format_selection, format_summary, status_label};
-use crate::reporting::theme::{Role, Theme};
 use crate::reporting::tree;
+use crate::theme::{Role, Theme};
 use std::{
     collections::{BTreeMap, BTreeSet},
     fmt::Write,
@@ -494,7 +494,7 @@ mod tests {
             ToolResult, ValidationReport, ValidationSelection, REPORT_SCHEMA_VERSION,
         },
     };
-    use crate::reporting::theme::{PaletteProfile, PresentationProfile, Theme};
+    use crate::theme::{PaletteProfile, PresentationProfile, Theme};
     use console::{measure_text_width, strip_ansi_codes};
 
     #[test]

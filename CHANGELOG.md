@@ -19,6 +19,9 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- Visual themes are shared across the CLI, so explicit accessible palettes
+  style short help, complete help, parser diagnostics, and validation reports
+  while plain ANSI-free output remains the default.
 - CLI help describes every command, nested command, positional argument,
   option, default, interaction, and accepted enum value at its corresponding
   help level; root `--help` consolidates the complete command tree while root

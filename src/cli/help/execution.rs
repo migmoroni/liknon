@@ -19,10 +19,6 @@ pub(in crate::cli) const FORMAT: &str = "Selects the validation report format";
 
 pub(in crate::cli) const FORMAT_LONG: &str = "Selects the validation report format.\n\nHuman output is the default and includes live execution progress followed by the completed report. JSON emits only the versioned ValidationReport and cannot be combined with --color or --presentation.";
 
-pub(in crate::cli) const COLOR: &str = "Enables ANSI color in human output";
-
-pub(in crate::cli) const COLOR_LONG: &str = "Enables ANSI color in human output.\n\nWithout this flag, output contains no ANSI color. Bare --color selects the standard palette; named palettes require --color=<PALETTE>. Color can be combined with --presentation=<MODE>, but not with --format=json. Status and hierarchy never rely on color alone.";
-
 pub(in crate::cli) const PRESENTATION: &str =
     "Selects the human-output presentation independently from color";
 

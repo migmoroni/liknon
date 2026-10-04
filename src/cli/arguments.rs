@@ -1,7 +1,7 @@
 //! Declarative command-line contract and value mappings.
 
 use super::help;
-use crate::reporting::theme::{PaletteProfile, PresentationProfile};
+use crate::theme::{PaletteProfile, PresentationProfile};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
@@ -13,6 +13,20 @@ use std::path::PathBuf;
     after_help = help::root::AFTER_HELP
 )]
 pub(super) struct Cli {
+    #[arg(
+        long,
+        global = true,
+        value_enum,
+        num_args = 0..=1,
+        default_missing_value = "standard",
+        require_equals = true,
+        hide_short_help = true,
+        value_name = "PALETTE",
+        help = help::root::COLOR,
+        long_help = help::root::COLOR_LONG
+    )]
+    pub(super) color: Option<ColorPaletteArgument>,
+
     #[command(subcommand)]
     pub(super) command: Command,
 }
@@ -68,18 +82,6 @@ pub(super) enum Command {
         #[arg(
             long,
             value_enum,
-            num_args = 0..=1,
-            default_missing_value = "standard",
-            require_equals = true,
-            value_name = "PALETTE",
-            help = help::execution::COLOR,
-            long_help = help::execution::COLOR_LONG
-        )]
-        color: Option<ColorPaletteArgument>,
-
-        #[arg(
-            long,
-            value_enum,
             require_equals = true,
             value_name = "MODE",
             help = help::execution::PRESENTATION,
@@ -107,18 +109,6 @@ pub(super) enum Command {
             long_help = help::execution::FORMAT_LONG
         )]
         format: Format,
-
-        #[arg(
-            long,
-            value_enum,
-            num_args = 0..=1,
-            default_missing_value = "standard",
-            require_equals = true,
-            value_name = "PALETTE",
-            help = help::execution::COLOR,
-            long_help = help::execution::COLOR_LONG
-        )]
-        color: Option<ColorPaletteArgument>,
 
         #[arg(
             long,
@@ -257,6 +247,25 @@ pub(super) enum ColorPaletteArgument {
 
     #[value(help = help::values::COLOR_ACHROMATOPSIA)]
     Achromatopsia,
+}
+
+/// Resolves the explicit palette early enough to style Clap's own output.
+pub(super) fn requested_palette(arguments: &[std::ffi::OsString]) -> PaletteProfile {
+    arguments
+        .iter()
+        .skip(1)
+        .take_while(|argument| *argument != "--")
+        .find_map(|argument| {
+            let argument = argument.to_str()?;
+            if argument == "--color" {
+                return Some(ColorPaletteArgument::Standard.into());
+            }
+            let value = argument.strip_prefix("--color=")?;
+            ColorPaletteArgument::from_str(value, true)
+                .ok()
+                .map(Into::into)
+        })
+        .unwrap_or(PaletteProfile::Plain)
 }
 
 #[derive(Clone, Copy, ValueEnum)]
