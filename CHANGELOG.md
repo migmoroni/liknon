@@ -50,6 +50,8 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   execution renderer and CLI diagnostics share an interactive terminal.
 - Configuration initialization accepts valid contained candidates on macOS and
   Windows without relying on platform-specific canonical path spelling.
+- Tool preflight recognizes vendor-qualified version output such as Git for
+  Windows while retaining the semantic-version core used by requirements.
 
 ## [0.1.0]
 

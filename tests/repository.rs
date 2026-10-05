@@ -32,7 +32,12 @@ fn repository_integrity_is_typed_and_counted_once_outside_checks() {
     let plan = planning::target(&validated, None).unwrap();
     let outcome = execution::run(&validated, &plan, Arc::new(AtomicBool::new(false)));
     let repo = outcome.report.repository.as_ref().unwrap();
-    assert_eq!(repo.integrity.status, Status::Fail);
+    assert_eq!(
+        repo.integrity.status,
+        Status::Fail,
+        "repository integrity was blocked: {:?}",
+        repo.integrity.reason
+    );
     assert_eq!(repo.introduced.as_ref().unwrap(), &vec!["introduced"]);
     let human = reporting::result::human::render(&outcome.report, &Theme::plain());
     assert!(human.contains("GATE"));
@@ -109,6 +114,11 @@ fn repository_evidence_separates_preexisting_state_from_run_mutations() {
     let json: serde_json::Value = serde_json::from_str(&json).unwrap();
     let report = outcome.report.repository.unwrap();
 
+    assert!(
+        report.before.is_some(),
+        "initial repository snapshot was unavailable: {:?}",
+        report.integrity.reason
+    );
     let before = report.before.unwrap();
     assert!(before.iter().any(|entry| entry.ends_with("pre-changed")));
     assert!(!before.iter().any(|entry| entry.ends_with("introduced")));

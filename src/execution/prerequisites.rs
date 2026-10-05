@@ -132,18 +132,64 @@ pub(crate) fn necessary_tool_ids(loaded: &ValidatedConfig, check_ids: &[String])
     ordered
 }
 
-/// Extracts the first complete semantic version token from command output.
+/// Extracts the first semantic version, including a valid core before a vendor qualifier.
 pub fn first_semver(output: &str) -> Option<Version> {
     for token in output.split_whitespace() {
         let candidate = token.trim_matches(|character: char| {
             !character.is_ascii_alphanumeric() && !matches!(character, '.' | '-' | '+')
         });
         let candidate = candidate.strip_prefix('v').unwrap_or(candidate);
-        if let Ok(version) = Version::parse(candidate) {
+        if let Some(version) = parse_semver_candidate(candidate) {
             return Some(version);
         }
     }
     None
+}
+
+fn parse_semver_candidate(candidate: &str) -> Option<Version> {
+    if let Ok(version) = Version::parse(candidate) {
+        return Some(version);
+    }
+
+    // Some tools append a vendor release after an otherwise valid SemVer
+    // core. Git for Windows, for example, reports `2.55.0.windows.5`.
+    let bytes = candidate.as_bytes();
+    let mut cursor = 0;
+    for component in 0..3 {
+        let start = cursor;
+        while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+            cursor += 1;
+        }
+        if cursor == start {
+            return None;
+        }
+        if component < 2 {
+            if bytes.get(cursor) != Some(&b'.') {
+                return None;
+            }
+            cursor += 1;
+        }
+    }
+
+    let suffix = candidate.get(cursor..)?.strip_prefix('.')?;
+    let mut components = suffix.split('.');
+    let vendor = components.next()?;
+    if vendor.is_empty()
+        || !vendor.bytes().any(|byte| byte.is_ascii_alphabetic())
+        || !vendor
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+        || !components.all(|component| {
+            !component.is_empty()
+                && component
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+        })
+    {
+        return None;
+    }
+
+    Version::parse(&candidate[..cursor]).ok()
 }
 
 #[cfg(test)]
@@ -159,5 +205,16 @@ mod tests {
             "22.21.1"
         );
         assert!(first_semver("tool version unknown").is_none());
+    }
+
+    #[test]
+    fn extracts_semver_core_from_vendor_qualified_versions() {
+        assert_eq!(
+            first_semver("git version 2.55.0.windows.5")
+                .unwrap()
+                .to_string(),
+            "2.55.0"
+        );
+        assert!(first_semver("tool 2.51.0.1").is_none());
     }
 }
