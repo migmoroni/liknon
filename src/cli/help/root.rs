@@ -5,7 +5,7 @@ use crate::cli::arguments::{ColorPaletteArgument, PresentationArgument};
 use crate::theme::{self, PresentationProfile};
 use clap::{Arg, ValueEnum};
 use console::strip_ansi_codes;
-use std::ffi::OsString;
+use std::{collections::BTreeMap, ffi::OsString};
 
 const COMMAND_SEPARATOR_WIDTH: usize = 78;
 const SUBCOMMAND_SEPARATOR_WIDTH: usize = COMMAND_SEPARATOR_WIDTH / 2;
@@ -47,13 +47,18 @@ pub(in crate::cli) fn configure(command: clap::Command) -> clap::Command {
 /// Renders every nested command through Clap's own themed help tree.
 pub(in crate::cli) fn render(command: clap::Command, presentation: PresentationProfile) -> String {
     let root_name = command.get_name().to_owned();
-    let mut command = flatten(annotate_execution_commands(command));
+    let command = command.override_usage(format!("{root_name} [OPTIONS] <COMMAND>"));
+    let command_index = command_index(&command);
+    let command = annotate_execution_commands(command);
+    let usages = command_usages(&command);
+    let mut command = flatten(annotate_command_usages(command, &root_name, &usages));
     command.build();
     let rendered = command
         .mut_arg("help", |argument| argument.help(HELP).long_help(HELP_LONG))
         .render_long_help()
         .ansi()
         .to_string();
+    let rendered = insert_command_index(rendered, &command_index);
     let rendered = theme::clap::present_help(rendered, presentation);
     separate_commands(rendered, &root_name, presentation)
 }
@@ -132,6 +137,88 @@ fn annotate_execution_commands(command: clap::Command) -> clap::Command {
     })
 }
 
+fn command_index(command: &clap::Command) -> String {
+    let mut command = command.clone();
+    let rendered = command.render_long_help().ansi().to_string();
+    let mut index = String::new();
+    let mut capturing = false;
+
+    for line in rendered.split_inclusive('\n') {
+        let plain = strip_ansi_codes(line.trim_end_matches('\n'));
+        if plain == "Commands:" {
+            capturing = true;
+        } else if capturing && plain == "Options:" {
+            break;
+        }
+
+        if capturing {
+            index.push_str(line);
+        }
+    }
+
+    index.trim_end().to_owned()
+}
+
+fn insert_command_index(rendered: String, command_index: &str) -> String {
+    let mut output = String::with_capacity(rendered.len() + command_index.len() + 2);
+    let mut inserted = false;
+
+    for line in rendered.split_inclusive('\n') {
+        let plain = strip_ansi_codes(line.trim_end_matches('\n'));
+        if !inserted && plain == "Options:" {
+            output.push_str(command_index);
+            output.push_str("\n\n");
+            inserted = true;
+        }
+        output.push_str(line);
+    }
+
+    output
+}
+
+fn command_usages(command: &clap::Command) -> BTreeMap<String, String> {
+    let mut command = command.clone();
+    command.build();
+    let mut usages = BTreeMap::new();
+    collect_command_usages(&command, &mut usages);
+    usages
+}
+
+fn collect_command_usages(command: &clap::Command, usages: &mut BTreeMap<String, String>) {
+    for subcommand in command.get_subcommands() {
+        let command_path = subcommand
+            .get_bin_name()
+            .expect("built subcommand has a complete invocation path")
+            .to_owned();
+        let mut usage_command = subcommand.clone();
+        usages.insert(command_path, usage_command.render_usage().to_string());
+        collect_command_usages(subcommand, usages);
+    }
+}
+
+fn annotate_command_usages(
+    command: clap::Command,
+    parent_path: &str,
+    usages: &BTreeMap<String, String>,
+) -> clap::Command {
+    command.mut_subcommands(|subcommand| {
+        let command_path = format!("{parent_path} {}", subcommand.get_name());
+        let usage = usages
+            .get(&command_path)
+            .unwrap_or_else(|| panic!("usage for command `{command_path}` is undefined"));
+        let about = subcommand
+            .get_about()
+            .map(ToString::to_string)
+            .unwrap_or_default();
+
+        annotate_command_usages(
+            subcommand.about(format!("{about}\n\n{usage}")),
+            &command_path,
+            usages,
+        )
+    })
+}
+
 fn flatten(command: clap::Command) -> clap::Command {
     command
         .flatten_help(true)
@@ -180,6 +267,15 @@ fn separate_commands(
                     PresentationProfile::Standard => separated.push('\n'),
                     PresentationProfile::LowVision => separated.push_str("\n\n"),
                 }
+
+                separated.push_str(&content[..start]);
+                separated.push_str(command_path);
+                separated.push(':');
+                separated.push_str(&content[end..]);
+                if line.ends_with('\n') {
+                    separated.push('\n');
+                }
+                continue;
             }
         }
         separated.push_str(line);

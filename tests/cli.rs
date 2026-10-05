@@ -602,23 +602,49 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
     assert!(short.contains("--presentation=<MODE>"), "{short}");
 
     let long = command_help(&["--help"]);
+    let commands_position = long.find("Commands:").expect("root command index");
+    let options_position = long.find("Options:").expect("root options");
+    let first_separator_position = long.find(&"─".repeat(78)).expect("first command section");
+    assert!(commands_position < options_position, "{long}");
+    assert!(options_position < first_separator_position, "{long}");
+    let command_index = &long[commands_position..options_position];
+    for command in [
+        "init",
+        "validate",
+        "check",
+        "config",
+        "list",
+        "explain",
+        "schema",
+        "knowledge",
+    ] {
+        assert!(
+            command_index.lines().any(|line| {
+                line.trim_start()
+                    .strip_prefix(command)
+                    .and_then(|remainder| remainder.chars().next())
+                    .is_some_and(char::is_whitespace)
+            }),
+            "missing {command:?} from command index:\n{command_index}"
+        );
+    }
     let top_level_commands = [
-        "workspace-validator init:",
-        "workspace-validator validate:",
-        "workspace-validator check:",
-        "workspace-validator config:",
-        "workspace-validator list:",
-        "workspace-validator explain:",
-        "workspace-validator schema:",
-        "workspace-validator knowledge:",
+        "init:",
+        "validate:",
+        "check:",
+        "config:",
+        "list:",
+        "explain:",
+        "schema:",
+        "knowledge:",
     ];
     let nested_commands = [
-        "workspace-validator config validate:",
-        "workspace-validator explain group:",
-        "workspace-validator explain suite:",
-        "workspace-validator explain check:",
-        "workspace-validator knowledge catalog:",
-        "workspace-validator knowledge show:",
+        "config validate:",
+        "explain group:",
+        "explain suite:",
+        "explain check:",
+        "knowledge catalog:",
+        "knowledge show:",
     ];
     let separator = "─".repeat(78);
     let nested_separator = "─".repeat(39);
@@ -646,6 +672,39 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
         assert!(
             long.contains(&format!("{nested_separator}\n{command}")),
             "missing nested separator before {command:?} in:\n{long}"
+        );
+    }
+    assert!(
+        long.contains("Usage: workspace-validator [OPTIONS] <COMMAND>"),
+        "{long}"
+    );
+    for usage in [
+        "Usage: workspace-validator init [OPTIONS]",
+        "Usage: workspace-validator validate [OPTIONS] [TARGET]",
+        "Usage: workspace-validator check [OPTIONS] <CHECK_ID>",
+        "Usage: workspace-validator config <COMMAND>",
+        "Usage: workspace-validator config validate [OPTIONS]",
+        "Usage: workspace-validator list [OPTIONS]",
+        "Usage: workspace-validator explain <COMMAND>",
+        "Usage: workspace-validator explain group [OPTIONS] <GROUP_ID>",
+        "Usage: workspace-validator explain suite [OPTIONS] <SUITE_ID>",
+        "Usage: workspace-validator explain check [OPTIONS] <CHECK_ID>",
+        "Usage: workspace-validator schema <CONTRACT>",
+        "Usage: workspace-validator knowledge <COMMAND>",
+        "Usage: workspace-validator knowledge catalog [OPTIONS]",
+        "Usage: workspace-validator knowledge show <DOCUMENT_ID>",
+    ] {
+        assert!(long.contains(usage), "missing {usage:?} in:\n{long}");
+    }
+    for old_heading in [
+        "workspace-validator init:",
+        "workspace-validator config validate:",
+        "workspace-validator explain suite:",
+        "workspace-validator knowledge show:",
+    ] {
+        assert!(
+            !long.contains(old_heading),
+            "unexpected heading {old_heading:?} in:\n{long}"
         );
     }
     for generated in [

@@ -32,7 +32,10 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   controls, while focused help indicates them only when they also affect that
   command's execution. The consolidated hierarchy uses shorter separators for
   nested commands, keeps low-vision section spacing explicit, and places root
-  help guidance with its option instead of in a trailing footer.
+  help guidance with its option instead of in a trailing footer. Command
+  sections use concise paths as headings and include their complete generated
+  invocation under a dedicated `Usage` line, while the compact command index
+  remains available before the root options.
 - Knowledge catalog entries use minimal structural metadata while `draft` and
   require complete routing and review metadata when marked `reviewed`.
 - Recipe release validation accepts relative `workspaceRoot` layouts while
