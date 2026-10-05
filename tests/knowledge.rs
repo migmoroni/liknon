@@ -229,9 +229,12 @@ fn semantic_integrity_rejects_unknown_relationships_and_duplicate_ids() {
 }
 
 #[test]
-fn generated_source_index_rejects_stale_content() {
+fn generated_source_index_accepts_platform_line_endings_and_rejects_stale_content() {
     let sources = knowledge::load_sources(repository()).unwrap();
     let expected = knowledge::render_sources(&sources);
     assert!(knowledge::validate_generated_sources(&expected, &expected).is_ok());
+    assert!(
+        knowledge::validate_generated_sources(&expected, &expected.replace('\n', "\r\n")).is_ok()
+    );
     assert!(knowledge::validate_generated_sources(&expected, "stale").is_err());
 }

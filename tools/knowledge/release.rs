@@ -82,7 +82,9 @@ pub fn verify(repository: &Path) -> Result<String, String> {
 }
 
 pub fn validate_generated_sources(expected: &str, actual: &str) -> Result<(), String> {
-    if actual == expected {
+    // Git may materialize tracked text with CRLF on Windows while generation
+    // remains canonical LF. Only that platform representation is equivalent.
+    if actual == expected || actual.replace("\r\n", "\n") == expected {
         Ok(())
     } else {
         Err("SOURCES.md is stale; run the knowledge release task with --write".into())
