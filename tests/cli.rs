@@ -542,8 +542,8 @@ fn root_help_describes_every_command() {
         "Explains one configured group, suite, or check without executing it",
         "Prints the generated JSON Schema for a public CLI contract",
         "Reads validation guidance embedded in this binary without loading configuration",
-        "at the root or after any command",
-        "The '-h' flag prints a compact summary; '--help' prints complete details",
+        "Prints help at the root or after any command",
+        "The -h flag prints a compact summary; --help prints complete details",
     ] {
         assert!(
             stdout.contains(description),
@@ -602,33 +602,50 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
     assert!(short.contains("--presentation=<MODE>"), "{short}");
 
     let long = command_help(&["--help"]);
-    let commands = [
+    let top_level_commands = [
         "workspace-validator init:",
         "workspace-validator validate:",
         "workspace-validator check:",
         "workspace-validator config:",
-        "workspace-validator config validate:",
         "workspace-validator list:",
         "workspace-validator explain:",
+        "workspace-validator schema:",
+        "workspace-validator knowledge:",
+    ];
+    let nested_commands = [
+        "workspace-validator config validate:",
         "workspace-validator explain group:",
         "workspace-validator explain suite:",
         "workspace-validator explain check:",
-        "workspace-validator schema:",
-        "workspace-validator knowledge:",
         "workspace-validator knowledge catalog:",
         "workspace-validator knowledge show:",
     ];
     let separator = "─".repeat(78);
+    let nested_separator = "─".repeat(39);
     assert_eq!(
         long.lines().filter(|line| *line == separator).count(),
-        commands.len(),
+        top_level_commands.len(),
         "{long}"
     );
-    for command in commands {
+    assert_eq!(
+        long.lines()
+            .filter(|line| *line == nested_separator)
+            .count(),
+        nested_commands.len(),
+        "{long}"
+    );
+    for command in top_level_commands {
         assert!(long.contains(command), "missing {command:?} in:\n{long}");
         assert!(
             long.contains(&format!("{separator}\n{command}")),
             "missing separator before {command:?} in:\n{long}"
+        );
+    }
+    for command in nested_commands {
+        assert!(long.contains(command), "missing {command:?} in:\n{long}");
+        assert!(
+            long.contains(&format!("{nested_separator}\n{command}")),
+            "missing nested separator before {command:?} in:\n{long}"
         );
     }
     for generated in [
@@ -669,6 +686,47 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
 
     let focused = command_help(&["validate", "--help"]);
     assert!(!focused.contains(&separator), "{focused}");
+}
+
+#[test]
+fn root_low_vision_help_adds_space_after_hierarchical_separators() {
+    let rendered = command_help_with_environment(
+        &["--presentation=low-vision", "--help"],
+        &[("NO_COLOR", "1")],
+    );
+    let plain = console::strip_ansi_codes(&rendered);
+
+    let full_separator = "─".repeat(78);
+    let nested_separator = "─".repeat(39);
+    let lines = plain.lines().collect::<Vec<_>>();
+    let mut separator_count = 0;
+    for (index, line) in lines.iter().enumerate() {
+        if *line == full_separator || *line == nested_separator {
+            separator_count += 1;
+            assert_eq!(
+                lines.get(index + 1),
+                Some(&""),
+                "separator lacks its low-vision gap:\n{plain}"
+            );
+        }
+    }
+    assert_eq!(separator_count, 14, "{plain}");
+}
+
+#[test]
+fn root_help_guidance_lives_in_the_top_options_block() {
+    let rendered = command_help(&["--help"]);
+    let guidance = "Prints help at the root or after any command";
+    let guidance_position = rendered.find(guidance).expect("root help guidance");
+    let first_command_separator = rendered
+        .find(&"─".repeat(78))
+        .expect("first command separator");
+
+    assert!(guidance_position < first_command_separator, "{rendered}");
+    assert!(
+        !rendered.trim_end().ends_with("complete details."),
+        "{rendered}"
+    );
 }
 
 #[test]

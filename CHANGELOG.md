@@ -30,7 +30,9 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   uncluttered. It documents `-h, --help` once at the root while each focused
   command help retains its own entry. Root help fully documents visual renderer
   controls, while focused help indicates them only when they also affect that
-  command's execution.
+  command's execution. The consolidated hierarchy uses shorter separators for
+  nested commands, keeps low-vision section spacing explicit, and places root
+  help guidance with its option instead of in a trailing footer.
 - Knowledge catalog entries use minimal structural metadata while `draft` and
   require complete routing and review metadata when marked `reviewed`.
 - Recipe release validation accepts relative `workspaceRoot` layouts while

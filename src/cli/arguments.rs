@@ -9,8 +9,7 @@ use std::path::PathBuf;
 #[command(
     name = "workspace-validator",
     version,
-    about = help::root::ABOUT,
-    after_help = help::root::AFTER_HELP
+    about = help::root::ABOUT
 )]
 pub(super) struct Cli {
     #[arg(

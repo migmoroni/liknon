@@ -8,10 +8,13 @@ use console::strip_ansi_codes;
 use std::ffi::OsString;
 
 const COMMAND_SEPARATOR_WIDTH: usize = 78;
+const SUBCOMMAND_SEPARATOR_WIDTH: usize = COMMAND_SEPARATOR_WIDTH / 2;
 
 pub(in crate::cli) const ABOUT: &str = "Runs declarative workspace validation pipelines";
 
-pub(in crate::cli) const AFTER_HELP: &str = "Use '-h' or '--help' at the root or after any command. The '-h' flag prints a compact summary; '--help' prints complete details.";
+const HELP: &str = "Prints help at the root or after any command";
+
+const HELP_LONG: &str = "Prints help at the root or after any command.\n\nThe -h flag prints a compact summary; --help prints complete details.";
 
 pub(in crate::cli) const COLOR: &str = "Enables ANSI color in human CLI output";
 
@@ -44,11 +47,15 @@ pub(in crate::cli) fn configure(command: clap::Command) -> clap::Command {
 /// Renders every nested command through Clap's own themed help tree.
 pub(in crate::cli) fn render(command: clap::Command, presentation: PresentationProfile) -> String {
     let root_name = command.get_name().to_owned();
-    let rendered = flatten(annotate_execution_commands(command))
+    let mut command = flatten(annotate_execution_commands(command));
+    command.build();
+    let rendered = command
+        .mut_arg("help", |argument| argument.help(HELP).long_help(HELP_LONG))
         .render_long_help()
         .ansi()
         .to_string();
-    theme::clap::present_help(separate_commands(rendered, &root_name), presentation)
+    let rendered = theme::clap::present_help(rendered, presentation);
+    separate_commands(rendered, &root_name, presentation)
 }
 
 /// Identifies the complete root reference and its visual rendering options.
@@ -141,9 +148,12 @@ fn flatten_embedded_command(command: clap::Command) -> clap::Command {
         .mut_subcommands(flatten_embedded_command)
 }
 
-fn separate_commands(rendered: String, root_name: &str) -> String {
+fn separate_commands(
+    rendered: String,
+    root_name: &str,
+    presentation: PresentationProfile,
+) -> String {
     let heading_prefix = format!("{root_name} ");
-    let separator = "─".repeat(COMMAND_SEPARATOR_WIDTH);
     let mut separated = String::with_capacity(rendered.len());
 
     // Clap has no per-command hook in flattened help. Detecting its completed
@@ -154,10 +164,22 @@ fn separate_commands(rendered: String, root_name: &str) -> String {
         if plain.starts_with(&heading_prefix) && plain.ends_with(':') {
             if let Some(start) = content.find(plain.as_ref()) {
                 let end = start + plain.len();
+                let command_path = plain
+                    .strip_prefix(&heading_prefix)
+                    .and_then(|heading| heading.strip_suffix(':'))
+                    .expect("validated command heading");
+                let width = if command_path.split_whitespace().count() > 1 {
+                    SUBCOMMAND_SEPARATOR_WIDTH
+                } else {
+                    COMMAND_SEPARATOR_WIDTH
+                };
                 separated.push_str(&content[..start]);
-                separated.push_str(&separator);
+                separated.push_str(&"─".repeat(width));
                 separated.push_str(&content[end..]);
-                separated.push('\n');
+                match presentation {
+                    PresentationProfile::Standard => separated.push('\n'),
+                    PresentationProfile::LowVision => separated.push_str("\n\n"),
+                }
             }
         }
         separated.push_str(line);
