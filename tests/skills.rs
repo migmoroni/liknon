@@ -72,7 +72,12 @@ fn bundled_skill_matches_the_crate_and_routes_every_workflow() {
     );
     assert_safe_relative_path(&entrypoint);
     let entrypoint_document = read(root.join(&entrypoint));
-    assert!(entrypoint_document.starts_with("---\nname: workspace-validator\ndescription:"));
+    let mut frontmatter = entrypoint_document.lines();
+    assert_eq!(frontmatter.next(), Some("---"));
+    assert_eq!(frontmatter.next(), Some("name: workspace-validator"));
+    assert!(frontmatter
+        .next()
+        .is_some_and(|line| line.starts_with("description:")));
     assert!(entrypoint_document.contains(&format!("- Tool: `{SKILL_NAME}`")));
     assert!(entrypoint_document.contains("`manifest.json`"));
     assert!(!entrypoint_document.contains("- Source crate version:"));
