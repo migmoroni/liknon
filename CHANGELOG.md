@@ -35,7 +35,10 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   help guidance with its option instead of in a trailing footer. Command
   sections use concise paths as headings and include their complete generated
   invocation under a dedicated `Usage` line, while the compact command index
-  remains available before the root options.
+  remains available before the root options. Low-vision help separates adjacent
+  commands, arguments, and options while keeping command descriptions beside
+  their names and every other description with its item. Root usage consistently
+  presents the command before global options in both short and complete help.
 - Knowledge catalog entries use minimal structural metadata while `draft` and
   require complete routing and review metadata when marked `reviewed`.
 - Recipe release validation accepts relative `workspaceRoot` layouts while

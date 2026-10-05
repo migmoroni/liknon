@@ -74,9 +74,23 @@ pub fn run_cli() -> ExitCode {
             }
         },
         Err(error) => {
-            let code = match error.kind() {
-                ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 0,
-                _ => 3,
+            let kind = error.kind();
+            if kind == ErrorKind::DisplayHelp {
+                let styled = error.render();
+                let rendered = theme::clap::present_help(styled.ansi().to_string(), presentation);
+                let mut stdout = std::io::stdout().lock();
+                return match write_output(&mut stdout, rendered.trim_end()) {
+                    Ok(()) => ExitCode::from(0),
+                    Err((error, code)) => {
+                        write_stderr(&format!("workspace-validator: {error}"));
+                        ExitCode::from(code)
+                    }
+                };
+            }
+            let code = if kind == ErrorKind::DisplayVersion {
+                0
+            } else {
+                3
             };
             let _ = error.print();
             return ExitCode::from(code);

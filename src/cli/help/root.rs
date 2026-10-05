@@ -26,28 +26,30 @@ pub(in crate::cli) const PRESENTATION_LONG: &str = "Selects the layout and empha
 
 /// Configures the command tree for focused, execution-aware help rendering.
 pub(in crate::cli) fn configure(command: clap::Command) -> clap::Command {
+    let root_name = command.get_name().to_owned();
     let visual_arguments = visual_arguments(&command);
-    disable_help_subcommands(command).mut_subcommands(|subcommand| {
-        let supports_visual_execution = matches!(subcommand.get_name(), "validate" | "check");
-        // Explicit child copies keep global parsing available at every depth,
-        // while their visibility and wording follow command execution semantics.
-        visual_arguments
-            .iter()
-            .cloned()
-            .fold(subcommand, |subcommand, argument| {
-                if supports_visual_execution {
-                    subcommand.arg(execution_argument(argument))
-                } else {
-                    subcommand.arg(argument.hide(true))
-                }
-            })
-    })
+    disable_help_subcommands(command)
+        .override_usage(format!("{root_name} <COMMAND> [OPTIONS]"))
+        .mut_subcommands(|subcommand| {
+            let supports_visual_execution = matches!(subcommand.get_name(), "validate" | "check");
+            // Explicit child copies keep global parsing available at every depth,
+            // while their visibility and wording follow command execution semantics.
+            visual_arguments
+                .iter()
+                .cloned()
+                .fold(subcommand, |subcommand, argument| {
+                    if supports_visual_execution {
+                        subcommand.arg(execution_argument(argument))
+                    } else {
+                        subcommand.arg(argument.hide(true))
+                    }
+                })
+        })
 }
 
 /// Renders every nested command through Clap's own themed help tree.
 pub(in crate::cli) fn render(command: clap::Command, presentation: PresentationProfile) -> String {
     let root_name = command.get_name().to_owned();
-    let command = command.override_usage(format!("{root_name} [OPTIONS] <COMMAND>"));
     let command_index = command_index(&command);
     let command = annotate_execution_commands(command);
     let usages = command_usages(&command);

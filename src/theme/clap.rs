@@ -32,7 +32,7 @@ pub(crate) fn apply(
 pub(crate) fn present_help(rendered: String, presentation: PresentationProfile) -> String {
     match presentation {
         PresentationProfile::Standard => rendered,
-        PresentationProfile::LowVision => expand_paragraph_gaps(&rendered),
+        PresentationProfile::LowVision => expand_help_spacing(&rendered),
     }
 }
 
@@ -40,23 +40,44 @@ fn apply_presentation(command: Command, presentation: PresentationProfile) -> Co
     match presentation {
         PresentationProfile::Standard => command,
         PresentationProfile::LowVision => command
-            .next_line_help(true)
+            .mut_args(|argument| argument.next_line_help(true))
             .mut_subcommands(|subcommand| apply_presentation(subcommand, presentation)),
     }
 }
 
-fn expand_paragraph_gaps(rendered: &str) -> String {
+fn expand_help_spacing(rendered: &str) -> String {
     let mut expanded = String::with_capacity(rendered.len());
     let mut in_blank_run = false;
+    let mut in_item_section = false;
+    let mut has_item = false;
 
     for line in rendered.split_inclusive('\n') {
         let content = line.strip_suffix('\n').unwrap_or(line);
-        if content.is_empty() {
+        let plain = console::strip_ansi_codes(content);
+        if plain.is_empty() {
             if !in_blank_run {
                 expanded.push_str("\n\n");
                 in_blank_run = true;
             }
         } else {
+            let indentation = plain
+                .chars()
+                .take_while(|character| *character == ' ')
+                .count();
+            let trimmed = plain.trim();
+            if matches!(trimmed, "Commands:" | "Arguments:" | "Options:") {
+                in_item_section = true;
+                has_item = false;
+            } else if indentation == 0 {
+                in_item_section = false;
+                has_item = false;
+            } else if in_item_section && indentation < 10 {
+                if has_item && !expanded.ends_with("\n\n") {
+                    expanded.push('\n');
+                }
+                has_item = true;
+            }
+
             expanded.push_str(line);
             in_blank_run = false;
         }
@@ -186,6 +207,44 @@ mod tests {
         assert_eq!(
             present_help(rendered, PresentationProfile::LowVision),
             "first\n\n\nsecond\n"
+        );
+    }
+
+    #[test]
+    fn low_vision_spacing_separates_items_without_detaching_descriptions() {
+        let rendered = concat!(
+            "Commands:\n",
+            "  first\n",
+            "          First description\n",
+            "  second\n",
+            "          Second description\n",
+            "\n",
+            "Options:\n",
+            "      --first\n",
+            "          First option\n",
+            "  -h, --help\n",
+            "          Print help\n",
+        )
+        .to_owned();
+
+        assert_eq!(
+            present_help(rendered, PresentationProfile::LowVision),
+            concat!(
+                "Commands:\n",
+                "  first\n",
+                "          First description\n",
+                "\n",
+                "  second\n",
+                "          Second description\n",
+                "\n",
+                "\n",
+                "Options:\n",
+                "      --first\n",
+                "          First option\n",
+                "\n",
+                "  -h, --help\n",
+                "          Print help\n",
+            )
         );
     }
 }

@@ -531,6 +531,24 @@ fn hidden_visual_controls_still_style_focused_help() {
 }
 
 #[test]
+fn low_vision_short_help_separates_neighboring_commands_and_options() {
+    let rendered =
+        command_help_with_environment(&["-h", "--presentation=low-vision"], &[("NO_COLOR", "1")]);
+    let plain = console::strip_ansi_codes(&rendered);
+
+    assert!(
+        plain.contains(
+            "init       Provisions validated consumer-owned resources without executing checks\n\n  validate"
+        ),
+        "{plain}"
+    );
+    assert!(
+        plain.contains("Selects the layout and emphasis of human CLI output [possible values: standard, low-vision]\n\n  -h, --help"),
+        "{plain}"
+    );
+}
+
+#[test]
 fn root_help_describes_every_command() {
     let stdout = command_help(&["--help"]);
     for description in [
@@ -598,6 +616,10 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
     assert!(short.contains("Commands:"), "{short}");
     assert!(short.contains("validate"), "{short}");
     assert!(!short.contains("workspace-validator validate:"), "{short}");
+    assert!(
+        short.contains("Usage: workspace-validator <COMMAND> [OPTIONS]"),
+        "{short}"
+    );
     assert!(short.contains("--color[=<PALETTE>]"), "{short}");
     assert!(short.contains("--presentation=<MODE>"), "{short}");
 
@@ -675,7 +697,7 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
         );
     }
     assert!(
-        long.contains("Usage: workspace-validator [OPTIONS] <COMMAND>"),
+        long.contains("Usage: workspace-validator <COMMAND> [OPTIONS]"),
         "{long}"
     );
     for usage in [
