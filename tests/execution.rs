@@ -2,6 +2,7 @@ mod common;
 use serde_json::json;
 use std::{
     fs,
+    path::Path,
     sync::{atomic::AtomicBool, Arc},
     thread,
     time::Duration,
@@ -111,14 +112,22 @@ fn memoizes_groups_and_suites_but_executes_checks_per_suite_context() {
     );
     assert_eq!(fs::read_to_string(log).unwrap().lines().count(), 3);
     let runs = fs::read_to_string(workspace.join("runs.log")).unwrap();
-    assert!(runs.contains(&format!(
-        "same:one-context:{}",
-        workspace.join("one").display()
-    )));
-    assert!(runs.contains(&format!(
-        "same:two-context:{}",
-        workspace.join("two").display()
-    )));
+    let one = runs
+        .lines()
+        .find_map(|line| line.strip_prefix("same:one-context:"))
+        .expect("suite one invocation");
+    let two = runs
+        .lines()
+        .find_map(|line| line.strip_prefix("same:two-context:"))
+        .expect("suite two invocation");
+    assert_eq!(
+        common::canonical_path(Path::new(one)),
+        common::canonical_path(&workspace.join("one"))
+    );
+    assert_eq!(
+        common::canonical_path(Path::new(two)),
+        common::canonical_path(&workspace.join("two"))
+    );
     assert_eq!(std::env::current_dir().unwrap(), validator_cwd);
     assert_eq!(
         outcome
@@ -238,9 +247,10 @@ fn direct_check_uses_workspace_root_and_structured_selection() {
         .argv
         .iter()
         .any(|argument| argument == "suite-only"));
+    let recorded = fs::read_to_string(marker).unwrap();
     assert_eq!(
-        fs::read_to_string(marker).unwrap().trim(),
-        temp.path().canonicalize().unwrap().display().to_string()
+        common::canonical_path(Path::new(recorded.trim())),
+        common::canonical_path(temp.path())
     );
 }
 

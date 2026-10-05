@@ -1,8 +1,8 @@
 mod common;
 use serde_json::Value;
-#[cfg(unix)]
-use std::process::Stdio;
 use std::{fs, process::Command};
+#[cfg(unix)]
+use std::{os::fd::OwnedFd, os::unix::net::UnixStream, process::Stdio};
 use tempfile::TempDir;
 
 fn command_help(arguments: &[&str]) -> String {
@@ -33,6 +33,24 @@ fn init_candidate(root: &std::path::Path) -> (std::path::PathBuf, Vec<u8>) {
     let path = root.join("candidate.json");
     fs::write(&path, &bytes).unwrap();
     (path, bytes)
+}
+
+#[cfg(unix)]
+fn unwritable_stream() -> Stdio {
+    let (reader, writer) = UnixStream::pair().unwrap();
+    drop(reader);
+    Stdio::from(OwnedFd::from(writer))
+}
+
+#[cfg(unix)]
+fn output_with_unwritable_stdout(command: &mut Command) -> std::process::Output {
+    command
+        .stdout(unwritable_stream())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap()
+        .wait_with_output()
+        .unwrap()
 }
 
 #[test]
@@ -1128,15 +1146,9 @@ fn knowledge_show_rejects_non_ids_paths_and_unknown_documents() {
 #[cfg(unix)]
 #[test]
 fn knowledge_output_failure_returns_four_without_panicking() {
-    let output = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full; exec \"$1\" knowledge show tool.cargo",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
-        .output()
-        .unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    command.args(["knowledge", "show", "tool.cargo"]);
+    let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("cannot write standard output"), "{stderr}");
@@ -1339,16 +1351,9 @@ fn inspection_output_failure_returns_exit_four() {
         }));
     }
     let path = common::write_config(temp.path(), &value);
-    let output = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full; exec \"$1\" list --config \"$2\"",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
-        .arg(path)
-        .output()
-        .unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    command.args(["list", "--config"]).arg(path);
+    let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
     assert!(String::from_utf8_lossy(&output.stderr).contains("internal executor failure"));
 }
@@ -1364,18 +1369,9 @@ fn explain_output_failures_return_four_without_panicking() {
         ("suite", "fixture"),
         ("check", "fixture.check"),
     ] {
-        let output = Command::new("sh")
-            .args([
-                "-c",
-                "exec 1>/dev/full; exec \"$1\" explain \"$2\" \"$3\" --config \"$4\"",
-                "workspace-validator-test",
-                env!("CARGO_BIN_EXE_workspace-validator"),
-                kind,
-                id,
-            ])
-            .arg(&path)
-            .output()
-            .unwrap();
+        let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+        command.args(["explain", kind, id, "--config"]).arg(&path);
+        let output = output_with_unwritable_stdout(&mut command);
         assert_eq!(output.status.code(), Some(4), "{kind}");
         let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(
@@ -1414,16 +1410,11 @@ fn final_json_report_write_failure_returns_four_without_panicking() {
     let mut value = common::base_config("rustc");
     value["checks"][0]["args"] = serde_json::json!(["--version"]);
     let path = common::write_config(temp.path(), &value);
-    let output = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full; exec \"$1\" validate --format=json --config \"$2\"",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
-        .arg(path)
-        .output()
-        .unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    command
+        .args(["validate", "--format=json", "--config"])
+        .arg(path);
+    let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("cannot write standard output"), "{stderr}");
@@ -1437,17 +1428,12 @@ fn final_init_json_write_failure_returns_four_without_panicking() {
     let temp = TempDir::new().unwrap();
     let workspace = common::canonical_path(temp.path());
     let (candidate, _) = init_candidate(&workspace);
-    let output = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full; exec \"$1\" init --format=json --config \"$2\"",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
+    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    command
+        .args(["init", "--format=json", "--config"])
         .arg(candidate)
-        .current_dir(&workspace)
-        .output()
-        .unwrap();
+        .current_dir(&workspace);
+    let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("cannot write standard output"), "{stderr}");
@@ -1463,15 +1449,14 @@ fn failed_stdout_and_stderr_sinks_preserve_exit_four() {
     let mut value = common::base_config("rustc");
     value["checks"][0]["args"] = serde_json::json!(["--version"]);
     let path = common::write_config(temp.path(), &value);
-    let status = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full 2>/dev/full; exec \"$1\" validate --format=json --config \"$2\"",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
+    let status = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .args(["validate", "--format=json", "--config"])
         .arg(path)
-        .status()
+        .stdout(unwritable_stream())
+        .stderr(unwritable_stream())
+        .spawn()
+        .unwrap()
+        .wait()
         .unwrap();
     assert_eq!(status.code(), Some(4));
 }

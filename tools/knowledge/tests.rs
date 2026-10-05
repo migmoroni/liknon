@@ -1,4 +1,4 @@
-use super::{contracts::*, integrity::*, recipes::*, release::*, *};
+use super::{contracts::*, integrity::*, recipes::*, *};
 use std::{fs, path::Path};
 
 fn catalog(document_path: &str) -> Catalog {
