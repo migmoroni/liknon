@@ -96,8 +96,11 @@ pub fn run_cli() -> ExitCode {
             return ExitCode::from(code);
         }
     };
-    let mut stdout = std::io::stdout().lock();
-    let mut stderr = std::io::stderr().lock();
+    // Keep the standard-stream handles unlocked while the interactive reporter
+    // is active. Indicatif redraws from a background thread and must be able to
+    // acquire stderr independently.
+    let mut stdout = std::io::stdout();
+    let mut stderr = std::io::stderr();
     match execute(cli, &mut stdout, &mut stderr) {
         Ok(code) => ExitCode::from(code as u8),
         Err((error, code)) => {

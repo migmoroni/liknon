@@ -44,6 +44,11 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Recipe release validation accepts relative `workspaceRoot` layouts while
   confining materialized examples to an isolated temporary workspace.
 
+### Fixed
+
+- Human validation no longer deadlocks after tool preflight when the live
+  execution renderer and CLI diagnostics share an interactive terminal.
+
 ## [0.1.0]
 
 ### Added
