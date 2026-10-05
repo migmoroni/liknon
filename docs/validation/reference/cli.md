@@ -45,13 +45,16 @@ Provisioning is separate from both categories:
 workspace-validator init --config <candidate-path> [--workspace <path>] [--format=human|json]
 ```
 
-Human CLI output is plain by default. The global `--color[=<palette>]` option
-styles short help, complete help, parser diagnostics, and human validation
-reports through one semantic palette. An explicit palette overrides
-`NO_COLOR`. The execution-only `--presentation=<mode>` option changes report
-layout independently from color. Color and presentation are rejected with JSON
-validation reports; JSON execution output contains exactly one complete report
-on standard output.
+Human CLI output is plain by default. The global `--color[=<palette>]` and
+`--presentation=<mode>` options style requested help independently through
+semantic color and layout. The root help documents both renderer controls;
+focused help indicates them concisely only for `validate` and `check`, where
+they also style human execution. Every focused command help documents its own
+`-h, --help`, while the consolidated root reference lists that option once.
+An explicit palette overrides `NO_COLOR`, while low-vision presentation may use
+ANSI typographic emphasis without adding hue. Visual options are rejected
+during other command executions and with JSON validation reports; JSON
+execution output contains exactly one complete report on standard output.
 
 Standard-output delivery is part of command completion. If inspection output, a
 schema, an initialization result, or a final validation report cannot be written

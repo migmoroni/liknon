@@ -6,8 +6,8 @@ mod inspection;
 mod knowledge;
 
 use arguments::{
-    requested_palette, Cli, ColorPaletteArgument, Command, ConfigCommand, Contract, ExplainTarget,
-    Format, KnowledgeCommand, PresentationArgument,
+    requested_palette, requested_presentation, Cli, ColorPaletteArgument, Command, ConfigCommand,
+    Contract, ExplainTarget, Format, KnowledgeCommand, PresentationArgument,
 };
 
 use crate::{
@@ -44,10 +44,11 @@ use std::{
 pub fn run_cli() -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
     let palette = requested_palette(&arguments);
-    let command = theme::clap::apply(help::root::configure(Cli::command()), palette);
+    let presentation = requested_presentation(&arguments);
+    let command = theme::clap::apply(help::root::configure(Cli::command()), palette, presentation);
     if help::root::requested(&arguments) {
         let mut stdout = std::io::stdout().lock();
-        let rendered = help::root::render(command);
+        let rendered = help::root::render(command, presentation);
         return match write_output(&mut stdout, rendered.trim_end()) {
             Ok(()) => ExitCode::from(0),
             Err((error, code)) => {
@@ -99,6 +100,20 @@ fn execute(
     stderr: &mut impl Write,
 ) -> Result<i32, (ValidatorError, u8)> {
     let color = cli.color;
+    let presentation = cli.presentation;
+    let supports_visual_output = matches!(
+        &cli.command,
+        Command::Validate { .. } | Command::Check { .. }
+    );
+    if !supports_visual_output && (color.is_some() || presentation.is_some()) {
+        return Err((
+            ValidatorError::Usage(
+                "--color and --presentation apply to command execution only for validate and check; combine them with -h or --help to style help"
+                    .into(),
+            ),
+            3,
+        ));
+    }
     if let Command::Schema { contract } = cli.command {
         let schema = match contract {
             Contract::Config => schema_for!(Config),
@@ -129,12 +144,10 @@ fn execute(
     let visual_json = match &cli.command {
         Command::Validate {
             format: Format::Json,
-            presentation,
             ..
         }
         | Command::Check {
             format: Format::Json,
-            presentation,
             ..
         } => color.is_some() || presentation.is_some(),
         _ => false,
@@ -222,12 +235,7 @@ fn execute(
             };
             Ok(0)
         }
-        Command::Validate {
-            target,
-            format,
-            presentation,
-            ..
-        } => {
+        Command::Validate { target, format, .. } => {
             let plan = planning::target(&validated, target.as_deref()).map_err(|details| {
                 (
                     ValidatorError::invalid(validated.configuration_path(), details.to_string()),
@@ -245,10 +253,7 @@ fn execute(
             )
         }
         Command::Check {
-            check_id,
-            format,
-            presentation,
-            ..
+            check_id, format, ..
         } => {
             let plan = planning::check(&validated, &check_id).map_err(|details| {
                 (

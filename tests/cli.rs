@@ -400,8 +400,28 @@ fn visual_usage_rejects_ambiguous_unknown_and_json_combinations() {
 }
 
 #[test]
+fn visual_execution_options_are_rejected_by_unsupported_commands() {
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    for arguments in [
+        &["init", "--color"][..],
+        &["config", "validate", "--color=standard"][..],
+        &["list", "--presentation=low-vision"][..],
+        &["knowledge", "catalog", "--presentation=standard"][..],
+    ] {
+        let output = Command::new(binary).args(arguments).output().unwrap();
+        assert_eq!(output.status.code(), Some(3), "{}", arguments.join(" "));
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        assert!(
+            stderr.contains("apply to command execution only for validate and check"),
+            "{}:\n{stderr}",
+            arguments.join(" ")
+        );
+    }
+}
+
+#[test]
 fn help_lists_palettes_and_presentations_as_distinct_options() {
-    let stdout = command_help(&["validate", "--help"]);
+    let stdout = command_help(&["--help"]);
     for palette in [
         "standard",
         "high-contrast",
@@ -433,6 +453,84 @@ fn help_lists_palettes_and_presentations_as_distinct_options() {
 }
 
 #[test]
+fn visual_help_controls_are_documented_only_for_supported_execution() {
+    for arguments in [["-h"].as_slice(), ["--help"].as_slice()] {
+        let help = command_help(arguments);
+        assert!(help.contains("--color[=<PALETTE>]"), "{help}");
+        assert!(help.contains("--presentation=<MODE>"), "{help}");
+    }
+
+    for arguments in [&["validate", "--help"][..], &["check", "--help"][..]] {
+        let help = command_help(arguments);
+        assert!(help.contains("--color[=<PALETTE>]"), "{help}");
+        assert!(help.contains("--presentation=<MODE>"), "{help}");
+        assert!(help.contains("See root --help"), "{help}");
+        assert!(
+            !help.contains("Standard semantic terminal palette"),
+            "{help}"
+        );
+    }
+
+    for arguments in [
+        &["init", "--help"][..],
+        &["config", "--help"][..],
+        &["config", "validate", "--help"][..],
+        &["list", "--help"][..],
+        &["explain", "--help"][..],
+        &["explain", "group", "--help"][..],
+        &["explain", "suite", "--help"][..],
+        &["explain", "check", "--help"][..],
+        &["schema", "--help"][..],
+        &["knowledge", "--help"][..],
+        &["knowledge", "catalog", "--help"][..],
+        &["knowledge", "show", "--help"][..],
+    ] {
+        let help = command_help(arguments);
+        assert!(
+            !help.contains("--color"),
+            "{}:\n{help}",
+            arguments.join(" ")
+        );
+        assert!(
+            !help.contains("--presentation"),
+            "{}:\n{help}",
+            arguments.join(" ")
+        );
+    }
+}
+
+#[test]
+fn hidden_visual_controls_still_style_focused_help() {
+    let plain = command_help_with_environment(&["config", "--help"], &[("NO_COLOR", "1")]);
+    let colored = command_help_with_environment(
+        &["config", "--color=standard", "--help"],
+        &[("NO_COLOR", "1")],
+    );
+    assert!(colored.contains('\u{1b}'));
+    assert_eq!(console::strip_ansi_codes(&colored), plain);
+
+    let low_vision = command_help_with_environment(
+        &["config", "--presentation=low-vision", "--help"],
+        &[("NO_COLOR", "1")],
+    );
+    let low_vision_plain = console::strip_ansi_codes(&low_vision);
+    assert!(low_vision.contains('\u{1b}'));
+    assert!(low_vision_plain.lines().count() > plain.lines().count());
+    assert!(!low_vision_plain.contains("--presentation"));
+    assert!(!low_vision_plain.contains("--color"));
+
+    let root_standard = command_help_with_environment(&["--help"], &[("NO_COLOR", "1")]);
+    let root_low_vision = command_help_with_environment(
+        &["--presentation=low-vision", "--help"],
+        &[("NO_COLOR", "1")],
+    );
+    assert!(root_low_vision.contains('\u{1b}'));
+    assert!(
+        console::strip_ansi_codes(&root_low_vision).lines().count() > root_standard.lines().count()
+    );
+}
+
+#[test]
 fn root_help_describes_every_command() {
     let stdout = command_help(&["--help"]);
     for description in [
@@ -444,12 +542,52 @@ fn root_help_describes_every_command() {
         "Explains one configured group, suite, or check without executing it",
         "Prints the generated JSON Schema for a public CLI contract",
         "Reads validation guidance embedded in this binary without loading configuration",
-        "workspace-validator <COMMAND> --help",
-        "The '-h' flag prints a compact summary",
+        "at the root or after any command",
+        "The '-h' flag prints a compact summary; '--help' prints complete details",
     ] {
         assert!(
             stdout.contains(description),
             "missing {description:?} in:\n{stdout}"
+        );
+    }
+    assert_eq!(
+        stdout
+            .matches(
+                "Supports --color and --presentation for human validation output; see root Options"
+            )
+            .count(),
+        2,
+        "{stdout}"
+    );
+}
+
+#[test]
+fn help_option_is_documented_once_in_each_requested_help_page() {
+    let root = command_help(&["--help"]);
+    assert_eq!(root.matches("-h, --help").count(), 1, "{root}");
+
+    for arguments in [
+        &["init", "--help"][..],
+        &["validate", "--help"][..],
+        &["check", "--help"][..],
+        &["config", "--help"][..],
+        &["config", "validate", "--help"][..],
+        &["list", "--help"][..],
+        &["explain", "--help"][..],
+        &["explain", "group", "--help"][..],
+        &["explain", "suite", "--help"][..],
+        &["explain", "check", "--help"][..],
+        &["schema", "--help"][..],
+        &["knowledge", "--help"][..],
+        &["knowledge", "catalog", "--help"][..],
+        &["knowledge", "show", "--help"][..],
+    ] {
+        let focused = command_help(arguments);
+        assert_eq!(
+            focused.matches("-h, --help").count(),
+            1,
+            "{}:\n{focused}",
+            arguments.join(" ")
         );
     }
 }
@@ -460,7 +598,8 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
     assert!(short.contains("Commands:"), "{short}");
     assert!(short.contains("validate"), "{short}");
     assert!(!short.contains("workspace-validator validate:"), "{short}");
-    assert!(!short.contains("--color[=<PALETTE>]"), "{short}");
+    assert!(short.contains("--color[=<PALETTE>]"), "{short}");
+    assert!(short.contains("--presentation=<MODE>"), "{short}");
 
     let long = command_help(&["--help"]);
     let commands = [
@@ -650,13 +789,10 @@ fn command_help_describes_every_argument_and_option() {
                 "discovery walks upward from the process current directory",
                 "Selects the validation report format",
                 "JSON emits only the versioned ValidationReport",
-                "Enables ANSI color in human CLI output",
-                "Without this flag, output contains no ANSI color",
-                "named palettes require --color=<PALETTE>",
-                "Status and hierarchy never rely on color alone",
-                "Selects the human-output presentation independently from color",
-                "Low-vision expands spacing and removes dim styling",
-                "Named modes require --presentation=<MODE>",
+                "Styles human validation output with ANSI color",
+                "See root --help for palettes and rendering behavior",
+                "Selects the layout and emphasis of human validation output",
+                "See root --help for presentation modes and rendering behavior",
             ],
         ),
         (
@@ -667,13 +803,10 @@ fn command_help_describes_every_argument_and_option() {
                 "discovery walks upward from the process current directory",
                 "Selects the validation report format",
                 "JSON emits only the versioned ValidationReport",
-                "Enables ANSI color in human CLI output",
-                "Without this flag, output contains no ANSI color",
-                "named palettes require --color=<PALETTE>",
-                "Status and hierarchy never rely on color alone",
-                "Selects the human-output presentation independently from color",
-                "Low-vision expands spacing and removes dim styling",
-                "Named modes require --presentation=<MODE>",
+                "Styles human validation output with ANSI color",
+                "See root --help for palettes and rendering behavior",
+                "Selects the layout and emphasis of human validation output",
+                "See root --help for presentation modes and rendering behavior",
             ],
         ),
         (

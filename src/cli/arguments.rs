@@ -20,12 +20,22 @@ pub(super) struct Cli {
         num_args = 0..=1,
         default_missing_value = "standard",
         require_equals = true,
-        hide_short_help = true,
         value_name = "PALETTE",
         help = help::root::COLOR,
         long_help = help::root::COLOR_LONG
     )]
     pub(super) color: Option<ColorPaletteArgument>,
+
+    #[arg(
+        long,
+        global = true,
+        value_enum,
+        require_equals = true,
+        value_name = "MODE",
+        help = help::root::PRESENTATION,
+        long_help = help::root::PRESENTATION_LONG
+    )]
+    pub(super) presentation: Option<PresentationArgument>,
 
     #[command(subcommand)]
     pub(super) command: Command,
@@ -78,16 +88,6 @@ pub(super) enum Command {
             long_help = help::execution::FORMAT_LONG
         )]
         format: Format,
-
-        #[arg(
-            long,
-            value_enum,
-            require_equals = true,
-            value_name = "MODE",
-            help = help::execution::PRESENTATION,
-            long_help = help::execution::PRESENTATION_LONG
-        )]
-        presentation: Option<PresentationArgument>,
     },
 
     #[command(
@@ -109,16 +109,6 @@ pub(super) enum Command {
             long_help = help::execution::FORMAT_LONG
         )]
         format: Format,
-
-        #[arg(
-            long,
-            value_enum,
-            require_equals = true,
-            value_name = "MODE",
-            help = help::execution::PRESENTATION,
-            long_help = help::execution::PRESENTATION_LONG
-        )]
-        presentation: Option<PresentationArgument>,
     },
 
     #[command(about = help::inspection::CONFIG_ABOUT)]
@@ -266,6 +256,21 @@ pub(super) fn requested_palette(arguments: &[std::ffi::OsString]) -> PaletteProf
                 .map(Into::into)
         })
         .unwrap_or(PaletteProfile::Plain)
+}
+
+/// Resolves the explicit presentation before Clap renders help or diagnostics.
+pub(super) fn requested_presentation(arguments: &[std::ffi::OsString]) -> PresentationProfile {
+    arguments
+        .iter()
+        .skip(1)
+        .take_while(|argument| *argument != "--")
+        .find_map(|argument| {
+            let value = argument.to_str()?.strip_prefix("--presentation=")?;
+            PresentationArgument::from_str(value, true)
+                .ok()
+                .map(Into::into)
+        })
+        .unwrap_or(PresentationProfile::Standard)
 }
 
 #[derive(Clone, Copy, ValueEnum)]

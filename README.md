@@ -251,14 +251,24 @@ diagnostics, and validation reports. This default follows `NO_COLOR` without
 requiring terminal detection. An explicit global `--color` overrides
 `NO_COLOR` and selects the standard palette; `--color=<palette>` selects
 `high-contrast`, `protanopia`, `deuteranopia`, `tritanopia`, or
-`achromatopsia`. The same semantic palette styles help and reports without
-changing their text. Layout is independent:
-`--presentation=low-vision` increases spacing and removes dim styling. Color
-never carries the only indication of status, node type, hierarchy, or errors.
+`achromatopsia`. Layout and emphasis are independently selected through
+`--presentation=<mode>`; `low-vision` expands spacing, removes dim styling, and
+may use ANSI typographic emphasis without adding hue. Color never carries the
+only indication of status, node type, hierarchy, or errors.
+
+With `-h` or `--help`, visual options style the requested help. The root help
+documents these renderer controls in full. Focused `validate` and `check` help
+only indicates that they are available because they also style normal human
+execution. Each focused help documents its own `-h, --help`; the consolidated
+root reference documents that option once instead of repeating it in every
+embedded command section. Other commands accept visual options only when
+rendering help, preventing successful command output from silently ignoring
+them.
 
 ```sh
 workspace-validator --color -h
 workspace-validator --color=high-contrast --help
+workspace-validator config --presentation=low-vision --help
 workspace-validator validate --color=deuteranopia --help
 workspace-validator validate --color=high-contrast
 workspace-validator validate --color=deuteranopia --presentation=low-vision
@@ -266,9 +276,10 @@ workspace-validator validate --presentation=low-vision
 ```
 
 `--format=json` emits only the version 4 `ValidationReport`; visual options are
-therefore rejected in JSON mode. Reports keep tools, groups, suites, concrete
-checks, and the optional repository gate structurally distinct. Captured output
-is bounded by `outputLimitBytes` for each stream.
+therefore rejected in JSON mode. Visual options without help are also rejected
+for commands other than `validate` and `check`. Reports keep tools, groups,
+suites, concrete checks, and the optional repository gate structurally
+distinct. Captured output is bounded by `outputLimitBytes` for each stream.
 
 ## Library Usage
 

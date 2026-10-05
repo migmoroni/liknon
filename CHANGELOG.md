@@ -19,15 +19,18 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Visual themes are shared across the CLI, so explicit accessible palettes
-  style short help, complete help, parser diagnostics, and validation reports
-  while plain ANSI-free output remains the default.
+- Visual themes are shared across the CLI, so explicit accessible palettes and
+  presentations style short help, complete help, parser diagnostics, and human
+  validation reports while plain ANSI-free output remains the default.
 - CLI help describes every command, nested command, positional argument,
   option, default, interaction, and accepted enum value at its corresponding
   help level; root `--help` consolidates the complete command tree while root
   `-h` remains compact. The consolidated tree visually separates every command,
   omits redundant generated `help` subcommands, and keeps focused command help
-  uncluttered.
+  uncluttered. It documents `-h, --help` once at the root while each focused
+  command help retains its own entry. Root help fully documents visual renderer
+  controls, while focused help indicates them only when they also affect that
+  command's execution.
 - Knowledge catalog entries use minimal structural metadata while `draft` and
   require complete routing and review metadata when marked `reviewed`.
 - Recipe release validation accepts relative `workspaceRoot` layouts while
