@@ -195,30 +195,10 @@ fn read_candidate(workspace: &Path, candidate: &Path) -> Result<Vec<u8>, String>
     let canonical = candidate
         .canonicalize()
         .map_err(|error| format!("cannot resolve config candidate: {error}"))?;
-    let presented = if candidate.is_absolute() {
-        candidate.to_path_buf()
-    } else {
-        std::env::current_dir()
-            .map_err(|error| format!("cannot resolve current directory: {error}"))?
-            .join(candidate)
-    };
-    if normalize_candidate_path(&presented) != canonical {
-        return Err("config candidate path must not contain symlinks".into());
-    }
     if !canonical.starts_with(workspace) {
         return Err("config candidate escapes the selected workspace".into());
     }
     fs::read(&canonical).map_err(|error| format!("cannot read config candidate: {error}"))
-}
-
-fn normalize_candidate_path(path: &Path) -> PathBuf {
-    let mut normalized = PathBuf::new();
-    for component in path.components() {
-        if !matches!(component, Component::CurDir) {
-            normalized.push(component.as_os_str());
-        }
-    }
-    normalized
 }
 
 fn inspect_destination(

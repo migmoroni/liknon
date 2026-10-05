@@ -48,6 +48,8 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Human validation no longer deadlocks after tool preflight when the live
   execution renderer and CLI diagnostics share an interactive terminal.
+- Configuration initialization accepts valid contained candidates on macOS and
+  Windows without relying on platform-specific canonical path spelling.
 
 ## [0.1.0]
 
