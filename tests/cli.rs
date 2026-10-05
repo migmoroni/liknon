@@ -50,14 +50,15 @@ fn init_requires_a_capability_flag() {
 #[test]
 fn init_installs_exact_validated_bytes_and_reuses_them() {
     let temp = TempDir::new().unwrap();
-    let (candidate, bytes) = init_candidate(temp.path());
+    let workspace = common::canonical_path(temp.path());
+    let (candidate, bytes) = init_candidate(&workspace);
     let bin = env!("CARGO_BIN_EXE_workspace-validator");
 
     let created = Command::new(bin)
         .args(["init", "--config"])
         .arg(&candidate)
         .arg("--format=json")
-        .current_dir(temp.path())
+        .current_dir(&workspace)
         .output()
         .unwrap();
     assert!(
@@ -73,7 +74,7 @@ fn init_installs_exact_validated_bytes_and_reuses_them() {
     assert_eq!(document["resources"][0]["status"], "created");
     assert!(document["resources"][0]["digest"].as_str().unwrap().len() == 64);
     assert_eq!(
-        fs::read(temp.path().join(".validation/config.json")).unwrap(),
+        fs::read(workspace.join(".validation/config.json")).unwrap(),
         bytes
     );
 
@@ -81,7 +82,7 @@ fn init_installs_exact_validated_bytes_and_reuses_them() {
         .args(["init", "--config"])
         .arg(&candidate)
         .arg("--format=json")
-        .current_dir(temp.path())
+        .current_dir(&workspace)
         .output()
         .unwrap();
     assert!(reused.status.success());
@@ -92,14 +93,15 @@ fn init_installs_exact_validated_bytes_and_reuses_them() {
 #[test]
 fn init_reports_conflicts_and_never_overwrites() {
     let temp = TempDir::new().unwrap();
-    let (candidate, _) = init_candidate(temp.path());
-    fs::create_dir(temp.path().join(".validation")).unwrap();
-    fs::write(temp.path().join(".validation/config.json"), b"different").unwrap();
+    let workspace = common::canonical_path(temp.path());
+    let (candidate, _) = init_candidate(&workspace);
+    fs::create_dir(workspace.join(".validation")).unwrap();
+    fs::write(workspace.join(".validation/config.json"), b"different").unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--format=json")
-        .current_dir(temp.path())
+        .current_dir(&workspace)
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(1));
@@ -108,7 +110,7 @@ fn init_reports_conflicts_and_never_overwrites() {
     assert_eq!(document["status"], "conflict");
     assert_eq!(document["resources"][0]["status"], "conflict");
     assert_eq!(
-        fs::read(temp.path().join(".validation/config.json")).unwrap(),
+        fs::read(workspace.join(".validation/config.json")).unwrap(),
         b"different"
     );
 }
@@ -116,16 +118,17 @@ fn init_reports_conflicts_and_never_overwrites() {
 #[test]
 fn init_uses_canonical_destination_semantics_and_starts_no_tool() {
     let temp = TempDir::new().unwrap();
-    let marker = temp.path().join("preflight-ran");
+    let workspace = common::canonical_path(temp.path());
+    let marker = workspace.join("preflight-ran");
     let mut value = common::base_config(common::process_fixture());
     value["workspaceRoot"] = "..".into();
     value["tools"][0]["versionArgs"] = serde_json::json!(["mark-version", marker]);
-    let candidate = common::write_config(temp.path(), &value);
+    let candidate = common::write_config(&workspace, &value);
     let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--workspace")
-        .arg(temp.path())
+        .arg(&workspace)
         .current_dir(std::env::temp_dir())
         .output()
         .unwrap();
@@ -143,8 +146,10 @@ fn init_rejects_symlinked_candidates_and_workspace_escape() {
     use std::os::unix::fs::symlink;
     let workspace = TempDir::new().unwrap();
     let outside = TempDir::new().unwrap();
-    let (outside_candidate, _) = init_candidate(outside.path());
-    let link = workspace.path().join("candidate-link.json");
+    let workspace_root = common::canonical_path(workspace.path());
+    let outside_root = common::canonical_path(outside.path());
+    let (outside_candidate, _) = init_candidate(&outside_root);
+    let link = workspace_root.join("candidate-link.json");
     symlink(&outside_candidate, &link).unwrap();
     let bin = env!("CARGO_BIN_EXE_workspace-validator");
     for candidate in [&link, &outside_candidate] {
@@ -152,7 +157,7 @@ fn init_rejects_symlinked_candidates_and_workspace_escape() {
             .args(["init", "--config"])
             .arg(candidate)
             .arg("--workspace")
-            .arg(workspace.path())
+            .arg(&workspace_root)
             .arg("--format=json")
             .output()
             .unwrap();
@@ -160,7 +165,7 @@ fn init_rejects_symlinked_candidates_and_workspace_escape() {
         let document: Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(document["status"], "failed");
     }
-    assert!(!workspace.path().join(".validation").exists());
+    assert!(!workspace_root.join(".validation").exists());
 }
 
 #[cfg(unix)]
@@ -169,20 +174,22 @@ fn init_rejects_a_symlinked_destination_directory() {
     use std::os::unix::fs::symlink;
     let workspace = TempDir::new().unwrap();
     let outside = TempDir::new().unwrap();
-    let (candidate, _) = init_candidate(workspace.path());
-    symlink(outside.path(), workspace.path().join(".validation")).unwrap();
+    let workspace_root = common::canonical_path(workspace.path());
+    let outside_root = common::canonical_path(outside.path());
+    let (candidate, _) = init_candidate(&workspace_root);
+    symlink(&outside_root, workspace_root.join(".validation")).unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--workspace")
-        .arg(workspace.path())
+        .arg(&workspace_root)
         .arg("--format=json")
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(1));
     let document: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(document["resources"][0]["status"], "conflict");
-    assert!(!outside.path().join("config.json").exists());
+    assert!(!outside_root.join("config.json").exists());
 }
 
 #[test]
@@ -1428,7 +1435,8 @@ fn final_json_report_write_failure_returns_four_without_panicking() {
 #[test]
 fn final_init_json_write_failure_returns_four_without_panicking() {
     let temp = TempDir::new().unwrap();
-    let (candidate, _) = init_candidate(temp.path());
+    let workspace = common::canonical_path(temp.path());
+    let (candidate, _) = init_candidate(&workspace);
     let output = Command::new("sh")
         .args([
             "-c",
@@ -1437,7 +1445,7 @@ fn final_init_json_write_failure_returns_four_without_panicking() {
             env!("CARGO_BIN_EXE_workspace-validator"),
         ])
         .arg(candidate)
-        .current_dir(temp.path())
+        .current_dir(&workspace)
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(4));
@@ -1445,7 +1453,7 @@ fn final_init_json_write_failure_returns_four_without_panicking() {
     assert!(stderr.contains("cannot write standard output"), "{stderr}");
     assert!(!stderr.contains("panicked"), "{stderr}");
     assert!(!stderr.contains("\"schemaVersion\""), "{stderr}");
-    assert!(temp.path().join(".validation/config.json").is_file());
+    assert!(workspace.join(".validation/config.json").is_file());
 }
 
 #[cfg(unix)]

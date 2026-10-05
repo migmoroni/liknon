@@ -56,11 +56,12 @@ impl ProgressReporter for Recorder {
 #[test]
 fn memoizes_groups_and_suites_but_executes_checks_per_suite_context() {
     let temp = TempDir::new().unwrap();
+    let workspace = common::canonical_path(temp.path());
     let validator_cwd = std::env::current_dir().unwrap();
     for d in ["one", "two"] {
-        fs::create_dir(temp.path().join(d)).unwrap();
+        fs::create_dir(workspace.join(d)).unwrap();
     }
-    let log = temp.path().join("runs.log");
+    let log = workspace.join("runs.log");
     let tool = common::process_fixture();
     let value = json!({
       "schemaVersion":6,"workspaceRoot":".","defaultGroup":"root","outputLimitBytes":4096,
@@ -77,11 +78,8 @@ fn memoizes_groups_and_suites_but_executes_checks_per_suite_context() {
        {"id":"branch.one","label":"Branch one","description":"First branch.","members":[{"kind":"group","id":"shared.group"},{"kind":"suite","id":"suite.one"}]},
        {"id":"branch.two","label":"Branch two","description":"Second branch.","members":[{"kind":"group","id":"shared.group"},{"kind":"suite","id":"shared.suite"},{"kind":"suite","id":"suite.two"}]},
        {"id":"root","label":"Root","description":"Root group.","members":[{"kind":"group","id":"branch.one"},{"kind":"group","id":"branch.two"}]}]});
-    let validated = config::load(
-        Some(&common::write_config(temp.path(), &value)),
-        temp.path(),
-    )
-    .unwrap();
+    let validated =
+        config::load(Some(&common::write_config(&workspace, &value)), &workspace).unwrap();
     let plan = planning::target(&validated, None).unwrap();
     let mut recorder = Recorder::default();
     let outcome = execution::run_with_progress(
@@ -112,14 +110,14 @@ fn memoizes_groups_and_suites_but_executes_checks_per_suite_context() {
         Some("one-context")
     );
     assert_eq!(fs::read_to_string(log).unwrap().lines().count(), 3);
-    let runs = fs::read_to_string(temp.path().join("runs.log")).unwrap();
+    let runs = fs::read_to_string(workspace.join("runs.log")).unwrap();
     assert!(runs.contains(&format!(
         "same:one-context:{}",
-        temp.path().join("one").display()
+        workspace.join("one").display()
     )));
     assert!(runs.contains(&format!(
         "same:two-context:{}",
-        temp.path().join("two").display()
+        workspace.join("two").display()
     )));
     assert_eq!(std::env::current_dir().unwrap(), validator_cwd);
     assert_eq!(
