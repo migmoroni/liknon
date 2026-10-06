@@ -120,7 +120,7 @@ jobs:
       - name: Install and smoke-test packaged CLI
         shell: bash
         run: |
-          package_dir="$GITHUB_WORKSPACE/target/package/liknon-0.1.0"
+          package_dir="$GITHUB_WORKSPACE/target/package/liknon-0.5.0"
           install_root="$RUNNER_TEMP/liknon-install"
           smoke_dir="$RUNNER_TEMP/liknon-smoke"
           knowledge_dir="$(mktemp -d "$RUNNER_TEMP/liknon-knowledge.XXXXXX")"
@@ -215,6 +215,6 @@ jobs:
       - name: Record package size
         shell: bash
         run: |
-          archive="target/package/liknon-0.1.0.crate"
+          archive="target/package/liknon-0.5.0.crate"
           test -f "$archive"
           du -h "$archive"

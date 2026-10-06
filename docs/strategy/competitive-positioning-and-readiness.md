@@ -56,7 +56,7 @@ A concise positioning statement is:
 | Evidence-based target | **8.7/10** | Achievable after the planned flows, external-runner conformance, structured evidence, and agent evaluations are implemented and verified. |
 
 The earlier architectural score of `8.5/10` evaluates the design direction. It
-must not be read as a claim that the current `0.1.0` implementation already
+must not be read as a claim that the current `0.5.0` implementation already
 delivers the complete AI-governed system.
 
 The current implementation is already stronger than an ordinary task wrapper

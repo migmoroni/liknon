@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Security fixes are provided for the latest `0.1.x` release. This policy is
+Security fixes are provided for the latest `0.5.x` release. This policy is
 updated when another release line becomes supported.
 
 ## Reporting A Vulnerability
