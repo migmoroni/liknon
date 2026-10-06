@@ -14,7 +14,7 @@
     },
     {
       "id": "intentionally-unavailable",
-      "program": "workspace-validator-intentionally-unavailable",
+      "program": "liknon-intentionally-unavailable",
       "requiresTools": [],
       "versionArgs": ["--version"],
       "versionParser": "firstSemver"
@@ -67,7 +67,7 @@
         {
           "checkId": "outcome.pass",
           "parameters": {
-            "target": ["-p", "workspace-validator-pass-fixture"]
+            "target": ["-p", "liknon-pass-fixture"]
           },
           "dependsOn": []
         }
@@ -81,14 +81,14 @@
         {
           "checkId": "outcome.fail",
           "parameters": {
-            "target": ["-p", "workspace-validator-fail-fixture"]
+            "target": ["-p", "liknon-fail-fixture"]
           },
           "dependsOn": []
         },
         {
           "checkId": "outcome.skipped",
           "parameters": {
-            "target": ["-p", "workspace-validator-pass-fixture"]
+            "target": ["-p", "liknon-pass-fixture"]
           },
           "dependsOn": ["outcome.fail"]
         }

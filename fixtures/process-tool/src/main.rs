@@ -32,7 +32,7 @@ fn main() -> io::Result<()> {
     let arguments = env::args().skip(1).collect::<Vec<_>>();
     let command = arguments.first().map(String::as_str).unwrap_or("pass");
     match command {
-        "--version" => println!("workspace-validator-process-fixture 1.2.3"),
+        "--version" => println!("liknon-process-fixture 1.2.3"),
         "pass" => {}
         "exit" => process::exit(exit_code(required(&arguments, 1, "exit code"))),
         "emit" => {
@@ -79,7 +79,7 @@ fn main() -> io::Result<()> {
         }
         "mark-version" => {
             fs::write(required(&arguments, 1, "marker path"), [])?;
-            println!("workspace-validator-process-fixture 1.2.3");
+            println!("liknon-process-fixture 1.2.3");
         }
         "mark-after" => {
             thread::sleep(milliseconds(required(&arguments, 1, "delay")));

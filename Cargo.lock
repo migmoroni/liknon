@@ -645,6 +645,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
+name = "liknon"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "console",
+ "ctrlc",
+ "indicatif",
+ "jsonschema",
+ "pulldown-cmark",
+ "schemars",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror",
+ "windows-sys",
+]
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1429,26 +1449,6 @@ dependencies = [
  "serde_json",
  "unicode-xid",
  "wasmparser",
-]
-
-[[package]]
-name = "workspace-validator"
-version = "0.1.0"
-dependencies = [
- "clap",
- "console",
- "ctrlc",
- "indicatif",
- "jsonschema",
- "pulldown-cmark",
- "schemars",
- "semver",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "thiserror",
- "windows-sys",
 ]
 
 [[package]]

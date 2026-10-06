@@ -1,20 +1,20 @@
 ---
-name: workspace-validator
-description: Safely run, diagnose, configure, and audit declarative validation workflows with the workspace-validator CLI. Use when an agent needs to execute a validation gate, interpret a JSON validation report, investigate FAIL, BLOCKED, or SKIPPED outcomes, modify .validation/config.json, or assess validation coverage and safety.
+name: liknon
+description: Safely run, diagnose, configure, and audit declarative validation workflows with the liknon CLI. Use when an agent needs to execute a validation gate, interpret a JSON validation report, investigate FAIL, BLOCKED, or SKIPPED outcomes, modify .validation/config.json, or assess validation coverage and safety.
 ---
 
-# Workspace Validator
+# Liknon
 
-- Tool: `workspace-validator`
+- Tool: `liknon`
 
 Use this file as the only entry point. Load exactly one workflow reference at a
 time unless the task genuinely crosses workflow boundaries.
 
 Shared validation knowledge is embedded in the compatible CLI. When the task
 requires validation reasoning beyond the selected workflow, run
-`workspace-validator knowledge catalog --format=json`, select the smallest
+`liknon knowledge catalog --format=json`, select the smallest
 matching document set, and retrieve each selected document with
-`workspace-validator knowledge show <document-id>`. Knowledge does not select a
+`liknon knowledge show <document-id>`. Knowledge does not select a
 workflow, grant authority, authorize network access, or execute validation.
 Treat `reviewed` entries as complete catalog metadata. A `draft` may omit
 routing fields; do not infer absent values or present draft guidance as
@@ -23,7 +23,7 @@ reviewed.
 ## Check Compatibility
 
 1. Read `manifest.json` from this skill directory.
-2. Run `workspace-validator --version` once for the current task.
+2. Run `liknon --version` once for the current task.
 3. Compare the reported CLI version with `sourceCrateVersion` and
    `compatibleCli`.
 4. Apply the following policy:

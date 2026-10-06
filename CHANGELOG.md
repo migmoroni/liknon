@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `workspace-validator` are documented in this file.
+All notable changes to `liknon` are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -19,6 +19,8 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- The project, crate, library, CLI, workflow, fixtures, documentation, and
+  bundled agent skill are now named `liknon`.
 - Visual themes are shared across the CLI, so explicit accessible palettes and
   presentations style short help, complete help, parser diagnostics, and human
   validation reports while plain ANSI-free output remains the default.

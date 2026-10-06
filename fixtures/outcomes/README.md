@@ -1,7 +1,7 @@
 # Outcome Fixtures
 
 This isolated workspace demonstrates every check status rendered by
-`workspace-validator`:
+`liknon`:
 
 - `PASS`: a Rust test succeeds;
 - `FAIL`: a Rust test contains an intentional failing assertion;

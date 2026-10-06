@@ -22,7 +22,7 @@ required.
 Provide enough detail to adapt and execute one internally consistent,
 non-publishing composition. Declare capabilities and major-line assumptions,
 label placeholders, and avoid private repository layout. A general Rust CLI
-release gate cannot validate workspace-validator-only assets.
+release gate cannot validate liknon-only assets.
 
 ## Review Checklist
 

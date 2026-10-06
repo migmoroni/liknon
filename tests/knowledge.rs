@@ -1,8 +1,8 @@
 #[path = "../tools/knowledge/main.rs"]
 mod knowledge;
 
+use liknon::contracts::config::Config;
 use std::{fs, path::Path};
-use workspace_validator::contracts::config::Config;
 
 fn repository() -> &'static Path {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -73,7 +73,7 @@ fn source_package_manifest_includes_the_knowledge_release_inputs() {
     assert!(development_dependencies.contains("jsonschema"));
     assert!(development_dependencies.contains("pulldown-cmark"));
     assert!(!repository()
-        .join("skills/workspace-validator/references/knowledge")
+        .join("skills/liknon/references/knowledge")
         .exists());
 }
 

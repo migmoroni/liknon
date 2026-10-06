@@ -10,7 +10,7 @@ fn command_help(arguments: &[&str]) -> String {
 }
 
 fn command_help_with_environment(arguments: &[&str], environment: &[(&str, &str)]) -> String {
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(arguments)
         .envs(environment.iter().copied())
         .output()
@@ -56,7 +56,7 @@ fn output_with_unwritable_stdout(command: &mut Command) -> std::process::Output 
 #[test]
 fn init_requires_a_capability_flag() {
     let temp = TempDir::new().unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .arg("init")
         .current_dir(temp.path())
         .output()
@@ -70,7 +70,7 @@ fn init_installs_exact_validated_bytes_and_reuses_them() {
     let temp = TempDir::new().unwrap();
     let workspace = common::canonical_path(temp.path());
     let (candidate, bytes) = init_candidate(&workspace);
-    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+    let bin = env!("CARGO_BIN_EXE_liknon");
 
     let created = Command::new(bin)
         .args(["init", "--config"])
@@ -115,7 +115,7 @@ fn init_reports_conflicts_and_never_overwrites() {
     let (candidate, _) = init_candidate(&workspace);
     fs::create_dir(workspace.join(".validation")).unwrap();
     fs::write(workspace.join(".validation/config.json"), b"different").unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--format=json")
@@ -142,7 +142,7 @@ fn init_uses_canonical_destination_semantics_and_starts_no_tool() {
     value["workspaceRoot"] = "..".into();
     value["tools"][0]["versionArgs"] = serde_json::json!(["mark-version", marker]);
     let candidate = common::write_config(&workspace, &value);
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--workspace")
@@ -169,7 +169,7 @@ fn init_rejects_symlinked_candidates_and_workspace_escape() {
     let (outside_candidate, _) = init_candidate(&outside_root);
     let link = workspace_root.join("candidate-link.json");
     symlink(&outside_candidate, &link).unwrap();
-    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+    let bin = env!("CARGO_BIN_EXE_liknon");
     for candidate in [&link, &outside_candidate] {
         let output = Command::new(bin)
             .args(["init", "--config"])
@@ -196,7 +196,7 @@ fn init_rejects_a_symlinked_destination_directory() {
     let outside_root = common::canonical_path(outside.path());
     let (candidate, _) = init_candidate(&workspace_root);
     symlink(&outside_root, workspace_root.join(".validation")).unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--workspace")
@@ -225,7 +225,7 @@ fn discovers_current_config_and_emits_portable_json() {
         serde_json::to_vec(&value).unwrap(),
     )
     .unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["validate", "--format", "json"])
         .current_dir(child)
         .output()
@@ -252,7 +252,7 @@ fn human_report_uses_group_suite_and_check_vocabulary() {
     let mut value = common::base_config("rustc");
     value["checks"][0]["args"] = serde_json::json!(["--version"]);
     let path = common::write_config(temp.path(), &value);
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["validate", "--config"])
         .arg(path)
         .output()
@@ -260,7 +260,7 @@ fn human_report_uses_group_suite_and_check_vocabulary() {
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(!stdout.contains('\u{1b}'));
-    assert!(stdout.starts_with("╭─ Workspace Validator · Result"));
+    assert!(stdout.starts_with("╭─ Liknon · Result"));
     for expected in ["GROUP", "SUITE", "CHECK", "Counted outcomes"] {
         assert!(
             stdout.contains(expected),
@@ -275,7 +275,7 @@ fn palettes_and_presentations_compose_locally_and_preserve_semantics() {
     let mut value = common::base_config("rustc");
     value["checks"][0]["args"] = serde_json::json!(["--version"]);
     let path = common::write_config(temp.path(), &value);
-    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+    let bin = env!("CARGO_BIN_EXE_liknon");
 
     let plain = Command::new(bin)
         .args(["validate", "fixture", "--config"])
@@ -384,7 +384,7 @@ fn palettes_and_presentations_compose_locally_and_preserve_semantics() {
 fn visual_usage_rejects_ambiguous_unknown_and_json_combinations() {
     let temp = TempDir::new().unwrap();
     let path = common::write_config(temp.path(), &common::base_config("rustc"));
-    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+    let bin = env!("CARGO_BIN_EXE_liknon");
     for args in [
         vec!["validate", "fixture", "--color", "deuteranopia"],
         vec!["validate", "fixture", "--color=unknown"],
@@ -426,7 +426,7 @@ fn visual_usage_rejects_ambiguous_unknown_and_json_combinations() {
 
 #[test]
 fn visual_execution_options_are_rejected_by_unsupported_commands() {
-    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let binary = env!("CARGO_BIN_EXE_liknon");
     for arguments in [
         &["init", "--color"][..],
         &["config", "validate", "--color=standard"][..],
@@ -640,9 +640,9 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
     let short = command_help(&["-h"]);
     assert!(short.contains("Commands:"), "{short}");
     assert!(short.contains("validate"), "{short}");
-    assert!(!short.contains("workspace-validator validate:"), "{short}");
+    assert!(!short.contains("liknon validate:"), "{short}");
     assert!(
-        short.contains("Usage: workspace-validator <COMMAND> [OPTIONS]"),
+        short.contains("Usage: liknon <COMMAND> [OPTIONS]"),
         "{short}"
     );
     assert!(short.contains("--color[=<PALETTE>]"), "{short}");
@@ -721,33 +721,30 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
             "missing nested separator before {command:?} in:\n{long}"
         );
     }
-    assert!(
-        long.contains("Usage: workspace-validator <COMMAND> [OPTIONS]"),
-        "{long}"
-    );
+    assert!(long.contains("Usage: liknon <COMMAND> [OPTIONS]"), "{long}");
     for usage in [
-        "Usage: workspace-validator init [OPTIONS]",
-        "Usage: workspace-validator validate [OPTIONS] [TARGET]",
-        "Usage: workspace-validator check [OPTIONS] <CHECK_ID>",
-        "Usage: workspace-validator config <COMMAND>",
-        "Usage: workspace-validator config validate [OPTIONS]",
-        "Usage: workspace-validator list [OPTIONS]",
-        "Usage: workspace-validator explain <COMMAND>",
-        "Usage: workspace-validator explain group [OPTIONS] <GROUP_ID>",
-        "Usage: workspace-validator explain suite [OPTIONS] <SUITE_ID>",
-        "Usage: workspace-validator explain check [OPTIONS] <CHECK_ID>",
-        "Usage: workspace-validator schema <CONTRACT>",
-        "Usage: workspace-validator knowledge <COMMAND>",
-        "Usage: workspace-validator knowledge catalog [OPTIONS]",
-        "Usage: workspace-validator knowledge show <DOCUMENT_ID>",
+        "Usage: liknon init [OPTIONS]",
+        "Usage: liknon validate [OPTIONS] [TARGET]",
+        "Usage: liknon check [OPTIONS] <CHECK_ID>",
+        "Usage: liknon config <COMMAND>",
+        "Usage: liknon config validate [OPTIONS]",
+        "Usage: liknon list [OPTIONS]",
+        "Usage: liknon explain <COMMAND>",
+        "Usage: liknon explain group [OPTIONS] <GROUP_ID>",
+        "Usage: liknon explain suite [OPTIONS] <SUITE_ID>",
+        "Usage: liknon explain check [OPTIONS] <CHECK_ID>",
+        "Usage: liknon schema <CONTRACT>",
+        "Usage: liknon knowledge <COMMAND>",
+        "Usage: liknon knowledge catalog [OPTIONS]",
+        "Usage: liknon knowledge show <DOCUMENT_ID>",
     ] {
         assert!(long.contains(usage), "missing {usage:?} in:\n{long}");
     }
     for old_heading in [
-        "workspace-validator init:",
-        "workspace-validator config validate:",
-        "workspace-validator explain suite:",
-        "workspace-validator knowledge show:",
+        "liknon init:",
+        "liknon config validate:",
+        "liknon explain suite:",
+        "liknon knowledge show:",
     ] {
         assert!(
             !long.contains(old_heading),
@@ -755,10 +752,10 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
         );
     }
     for generated in [
-        "workspace-validator help:",
-        "workspace-validator config help:",
-        "workspace-validator explain help:",
-        "workspace-validator knowledge help:",
+        "liknon help:",
+        "liknon config help:",
+        "liknon explain help:",
+        "liknon knowledge help:",
     ] {
         assert!(
             !long.contains(generated),
@@ -837,7 +834,7 @@ fn root_help_guidance_lives_in_the_top_options_block() {
 
 #[test]
 fn generated_help_subcommands_are_disabled() {
-    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let binary = env!("CARGO_BIN_EXE_liknon");
     for arguments in [
         &["help"][..],
         &["config", "help"][..],
@@ -907,7 +904,7 @@ fn short_and_long_help_share_accessible_palette_semantics() {
 
 #[test]
 fn parser_diagnostics_follow_the_global_palette() {
-    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let binary = env!("CARGO_BIN_EXE_liknon");
     let plain = Command::new(binary)
         .arg("unknown")
         .env("NO_COLOR", "1")
@@ -1059,7 +1056,7 @@ fn command_help_describes_every_argument_and_option() {
 
 #[test]
 fn root_version_is_a_successful_cli_outcome() {
-    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let binary = env!("CARGO_BIN_EXE_liknon");
     let output = Command::new(binary).arg("--version").output().unwrap();
     assert!(
         output.status.success(),
@@ -1073,7 +1070,7 @@ fn root_version_is_a_successful_cli_outcome() {
 #[test]
 fn embedded_knowledge_is_exact_read_only_and_independent_from_configuration() {
     let temp = TempDir::new().unwrap();
-    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let binary = env!("CARGO_BIN_EXE_liknon");
     let canonical_root =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("docs/validation/knowledge");
     let canonical_catalog = fs::read(canonical_root.join("catalog.json")).unwrap();
@@ -1121,7 +1118,7 @@ fn embedded_knowledge_is_exact_read_only_and_independent_from_configuration() {
 #[test]
 fn knowledge_show_rejects_non_ids_paths_and_unknown_documents() {
     let temp = TempDir::new().unwrap();
-    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let binary = env!("CARGO_BIN_EXE_liknon");
     for selector in [
         "../escape",
         "/absolute",
@@ -1146,7 +1143,7 @@ fn knowledge_show_rejects_non_ids_paths_and_unknown_documents() {
 #[cfg(unix)]
 #[test]
 fn knowledge_output_failure_returns_four_without_panicking() {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_liknon"));
     command.args(["knowledge", "show", "tool.cargo"]);
     let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
@@ -1160,7 +1157,7 @@ fn config_validate_and_inspection_do_not_run_declared_tools() {
     let temp = TempDir::new().unwrap();
     let value = common::base_config("definitely-missing");
     let path = common::write_config(temp.path(), &value);
-    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+    let bin = env!("CARGO_BIN_EXE_liknon");
     for args in [
         vec!["config", "validate", "--config"],
         vec!["list", "--tree", "--config"],
@@ -1193,7 +1190,7 @@ fn explain_suite_reports_membership_context_commands_and_tools() {
         {"id":"root","label":"Root","description":"Root group.","members":[{"kind":"group","id":"branch.a"},{"kind":"group","id":"branch.b"}]}
     ]);
     let path = common::write_config(temp.path(), &value);
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["explain", "suite", "shared", "--config"])
         .arg(path)
         .output()
@@ -1245,7 +1242,7 @@ fn explain_group_and_check_share_complete_invocation_context() {
         ]
     }]);
     let path = common::write_config(temp.path(), &value);
-    let bin = env!("CARGO_BIN_EXE_workspace-validator");
+    let bin = env!("CARGO_BIN_EXE_liknon");
     let group = Command::new(bin)
         .args(["explain", "group", "all", "--config"])
         .arg(&path)
@@ -1307,7 +1304,7 @@ fn invalid_configuration_starts_no_tool_preflight() {
     value["tools"][0]["versionArgs"] = serde_json::json!(["mark-version", marker]);
     value["suites"][0]["workingDirectory"] = "missing".into();
     let path = common::write_config(temp.path(), &value);
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["validate", "--config"])
         .arg(path)
         .output()
@@ -1322,13 +1319,13 @@ fn invalid_configuration_and_usage_return_three() {
     let mut value = common::base_config("rustc");
     value["schemaVersion"] = 1.into();
     let path = common::write_config(temp.path(), &value);
-    let status = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let status = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["config", "validate", "--config"])
         .arg(path)
         .status()
         .unwrap();
     assert_eq!(status.code(), Some(3));
-    let status = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let status = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .arg("unknown")
         .status()
         .unwrap();
@@ -1351,7 +1348,7 @@ fn inspection_output_failure_returns_exit_four() {
         }));
     }
     let path = common::write_config(temp.path(), &value);
-    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_liknon"));
     command.args(["list", "--config"]).arg(path);
     let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
@@ -1369,7 +1366,7 @@ fn explain_output_failures_return_four_without_panicking() {
         ("suite", "fixture"),
         ("check", "fixture.check"),
     ] {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_liknon"));
         command.args(["explain", kind, id, "--config"]).arg(&path);
         let output = output_with_unwritable_stdout(&mut command);
         assert_eq!(output.status.code(), Some(4), "{kind}");
@@ -1388,7 +1385,7 @@ fn unknown_explain_targets_remain_semantic_failures() {
     let value = common::base_config("rustc");
     let path = common::write_config(temp.path(), &value);
     for kind in ["group", "suite", "check"] {
-        let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        let output = Command::new(env!("CARGO_BIN_EXE_liknon"))
             .args(["explain", kind, "missing", "--config"])
             .arg(&path)
             .output()
@@ -1410,7 +1407,7 @@ fn final_json_report_write_failure_returns_four_without_panicking() {
     let mut value = common::base_config("rustc");
     value["checks"][0]["args"] = serde_json::json!(["--version"]);
     let path = common::write_config(temp.path(), &value);
-    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_liknon"));
     command
         .args(["validate", "--format=json", "--config"])
         .arg(path);
@@ -1428,7 +1425,7 @@ fn final_init_json_write_failure_returns_four_without_panicking() {
     let temp = TempDir::new().unwrap();
     let workspace = common::canonical_path(temp.path());
     let (candidate, _) = init_candidate(&workspace);
-    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_liknon"));
     command
         .args(["init", "--format=json", "--config"])
         .arg(candidate)
@@ -1449,7 +1446,7 @@ fn failed_stdout_and_stderr_sinks_preserve_exit_four() {
     let mut value = common::base_config("rustc");
     value["checks"][0]["args"] = serde_json::json!(["--version"]);
     let path = common::write_config(temp.path(), &value);
-    let status = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let status = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["validate", "--format=json", "--config"])
         .arg(path)
         .stdout(unwritable_stream())
@@ -1474,7 +1471,7 @@ fn cli_translates_sigint_to_exit_one_hundred_thirty() {
     value["checks"][0]["args"] =
         serde_json::json!(["spawn-descendant", descendant, started, "0", "5000", "5000"]);
     let path = common::write_config(temp.path(), &value);
-    let child = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+    let child = Command::new(env!("CARGO_BIN_EXE_liknon"))
         .args(["validate", "--format=json", "--config"])
         .arg(path)
         .stdout(Stdio::piped())

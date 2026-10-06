@@ -87,10 +87,10 @@ without adding another policy lifecycle. It adds these non-cognitive persistence
 operations:
 
 ```sh
-workspace-validator persistence verify artifact <path> [--workspace <workspace-path>] --format=json
-workspace-validator persistence verify report <path> [--workspace <workspace-path>] --format=json
-workspace-validator persistence store artifact --input <candidate-path> [--workspace <workspace-path>] --format=json
-workspace-validator persistence store report --input <candidate-path> [--workspace <workspace-path>] --format=json
+liknon persistence verify artifact <path> [--workspace <workspace-path>] --format=json
+liknon persistence verify report <path> [--workspace <workspace-path>] --format=json
+liknon persistence store artifact --input <candidate-path> [--workspace <workspace-path>] --format=json
+liknon persistence store report --input <candidate-path> [--workspace <workspace-path>] --format=json
 ```
 
 The equivalent library API uses typed inputs and results. These operations do
@@ -280,7 +280,7 @@ initial policy identity.
 When the policy is missing, the process stops before loading analytical inputs
 or producing an artifact. The agent routes to the advisory AI-Tool `policy`
 operation, explains that both AI flows require a consumer-owned decision policy,
-and directs the human to run `workspace-validator init --policy` personally.
+and directs the human to run `liknon init --policy` personally.
 The human reviews every category and `processContinuation` value before invoking
 or resuming the process. The agent never runs initialization or writes policy.
 After the human reports completion, the resumed process runs `policy validate`
@@ -371,9 +371,9 @@ references/
 Each process reference describes one process, requires explicit artifact inputs,
 loads `policy-boundary.md`, routes policy guidance and operational work through
 the applicable AI-Tool reference, and identifies only the knowledge categories
-it needs. The agent resolves those categories through `workspace-validator
+it needs. The agent resolves those categories through `liknon
 knowledge catalog` and retrieves the selected documents through
-`workspace-validator knowledge show <document-id>`; no knowledge files live in
+`liknon knowledge show <document-id>`; no knowledge files live in
 the skill. A process may route directly to a documented CLI capability only
 when no AI-Tool operation covers that capability. It records the capability and
 reason, and it must not recreate, bypass, or locally reinterpret an existing

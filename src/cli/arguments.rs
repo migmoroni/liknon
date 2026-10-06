@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(
-    name = "workspace-validator",
+    name = "liknon",
     version,
     about = help::root::ABOUT
 )]

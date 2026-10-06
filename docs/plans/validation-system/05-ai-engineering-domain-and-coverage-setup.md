@@ -77,7 +77,7 @@ When Process 0 completes:
 
 1. generate a UUIDv7 and assemble one bounded redacted domain artifact;
 2. validate its schema, references, bounds, and digest;
-3. persist it through `workspace-validator persistence store artifact` using
+3. persist it through `liknon persistence store artifact` using
    the same explicit workspace root;
 4. present its path and digest together with the product model,
    highest-consequence scenarios, invariants, unresolved questions, and weakly

@@ -1,4 +1,4 @@
-//! Loading and semantic validation for workspace-validator configuration.
+//! Loading and semantic validation for liknon configuration.
 
 mod directories;
 mod loader;

@@ -25,7 +25,7 @@ must not infer, rename, merge, or locally reinterpret their meanings.
 ### 1.1 Design Foundations
 
 The public document records the following design basis and labels the resulting
-workspace-validator contract as a local synthesis:
+liknon contract as a local synthesis:
 
 - NIST SP 800-162 Attribute Based Access Control for evaluating actor, action,
   resource, and environment attributes;
@@ -55,7 +55,7 @@ The consumer workspace has two policies with different owners and effects:
 
 | File | Responsibility | Consumer |
 | --- | --- | --- |
-| `.validation/config.json` | Defines the programs, arguments, composition, and repository-mutation detection used for validation | `workspace-validator` CLI and library |
+| `.validation/config.json` | Defines the programs, arguments, composition, and repository-mutation detection used for validation | `liknon` CLI and library |
 | `.validation/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or stops; also defines the two AI-Engineering continuation transitions | AI-Tool and AI-Engineering |
 
 `policy.json` never contributes commands, checks, suites, groups, arguments, or
@@ -144,7 +144,7 @@ request asking the agent to perform the mutation. The agent may recommend
 specific values and explain an exact manual procedure, but the human enters and
 applies every effective value.
 
-`workspace-validator init --policy` is a human-operated provisioning command.
+`liknon init --policy` is a human-operated provisioning command.
 It creates the missing canonical conservative document through the deterministic
 no-overwrite initialization contract. When the file exists, it validates and
 reuses it without modification. An agent may display this command but must never
@@ -154,7 +154,7 @@ invoke it or ask for permission to invoke it.
 
 Every AI-Tool operation other than the narrowly read-only advisory `policy`
 operation, and every AI-Engineering process invocation, begins with
-`workspace-validator policy validate` for the explicit active workspace root.
+`liknon policy validate` for the explicit active workspace root.
 This read-only operation is part of AI preflight. A valid result fixes the exact
 path, schema version, and digest used for subsequent decisions.
 
@@ -166,7 +166,7 @@ or AI-Engineering process work.
 
 When `policy.json` is absent, every other AI operation stops before repository
 analysis, execution, mutation, or artifact creation. The agent routes to policy
-guidance and directs the human to run `workspace-validator init --policy`
+guidance and directs the human to run `liknon init --policy`
 personally, review `processContinuation` and every category, and then report
 completion. The agent does not execute initialization even when the human offers
 approval.

@@ -12,7 +12,7 @@ mod tests {
         assert_eq!(
             add(2, 2),
             5,
-            "intentional workspace-validator fixture failure"
+            "intentional liknon fixture failure"
         );
     }
 }

@@ -1,4 +1,13 @@
 mod common;
+use liknon::{
+    config,
+    contracts::report::{
+        CheckContext, CheckExecutionResult, GroupResult, OverallResult, Status, SuiteResult,
+        ValidationSelection,
+    },
+    execution::{self, progress::ProgressReporter},
+    planning::{self, ExecutionNodeRef, PlannedGroup, PlannedSuite},
+};
 use serde_json::json;
 use std::{
     fs,
@@ -8,15 +17,6 @@ use std::{
     time::Duration,
 };
 use tempfile::TempDir;
-use workspace_validator::{
-    config,
-    contracts::report::{
-        CheckContext, CheckExecutionResult, GroupResult, OverallResult, Status, SuiteResult,
-        ValidationSelection,
-    },
-    execution::{self, progress::ProgressReporter},
-    planning::{self, ExecutionNodeRef, PlannedGroup, PlannedSuite},
-};
 
 #[derive(Default)]
 struct Recorder(Vec<String>);

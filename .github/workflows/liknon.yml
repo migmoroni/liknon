@@ -1,4 +1,4 @@
-name: Workspace Validator
+name: Liknon
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: workspace-validator-${{ github.workflow }}-${{ github.ref }}
+  group: liknon-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -120,13 +120,13 @@ jobs:
       - name: Install and smoke-test packaged CLI
         shell: bash
         run: |
-          package_dir="$GITHUB_WORKSPACE/target/package/workspace-validator-0.1.0"
-          install_root="$RUNNER_TEMP/workspace-validator-install"
-          smoke_dir="$RUNNER_TEMP/workspace-validator-smoke"
-          knowledge_dir="$(mktemp -d "$RUNNER_TEMP/workspace-validator-knowledge.XXXXXX")"
-          catalog_output="$RUNNER_TEMP/workspace-validator-catalog.json"
-          document_output="$RUNNER_TEMP/workspace-validator-foundation.md"
-          binary="$install_root/bin/workspace-validator"
+          package_dir="$GITHUB_WORKSPACE/target/package/liknon-0.1.0"
+          install_root="$RUNNER_TEMP/liknon-install"
+          smoke_dir="$RUNNER_TEMP/liknon-smoke"
+          knowledge_dir="$(mktemp -d "$RUNNER_TEMP/liknon-knowledge.XXXXXX")"
+          catalog_output="$RUNNER_TEMP/liknon-catalog.json"
+          document_output="$RUNNER_TEMP/liknon-foundation.md"
+          binary="$install_root/bin/liknon"
 
           cargo install --path "$package_dir" --root "$install_root" --locked
           mkdir -p "$smoke_dir"
@@ -215,6 +215,6 @@ jobs:
       - name: Record package size
         shell: bash
         run: |
-          archive="target/package/workspace-validator-0.1.0.crate"
+          archive="target/package/liknon-0.1.0.crate"
           test -f "$archive"
           du -h "$archive"

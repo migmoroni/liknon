@@ -8,12 +8,12 @@ updated when another release line becomes supported.
 ## Reporting A Vulnerability
 
 Report vulnerabilities privately through
-[GitHub Security Advisories](https://github.com/migmoroni/workspace-validator/security/advisories/new).
+[GitHub Security Advisories](https://github.com/migmoroni/liknon/security/advisories/new).
 Do not open a public issue before coordinated disclosure.
 
 Include, when available:
 
-- the affected `workspace-validator` version and operating system;
+- the affected `liknon` version and operating system;
 - the configuration and command needed to reproduce the behavior;
 - expected and observed results;
 - security impact and prerequisites;

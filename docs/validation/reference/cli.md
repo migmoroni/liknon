@@ -4,13 +4,13 @@ Inspection commands parse and semantically validate the complete configuration
 but do not start configured programs:
 
 ```text
-workspace-validator config validate [--config <path>]
-workspace-validator list [--tree] [--config <path>]
-workspace-validator explain group <group-id> [--config <path>]
-workspace-validator explain suite <suite-id> [--config <path>]
-workspace-validator explain check <check-id> [--config <path>]
-workspace-validator schema config
-workspace-validator schema report
+liknon config validate [--config <path>]
+liknon list [--tree] [--config <path>]
+liknon explain group <group-id> [--config <path>]
+liknon explain suite <suite-id> [--config <path>]
+liknon explain check <check-id> [--config <path>]
+liknon schema config
+liknon schema report
 ```
 
 Embedded knowledge commands are read-only and operate before configuration
@@ -18,8 +18,8 @@ discovery. They work outside an initialized workspace, do not inspect or create
 `.validation/`, and do not execute configured programs:
 
 ```text
-workspace-validator knowledge catalog [--format=human|json]
-workspace-validator knowledge show <document-id>
+liknon knowledge catalog [--format=human|json]
+liknon knowledge show <document-id>
 ```
 
 The JSON catalog is the complete embedded canonical `catalog.json`.
@@ -35,14 +35,14 @@ Execution commands run configured programs after full validation and tool
 preflight:
 
 ```text
-workspace-validator validate [group-or-suite] [--config <path>] [--format=human|json]
-workspace-validator check <check-id> [--config <path>] [--format=human|json]
+liknon validate [group-or-suite] [--config <path>] [--format=human|json]
+liknon check <check-id> [--config <path>] [--format=human|json]
 ```
 
 Provisioning is separate from both categories:
 
 ```text
-workspace-validator init --config <candidate-path> [--workspace <path>] [--format=human|json]
+liknon init --config <candidate-path> [--workspace <path>] [--format=human|json]
 ```
 
 Human CLI output is plain by default. The global `--color[=<palette>]` and

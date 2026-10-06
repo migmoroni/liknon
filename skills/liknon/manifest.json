@@ -1,5 +1,5 @@
 {
-  "name": "workspace-validator",
+  "name": "liknon",
   "sourceCrateVersion": "0.1.0",
   "skillBundleVersion": 2,
   "compatibleCli": ">=0.1.0, <0.2.0",

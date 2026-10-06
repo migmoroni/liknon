@@ -5,11 +5,11 @@
 Start with non-executing inspection commands:
 
 ```sh
-workspace-validator config validate
-workspace-validator list --tree
-workspace-validator explain group <group-id>
-workspace-validator explain suite <suite-id>
-workspace-validator explain check <check-id>
+liknon config validate
+liknon list --tree
+liknon explain group <group-id>
+liknon explain suite <suite-id>
+liknon explain check <check-id>
 ```
 
 Review the workspace manifests and existing scripts only far enough to compare

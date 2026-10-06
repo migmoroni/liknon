@@ -279,7 +279,7 @@ mod tests {
                         .expect("build process fixture");
                 assert!(status.success(), "process fixture did not compile");
                 root.join("target/debug").join(format!(
-                    "workspace-validator-process-fixture{}",
+                    "liknon-process-fixture{}",
                     std::env::consts::EXE_SUFFIX
                 ))
             })

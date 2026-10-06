@@ -1,9 +1,9 @@
 mod common;
 
+use liknon::{config, planning};
 use serde_json::json;
 use std::fs;
 use tempfile::TempDir;
-use workspace_validator::{config, planning};
 
 fn rejects(root: &TempDir, value: &serde_json::Value) -> bool {
     config::load(Some(&common::write_config(root.path(), value)), root.path()).is_err()

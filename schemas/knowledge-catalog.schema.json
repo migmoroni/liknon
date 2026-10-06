@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/migmoroni/workspace-validator/schemas/knowledge-catalog.schema.json",
-  "title": "Workspace Validator Knowledge Catalog",
+  "$id": "https://github.com/migmoroni/liknon/schemas/knowledge-catalog.schema.json",
+  "title": "Liknon Knowledge Catalog",
   "type": "object",
   "additionalProperties": false,
   "required": ["$schema", "schemaVersion", "vocabularies", "navigation", "documents"],

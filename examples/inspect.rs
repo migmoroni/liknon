@@ -1,7 +1,7 @@
 //! Loads a configuration and inspects its default immutable validation plan.
 
+use liknon::{config, planning};
 use std::{error::Error, path::PathBuf};
-use workspace_validator::{config, planning};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let current = std::env::current_dir()?;

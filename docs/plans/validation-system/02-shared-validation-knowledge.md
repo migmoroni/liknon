@@ -28,7 +28,7 @@ the repository.
 The build incorporates the canonical knowledge assets into the CLI without
 creating tracked generated files. A human or agent working in the source
 repository may read the canonical files directly. A consumer using an installed
-binary accesses the same versioned content through `workspace-validator
+binary accesses the same versioned content through `liknon
 knowledge`. The command provides progressive disclosure without requiring a
 checkout, network access, workspace configuration, or a copied knowledge tree.
 
@@ -90,14 +90,14 @@ knowledge trees, or a second knowledge source.
 ### 2.2 Accepted CLI And Packaging Implementation
 
 1. [x] Remove the tracked
-       `skills/workspace-validator/references/knowledge/` subtree and every
+       `skills/liknon/references/knowledge/` subtree and every
        contract that projects shared knowledge into the skill. Preserve
        `SKILL.md`, `manifest.json`, and the current `run`, `triage`, `config`,
        and `audit` operational references.
 2. [x] Incorporate the canonical `docs/validation/knowledge/` tree into the
        compiled binary through deterministic build output under `OUT_DIR`, with
        no generated file committed to the repository.
-3. [x] Implement the read-only `workspace-validator knowledge` CLI namespace
+3. [x] Implement the read-only `liknon knowledge` CLI namespace
        for catalog discovery and document retrieval by stable document ID.
 4. [x] Refactor knowledge release tooling, Cargo package contents, tests, and
        public documentation around the canonical tree and embedded CLI assets,
@@ -543,7 +543,7 @@ demonstrated use, not anticipation.
 Keep every authored knowledge asset below `docs/validation/knowledge/`. Add no
 tracked knowledge projection below `skills/`, `src/`, `generated/`, `dist/`, or
 another directory. Remove only
-`skills/workspace-validator/references/knowledge/` and the package rules, tools,
+`skills/liknon/references/knowledge/` and the package rules, tools,
 manifest metadata, or tests that preserve that copied subtree. Do not keep it as
 ignored output: the repository build does not create it at all.
 
@@ -600,8 +600,8 @@ citation, fixture, recipe, source-index, and tree-digest verification.
 Add this read-only command namespace:
 
 ```text
-workspace-validator knowledge catalog [--format=human|json]
-workspace-validator knowledge show <document-id>
+liknon knowledge catalog [--format=human|json]
+liknon knowledge show <document-id>
 ```
 
 `knowledge catalog` reads the embedded `catalog.json`. Human output provides a
@@ -645,10 +645,10 @@ not thread an optional configuration path through these commands.
 
 Progressive agent consumption follows this sequence:
 
-1. run `workspace-validator knowledge catalog --format=json`;
+1. run `liknon knowledge catalog --format=json`;
 2. match the current question and confirmed workspace evidence to the smallest
    applicable document set;
-3. run `workspace-validator knowledge show <document-id>` only for those exact
+3. run `liknon knowledge show <document-id>` only for those exact
    documents;
 4. load foundations or patterns only when the decision requires them;
 5. follow an external source location only when deeper detail is required and
@@ -679,11 +679,11 @@ Reconcile every current consumer of the removed knowledge projection. At
 minimum:
 
 - retain `/skills/**` in `Cargo.toml` package inclusion and include `/build.rs`;
-- remove only `skills/workspace-validator/references/knowledge/` from the
+- remove only `skills/liknon/references/knowledge/` from the
   repository;
 - preserve the root README's skill-installation procedure while documenting
   that installed skills retrieve shared knowledge through
-  `workspace-validator knowledge`;
+  `liknon knowledge`;
 - refactor `tools/knowledge/` and `tests/knowledge.rs` around canonical and
   embedded assets;
 - update `tests/skills.rs` to verify skill routing, compatibility metadata, the
@@ -726,7 +726,7 @@ Verify mechanically:
 - no empty topic or recipe placeholders enter the tree;
 - the source package contains the canonical knowledge tree, the build logic,
   and the operational skill, contains no
-  `skills/workspace-validator/references/knowledge/` subtree, and can build and
+  `skills/liknon/references/knowledge/` subtree, and can build and
   query knowledge from the packaged source.
 
 Extend the existing package workflow with a regression gate over the installed
@@ -760,8 +760,8 @@ composition, absent local coverage, inaccessible external sources, overlapping
 guidance, and rejection of unrelated documents.
 
 Update forward-trial contexts and prompts to treat
-`workspace-validator knowledge catalog --format=json` and
-`workspace-validator knowledge show <document-id>` as the installed-consumer
+`liknon knowledge catalog --format=json` and
+`liknon knowledge show <document-id>` as the installed-consumer
 retrieval surface. They may still read `docs/validation/knowledge/` directly
 when the scenario explicitly represents an agent operating in the source
 repository. Remove projected knowledge paths, knowledge fields from the skill
@@ -865,16 +865,16 @@ Add CLI integration coverage that proves:
       cross-facet discovery.
 - [x] `docs/validation/knowledge/` is the only authored and tracked
       shared-knowledge tree in the repository.
-- [x] No `skills/workspace-validator/references/knowledge/`, generated knowledge
+- [x] No `skills/liknon/references/knowledge/`, generated knowledge
       mirror, or release projection remains in the source tree or Cargo package.
 - [x] The distributed skill remains packaged with its router, manifest, and
       current `run`, `triage`, `config`, and `audit` operational references, and
       retrieves shared knowledge only through the CLI.
 - [x] The Cargo build embeds the complete canonical knowledge tree through
       deterministic untracked output under `OUT_DIR`.
-- [x] `workspace-validator knowledge catalog` exposes compact human and JSON
+- [x] `liknon knowledge catalog` exposes compact human and JSON
       discovery without configuration or workspace initialization.
-- [x] `workspace-validator knowledge show <document-id>` exposes the exact
+- [x] `liknon knowledge show <document-id>` exposes the exact
       selected Markdown without accepting filesystem paths.
 - [x] Knowledge queries are read-only, offline, deterministic, and create no
       `.validation/` directory or other workspace file.
@@ -920,7 +920,7 @@ Phase 2.1 reorganizes that corpus by reader intent, establishes
 standards-informed editorial profiles, removes incidental version coupling,
 and refounds the current content under one mechanically verified authoring
 contract. It preserves stable document IDs and the read-only
-`workspace-validator knowledge` interface.
+`liknon knowledge` interface.
 
 Phase 3 begins only after Phase 2.1 is complete. It retrieves selected shared
 knowledge by stable CLI document ID and does not copy the knowledge or

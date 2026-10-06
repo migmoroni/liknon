@@ -1,6 +1,6 @@
 # Initialization Reference
 
-`workspace-validator init` provisions consumer-owned resources. It accepts the
+`liknon init` provisions consumer-owned resources. It accepts the
 capability flag `--config <candidate-path>` and requires at least one
 capability flag. `--workspace <path>` selects the workspace; when omitted, the
 workspace is exactly the process current directory. Initialization never walks

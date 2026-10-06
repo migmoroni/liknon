@@ -19,7 +19,7 @@ pub fn render(report: &ValidationReport, theme: &Theme) -> String {
     let _ = writeln!(
         output,
         "{}",
-        theme.frame_rule('╭', "Workspace Validator · Result", Role::Heading)
+        theme.frame_rule('╭', "Liknon · Result", Role::Heading)
     );
     write_section_gap(&mut output, theme);
     let mut metadata = ItemSpacing::default();
@@ -577,7 +577,7 @@ mod tests {
         };
 
         let rendered = render(&report, &Theme::plain());
-        assert!(rendered.starts_with("╭─ Workspace Validator · Result"));
+        assert!(rendered.starts_with("╭─ Liknon · Result"));
         assert_eq!(rendered.matches("SUITE PASS  shared").count(), 2);
         assert_eq!(rendered.matches("(shared)").count(), 1);
         assert!(rendered.contains("Counted: 1 checks + 0 repository gate"));
@@ -670,7 +670,7 @@ mod tests {
 
         let lines = stripped_low_vision.lines().collect::<Vec<_>>();
         for heading in [
-            "Workspace Validator · Result",
+            "Liknon · Result",
             "Tools",
             "Execution tree",
             "Counted outcomes",

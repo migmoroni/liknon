@@ -31,7 +31,7 @@ setup process or validation run required next.
 
 A missing or invalid decision policy stops before those inputs are consumed.
 The process routes to read-only `AI-Tool/policy` guidance. Missing-policy
-guidance tells the human to run `workspace-validator init --policy` personally;
+guidance tells the human to run `liknon init --policy` personally;
 invalid-policy guidance explains diagnostics and suggested manual field changes.
 No AI operation may create, edit, format, replace, delete, move, restore, or
 otherwise mutate policy, even after explicit approval.

@@ -26,7 +26,7 @@ CLI and documentation directly without claiming AI-Tool behavior.
 - Phase 1 provides stable CLI, initialization, configuration, report, and Human
   Flow contracts.
 - Phase 2 provides the canonical shared-knowledge tree and the read-only
-  `workspace-validator knowledge` retrieval interface. It preserves the
+  `liknon knowledge` retrieval interface. It preserves the
   operational skill without a copied knowledge subtree.
 - Phase 2.1 provides the standards-informed editorial architecture, canonical
   family paths, stable profile contracts, and version-neutral corpus consumed
@@ -47,7 +47,7 @@ human requests one bounded task
   -> agent loads only relevant shared knowledge
   -> agent classifies every proposed effect under the valid policy
   -> agent inspects or acts within the resulting authority
-  -> workspace-validator remains the only validation executor
+  -> liknon remains the only validation executor
   -> agent interprets the canonical result
   -> agent returns the bounded result
 ```
@@ -120,8 +120,8 @@ Phase 3 extends the Phase 1 `init` command with a policy capability and adds a
 read-only validation command:
 
 ```sh
-workspace-validator init [--config <candidate-path>] [--policy] [--workspace <workspace-path>] --format=json
-workspace-validator policy validate [--workspace <workspace-path>] --format=json
+liknon init [--config <candidate-path>] [--policy] [--workspace <workspace-path>] --format=json
+liknon policy validate [--workspace <workspace-path>] --format=json
 ```
 
 `--policy` provisions only the canonical conservative
@@ -166,7 +166,7 @@ different root through parents, Git, or configuration content.
    operational constraints when evidence is insufficient;
 7. presents current and recommended values per field, with rationale,
    consequences, uncertainty, and interactions with other categories;
-8. directs the human to run `workspace-validator init --policy` when the file is
+8. directs the human to run `liknon init --policy` when the file is
    missing or to open and edit the existing file manually;
 9. waits for the human to report completion;
 10. reruns `policy validate` and reports the effective settings and digest.
@@ -233,7 +233,7 @@ Use one concise top-level router, one mandatory immutable policy-boundary
 reference, and separate operational references from shared knowledge:
 
 ```text
-skills/workspace-validator/
+skills/liknon/
 ├── SKILL.md
 ├── manifest.json
 └── references/
@@ -268,8 +268,8 @@ not eagerly load all operations.
 The five operational references are authored skill instructions. Shared
 knowledge remains audience-neutral under `docs/validation/knowledge/`, is
 embedded in the CLI by Phase 2, and is never copied into the skill. `SKILL.md`
-and the operation references use `workspace-validator knowledge catalog` and
-`workspace-validator knowledge show <document-id>` for progressive disclosure.
+and the operation references use `liknon knowledge catalog` and
+`liknon knowledge show <document-id>` for progressive disclosure.
 Human-only files are not included in skill routing.
 
 ## 7. Operation Requirements
@@ -301,7 +301,7 @@ Human-only files are not included in skill routing.
 - Avoid repository-specific policy in the generic skill.
 - When canonical configuration is absent and creation is eligible, author one
   complete candidate in a contained temporary path and install it through
-  `workspace-validator init --config <candidate-path>` only when every applicable
+  `liknon init --config <candidate-path>` only when every applicable
   policy decision permits that exact effect.
 - Treat changes to an existing canonical configuration as governed workspace
   edits; `init` is not an overwrite or update mechanism.
@@ -498,7 +498,7 @@ prompts and controlled AI-Engineering consumption, under the shared
 - [ ] The validation planner and executor never read or interpret policy.
 - [ ] Shared knowledge is loaded progressively and never activates a flow.
 - [ ] The skill contains no copied shared-knowledge subtree and retrieves
-      selected knowledge only through `workspace-validator knowledge`.
+      selected knowledge only through `liknon knowledge`.
 - [ ] Human-only documentation is not routed as an agent instruction.
 - [ ] Skill and public documentation preserve distinct responsibilities without
       semantic disagreement.

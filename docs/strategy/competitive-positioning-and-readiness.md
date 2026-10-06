@@ -1,8 +1,8 @@
-# Workspace Validator Competitive Positioning And Readiness
+# Liknon Competitive Positioning And Readiness
 
 ## 1. Purpose
 
-This document evaluates the current `workspace-validator` product, compares it
+This document evaluates the current `liknon` product, compares it
 with four established alternatives, and defines the evidence required for the
 project to become a validation-governance layer over specialized validation
 systems.
@@ -43,7 +43,7 @@ Its long-term responsibility is to govern:
 
 A concise positioning statement is:
 
-> `workspace-validator` does not provide every validator. It governs how
+> `liknon` does not provide every validator. It governs how
 > validation is designed, executed, evidenced, interpreted, and evolved by
 > humans and agents.
 
@@ -124,7 +124,7 @@ listed evidence exists.
 **Target evidence**
 
 - Publish integrations where Dagger, Nx, Trunk, and MegaLinter remain the
-  specialized executors while `workspace-validator` owns the outer validation
+  specialized executors while `liknon` owns the outer validation
   contract.
 - Demonstrate that adding a specialized validator does not require embedding
   its domain logic in the core crate.
@@ -372,9 +372,9 @@ Primary sources:
 - Language SDKs and reusable modules or toolchains.
 - A native environment in which agents can receive tools and workspaces.
 
-#### Where Workspace Validator Differs
+#### Where Liknon Differs
 
-Dagger is an execution and automation platform. `workspace-validator` defines a
+Dagger is an execution and automation platform. `liknon` defines a
 smaller validation-specific contract with accessible reports, strict local
 configuration semantics, repository mutation evidence, planned human-owned AI
 authority, and planned domain-to-evidence coverage analysis.
@@ -387,7 +387,7 @@ behaviors are custom pipeline code or a ready validation-governance product.
 
 Use Dagger beneath a suite when isolation, services, caching, or concurrency are
 valuable. Let Dagger own the inner execution graph and let
-`workspace-validator` own selection, outer dependencies, invocation evidence,
+`liknon` own selection, outer dependencies, invocation evidence,
 policy, and the final validation decision.
 
 ### 7.2 Nx And Nx Cloud
@@ -418,14 +418,14 @@ Primary sources:
 - Mature plugin and framework integration.
 - Shipped agent connectivity and self-healing CI.
 
-#### Where Workspace Validator Differs
+#### Where Liknon Differs
 
-Nx is centered on its project and task model. `workspace-validator` is centered
+Nx is centered on its project and task model. `liknon` is centered
 on a language-neutral validation contract and can govern repositories that do
 not adopt Nx as their workspace architecture.
 
 Nx asks which known tasks are affected and how to execute them efficiently.
-The target `workspace-validator` additionally asks which evidence should exist,
+The target `liknon` additionally asks which evidence should exist,
 whether it covers domain risk, who may act on the result, and whether passing
 evidence has drifted away from the product.
 
@@ -461,10 +461,10 @@ Primary sources:
 - CI history and root-cause diagnosis.
 - A polished code-quality onboarding experience.
 
-#### Where Workspace Validator Differs
+#### Where Liknon Differs
 
 Trunk is specialized around code quality, static analysis, and CI diagnosis.
-`workspace-validator` composes arbitrary validation evidence, including tests,
+`liknon` composes arbitrary validation evidence, including tests,
 builds, audits, domain-specific checks, and Trunk itself.
 
 The target decision policy is also broader than selecting which CI failures may
@@ -474,7 +474,7 @@ ownership of the policy document.
 #### Correct Integration Position
 
 Use Trunk as the code-quality suite. Let Trunk own linter provisioning,
-incremental analysis, and editor integration. Let `workspace-validator` place
+incremental analysis, and editor integration. Let `liknon` place
 that suite beside runtime tests, builds, architecture checks, and other evidence
 under one result and policy boundary.
 
@@ -505,10 +505,10 @@ Primary sources:
 - Autofix guidance and per-linter documentation.
 - Ready agent skills and optional AI-generated fix suggestions.
 
-#### Where Workspace Validator Differs
+#### Where Liknon Differs
 
 MegaLinter answers how to execute many linters consistently.
-`workspace-validator` answers how arbitrary evidence sources are composed and
+`liknon` answers how arbitrary evidence sources are composed and
 governed. Tests, builds, package audits, schema checks, architecture checks, and
 MegaLinter can all be peers in one validation graph.
 
@@ -520,7 +520,7 @@ evidence continuity, and passing-result drift analysis that the skills enforce.
 
 Use MegaLinter as one static-analysis suite instead of reproducing its catalog.
 Keep its detailed linter configuration and fix guidance under MegaLinter, while
-`workspace-validator` governs when it runs and how its result participates in
+`liknon` governs when it runs and how its result participates in
 the complete evidence set.
 
 ## 8. Comparative Capability Matrix
@@ -549,7 +549,7 @@ The matrix shows the intended strategy clearly:
 
 - Dagger and Nx should continue to dominate execution optimization.
 - Trunk and MegaLinter should continue to dominate ready-made static analysis.
-- `workspace-validator` should dominate explicit validation governance,
+- `liknon` should dominate explicit validation governance,
   evidence relationships, human-owned agent authority, and coverage evolution.
 
 ## 9. Governance Architecture
@@ -564,7 +564,7 @@ human operator
       +---- human-owned AI policy ---- AI-Tool / AI-Engineering
                                       |
                                       v
-                          workspace-validator
+                          liknon
                    configuration, selection, policy,
                     provenance, evidence, reporting
                                       |
@@ -595,7 +595,7 @@ Specialized systems own:
 - linter, framework, or language semantics;
 - native detailed reports and repair capabilities.
 
-`workspace-validator` owns:
+`liknon` owns:
 
 - the selected external invocation;
 - the outer validation graph;

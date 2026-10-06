@@ -174,7 +174,7 @@ Prove that:
   its SHA-256 path;
 - declined report storage leaves no canonical report or dependent process
   artifact;
-- every document returned by `workspace-validator knowledge show` is
+- every document returned by `liknon knowledge show` is
   byte-equivalent to its canonical file under `docs/validation/knowledge/`;
 - the generated shared AI decision-policy contract is byte-equivalent to
   its canonical public document;

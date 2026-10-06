@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-This plan completes three supported ways to use `workspace-validator`:
+This plan completes three supported ways to use `liknon`:
 
 1. **Human Flow**, in which a person works directly with the configuration,
    CLI, and reports;
@@ -45,10 +45,10 @@ mandatory steps in one linear lifecycle.
 human authors or reviews config.json
                   |
                   v
-workspace-validator inspects and validates configuration
+liknon inspects and validates configuration
                   |
                   v
-workspace-validator executes the selected group, suite, or check
+liknon executes the selected group, suite, or check
                   |
                   v
 human consumes the human report or JSON report
@@ -63,7 +63,7 @@ A human can complete this flow without an AI agent, an installed skill,
 human requests one bounded validation task
                   |
                   v
-agent loads the workspace-validator skill router
+agent loads the liknon skill router
                   |
                   v
 agent loads the immutable policy boundary and validates policy.json
@@ -80,7 +80,7 @@ agent retrieves selected shared knowledge through the CLI
 agent guides policy, inspects, configures, runs, triages, or audits as requested
                   |
                   v
-workspace-validator executes the trusted config.json when execution is needed
+liknon executes the trusted config.json when execution is needed
                   |
                   v
 agent interprets the canonical report and returns the bounded result
@@ -107,7 +107,7 @@ load AI-Tool.
 human invokes and directs the agent
                   |
                   v
-agent loads the workspace-validator skill and immutable policy boundary
+agent loads the liknon skill and immutable policy boundary
                   |
                   v
 agent verifies CLI and skill compatibility
@@ -140,7 +140,7 @@ agent classifies the proposed effects under policy.json
 policy returns automatic action, a free-text human decision, or stop
                   |
                   v
-workspace-validator executes the trusted config.json
+liknon executes the trusted config.json
                   |
                   v
 agent evaluates whether the exact canonical JSON report may be persisted
@@ -180,7 +180,7 @@ restore, or delete the policy itself.
 Both AI flows require an existing valid policy, except that read-only
 `AI-Tool/policy` guidance remains available to explain how the human can create
 or correct it. When policy is absent, the agent stops the requested operation and
-directs the human to run `workspace-validator init --policy` personally, review
+directs the human to run `liknon init --policy` personally, review
 every field, and then invoke or resume the operation.
 
 ### 2.4 Shared Boundary
@@ -191,7 +191,7 @@ The system uses four distinct contracts:
 | --- | --- | --- |
 | `.validation/config.json` | Consumer workspace | Sole executable validation policy |
 | `.validation/policy.json` | Human operator in the consumer workspace | Governs AI-Tool and AI-Engineering authority without affecting validator planning |
-| `workspace-validator` CLI/library | This crate | Deterministic inspection and execution |
+| `liknon` CLI/library | This crate | Deterministic inspection and execution |
 | Versioned validation report | This crate | Canonical evidence from one execution, whether consumed directly or stored by exact digest |
 
 Shared validation knowledge is authored independently from every flow. Humans
@@ -282,8 +282,8 @@ supported.
 | CLI and configuration mechanics | Runtime contracts, schemas, and canonical reference documentation |
 | Validation concepts and tool-selection evidence | Curated canonical shared knowledge and linked primary sources under `docs/validation/knowledge/` |
 | Human selection and governance of flows | Human-only operator guidance under `docs/validation/human/` |
-| AI-Tool operation | Routed references under `skills/workspace-validator/references/ai-tool/` |
-| AI-Engineering process behavior | Routed references under `skills/workspace-validator/references/ai-engineering/` |
+| AI-Tool operation | Routed references under `skills/liknon/references/ai-tool/` |
+| AI-Engineering process behavior | Routed references under `skills/liknon/references/ai-engineering/` |
 | AI understanding of the consumer domain | Explicit UUIDv7 domain artifact supplied to the process |
 | AI coverage reasoning | Explicit UUIDv7 sensorium artifact linked to exact domain and configuration digests |
 | AI operational continuity | Exact artifact and report paths and SHA-256 digests supplied by the caller or preceding process |
@@ -301,7 +301,7 @@ validation passed.
   objective;
 - exclusively creates, edits, moves, restores, or deletes
   `.validation/policy.json` through direct manual action;
-- directly runs `workspace-validator init --policy` when initialization is
+- directly runs `liknon init --policy` when initialization is
   needed and reviews every conservative default before either AI flow operates;
 - directs which AI-Engineering process runs and supplies decisions that
   repository evidence cannot establish;
@@ -353,7 +353,7 @@ validation passed.
   restrictively, and records the exact policy digest used for the decision;
 - never represents configured validation as proof of complete correctness.
 
-### Workspace Validator
+### Liknon
 
 - validates one complete declarative configuration;
 - provisions explicitly requested consumer resources through the deterministic,
@@ -519,7 +519,7 @@ The skill bundle mirrors capability boundaries rather than the human
 documentation tree:
 
 ```text
-skills/workspace-validator/
+skills/liknon/
 ├── SKILL.md                         # Selects AI-Tool or AI-Engineering
 ├── manifest.json
 └── references/
@@ -534,7 +534,7 @@ execution, triage, or audit. They use canonical public CLI references directly
 only when no AI-Tool operation covers the required capability, and they do not
 duplicate existing AI-Tool instructions. The skill contains no shared-knowledge
 subtree. Both AI flows discover and retrieve only the needed documents through
-`workspace-validator knowledge catalog` and `workspace-validator knowledge
+`liknon knowledge catalog` and `liknon knowledge
 show`. Files below `docs/validation/human/` are not projected into the skill
 bundle or treated as agent instructions.
 

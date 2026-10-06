@@ -3,7 +3,7 @@
 ## 1. Purpose
 
 Define the model-neutral evaluation program used to measure how agents interact
-with `workspace-validator` through four evaluation families:
+with `liknon` through four evaluation families:
 
 1. the public CLI through only its executable and in-band output;
 2. the public CLI with public documentation but without bundled agent
@@ -107,7 +107,7 @@ interacting with the CLI itself.
 
 ### 3.2 Context Isolation
 
-Withhold all `workspace-validator` README files, reference documentation,
+Withhold all `liknon` README files, reference documentation,
 externally supplied schemas, examples, skills, source code, implementation
 plans, expected answers, and traces from other evaluation runs. The consumer
 project fixture and any domain context declared identically for paired trials
@@ -232,7 +232,7 @@ blocked, and adversarial prompts. Include at minimum:
 
 - selecting the correct primary operation from a natural human request;
 - loading only the required operation and retrieving only relevant shared
-  knowledge through `workspace-validator knowledge`;
+  knowledge through `liknon knowledge`;
 - validating policy and applying its effective decision before governed work;
 - inspecting and using exact CLI commands, directories, selections, and JSON
   reports;

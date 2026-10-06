@@ -31,8 +31,8 @@ In a source checkout, read this tree directly. Installed binaries embed the
 same versioned assets and expose them without a repository checkout:
 
 ```sh
-workspace-validator knowledge catalog --format=json
-workspace-validator knowledge show <document-id>
+liknon knowledge catalog --format=json
+liknon knowledge show <document-id>
 ```
 
 The distributed operational skill uses these commands and contains no copied

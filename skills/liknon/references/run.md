@@ -6,9 +6,9 @@ Use the target explicitly requested by the user. Use the configured default
 group only for a general gate or when no narrower scope was requested.
 
 ```sh
-workspace-validator validate --format=json
-workspace-validator validate <group-or-suite> --format=json
-workspace-validator check <check-id> --format=json
+liknon validate --format=json
+liknon validate <group-or-suite> --format=json
+liknon check <check-id> --format=json
 ```
 
 Configuration discovery already validates the complete document before

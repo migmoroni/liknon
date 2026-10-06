@@ -7,7 +7,7 @@ validation choices.
 
 In this source repository, people and agents may read the canonical knowledge
 tree directly. An installed CLI exposes the same versioned content through
-`workspace-validator knowledge catalog` and `workspace-validator knowledge
+`liknon knowledge catalog` and `liknon knowledge
 show <document-id>` without requiring workspace initialization.
 
 Catalog status is part of the consumption contract. A `draft` identifies

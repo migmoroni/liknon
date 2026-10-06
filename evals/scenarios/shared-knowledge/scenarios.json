@@ -6,7 +6,7 @@
   "rubric": "rubrics/shared-knowledge.json",
   "requiredBehaviors": ["minimal-selection", "synthesis-boundary", "evidence-before-tool", "bounded-proof", "precise-source-location", "offline-depth", "missing-topic"],
   "context": {
-    "allowed": ["workspace-validator knowledge catalog --format=json", "workspace-validator knowledge show <document-id>", "canonical docs/validation/knowledge files only for source-repository scenarios"],
+    "allowed": ["liknon knowledge catalog --format=json", "liknon knowledge show <document-id>", "canonical docs/validation/knowledge files only for source-repository scenarios"],
     "network": "scenario-defined",
     "forbidden": ["implementation plans", "expected prose answers", "other scenario traces"]
   },

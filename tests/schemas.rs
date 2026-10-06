@@ -1,10 +1,10 @@
-use schemars::schema_for;
-use serde_json::json;
-use workspace_validator::contracts::{
+use liknon::contracts::{
     config::Config,
     init::{InitResourceKind, InitResourceResult, InitResourceStatus, InitResult, InitStatus},
     report::ValidationReport,
 };
+use schemars::schema_for;
+use serde_json::json;
 
 #[test]
 fn checked_in_schemas_match_rust_contracts() {
@@ -175,7 +175,7 @@ fn configuration_contract_round_trips_without_loss() {
             "workingDirectory": ".",
             "checks": [{
                 "checkId": "rust.test",
-                "parameters": {"package": "workspace-validator"},
+                "parameters": {"package": "liknon"},
                 "dependsOn": []
             }]
         }],

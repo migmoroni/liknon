@@ -146,10 +146,7 @@ impl ProgressReporter for TerminalExecutionReporter {
         header.set_style(ProgressStyle::with_template("{wide_msg}").unwrap());
         header.set_message(self.theme.frame_rule(
             '╭',
-            &format!(
-                "Workspace Validator · Execution · {}",
-                format_selection(selection)
-            ),
+            &format!("Liknon · Execution · {}", format_selection(selection)),
             Role::Heading,
         ));
         header.finish();

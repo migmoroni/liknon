@@ -1,3 +1,3 @@
 fn main() -> std::process::ExitCode {
-    workspace_validator::run_cli()
+    liknon::run_cli()
 }

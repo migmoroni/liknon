@@ -1,10 +1,14 @@
-# Workspace Validator
+# Liknon
 
-`workspace-validator` runs declarative validation graphs for heterogeneous
+`liknon` runs declarative validation graphs for heterogeneous
 workspaces. It validates the complete configuration before starting a process,
 checks tool versions, executes argument vectors without an implicit shell,
 applies timeouts, preserves deterministic ordering, detects Git-visible
 mutations, and emits accessible human output or a versioned JSON report.
+
+The name comes from the ancient liknon, a winnowing basket used to separate
+grain from chaff, reflecting the tool's role in separating accepted validation
+evidence from failures and blockers.
 
 The same pipeline is available as a CLI and as a Rust library.
 
@@ -15,7 +19,7 @@ The same pipeline is available as a CLI and as a Rust library.
 Install the published binary with Cargo:
 
 ```sh
-cargo install workspace-validator --locked
+cargo install liknon --locked
 ```
 
 Rust 1.87 or newer is required.
@@ -26,10 +30,10 @@ Install the exact code from a cloned repository without waiting for a crates.io
 release:
 
 ```sh
-git clone https://github.com/migmoroni/workspace-validator.git
-cd workspace-validator
+git clone https://github.com/migmoroni/liknon.git
+cd liknon
 cargo install --path . --locked --force
-workspace-validator --version
+liknon --version
 ```
 
 `--force` replaces an existing installed copy even when it has the same crate
@@ -37,7 +41,7 @@ version. Cargo copies the compiled binary into its installation root, normally
 `~/.cargo/bin`; it does not keep the command linked to the checkout. Run the
 `cargo install --path . --locked --force` command again after updating or
 modifying the cloned source. Ensure Cargo's binary directory is present in
-`PATH` before invoking `workspace-validator` directly.
+`PATH` before invoking `liknon` directly.
 
 ## Quick Start
 
@@ -105,16 +109,16 @@ Validate and install that exact candidate, inspect it, and run the default
 group:
 
 ```sh
-workspace-validator init --config validation.config.json
-workspace-validator config validate
-workspace-validator list --tree
-workspace-validator validate
+liknon init --config validation.config.json
+liknon config validate
+liknon list --tree
+liknon validate
 ```
 
 Use `--format=json` when a machine-readable report is required:
 
 ```sh
-workspace-validator validate --format=json
+liknon validate --format=json
 ```
 
 ## Embedded Validation Knowledge
@@ -124,8 +128,8 @@ interpreting validation evidence. Inspect its compact catalog, then retrieve
 only the documents relevant to the current question:
 
 ```sh
-workspace-validator knowledge catalog --format=json
-workspace-validator knowledge show <document-id>
+liknon knowledge catalog --format=json
+liknon knowledge show <document-id>
 ```
 
 These commands work without configuration or workspace initialization and
@@ -138,12 +142,12 @@ readiness; it does not make guidance universal project policy.
 ## Agent Skill
 
 The source distribution includes one versioned, agent-neutral skill at
-[`skills/workspace-validator`](skills/workspace-validator). Its `SKILL.md` is a
+[`skills/liknon`](skills/liknon). Its `SKILL.md` is a
 small router that checks CLI compatibility and loads only the requested
 workflow reference: execution, triage, configuration, or coverage auditing.
 When a task needs source-backed reasoning about evidence, the router uses
-`workspace-validator knowledge catalog --format=json` and then
-`workspace-validator knowledge show <document-id>` for only the exact matching
+`liknon knowledge catalog --format=json` and then
+`liknon knowledge show <document-id>` for only the exact matching
 guides. It does not infer metadata omitted from a draft entry. The canonical
 human-readable source remains available at
 [`docs/validation/knowledge`](docs/validation/knowledge/README.md); the skill
@@ -152,12 +156,12 @@ contains no copied knowledge tree.
 Copy the complete directory from the source release that matches the installed
 CLI into the skill directory recognized by the consumer workspace. For an
 agent that discovers workspace skills under `.agents/skills`, run this from a
-checkout of `workspace-validator`:
+checkout of `liknon`:
 
 ```sh
 workspace_root=/path/to/workspace
 mkdir -p "$workspace_root/.agents/skills"
-cp -R skills/workspace-validator "$workspace_root/.agents/skills/"
+cp -R skills/liknon "$workspace_root/.agents/skills/"
 ```
 
 The source path is not tied to a specific model or agent. Use a different
@@ -202,18 +206,18 @@ The normative ownership and extension rules are documented in
 ## Commands
 
 ```text
-workspace-validator init --config <candidate-path> [--workspace <path>] [--format=human|json]
-workspace-validator config validate [--config <path>]
-workspace-validator validate [group-or-suite] [--config <path>] [--format=human|json]
-workspace-validator check <check-id> [--config <path>] [--format=human|json]
-workspace-validator list [--tree] [--config <path>]
-workspace-validator explain group <group-id> [--config <path>]
-workspace-validator explain suite <suite-id> [--config <path>]
-workspace-validator explain check <check-id> [--config <path>]
-workspace-validator schema config
-workspace-validator schema report
-workspace-validator knowledge catalog [--format=human|json]
-workspace-validator knowledge show <document-id>
+liknon init --config <candidate-path> [--workspace <path>] [--format=human|json]
+liknon config validate [--config <path>]
+liknon validate [group-or-suite] [--config <path>] [--format=human|json]
+liknon check <check-id> [--config <path>] [--format=human|json]
+liknon list [--tree] [--config <path>]
+liknon explain group <group-id> [--config <path>]
+liknon explain suite <suite-id> [--config <path>]
+liknon explain check <check-id> [--config <path>]
+liknon schema config
+liknon schema report
+liknon knowledge catalog [--format=human|json]
+liknon knowledge show <document-id>
 ```
 
 Without `--config`, the CLI discovers the nearest
@@ -266,13 +270,13 @@ rendering help, preventing successful command output from silently ignoring
 them.
 
 ```sh
-workspace-validator --color -h
-workspace-validator --color=high-contrast --help
-workspace-validator config --presentation=low-vision --help
-workspace-validator validate --color=deuteranopia --help
-workspace-validator validate --color=high-contrast
-workspace-validator validate --color=deuteranopia --presentation=low-vision
-workspace-validator validate --presentation=low-vision
+liknon --color -h
+liknon --color=high-contrast --help
+liknon config --presentation=low-vision --help
+liknon validate --color=deuteranopia --help
+liknon validate --color=high-contrast
+liknon validate --color=deuteranopia --presentation=low-vision
+liknon validate --presentation=low-vision
 ```
 
 `--format=json` emits only the version 4 `ValidationReport`; visual options are
@@ -292,7 +296,7 @@ use std::{
     path::Path,
     sync::{atomic::AtomicBool, Arc},
 };
-use workspace_validator::{config, execution, planning, reporting};
+use liknon::{config, execution, planning, reporting};
 
 # fn main() -> Result<(), Box<dyn std::error::Error>> {
 let current = std::env::current_dir()?;
@@ -321,7 +325,7 @@ schema versions evolve independently.
 ## Security And Trust Model
 
 Configuration is trusted executable input. It selects programs and arguments
-that run with the permissions of the process invoking `workspace-validator`.
+that run with the permissions of the process invoking `liknon`.
 Execution without an implicit shell prevents accidental shell interpretation;
 it does not make an untrusted configuration safe.
 
@@ -353,7 +357,7 @@ Published package contents include:
 - the human flow, stable reference, embedded knowledge source, and maintainer
   guidance under [`docs/validation`](docs/validation/README.md);
 - the agent-neutral workflow bundle under
-  [`skills/workspace-validator`](skills/workspace-validator/SKILL.md);
+  [`skills/liknon`](skills/liknon/SKILL.md);
 - [`CONFIG_DESIGN.md`](CONFIG_DESIGN.md);
 - [`CHANGELOG.md`](CHANGELOG.md);
 - [`SECURITY.md`](SECURITY.md);

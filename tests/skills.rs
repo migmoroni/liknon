@@ -6,8 +6,8 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
-const SKILL_NAME: &str = "workspace-validator";
-const SKILL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/skills/workspace-validator");
+const SKILL_NAME: &str = "liknon";
+const SKILL_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/skills/liknon");
 
 fn read(path: impl AsRef<Path>) -> String {
     fs::read_to_string(path.as_ref())
@@ -74,7 +74,7 @@ fn bundled_skill_matches_the_crate_and_routes_every_workflow() {
     let entrypoint_document = read(root.join(&entrypoint));
     let mut frontmatter = entrypoint_document.lines();
     assert_eq!(frontmatter.next(), Some("---"));
-    assert_eq!(frontmatter.next(), Some("name: workspace-validator"));
+    assert_eq!(frontmatter.next(), Some("name: liknon"));
     assert!(frontmatter
         .next()
         .is_some_and(|line| line.starts_with("description:")));
@@ -126,6 +126,6 @@ fn bundled_skill_matches_the_crate_and_routes_every_workflow() {
 
     assert!(manifest.get("knowledge").is_none());
     assert!(!root.join("references/knowledge").exists());
-    assert!(entrypoint_document.contains("`workspace-validator knowledge catalog --format=json`"));
-    assert!(entrypoint_document.contains("`workspace-validator knowledge show <document-id>`"));
+    assert!(entrypoint_document.contains("`liknon knowledge catalog --format=json`"));
+    assert!(entrypoint_document.contains("`liknon knowledge show <document-id>`"));
 }

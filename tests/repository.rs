@@ -1,4 +1,5 @@
 mod common;
+use liknon::{config, contracts::report::Status, execution, planning, reporting, theme::Theme};
 use serde_json::json;
 use std::{
     fs,
@@ -6,9 +7,6 @@ use std::{
     sync::{atomic::AtomicBool, Arc},
 };
 use tempfile::TempDir;
-use workspace_validator::{
-    config, contracts::report::Status, execution, planning, reporting, theme::Theme,
-};
 
 #[test]
 fn repository_integrity_is_typed_and_counted_once_outside_checks() {

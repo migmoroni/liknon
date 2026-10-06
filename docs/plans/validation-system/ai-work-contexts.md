@@ -90,7 +90,7 @@ human to transcribe them.
 
 The agent then:
 
-1. loads the workspace-validator skill, the requested AI-Engineering process
+1. loads the liknon skill, the requested AI-Engineering process
    reference, the immutable policy boundary, and only the AI-Tool references
    needed for it, then retrieves selected shared knowledge through the CLI;
 2. verifies CLI and skill compatibility;
@@ -111,7 +111,7 @@ The agent then:
 
 If Step 3 reports a missing policy, the process stops before Step 4. The agent
 routes to the advisory AI-Tool `policy` operation, asks the human to run
-`workspace-validator init --policy` personally, and explains that the human must
+`liknon init --policy` personally, and explains that the human must
 review `processContinuation` and every decision level. An invalid policy also
 stops the process; the agent may explain diagnostics and recommend values but
 never edits or replaces the file. After the human reports manual initialization
@@ -136,7 +136,7 @@ The guide explains that the human:
 - supplies exact prerequisite artifact paths when starting outside a direct
   process handoff;
 - initializes `.validation/policy.json` directly through
-  `workspace-validator init --policy`, then reviews and selects its continuation
+  `liknon init --policy`, then reviews and selects its continuation
   and decision levels;
 - opens and changes `.validation/policy.json` manually; no agent performs that
   action on the human's behalf;

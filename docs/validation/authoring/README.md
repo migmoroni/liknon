@@ -2,7 +2,7 @@
 
 This directory contains maintainer contracts. It is packaged for contributors
 but is not embedded as shared validation knowledge and cannot be selected with
-`workspace-validator knowledge show`.
+`liknon knowledge show`.
 
 ## Authoring Workflow
 

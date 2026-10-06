@@ -5,7 +5,7 @@ fn fixture_root() -> PathBuf {
 }
 
 fn validate(selection: Option<&str>) -> std::process::Output {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_liknon"));
     command.arg("validate");
     if let Some(selection) = selection {
         command.arg(selection);
@@ -27,7 +27,7 @@ fn opt_in_fixture_exposes_every_check_status_and_diagnostic() {
         "CHECK SKIPPED  outcome.skipped",
         "CHECK BLOCKED  outcome.blocked",
         "stdout:\n│       │\n│       │ running 1 test",
-        "intentional workspace-validator fixture failure",
+        "intentional liknon fixture failure",
         "Reason: dependency outcome.fail did not pass",
         "Reason: required tool intentionally-unavailable is unavailable",
         "Summary: 1 pass · 1 fail · 1 blocked · 1 skipped",

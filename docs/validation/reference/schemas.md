@@ -4,8 +4,8 @@ Configuration and report schemas are owned and distributed by the tool. Inspect
 the schema that matches the running binary without keeping copied files:
 
 ```sh
-workspace-validator schema config
-workspace-validator schema report
+liknon schema config
+liknon schema report
 ```
 
 Redirect these commands only when an editor or repository explicitly needs a

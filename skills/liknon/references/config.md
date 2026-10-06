@@ -39,11 +39,11 @@ policy.
 After an authorized configuration edit, run:
 
 ```sh
-workspace-validator config validate
-workspace-validator list --tree
+liknon config validate
+liknon list --tree
 ```
 
-Use `workspace-validator explain group`, `explain suite`, or `explain check`
+Use `liknon explain group`, `explain suite`, or `explain check`
 for focused inspection. Do not execute the configured graph unless the user
 also requested execution.
 

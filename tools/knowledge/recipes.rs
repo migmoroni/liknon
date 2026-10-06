@@ -65,7 +65,7 @@ pub(super) fn validate_recipe_with_ordinary_loader(
         fs::create_dir_all(resolved_root.join(relative))
             .map_err(|error| format!("cannot create recipe suite directory: {error}"))?;
     }
-    workspace_validator::config::load(Some(&config_path), &workspace).map_err(|error| {
+    liknon::config::load(Some(&config_path), &workspace).map_err(|error| {
         format!(
             "recipe {} fails ordinary configuration validation: {error}",
             recipe.id

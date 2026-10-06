@@ -33,7 +33,7 @@ uses `workspaceRoot: ".."`. It assumes default features represent the release
 surface and that the crate does not require a private registry or external
 service. Replace working directories, package/feature flags, timeouts, and tool
 version requirements to match the consumer. The example contains no dependency
-on workspace-validator's source tree, skills, or embedded assets.
+on liknon's source tree, skills, or embedded assets.
 
 ## Procedure
 
@@ -41,9 +41,9 @@ on workspace-validator's source tree, skills, or embedded assets.
    scripts, test effects, feature promises, and `rust-version`.
 2. Run `cargo +<declared-msrv> check --workspace --all-targets --locked` after
    replacing `<declared-msrv>` with the manifest's toolchain version.
-3. Save the adapted configuration below and run `workspace-validator config
+3. Save the adapted configuration below and run `liknon config
    validate`.
-4. Inspect the resolved `release` group, then run `workspace-validator validate
+4. Inspect the resolved `release` group, then run `liknon validate
    release --format=json`.
 5. Inspect package contents and every repository mutation before accepting the
    result. Do not add publication to the gate.

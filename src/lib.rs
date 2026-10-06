@@ -4,7 +4,7 @@
 //! [`config`] loads and validates a document, [`planning`] creates an immutable
 //! execution closure, [`execution`] runs it, and [`reporting`] renders the
 //! resulting versioned report. Human rendering uses the semantic palettes and
-//! presentations exposed by [`theme`]. The `workspace-validator` binary
+//! presentations exposed by [`theme`]. The `liknon` binary
 //! composes the same public library API exposed by this crate.
 //!
 //! Configuration is trusted input. Commands run without an intermediate
@@ -18,7 +18,7 @@
 //!     path::Path,
 //!     sync::{atomic::AtomicBool, Arc},
 //! };
-//! use workspace_validator::{config, execution, planning};
+//! use liknon::{config, execution, planning};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let current = std::env::current_dir()?;

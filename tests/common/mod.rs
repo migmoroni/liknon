@@ -40,7 +40,7 @@ pub fn process_fixture() -> &'static Path {
                 .expect("build process fixture");
             assert!(status.success(), "process fixture did not compile");
             fixture.join("target/debug").join(format!(
-                "workspace-validator-process-fixture{}",
+                "liknon-process-fixture{}",
                 std::env::consts::EXE_SUFFIX
             ))
         })

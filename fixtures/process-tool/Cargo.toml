@@ -1,5 +1,5 @@
 [package]
-name = "workspace-validator-process-fixture"
+name = "liknon-process-fixture"
 version = "0.0.0"
 edition = "2021"
 publish = false

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/migmoroni/workspace-validator/schemas/knowledge-rubric.schema.json",
-  "title": "Workspace Validator Shared-Knowledge Rubric",
+  "$id": "https://github.com/migmoroni/liknon/schemas/knowledge-rubric.schema.json",
+  "title": "Liknon Shared-Knowledge Rubric",
   "type": "object",
   "additionalProperties": false,
   "required": ["$schema", "schemaVersion", "rubricId", "scale", "criteria"],

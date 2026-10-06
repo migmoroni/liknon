@@ -44,7 +44,7 @@ parallel implementations.
 
 #### Initialization
 
-- [x] `workspace-validator init --config <candidate-path>` provisions the
+- [x] `liknon init --config <candidate-path>` provisions the
       canonical configuration.
 - [x] The command requires a provisioning capability, supports an explicit
       `--workspace`, and otherwise uses exactly the current working directory.
@@ -159,14 +159,14 @@ author a complete config candidate
 The default path uses:
 
 ```sh
-workspace-validator init --config <candidate-path>
-workspace-validator config validate
-workspace-validator list --tree
-workspace-validator explain group <group-id>
-workspace-validator explain suite <suite-id>
-workspace-validator explain check <check-id>
-workspace-validator validate <group-or-suite>
-workspace-validator check <check-id>
+liknon init --config <candidate-path>
+liknon config validate
+liknon list --tree
+liknon explain group <group-id>
+liknon explain suite <suite-id>
+liknon explain check <check-id>
+liknon validate <group-or-suite>
+liknon check <check-id>
 ```
 
 Machine consumers use `--format=json`. Human output remains accessible without

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/migmoroni/workspace-validator/schemas/knowledge-routing.schema.json",
-  "title": "Workspace Validator Knowledge Routing Fixtures",
+  "$id": "https://github.com/migmoroni/liknon/schemas/knowledge-routing.schema.json",
+  "title": "Liknon Knowledge Routing Fixtures",
   "type": "object",
   "additionalProperties": false,
   "required": ["$schema", "schemaVersion", "cases"],
