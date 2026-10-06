@@ -17,6 +17,8 @@ include = [
   "/examples/**",
   "/schemas/**",
   "/skills/**",
+  "/assets/branding/liknon.svg",
+  "/assets/branding/liknon-ascii.txt",
   "/docs/validation/**",
   "/evals/**",
   "/fixtures/knowledge/**",

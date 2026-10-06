@@ -11,6 +11,8 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- Canonical project artwork for package documentation and an accessible ASCII
+  mark in the complete root help.
 - Versioned agent skill bundle for safe validation execution, report triage,
   configuration, and coverage auditing with progressive disclosure.
 - Read-only embedded validation knowledge with catalog discovery and exact

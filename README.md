@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/migmoroni/liknon/main/assets/branding/liknon.svg" width="200" alt="Liknon logo">
+</p>
+
 # Liknon
 
 `liknon` runs declarative validation graphs for heterogeneous
@@ -352,6 +356,8 @@ rejected rather than inferred or converted.
 
 Published package contents include:
 
+- the canonical project logo under
+  [`assets/branding`](assets/branding/liknon.svg);
 - the configuration, report, and knowledge contracts under the
   [`schemas` directory](schemas/);
 - the human flow, stable reference, embedded knowledge source, and maintainer

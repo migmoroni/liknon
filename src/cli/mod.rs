@@ -48,7 +48,7 @@ pub fn run_cli() -> ExitCode {
     let command = theme::clap::apply(help::root::configure(Cli::command()), palette, presentation);
     if help::root::requested(&arguments) {
         let mut stdout = std::io::stdout().lock();
-        let rendered = help::root::render(command, presentation);
+        let rendered = help::root::render(command, palette, presentation);
         return match write_output(&mut stdout, rendered.trim_end()) {
             Ok(()) => ExitCode::from(0),
             Err((error, code)) => {

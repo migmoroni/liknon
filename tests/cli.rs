@@ -5,6 +5,12 @@ use std::{fs, process::Command};
 use std::{os::fd::OwnedFd, os::unix::net::UnixStream, process::Stdio};
 use tempfile::TempDir;
 
+const ASCII_LOGO: &str = include_str!("../assets/branding/liknon-ascii.txt");
+
+fn ascii_logo() -> &'static str {
+    ASCII_LOGO.trim_end_matches(['\r', '\n'])
+}
+
 fn command_help(arguments: &[&str]) -> String {
     command_help_with_environment(arguments, &[])
 }
@@ -637,6 +643,7 @@ fn help_option_is_documented_once_in_each_requested_help_page() {
 
 #[test]
 fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
+    let logo = ascii_logo();
     let short = command_help(&["-h"]);
     assert!(short.contains("Commands:"), "{short}");
     assert!(short.contains("validate"), "{short}");
@@ -647,8 +654,13 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
     );
     assert!(short.contains("--color[=<PALETTE>]"), "{short}");
     assert!(short.contains("--presentation=<MODE>"), "{short}");
+    assert!(!short.contains(logo), "{short}");
 
     let long = command_help(&["--help"]);
+    assert!(
+        long.starts_with(&format!("{logo}\n\nRuns declarative")),
+        "{long}"
+    );
     let commands_position = long.find("Commands:").expect("root command index");
     let options_position = long.find("Options:").expect("root options");
     let first_separator_position = long.find(&"─".repeat(78)).expect("first command section");
@@ -789,6 +801,7 @@ fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
 
     let focused = command_help(&["validate", "--help"]);
     assert!(!focused.contains(&separator), "{focused}");
+    assert!(!focused.contains(logo), "{focused}");
 }
 
 #[test]
@@ -798,6 +811,11 @@ fn root_low_vision_help_adds_space_after_hierarchical_separators() {
         &[("NO_COLOR", "1")],
     );
     let plain = console::strip_ansi_codes(&rendered);
+
+    assert!(
+        plain.starts_with(&format!("{}\n\n\nRuns declarative", ascii_logo())),
+        "{plain}"
+    );
 
     let full_separator = "─".repeat(78);
     let nested_separator = "─".repeat(39);

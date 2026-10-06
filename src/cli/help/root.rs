@@ -2,13 +2,15 @@
 
 use super::execution;
 use crate::cli::arguments::{ColorPaletteArgument, PresentationArgument};
-use crate::theme::{self, PresentationProfile};
+use crate::theme::{self, PaletteProfile, PresentationProfile, Role, Theme};
 use clap::{Arg, ValueEnum};
 use console::strip_ansi_codes;
 use std::{collections::BTreeMap, ffi::OsString};
 
 const COMMAND_SEPARATOR_WIDTH: usize = 78;
 const SUBCOMMAND_SEPARATOR_WIDTH: usize = COMMAND_SEPARATOR_WIDTH / 2;
+
+const ASCII_LOGO: &str = include_str!("../../../assets/branding/liknon-ascii.txt");
 
 pub(in crate::cli) const ABOUT: &str = "Runs declarative workspace validation pipelines";
 
@@ -48,7 +50,11 @@ pub(in crate::cli) fn configure(command: clap::Command) -> clap::Command {
 }
 
 /// Renders every nested command through Clap's own themed help tree.
-pub(in crate::cli) fn render(command: clap::Command, presentation: PresentationProfile) -> String {
+pub(in crate::cli) fn render(
+    command: clap::Command,
+    palette: PaletteProfile,
+    presentation: PresentationProfile,
+) -> String {
     let root_name = command.get_name().to_owned();
     let command_index = command_index(&command);
     let command = annotate_execution_commands(command);
@@ -62,7 +68,8 @@ pub(in crate::cli) fn render(command: clap::Command, presentation: PresentationP
         .to_string();
     let rendered = insert_command_index(rendered, &command_index);
     let rendered = theme::clap::present_help(rendered, presentation);
-    separate_commands(rendered, &root_name, presentation)
+    let rendered = separate_commands(rendered, &root_name, presentation);
+    prepend_logo(rendered, palette, presentation)
 }
 
 /// Identifies the complete root reference and its visual rendering options.
@@ -284,4 +291,18 @@ fn separate_commands(
     }
 
     separated
+}
+
+fn prepend_logo(
+    rendered: String,
+    palette: PaletteProfile,
+    presentation: PresentationProfile,
+) -> String {
+    let theme = Theme::resolve(palette, presentation);
+    let logo = ASCII_LOGO.trim_end_matches(['\r', '\n']);
+    let gap = match presentation {
+        PresentationProfile::Standard => "\n\n",
+        PresentationProfile::LowVision => "\n\n\n",
+    };
+    format!("{}{gap}{rendered}", theme.paint(Role::Heading, logo))
 }
