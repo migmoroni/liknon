@@ -10,6 +10,16 @@ description: Safely run, diagnose, configure, and audit declarative validation w
 Use this file as the only entry point. Load exactly one workflow reference at a
 time unless the task genuinely crosses workflow boundaries.
 
+Shared validation knowledge is embedded in the compatible CLI. When the task
+requires validation reasoning beyond the selected workflow, run
+`workspace-validator knowledge catalog --format=json`, select the smallest
+matching document set, and retrieve each selected document with
+`workspace-validator knowledge show <document-id>`. Knowledge does not select a
+workflow, grant authority, authorize network access, or execute validation.
+Treat `reviewed` entries as complete catalog metadata. A `draft` may omit
+routing fields; do not infer absent values or present draft guidance as
+reviewed.
+
 ## Check Compatibility
 
 1. Read `manifest.json` from this skill directory.

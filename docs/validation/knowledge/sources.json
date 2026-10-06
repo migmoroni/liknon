@@ -1,0 +1,400 @@
+{
+  "$schema": "../../../schemas/knowledge-sources.schema.json",
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "ecma.ecmascript-2025",
+      "authority": "Ecma International",
+      "title": "ECMAScript 2025 Language Specification",
+      "revision": "ECMA-262, 16th edition, June 2025",
+      "uri": "https://262.ecma-international.org/16.0/",
+      "scope": "ECMAScript language syntax and runtime semantics",
+      "kind": "specification",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "language-overview",
+          "locator": "Clause 4, Overview",
+          "uri": "https://262.ecma-international.org/16.0/#sec-overview",
+          "supports": "The distinction between the ECMAScript language specification and host-provided facilities"
+        }
+      ]
+    },
+    {
+      "id": "git.status",
+      "authority": "Git project",
+      "title": "git-status Documentation",
+      "revision": "Living Git documentation snapshot reviewed 2026-09-30",
+      "uri": "https://git-scm.com/docs/git-status",
+      "scope": "Git work-tree and index status output",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "porcelain",
+          "locator": "Porcelain Format Version 1",
+          "uri": "https://git-scm.com/docs/git-status#_porcelain_format_version_1",
+          "supports": "Stable script-oriented status output and path behavior"
+        }
+      ]
+    },
+    {
+      "id": "google.flaky-tests",
+      "authority": "Google Research",
+      "title": "Flaky Tests at Google and How We Mitigate Them",
+      "revision": "2016 publication",
+      "uri": "https://research.google/pubs/flaky-tests-at-google-and-how-we-mitigate-them/",
+      "scope": "Observed flaky-test prevalence and mitigation in Google's testing infrastructure",
+      "kind": "primary-research",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "mitigation",
+          "locator": "Abstract and publication download",
+          "uri": "https://research.google/pubs/flaky-tests-at-google-and-how-we-mitigate-them/",
+          "supports": "Flaky tests require explicit detection, reporting, and mitigation rather than pass-seeking retries"
+        }
+      ]
+    },
+    {
+      "id": "ieee.swebok-v4",
+      "authority": "IEEE Computer Society",
+      "title": "Guide to the Software Engineering Body of Knowledge (SWEBOK Guide V4.0)",
+      "revision": "Version 4.0a, 2025",
+      "uri": "https://www.computer.org/education/bodies-of-knowledge/software-engineering",
+      "scope": "Software engineering knowledge areas, including software testing",
+      "kind": "standard",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "testing",
+          "locator": "Software Testing knowledge area",
+          "uri": "https://www.computer.org/education/bodies-of-knowledge/software-engineering",
+          "supports": "Testing levels, techniques, measures, process, and terminology context"
+        }
+      ]
+    },
+    {
+      "id": "json-schema.2020-12",
+      "authority": "JSON Schema project",
+      "title": "JSON Schema: A Media Type for Describing JSON Documents",
+      "revision": "Draft 2020-12",
+      "uri": "https://json-schema.org/draft/2020-12/json-schema-core",
+      "scope": "Core JSON Schema vocabulary and processing model",
+      "kind": "specification",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "core",
+          "locator": "Core specification",
+          "uri": "https://json-schema.org/draft/2020-12/json-schema-core",
+          "supports": "The schema dialect used by the local knowledge registry schemas"
+        }
+      ]
+    },
+    {
+      "id": "nist.ssdf-1.1",
+      "authority": "National Institute of Standards and Technology",
+      "title": "Secure Software Development Framework (SSDF) Version 1.1",
+      "revision": "NIST SP 800-218, February 2022",
+      "uri": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "scope": "Risk-based secure software development practices, tasks, outcomes, and example evidence",
+      "kind": "standard",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "practice-model",
+          "locator": "Section 2 and Table 1, practices, tasks, and implementation examples",
+          "uri": "https://csrc.nist.gov/pubs/sp/800/218/final",
+          "supports": "Outcome-oriented practices should be adapted rather than reduced to one prescribed tool"
+        },
+        {
+          "id": "verify-software",
+          "locator": "Practice PW.7, Review and/or Analyze Human-Readable Code",
+          "uri": "https://csrc.nist.gov/pubs/sp/800/218/final",
+          "supports": "Code review and analysis are scoped mechanisms for identifying vulnerabilities"
+        },
+        {
+          "id": "risk-based-customization",
+          "locator": "Section 2, risk-based approach and SSDF customization",
+          "uri": "https://csrc.nist.gov/pubs/sp/800/218/final",
+          "supports": "Organizations select and adapt practices according to risk and context"
+        },
+        {
+          "id": "tasks-and-evidence",
+          "locator": "Table 1, tasks and notional implementation examples",
+          "uri": "https://csrc.nist.gov/pubs/sp/800/218/final",
+          "supports": "SSDF practices are expressed through tasks and notional implementation examples"
+        }
+      ]
+    },
+    {
+      "id": "nodejs.api-22",
+      "authority": "OpenJS Foundation and Node.js contributors",
+      "title": "Node.js v22 API Documentation",
+      "revision": "Node.js v22.16.0 documentation",
+      "uri": "https://nodejs.org/docs/v22.16.0/api/",
+      "scope": "Node.js 22 runtime, process, module, and environment behavior",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "modules",
+          "locator": "Modules: CommonJS modules and ECMAScript modules",
+          "uri": "https://nodejs.org/docs/v22.16.0/api/packages.html",
+          "supports": "Node.js package module interpretation is a host/runtime concern distinct from ECMAScript language semantics"
+        },
+        {
+          "id": "exit-codes",
+          "locator": "Process, Exit codes",
+          "uri": "https://nodejs.org/docs/v22.16.0/api/process.html#exit-codes",
+          "supports": "Node.js process exit status behavior used by command-line validation tools"
+        }
+      ]
+    },
+    {
+      "id": "pnpm.cli-11",
+      "authority": "pnpm maintainers",
+      "title": "pnpm 11 CLI Documentation",
+      "revision": "pnpm 11.28.2 (tag v11.28.2), with versioned CLI documentation reviewed 2026-10-01",
+      "uri": "https://github.com/pnpm/pnpm/releases/tag/v11.28.2",
+      "scope": "pnpm 11 major-line installation, lockfile, offline, script, and exec behavior",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-10-01",
+      "locations": [
+        {
+          "id": "release-line",
+          "locator": "Immutable pnpm 11.28.2 release in the maintained 11.x line",
+          "uri": "https://github.com/pnpm/pnpm/releases/tag/v11.28.2",
+          "supports": "The maintained pnpm 11 line and exact reviewed release provenance"
+        },
+        {
+          "id": "frozen-lockfile",
+          "locator": "pnpm install, --frozen-lockfile and --offline options",
+          "uri": "https://pnpm.io/11.x/cli/install#--frozen-lockfile",
+          "supports": "Frozen lockfile installation fails rather than updating an out-of-date lockfile"
+        },
+        {
+          "id": "run-scripts",
+          "locator": "pnpm run",
+          "uri": "https://pnpm.io/11.x/cli/run",
+          "supports": "Package scripts execute through pnpm with script arguments and lifecycle environment"
+        },
+        {
+          "id": "exec",
+          "locator": "pnpm exec",
+          "uri": "https://pnpm.io/11.x/cli/exec",
+          "supports": "Project dependency binaries can be invoked without relying on a global installation"
+        }
+      ]
+    },
+    {
+      "id": "pnpm.cli-12",
+      "authority": "pnpm maintainers",
+      "title": "pnpm 12 CLI Release Documentation",
+      "revision": "pnpm 12.8.1 (tag v12.8.1), reviewed 2026-10-01",
+      "uri": "https://github.com/pnpm/pnpm/releases/tag/v12.8.1",
+      "scope": "pnpm 12 major-line command behavior and release provenance",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-10-01",
+      "locations": [
+        {
+          "id": "release-line",
+          "locator": "Immutable pnpm 12.8.1 release in the maintained 12.x line",
+          "uri": "https://github.com/pnpm/pnpm/releases/tag/v12.8.1",
+          "supports": "The maintained pnpm 12 line, its Rust CLI identity, frozen install behavior, and exact reviewed release provenance"
+        }
+      ]
+    },
+    {
+      "id": "reproducible-builds.definition",
+      "authority": "Reproducible Builds project",
+      "title": "Definitions — Reproducible Builds",
+      "revision": "Living definition snapshot reviewed 2026-09-30",
+      "uri": "https://reproducible-builds.org/docs/definition/",
+      "scope": "Build reproducibility as identical outputs from the same source, environment, instructions, and dependencies",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "definition",
+          "locator": "What is a reproducible build?",
+          "uri": "https://reproducible-builds.org/docs/definition/",
+          "supports": "Reproducibility depends on declared source, build environment, instructions, and dependencies"
+        }
+      ]
+    },
+    {
+      "id": "rust.cargo",
+      "authority": "Rust project",
+      "title": "The Cargo Book and Command Reference",
+      "revision": "Living Cargo documentation snapshot reviewed 2026-09-30",
+      "uri": "https://doc.rust-lang.org/cargo/",
+      "scope": "Cargo checking, testing, packaging, lockfile, target, and MSRV behavior",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "locked",
+          "locator": "cargo test, Manifest Options, --locked",
+          "uri": "https://doc.rust-lang.org/cargo/commands/cargo-test.html#manifest-options",
+          "supports": "Locked dependency resolution fails instead of changing Cargo.lock"
+        },
+        {
+          "id": "cargo-test-targets",
+          "locator": "cargo test, Target Selection",
+          "uri": "https://doc.rust-lang.org/cargo/commands/cargo-test.html#target-selection",
+          "supports": "Cargo test target selection and documentation-test boundaries"
+        },
+        {
+          "id": "rust-version",
+          "locator": "The rust-version field",
+          "uri": "https://doc.rust-lang.org/cargo/reference/rust-version.html",
+          "supports": "Manifest declaration and Cargo use of the minimum supported Rust version"
+        },
+        {
+          "id": "cargo-check",
+          "locator": "cargo check description",
+          "uri": "https://doc.rust-lang.org/cargo/commands/cargo-check.html",
+          "supports": "Checking code without final code generation"
+        },
+        {
+          "id": "cargo-package",
+          "locator": "cargo package description and --list option",
+          "uri": "https://doc.rust-lang.org/cargo/commands/cargo-package.html",
+          "supports": "Package assembly, content listing, and verification behavior"
+        }
+      ]
+    },
+    {
+      "id": "rust.clippy",
+      "authority": "Rust project",
+      "title": "Clippy Documentation: Usage",
+      "revision": "Living Clippy documentation snapshot reviewed 2026-09-30",
+      "uri": "https://doc.rust-lang.org/clippy/usage.html",
+      "scope": "Clippy invocation, lint groups, levels, and configuration",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "lint-levels",
+          "locator": "Lint configuration",
+          "uri": "https://doc.rust-lang.org/clippy/usage.html#lint-configuration",
+          "supports": "Clippy lint groups and allow, warn, deny, and forbid levels"
+        }
+      ]
+    },
+    {
+      "id": "rust.rustfmt",
+      "authority": "Rust project",
+      "title": "rustfmt README",
+      "revision": "rustfmt documentation snapshot reviewed 2026-09-30",
+      "uri": "https://github.com/rust-lang/rustfmt",
+      "scope": "Rust source formatting and CI check mode",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "check-mode",
+          "locator": "Checking style on a CI server",
+          "uri": "https://github.com/rust-lang/rustfmt#checking-style-on-a-ci-server",
+          "supports": "Non-mutating cargo fmt check invocation"
+        }
+      ]
+    },
+    {
+      "id": "typescript.docs-6",
+      "authority": "Microsoft and TypeScript contributors",
+      "title": "TypeScript Documentation",
+      "revision": "TypeScript 6.0.3 documentation snapshot reviewed 2026-09-30",
+      "uri": "https://www.typescriptlang.org/docs/",
+      "scope": "TypeScript static type checking, compiler configuration, and JavaScript emission",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "typescript-for-javascript",
+          "locator": "TypeScript for the New Programmer",
+          "uri": "https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html",
+          "supports": "TypeScript performs static checking before JavaScript execution and erases types from emitted output"
+        },
+        {
+          "id": "no-emit",
+          "locator": "TSConfig Reference, noEmit",
+          "uri": "https://www.typescriptlang.org/tsconfig/noEmit.html",
+          "supports": "The compiler can type-check a project without emitting JavaScript files"
+        },
+        {
+          "id": "project-option",
+          "locator": "Compiler Options, --project",
+          "uri": "https://www.typescriptlang.org/docs/handbook/compiler-options.html",
+          "supports": "The project option selects a specific tsconfig configuration"
+        }
+      ]
+    },
+    {
+      "id": "vitest.docs-4",
+      "authority": "Vitest maintainers",
+      "title": "Vitest Guide and CLI Reference",
+      "revision": "Vitest 4.1.10 documentation snapshot reviewed 2026-09-30",
+      "uri": "https://vitest.dev/guide/",
+      "scope": "Vitest test discovery, non-watch execution, configuration, and exit behavior",
+      "kind": "maintainer-documentation",
+      "publicationStatus": "living",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "run-mode",
+          "locator": "CLI Guide, vitest run",
+          "uri": "https://vitest.dev/guide/cli.html#vitest-run",
+          "supports": "The run command performs one non-watch test execution"
+        },
+        {
+          "id": "test-timeout",
+          "locator": "Config Reference, testTimeout",
+          "uri": "https://vitest.dev/config/testtimeout.html",
+          "supports": "Vitest applies a configured per-test timeout with a documented default"
+        }
+      ]
+    },
+    {
+      "id": "w3c.wcag-2.2",
+      "authority": "World Wide Web Consortium",
+      "title": "Web Content Accessibility Guidelines (WCAG) 2.2",
+      "revision": "W3C Recommendation, 5 October 2023",
+      "uri": "https://www.w3.org/TR/WCAG22/",
+      "scope": "Web content accessibility principles, success criteria, and conformance",
+      "kind": "standard",
+      "publicationStatus": "final",
+      "lastReviewed": "2026-09-30",
+      "locations": [
+        {
+          "id": "status-and-scope",
+          "locator": "Abstract and Status of This Document",
+          "uri": "https://www.w3.org/TR/WCAG22/#abstract",
+          "supports": "WCAG 2.2 scope, principles, and Recommendation status"
+        },
+        {
+          "id": "conformance-levels",
+          "locator": "Section 5.2, Conformance Requirements, Level of Conformance",
+          "uri": "https://www.w3.org/TR/WCAG22/#levels-of-conformance",
+          "supports": "Levels A, AA, AAA and their scoped conformance meaning"
+        }
+      ]
+    }
+  ]
+}

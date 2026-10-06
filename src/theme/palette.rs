@@ -194,7 +194,7 @@ const ACHROMATOPSIA: PaletteSpec = PaletteSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::reporting::theme::Role;
+    use crate::theme::Role;
 
     #[test]
     fn palette_color_invariants_are_explicit() {

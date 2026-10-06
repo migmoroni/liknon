@@ -195,30 +195,10 @@ fn read_candidate(workspace: &Path, candidate: &Path) -> Result<Vec<u8>, String>
     let canonical = candidate
         .canonicalize()
         .map_err(|error| format!("cannot resolve config candidate: {error}"))?;
-    let presented = if candidate.is_absolute() {
-        candidate.to_path_buf()
-    } else {
-        std::env::current_dir()
-            .map_err(|error| format!("cannot resolve current directory: {error}"))?
-            .join(candidate)
-    };
-    if normalize_candidate_path(&presented) != canonical {
-        return Err("config candidate path must not contain symlinks".into());
-    }
     if !canonical.starts_with(workspace) {
         return Err("config candidate escapes the selected workspace".into());
     }
     fs::read(&canonical).map_err(|error| format!("cannot read config candidate: {error}"))
-}
-
-fn normalize_candidate_path(path: &Path) -> PathBuf {
-    let mut normalized = PathBuf::new();
-    for component in path.components() {
-        if !matches!(component, Component::CurDir) {
-            normalized.push(component.as_os_str());
-        }
-    }
-    normalized
 }
 
 fn inspect_destination(
@@ -369,7 +349,10 @@ mod tests {
     use serde_json::json;
     #[cfg(unix)]
     use std::os::unix::fs::symlink;
-    use std::{fs, path::Path};
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+    };
     use tempfile::TempDir;
 
     fn document(workspace_root: &str) -> serde_json::Value {
@@ -391,6 +374,10 @@ mod tests {
         candidate
     }
 
+    fn canonical_workspace(workspace: &TempDir) -> PathBuf {
+        workspace.path().canonicalize().unwrap()
+    }
+
     #[test]
     fn malformed_candidates_do_not_prepare_the_canonical_directory() {
         for bytes in [
@@ -403,13 +390,14 @@ mod tests {
             .unwrap(),
         ] {
             let workspace = TempDir::new().unwrap();
-            let candidate = workspace.path().join("candidate.json");
+            let workspace_root = canonical_workspace(&workspace);
+            let candidate = workspace_root.join("candidate.json");
             fs::write(&candidate, bytes).unwrap();
 
-            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+            let result = provision_config(&workspace_root, &candidate);
 
             assert_eq!(result.status, InitStatus::Failed);
-            assert!(!workspace.path().join(".validation").exists());
+            assert!(!workspace_root.join(".validation").exists());
         }
     }
 
@@ -417,16 +405,17 @@ mod tests {
     fn safe_canonical_directory_states_publish_without_touching_unrelated_entries() {
         for state in ["absent", "empty", "unrelated"] {
             let workspace = TempDir::new().unwrap();
-            let validation = workspace.path().join(".validation");
+            let workspace_root = canonical_workspace(&workspace);
+            let validation = workspace_root.join(".validation");
             if state != "absent" {
                 fs::create_dir(&validation).unwrap();
             }
             if state == "unrelated" {
                 fs::write(validation.join("keep.txt"), b"keep").unwrap();
             }
-            let candidate = write_candidate(workspace.path(), &document(".."));
+            let candidate = write_candidate(&workspace_root, &document(".."));
 
-            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+            let result = provision_config(&workspace_root, &candidate);
 
             assert_eq!(result.status, InitStatus::Success, "{state}");
             assert!(validation.join("config.json").is_file());
@@ -444,10 +433,11 @@ mod tests {
             value
         }] {
             let workspace = TempDir::new().unwrap();
-            let candidate = write_candidate(workspace.path(), &value);
-            let validation = workspace.path().join(".validation");
+            let workspace_root = canonical_workspace(&workspace);
+            let candidate = write_candidate(&workspace_root, &value);
+            let validation = workspace_root.join(".validation");
 
-            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+            let result = provision_config(&workspace_root, &candidate);
 
             assert_eq!(result.status, InitStatus::Failed);
             assert!(!validation.join("config.json").exists());
@@ -465,27 +455,24 @@ mod tests {
     fn canonical_directory_forms_use_the_same_ordinary_loading_semantics() {
         for declared in [".", "", "././", "../.validation"] {
             let workspace = TempDir::new().unwrap();
-            let candidate = write_candidate(workspace.path(), &document(declared));
-            let canonical_workspace = workspace.path().canonicalize().unwrap();
-            let destination = workspace.path().join(".validation/config.json");
+            let workspace_root = canonical_workspace(&workspace);
+            let candidate = write_candidate(&workspace_root, &document(declared));
+            let destination = workspace_root.join(".validation/config.json");
             prepare_destination_directory(destination.parent().unwrap()).unwrap();
             let before = config::validate_parsed(
                 config::parse_at(&fs::read(&candidate).unwrap(), &destination).unwrap(),
             )
             .unwrap();
 
-            let result = provision_config(&canonical_workspace, &candidate);
+            let result = provision_config(&workspace_root, &candidate);
             assert_eq!(result.status, InitStatus::Success, "{declared:?}");
-            let installed = config::load(None, workspace.path()).unwrap();
+            let installed = config::load(None, &workspace_root).unwrap();
             assert_eq!(before.workspace_root, installed.workspace_root);
             assert_eq!(
                 before.suite_directories["suite"].absolute,
                 installed.suite_directories["suite"].absolute
             );
-            assert_eq!(
-                installed.workspace_root,
-                workspace.path().join(".validation")
-            );
+            assert_eq!(installed.workspace_root, workspace_root.join(".validation"));
             assert_eq!(
                 installed.suite_directories["suite"].absolute,
                 installed.workspace_root
@@ -497,17 +484,16 @@ mod tests {
     fn absolute_workspace_root_uses_ordinary_loading_semantics() {
         let workspace = TempDir::new().unwrap();
         let external = TempDir::new().unwrap();
-        let declared = external.path().to_string_lossy();
-        let candidate = write_candidate(workspace.path(), &document(&declared));
+        let workspace_root = canonical_workspace(&workspace);
+        let external_root = canonical_workspace(&external);
+        let declared = external_root.to_string_lossy();
+        let candidate = write_candidate(&workspace_root, &document(&declared));
 
-        let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+        let result = provision_config(&workspace_root, &candidate);
 
         assert_eq!(result.status, InitStatus::Success);
-        let installed = config::load(None, workspace.path()).unwrap();
-        assert_eq!(
-            installed.workspace_root,
-            external.path().canonicalize().unwrap()
-        );
+        let installed = config::load(None, &workspace_root).unwrap();
+        assert_eq!(installed.workspace_root, external_root);
     }
 
     #[cfg(unix)]
@@ -516,27 +502,26 @@ mod tests {
         for mode in ["local", "parent", "external"] {
             let workspace = TempDir::new().unwrap();
             let external = TempDir::new().unwrap();
-            let validation = workspace.path().join(".validation");
+            let workspace_root = canonical_workspace(&workspace);
+            let external_root = canonical_workspace(&external);
+            let validation = workspace_root.join(".validation");
             let (declared, expected) = match mode {
                 "local" => {
-                    symlink(".validation", workspace.path().join("future-link")).unwrap();
+                    symlink(".validation", workspace_root.join("future-link")).unwrap();
                     ("../future-link".into(), validation.clone())
                 }
                 "parent" => {
-                    symlink(".validation", workspace.path().join("future-link")).unwrap();
-                    (
-                        "../future-link/..".into(),
-                        workspace.path().canonicalize().unwrap(),
-                    )
+                    symlink(".validation", workspace_root.join("future-link")).unwrap();
+                    ("../future-link/..".into(), workspace_root.clone())
                 }
                 "external" => {
-                    let link = external.path().join("absolute-link");
+                    let link = external_root.join("absolute-link");
                     symlink(&validation, &link).unwrap();
                     (link.to_string_lossy().into_owned(), validation.clone())
                 }
                 _ => unreachable!(),
             };
-            let candidate = write_candidate(workspace.path(), &document(&declared));
+            let candidate = write_candidate(&workspace_root, &document(&declared));
             let destination = validation.join("config.json");
             prepare_destination_directory(&validation).unwrap();
             let before = config::validate_parsed(
@@ -544,9 +529,9 @@ mod tests {
             )
             .unwrap();
 
-            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+            let result = provision_config(&workspace_root, &candidate);
             assert_eq!(result.status, InitStatus::Success, "{mode}");
-            let installed = config::load(None, workspace.path()).unwrap();
+            let installed = config::load(None, &workspace_root).unwrap();
             assert_eq!(before.workspace_root, installed.workspace_root, "{mode}");
             assert_eq!(
                 before.suite_directories["suite"].absolute,
@@ -562,9 +547,10 @@ mod tests {
     fn ordinary_canonicalization_rejects_dangling_missing_and_excessive_links() {
         for mode in ["dangling", "descendant", "excessive"] {
             let workspace = TempDir::new().unwrap();
+            let workspace_root = canonical_workspace(&workspace);
             let declared = match mode {
                 "dangling" => {
-                    symlink("missing", workspace.path().join("entry")).unwrap();
+                    symlink("missing", workspace_root.join("entry")).unwrap();
                     "../entry".to_string()
                 }
                 "descendant" => ".validation/missing".to_string(),
@@ -575,16 +561,16 @@ mod tests {
                         } else {
                             format!("link{}", index + 1)
                         };
-                        symlink(target, workspace.path().join(format!("link{index}"))).unwrap();
+                        symlink(target, workspace_root.join(format!("link{index}"))).unwrap();
                     }
                     "../link0".to_string()
                 }
                 _ => unreachable!(),
             };
-            let candidate = write_candidate(workspace.path(), &document(&declared));
-            let validation = workspace.path().join(".validation");
+            let candidate = write_candidate(&workspace_root, &document(&declared));
+            let validation = workspace_root.join(".validation");
 
-            let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+            let result = provision_config(&workspace_root, &candidate);
 
             assert_eq!(result.status, InitStatus::Failed, "{mode}");
             assert!(!validation.join("config.json").exists(), "{mode}");
@@ -594,11 +580,12 @@ mod tests {
     #[test]
     fn unsafe_canonical_file_is_a_conflict_and_is_never_replaced() {
         let workspace = TempDir::new().unwrap();
-        let validation = workspace.path().join(".validation");
+        let workspace_root = canonical_workspace(&workspace);
+        let validation = workspace_root.join(".validation");
         fs::write(&validation, b"unsafe").unwrap();
-        let candidate = write_candidate(workspace.path(), &document(".."));
+        let candidate = write_candidate(&workspace_root, &document(".."));
 
-        let result = provision_config(&workspace.path().canonicalize().unwrap(), &candidate);
+        let result = provision_config(&workspace_root, &candidate);
 
         assert_eq!(result.status, InitStatus::Conflict);
         assert_eq!(fs::read(validation).unwrap(), b"unsafe");

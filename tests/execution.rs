@@ -2,6 +2,7 @@ mod common;
 use serde_json::json;
 use std::{
     fs,
+    path::Path,
     sync::{atomic::AtomicBool, Arc},
     thread,
     time::Duration,
@@ -56,11 +57,12 @@ impl ProgressReporter for Recorder {
 #[test]
 fn memoizes_groups_and_suites_but_executes_checks_per_suite_context() {
     let temp = TempDir::new().unwrap();
+    let workspace = common::canonical_path(temp.path());
     let validator_cwd = std::env::current_dir().unwrap();
     for d in ["one", "two"] {
-        fs::create_dir(temp.path().join(d)).unwrap();
+        fs::create_dir(workspace.join(d)).unwrap();
     }
-    let log = temp.path().join("runs.log");
+    let log = workspace.join("runs.log");
     let tool = common::process_fixture();
     let value = json!({
       "schemaVersion":6,"workspaceRoot":".","defaultGroup":"root","outputLimitBytes":4096,
@@ -77,11 +79,8 @@ fn memoizes_groups_and_suites_but_executes_checks_per_suite_context() {
        {"id":"branch.one","label":"Branch one","description":"First branch.","members":[{"kind":"group","id":"shared.group"},{"kind":"suite","id":"suite.one"}]},
        {"id":"branch.two","label":"Branch two","description":"Second branch.","members":[{"kind":"group","id":"shared.group"},{"kind":"suite","id":"shared.suite"},{"kind":"suite","id":"suite.two"}]},
        {"id":"root","label":"Root","description":"Root group.","members":[{"kind":"group","id":"branch.one"},{"kind":"group","id":"branch.two"}]}]});
-    let validated = config::load(
-        Some(&common::write_config(temp.path(), &value)),
-        temp.path(),
-    )
-    .unwrap();
+    let validated =
+        config::load(Some(&common::write_config(&workspace, &value)), &workspace).unwrap();
     let plan = planning::target(&validated, None).unwrap();
     let mut recorder = Recorder::default();
     let outcome = execution::run_with_progress(
@@ -112,15 +111,23 @@ fn memoizes_groups_and_suites_but_executes_checks_per_suite_context() {
         Some("one-context")
     );
     assert_eq!(fs::read_to_string(log).unwrap().lines().count(), 3);
-    let runs = fs::read_to_string(temp.path().join("runs.log")).unwrap();
-    assert!(runs.contains(&format!(
-        "same:one-context:{}",
-        temp.path().join("one").display()
-    )));
-    assert!(runs.contains(&format!(
-        "same:two-context:{}",
-        temp.path().join("two").display()
-    )));
+    let runs = fs::read_to_string(workspace.join("runs.log")).unwrap();
+    let one = runs
+        .lines()
+        .find_map(|line| line.strip_prefix("same:one-context:"))
+        .expect("suite one invocation");
+    let two = runs
+        .lines()
+        .find_map(|line| line.strip_prefix("same:two-context:"))
+        .expect("suite two invocation");
+    assert_eq!(
+        common::canonical_path(Path::new(one)),
+        common::canonical_path(&workspace.join("one"))
+    );
+    assert_eq!(
+        common::canonical_path(Path::new(two)),
+        common::canonical_path(&workspace.join("two"))
+    );
     assert_eq!(std::env::current_dir().unwrap(), validator_cwd);
     assert_eq!(
         outcome
@@ -240,9 +247,10 @@ fn direct_check_uses_workspace_root_and_structured_selection() {
         .argv
         .iter()
         .any(|argument| argument == "suite-only"));
+    let recorded = fs::read_to_string(marker).unwrap();
     assert_eq!(
-        fs::read_to_string(marker).unwrap().trim(),
-        temp.path().canonicalize().unwrap().display().to_string()
+        common::canonical_path(Path::new(recorded.trim())),
+        common::canonical_path(temp.path())
     );
 }
 

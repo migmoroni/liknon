@@ -1,0 +1,69 @@
+{
+  "$schema": "../../schemas/knowledge-routing.schema.json",
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "exact-rust-format-check",
+      "question": "How can this Cargo workspace check formatting without rewriting files?",
+      "workspaceFacts": ["Cargo.toml exists", "Rust toolchain is installed"],
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["language.rust", "tool.rustfmt"],
+      "rejectedDocumentIds": ["standard.wcag-2.2", "tool.clippy"],
+      "expectedBehavior": "route-exact-local-guidance"
+    },
+    {
+      "id": "valid-release-composition",
+      "question": "Design evidence that embedded knowledge remains queryable and byte-equivalent in a Rust crate release.",
+      "workspaceFacts": ["Cargo package", "canonical knowledge tree", "OUT_DIR embedding build", "Git repository"],
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["pattern.evidence-chain", "concern.reproducible-release-evidence", "recipe.rust-cli-release-gate"],
+      "rejectedDocumentIds": ["standard.wcag-2.2"],
+      "expectedBehavior": "compose-smallest-relevant-set"
+    },
+    {
+      "id": "absent-python-coverage",
+      "question": "Which pytest plugins should this Python service install?",
+      "workspaceFacts": ["Python service", "no local Python or pytest guide"],
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": [],
+      "rejectedDocumentIds": ["language.rust", "tool.cargo"],
+      "expectedBehavior": "report-missing-local-coverage"
+    },
+    {
+      "id": "inaccessible-external-depth",
+      "question": "Provide details beyond the local summary about SSDF task PW.7.",
+      "workspaceFacts": ["local source location is registered"],
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["foundation.source-policy", "foundation.evidence-quality"],
+      "rejectedDocumentIds": ["recipe.rust-cli-release-gate"],
+      "expectedBehavior": "remain-useful-and-report-unavailable-depth"
+    },
+    {
+      "id": "overlapping-cargo-clippy",
+      "question": "Does cargo check make Clippy redundant for this Rust workspace?",
+      "workspaceFacts": ["Cargo workspace", "Clippy warnings are denied"],
+      "networkAccess": "available-if-authorized",
+      "expectedDocumentIds": ["language.rust", "tool.cargo", "tool.clippy"],
+      "rejectedDocumentIds": ["tool.rustfmt", "standard.wcag-2.2"],
+      "expectedBehavior": "explain-overlap-and-distinct-blind-spots"
+    },
+    {
+      "id": "wcag-native-levels",
+      "question": "Can WCAG AA be translated to a universal medium assurance rating?",
+      "workspaceFacts": ["Web content is in scope"],
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["foundation.validation-strategy", "standard.wcag-2.2"],
+      "rejectedDocumentIds": ["recipe.rust-cli-release-gate"],
+      "expectedBehavior": "preserve-native-standard-terminology"
+    },
+    {
+      "id": "javascript-typescript-gate",
+      "question": "Which bounded evidence validates a pnpm-managed TypeScript package with Vitest without loading Rust guidance?",
+      "workspaceFacts": ["package.json and pnpm-lock.yaml exist", "TypeScript compiler and Vitest are declared dependencies", "Node.js runtime is supported"],
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["language.javascript", "language.typescript", "technology.nodejs", "tool.pnpm", "tool.typescript-compiler", "tool.vitest", "recipe.javascript-typescript-package-gate"],
+      "rejectedDocumentIds": ["language.rust", "tool.cargo", "tool.clippy"],
+      "expectedBehavior": "route-javascript-typescript-local-guidance"
+    }
+  ]
+}

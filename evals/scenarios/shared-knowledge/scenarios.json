@@ -1,0 +1,103 @@
+{
+  "$schema": "../../../schemas/knowledge-forward-trials.schema.json",
+  "schemaVersion": 1,
+  "suiteId": "shared-knowledge-forward-trials",
+  "suiteVersion": 1,
+  "rubric": "rubrics/shared-knowledge.json",
+  "requiredBehaviors": ["minimal-selection", "synthesis-boundary", "evidence-before-tool", "bounded-proof", "precise-source-location", "offline-depth", "missing-topic"],
+  "context": {
+    "allowed": ["workspace-validator knowledge catalog --format=json", "workspace-validator knowledge show <document-id>", "canonical docs/validation/knowledge files only for source-repository scenarios"],
+    "network": "scenario-defined",
+    "forbidden": ["implementation plans", "expected prose answers", "other scenario traces"]
+  },
+  "scenarios": [
+    {
+      "id": "minimal-selection",
+      "version": 1,
+      "prompt": "prompts/minimal-selection.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["language.rust", "tool.rustfmt"],
+      "rejectedDocumentIds": ["language.javascript", "language.typescript", "tool.pnpm"],
+      "behaviors": ["minimal-selection"],
+      "assertions": ["loads-catalog-before-topic", "loads-only-expected-documents", "does-not-execute"],
+      "rubricCriteria": ["routing-minimality", "authority-boundary"]
+    },
+    {
+      "id": "synthesis-boundary",
+      "version": 1,
+      "prompt": "prompts/synthesis-boundary.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["foundation.source-policy", "foundation.validation-strategy", "standard.wcag-2.2"],
+      "rejectedDocumentIds": ["language.rust", "language.javascript"],
+      "behaviors": ["synthesis-boundary"],
+      "assertions": ["labels-local-synthesis", "preserves-wcag-native-levels", "does-not-claim-universal-scale"],
+      "rubricCriteria": ["traceability", "uncertainty"]
+    },
+    {
+      "id": "evidence-before-tool",
+      "version": 1,
+      "prompt": "prompts/evidence-before-tool.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["pattern.evidence-chain", "concern.reproducible-release-evidence", "tool.cargo"],
+      "rejectedDocumentIds": ["tool.pnpm", "tool.vitest"],
+      "behaviors": ["evidence-before-tool"],
+      "assertions": ["states-consequence-first", "states-invariant", "selects-evidence-before-command"],
+      "rubricCriteria": ["evidence-alignment", "routing-minimality"]
+    },
+    {
+      "id": "bounded-proof",
+      "version": 1,
+      "prompt": "prompts/bounded-proof.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["foundation.evidence-quality", "tool.clippy"],
+      "rejectedDocumentIds": ["tool.vitest"],
+      "behaviors": ["bounded-proof"],
+      "assertions": ["states-what-pass-cannot-prove", "records-residual-uncertainty"],
+      "rubricCriteria": ["evidence-alignment", "uncertainty"]
+    },
+    {
+      "id": "precise-source-location",
+      "version": 1,
+      "prompt": "prompts/precise-source-location.md",
+      "networkAccess": "available-and-authorized",
+      "expectedDocumentIds": ["standard.wcag-2.2"],
+      "rejectedDocumentIds": ["language.rust", "language.javascript"],
+      "behaviors": ["precise-source-location"],
+      "assertions": ["uses-registered-location-label", "uses-exact-deep-uri"],
+      "rubricCriteria": ["traceability"]
+    },
+    {
+      "id": "offline-depth",
+      "version": 1,
+      "prompt": "prompts/offline-depth.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["foundation.source-policy", "foundation.evidence-quality"],
+      "rejectedDocumentIds": ["recipe.rust-cli-release-gate", "recipe.javascript-typescript-package-gate"],
+      "behaviors": ["offline-depth"],
+      "assertions": ["answers-from-local-guidance", "reports-inaccessible-depth", "does-not-invent-source-content"],
+      "rubricCriteria": ["traceability", "uncertainty"]
+    },
+    {
+      "id": "missing-topic",
+      "version": 1,
+      "prompt": "prompts/missing-topic.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": [],
+      "rejectedDocumentIds": ["language.rust", "language.javascript", "language.typescript", "tool.cargo", "tool.pnpm"],
+      "behaviors": ["missing-topic"],
+      "assertions": ["reports-missing-local-coverage", "does-not-route-rust-guidance", "does-not-route-javascript-guidance", "does-not-invent-commands"],
+      "rubricCriteria": ["routing-minimality", "uncertainty"]
+    },
+    {
+      "id": "javascript-typescript-selection",
+      "version": 1,
+      "prompt": "prompts/javascript-typescript-selection.md",
+      "networkAccess": "unavailable",
+      "expectedDocumentIds": ["language.javascript", "language.typescript", "technology.nodejs", "tool.pnpm", "tool.typescript-compiler", "tool.vitest", "recipe.javascript-typescript-package-gate"],
+      "rejectedDocumentIds": ["language.rust", "tool.cargo", "tool.clippy", "tool.rustfmt"],
+      "behaviors": ["minimal-selection", "evidence-before-tool", "bounded-proof"],
+      "assertions": ["selects-javascript-typescript-slice", "does-not-route-rust-stack", "states-consequence-first", "states-what-pass-cannot-prove"],
+      "rubricCriteria": ["routing-minimality", "evidence-alignment", "uncertainty"]
+    }
+  ]
+}

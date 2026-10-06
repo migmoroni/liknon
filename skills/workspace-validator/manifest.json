@@ -1,7 +1,7 @@
 {
   "name": "workspace-validator",
   "sourceCrateVersion": "0.1.0",
-  "skillBundleVersion": 1,
+  "skillBundleVersion": 2,
   "compatibleCli": ">=0.1.0, <0.2.0",
   "entrypoint": "SKILL.md",
   "workflows": {

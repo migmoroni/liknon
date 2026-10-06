@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/migmoroni/workspace-validator/schemas/knowledge-editorial-profiles.schema.json",
+  "title": "Knowledge Editorial Profiles",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "families", "basisIds", "profiles", "navigationProfile"],
+  "properties": {
+    "$schema": { "const": "../../../schemas/knowledge-editorial-profiles.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "families": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "readerIntent"],
+        "properties": {
+          "id": { "enum": ["explanation", "how-to", "reference"] },
+          "readerIntent": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "basisIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$" }
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/profile" }
+    },
+    "navigationProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileDocument", "editorialBases"],
+      "properties": {
+        "profileDocument": { "const": "profiles/navigation.md" },
+        "editorialBases": { "$ref": "#/$defs/basisList" }
+      }
+    }
+  },
+  "$defs": {
+    "basisList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$" }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "family", "pathPrefix", "profileDocument", "sections", "editorialBases"],
+      "properties": {
+        "kind": { "enum": ["foundation", "pattern", "concern", "language", "technology", "framework", "recipe", "tool", "standard"] },
+        "family": { "enum": ["explanation", "how-to", "reference"] },
+        "pathPrefix": { "type": "string", "pattern": "^(explanations/(foundations|patterns|concerns|languages|technologies|frameworks)|how-to/recipes|reference/(tools|standards))/$" },
+        "profileDocument": { "type": "string", "pattern": "^profiles/[a-z-]+\\.md$" },
+        "sections": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title", "required"],
+            "properties": {
+              "title": { "type": "string", "minLength": 1 },
+              "required": { "type": "boolean" }
+            }
+          }
+        },
+        "editorialBases": { "$ref": "#/$defs/basisList" }
+      }
+    }
+  }
+}

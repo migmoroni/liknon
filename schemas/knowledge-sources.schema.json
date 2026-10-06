@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/migmoroni/workspace-validator/schemas/knowledge-sources.schema.json",
+  "title": "Workspace Validator Knowledge Sources",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "sources"],
+  "properties": {
+    "$schema": { "const": "../../../schemas/knowledge-sources.schema.json" },
+    "schemaVersion": { "const": 1 },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/source" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$" },
+    "locationId": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+    "date": { "type": "string", "format": "date" },
+    "uri": { "type": "string", "pattern": "^https://" },
+    "nonEmpty": { "type": "string", "minLength": 1 },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "locator", "uri", "supports"],
+      "properties": {
+        "id": { "$ref": "#/$defs/locationId" },
+        "locator": { "$ref": "#/$defs/nonEmpty" },
+        "uri": { "$ref": "#/$defs/uri" },
+        "supports": { "$ref": "#/$defs/nonEmpty" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "authority", "title", "revision", "uri", "scope", "kind", "publicationStatus", "lastReviewed", "locations"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "authority": { "$ref": "#/$defs/nonEmpty" },
+        "title": { "$ref": "#/$defs/nonEmpty" },
+        "revision": { "$ref": "#/$defs/nonEmpty" },
+        "uri": { "$ref": "#/$defs/uri" },
+        "scope": { "$ref": "#/$defs/nonEmpty" },
+        "kind": { "enum": ["specification", "standard", "maintainer-documentation", "primary-research"] },
+        "publicationStatus": { "enum": ["final", "draft", "living"] },
+        "lastReviewed": { "$ref": "#/$defs/date" },
+        "locations": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/location" } }
+      }
+    }
+  }
+}

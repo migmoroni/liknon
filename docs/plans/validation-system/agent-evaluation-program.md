@@ -231,7 +231,8 @@ Cover `policy`, `config`, `run`, `triage`, and `audit` with ordinary, ambiguous,
 blocked, and adversarial prompts. Include at minimum:
 
 - selecting the correct primary operation from a natural human request;
-- loading only the required operation and relevant shared knowledge;
+- loading only the required operation and retrieving only relevant shared
+  knowledge through `workspace-validator knowledge`;
 - validating policy and applying its effective decision before governed work;
 - inspecting and using exact CLI commands, directories, selections, and JSON
   reports;
@@ -297,6 +298,7 @@ result.
 Use deterministic assertions for facts such as:
 
 - selected routes and loaded references;
+- selected knowledge document IDs and exact CLI retrieval commands;
 - exact executable, arguments, working directory, and exit status;
 - schema-valid reports and process artifacts;
 - filesystem and repository mutations;

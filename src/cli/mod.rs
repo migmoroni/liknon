@@ -1,6 +1,14 @@
 //! CLI parsing, command dispatch, cancellation, and exit-code translation.
 
+mod arguments;
+mod help;
 mod inspection;
+mod knowledge;
+
+use arguments::{
+    requested_palette, requested_presentation, Cli, ColorPaletteArgument, Command, ConfigCommand,
+    Contract, ExplainTarget, Format, KnowledgeCommand, PresentationArgument,
+};
 
 use crate::{
     config::{self, ValidatedConfig},
@@ -12,182 +20,17 @@ use crate::{
     error::ValidatorError,
     execution, initialization,
     planning::{self, ValidationPlan},
-    reporting::{
-        self,
-        theme::{PaletteProfile, PresentationProfile},
-    },
+    reporting,
+    theme::{self, PaletteProfile, PresentationProfile},
 };
-use clap::{error::ErrorKind, Parser, Subcommand, ValueEnum};
+use clap::{error::ErrorKind, CommandFactory, FromArgMatches, ValueEnum};
 use schemars::schema_for;
 use std::{
     fmt::Write as _,
     io::Write,
-    path::PathBuf,
     process::ExitCode,
     sync::{atomic::AtomicBool, Arc},
 };
-
-#[derive(Parser)]
-#[command(
-    name = "workspace-validator",
-    version,
-    about = "Runs declarative workspace validation pipelines"
-)]
-struct Cli {
-    #[command(subcommand)]
-    command: Command,
-}
-
-#[derive(Subcommand)]
-enum Command {
-    /// Provisions validated consumer-owned resources without executing checks.
-    Init {
-        /// Complete configuration candidate to install.
-        #[arg(long)]
-        config: Option<PathBuf>,
-        /// Workspace boundary; defaults exactly to the process current directory.
-        #[arg(long)]
-        workspace: Option<PathBuf>,
-        #[arg(long, value_enum, default_value = "human")]
-        format: Format,
-    },
-    Validate {
-        /// Group or suite ID; defaults to the configured default group.
-        target: Option<String>,
-        #[arg(long)]
-        config: Option<PathBuf>,
-        #[arg(long, value_enum, default_value = "human")]
-        format: Format,
-        /// Selects a semantic color palette; bare --color selects standard.
-        #[arg(
-            long,
-            value_enum,
-            num_args = 0..=1,
-            default_missing_value = "standard",
-            require_equals = true,
-            value_name = "PALETTE"
-        )]
-        color: Option<ColorPaletteArgument>,
-        /// Selects layout and emphasis independently from the color palette.
-        #[arg(long, value_enum, require_equals = true, value_name = "MODE")]
-        presentation: Option<PresentationArgument>,
-    },
-    Check {
-        check_id: String,
-        #[arg(long)]
-        config: Option<PathBuf>,
-        #[arg(long, value_enum, default_value = "human")]
-        format: Format,
-        /// Selects a semantic color palette; bare --color selects standard.
-        #[arg(
-            long,
-            value_enum,
-            num_args = 0..=1,
-            default_missing_value = "standard",
-            require_equals = true,
-            value_name = "PALETTE"
-        )]
-        color: Option<ColorPaletteArgument>,
-        /// Selects layout and emphasis independently from the color palette.
-        #[arg(long, value_enum, require_equals = true, value_name = "MODE")]
-        presentation: Option<PresentationArgument>,
-    },
-    Config {
-        #[command(subcommand)]
-        command: ConfigCommand,
-    },
-    List {
-        #[arg(long)]
-        tree: bool,
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-    Explain {
-        #[command(subcommand)]
-        target: ExplainTarget,
-    },
-    Schema {
-        #[arg(value_enum)]
-        contract: Contract,
-    },
-}
-
-#[derive(Subcommand)]
-enum ConfigCommand {
-    Validate {
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-}
-
-#[derive(Subcommand)]
-enum ExplainTarget {
-    Group {
-        group_id: String,
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-    Suite {
-        suite_id: String,
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-    Check {
-        check_id: String,
-        #[arg(long)]
-        config: Option<PathBuf>,
-    },
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-enum Format {
-    Human,
-    Json,
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-enum ColorPaletteArgument {
-    Standard,
-    HighContrast,
-    Protanopia,
-    Deuteranopia,
-    Tritanopia,
-    Achromatopsia,
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-enum PresentationArgument {
-    Standard,
-    LowVision,
-}
-
-impl From<ColorPaletteArgument> for PaletteProfile {
-    fn from(value: ColorPaletteArgument) -> Self {
-        match value {
-            ColorPaletteArgument::Standard => Self::Standard,
-            ColorPaletteArgument::HighContrast => Self::HighContrast,
-            ColorPaletteArgument::Protanopia => Self::Protanopia,
-            ColorPaletteArgument::Deuteranopia => Self::Deuteranopia,
-            ColorPaletteArgument::Tritanopia => Self::Tritanopia,
-            ColorPaletteArgument::Achromatopsia => Self::Achromatopsia,
-        }
-    }
-}
-
-impl From<PresentationArgument> for PresentationProfile {
-    fn from(value: PresentationArgument) -> Self {
-        match value {
-            PresentationArgument::Standard => Self::Standard,
-            PresentationArgument::LowVision => Self::LowVision,
-        }
-    }
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-enum Contract {
-    Config,
-    Report,
-}
 
 /// Parses process arguments, executes the requested command, and returns its exit status.
 ///
@@ -200,6 +43,20 @@ enum Contract {
 /// interrupted validation.
 pub fn run_cli() -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
+    let palette = requested_palette(&arguments);
+    let presentation = requested_presentation(&arguments);
+    let command = theme::clap::apply(help::root::configure(Cli::command()), palette, presentation);
+    if help::root::requested(&arguments) {
+        let mut stdout = std::io::stdout().lock();
+        let rendered = help::root::render(command, presentation);
+        return match write_output(&mut stdout, rendered.trim_end()) {
+            Ok(()) => ExitCode::from(0),
+            Err((error, code)) => {
+                write_stderr(&format!("workspace-validator: {error}"));
+                ExitCode::from(code)
+            }
+        };
+    }
     if color_value_without_equals(&arguments) {
         write_stderr("error: named --color palettes require --color=<PALETTE>");
         return ExitCode::from(3);
@@ -208,19 +65,42 @@ pub fn run_cli() -> ExitCode {
         write_stderr("error: named presentation modes require --presentation=<MODE>");
         return ExitCode::from(3);
     }
-    let cli = match Cli::try_parse_from(arguments) {
-        Ok(value) => value,
+    let cli = match command.try_get_matches_from(arguments) {
+        Ok(matches) => match Cli::from_arg_matches(&matches) {
+            Ok(value) => value,
+            Err(error) => {
+                write_stderr(&format!("workspace-validator: {error}"));
+                return ExitCode::from(4);
+            }
+        },
         Err(error) => {
-            let code = match error.kind() {
-                ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 0,
-                _ => 3,
+            let kind = error.kind();
+            if kind == ErrorKind::DisplayHelp {
+                let styled = error.render();
+                let rendered = theme::clap::present_help(styled.ansi().to_string(), presentation);
+                let mut stdout = std::io::stdout().lock();
+                return match write_output(&mut stdout, rendered.trim_end()) {
+                    Ok(()) => ExitCode::from(0),
+                    Err((error, code)) => {
+                        write_stderr(&format!("workspace-validator: {error}"));
+                        ExitCode::from(code)
+                    }
+                };
+            }
+            let code = if kind == ErrorKind::DisplayVersion {
+                0
+            } else {
+                3
             };
             let _ = error.print();
             return ExitCode::from(code);
         }
     };
-    let mut stdout = std::io::stdout().lock();
-    let mut stderr = std::io::stderr().lock();
+    // Keep the standard-stream handles unlocked while the interactive reporter
+    // is active. Indicatif redraws from a background thread and must be able to
+    // acquire stderr independently.
+    let mut stdout = std::io::stdout();
+    let mut stderr = std::io::stderr();
     match execute(cli, &mut stdout, &mut stderr) {
         Ok(code) => ExitCode::from(code as u8),
         Err((error, code)) => {
@@ -236,6 +116,21 @@ fn execute(
     stdout: &mut impl Write,
     stderr: &mut impl Write,
 ) -> Result<i32, (ValidatorError, u8)> {
+    let color = cli.color;
+    let presentation = cli.presentation;
+    let supports_visual_output = matches!(
+        &cli.command,
+        Command::Validate { .. } | Command::Check { .. }
+    );
+    if !supports_visual_output && (color.is_some() || presentation.is_some()) {
+        return Err((
+            ValidatorError::Usage(
+                "--color and --presentation apply to command execution only for validate and check; combine them with -h or --help to style help"
+                    .into(),
+            ),
+            3,
+        ));
+    }
     if let Command::Schema { contract } = cli.command {
         let schema = match contract {
             Contract::Config => schema_for!(Config),
@@ -246,26 +141,35 @@ fn execute(
         write_output(stdout, &rendered)?;
         return Ok(0);
     }
-    if matches!(
-        &cli.command,
+    if let Command::Knowledge { command } = &cli.command {
+        let result = match command {
+            KnowledgeCommand::Catalog { format } => {
+                knowledge::catalog(matches!(format, Format::Json), stdout)
+            }
+            KnowledgeCommand::Show { document_id } => knowledge::show(document_id, stdout),
+        };
+        return match result {
+            Ok(()) => Ok(0),
+            Err(knowledge::KnowledgeError::Selection(details)) => {
+                Err((ValidatorError::Usage(details), 3))
+            }
+            Err(knowledge::KnowledgeError::Internal(details)) => {
+                Err((ValidatorError::Internal(details), 4))
+            }
+        };
+    }
+    let visual_json = match &cli.command {
         Command::Validate {
             format: Format::Json,
-            color: Some(_),
-            ..
-        } | Command::Validate {
-            format: Format::Json,
-            presentation: Some(_),
-            ..
-        } | Command::Check {
-            format: Format::Json,
-            color: Some(_),
-            ..
-        } | Command::Check {
-            format: Format::Json,
-            presentation: Some(_),
             ..
         }
-    ) {
+        | Command::Check {
+            format: Format::Json,
+            ..
+        } => color.is_some() || presentation.is_some(),
+        _ => false,
+    };
+    if visual_json {
         return Err((
             ValidatorError::Usage(
                 "--color and --presentation cannot be combined with --format=json".into(),
@@ -317,6 +221,7 @@ fn execute(
             | ExplainTarget::Check { config, .. } => config.as_deref(),
         },
         Command::Schema { .. } => unreachable!(),
+        Command::Knowledge { .. } => unreachable!(),
     };
     let validated = config::load(explicit, &current).map_err(|error| (error, 3))?;
     match cli.command {
@@ -347,13 +252,7 @@ fn execute(
             };
             Ok(0)
         }
-        Command::Validate {
-            target,
-            format,
-            color,
-            presentation,
-            ..
-        } => {
+        Command::Validate { target, format, .. } => {
             let plan = planning::target(&validated, target.as_deref()).map_err(|details| {
                 (
                     ValidatorError::invalid(validated.configuration_path(), details.to_string()),
@@ -371,11 +270,7 @@ fn execute(
             )
         }
         Command::Check {
-            check_id,
-            format,
-            color,
-            presentation,
-            ..
+            check_id, format, ..
         } => {
             let plan = planning::check(&validated, &check_id).map_err(|details| {
                 (
@@ -394,6 +289,7 @@ fn execute(
             )
         }
         Command::Schema { .. } => unreachable!(),
+        Command::Knowledge { .. } => unreachable!(),
         Command::Init { .. } => unreachable!(),
     }
 }
@@ -466,7 +362,7 @@ fn execute_run(
     )?;
     let (outcome, theme, separate_result) = match format {
         Format::Human => {
-            let theme = reporting::theme::Theme::resolve(
+            let theme = theme::Theme::resolve(
                 color
                     .map(PaletteProfile::from)
                     .unwrap_or(PaletteProfile::Plain),

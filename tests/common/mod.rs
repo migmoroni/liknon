@@ -23,6 +23,11 @@ pub fn write_config(root: &Path, value: &Value) -> std::path::PathBuf {
 }
 
 #[allow(dead_code)]
+pub fn canonical_path(path: &Path) -> PathBuf {
+    path.canonicalize().expect("canonical test path")
+}
+
+#[allow(dead_code)]
 pub fn process_fixture() -> &'static Path {
     static FIXTURE: OnceLock<PathBuf> = OnceLock::new();
     FIXTURE

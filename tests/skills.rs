@@ -20,14 +20,26 @@ fn manifest() -> Value {
 }
 
 fn assert_safe_relative_path(path: &Path) {
-    assert!(!path.as_os_str().is_empty(), "skill path must not be empty");
-    assert!(!path.is_absolute(), "skill path must be relative");
     assert!(
-        path.components()
-            .all(|component| matches!(component, Component::Normal(_))),
-        "skill path must not traverse directories: {}",
+        is_safe_relative_path(path),
+        "unsafe skill path: {}",
         path.display()
     );
+}
+
+fn is_safe_relative_path(path: &Path) -> bool {
+    !path.as_os_str().is_empty()
+        && !path.is_absolute()
+        && path
+            .components()
+            .all(|component| matches!(component, Component::Normal(_)))
+}
+
+#[test]
+fn unsafe_skill_routes_are_rejected_by_the_contract() {
+    for path in ["", "/absolute", "../escape", "references/../escape"] {
+        assert!(!is_safe_relative_path(Path::new(path)));
+    }
 }
 
 #[test]
@@ -60,7 +72,12 @@ fn bundled_skill_matches_the_crate_and_routes_every_workflow() {
     );
     assert_safe_relative_path(&entrypoint);
     let entrypoint_document = read(root.join(&entrypoint));
-    assert!(entrypoint_document.starts_with("---\nname: workspace-validator\ndescription:"));
+    let mut frontmatter = entrypoint_document.lines();
+    assert_eq!(frontmatter.next(), Some("---"));
+    assert_eq!(frontmatter.next(), Some("name: workspace-validator"));
+    assert!(frontmatter
+        .next()
+        .is_some_and(|line| line.starts_with("description:")));
     assert!(entrypoint_document.contains(&format!("- Tool: `{SKILL_NAME}`")));
     assert!(entrypoint_document.contains("`manifest.json`"));
     assert!(!entrypoint_document.contains("- Source crate version:"));
@@ -106,4 +123,9 @@ fn bundled_skill_matches_the_crate_and_routes_every_workflow() {
             );
         }
     }
+
+    assert!(manifest.get("knowledge").is_none());
+    assert!(!root.join("references/knowledge").exists());
+    assert!(entrypoint_document.contains("`workspace-validator knowledge catalog --format=json`"));
+    assert!(entrypoint_document.contains("`workspace-validator knowledge show <document-id>`"));
 }

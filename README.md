@@ -10,6 +10,8 @@ The same pipeline is available as a CLI and as a Rust library.
 
 ## Installation
 
+### From crates.io
+
 Install the published binary with Cargo:
 
 ```sh
@@ -17,6 +19,25 @@ cargo install workspace-validator --locked
 ```
 
 Rust 1.87 or newer is required.
+
+### From a source checkout
+
+Install the exact code from a cloned repository without waiting for a crates.io
+release:
+
+```sh
+git clone https://github.com/migmoroni/workspace-validator.git
+cd workspace-validator
+cargo install --path . --locked --force
+workspace-validator --version
+```
+
+`--force` replaces an existing installed copy even when it has the same crate
+version. Cargo copies the compiled binary into its installation root, normally
+`~/.cargo/bin`; it does not keep the command linked to the checkout. Run the
+`cargo install --path . --locked --force` command again after updating or
+modifying the cloned source. Ensure Cargo's binary directory is present in
+`PATH` before invoking `workspace-validator` directly.
 
 ## Quick Start
 
@@ -96,12 +117,37 @@ Use `--format=json` when a machine-readable report is required:
 workspace-validator validate --format=json
 ```
 
+## Embedded Validation Knowledge
+
+The binary includes a read-only, source-backed knowledge base for selecting and
+interpreting validation evidence. Inspect its compact catalog, then retrieve
+only the documents relevant to the current question:
+
+```sh
+workspace-validator knowledge catalog --format=json
+workspace-validator knowledge show <document-id>
+```
+
+These commands work without configuration or workspace initialization and
+never execute a configured program. Catalog entries marked `draft` may contain
+only stable identity, kind, path, and status while their routing metadata is
+being authored. Entries marked `reviewed` contain the complete catalog
+metadata required by the knowledge schema. The status describes editorial
+readiness; it does not make guidance universal project policy.
+
 ## Agent Skill
 
 The source distribution includes one versioned, agent-neutral skill at
 [`skills/workspace-validator`](skills/workspace-validator). Its `SKILL.md` is a
 small router that checks CLI compatibility and loads only the requested
 workflow reference: execution, triage, configuration, or coverage auditing.
+When a task needs source-backed reasoning about evidence, the router uses
+`workspace-validator knowledge catalog --format=json` and then
+`workspace-validator knowledge show <document-id>` for only the exact matching
+guides. It does not infer metadata omitted from a draft entry. The canonical
+human-readable source remains available at
+[`docs/validation/knowledge`](docs/validation/knowledge/README.md); the skill
+contains no copied knowledge tree.
 
 Copy the complete directory from the source release that matches the installed
 CLI into the skill directory recognized by the consumer workspace. For an
@@ -166,6 +212,8 @@ workspace-validator explain suite <suite-id> [--config <path>]
 workspace-validator explain check <check-id> [--config <path>]
 workspace-validator schema config
 workspace-validator schema report
+workspace-validator knowledge catalog [--format=human|json]
+workspace-validator knowledge show <document-id>
 ```
 
 Without `--config`, the CLI discovers the nearest
@@ -174,6 +222,8 @@ Without `--config`, the CLI discovers the nearest
 and `explain` inspect configuration without running preflight or checks.
 `init` performs no discovery and installs only explicitly requested resources;
 an omitted `--workspace` means exactly the process current directory.
+Knowledge commands read only assets embedded in the binary and do not discover
+configuration or require an initialized workspace.
 
 The focused [Human Flow](docs/validation/flows/human/README.md) walks through
 authoring, deterministic initialization, inspection, execution, interpretation,
@@ -196,22 +246,40 @@ these process-composition outcomes precisely.
 
 ## Human And JSON Output
 
-Human output is plain by default. `--color` selects the standard palette, and
-`--color=<palette>` selects `high-contrast`, `protanopia`, `deuteranopia`,
-`tritanopia`, or `achromatopsia`. Layout is independent:
-`--presentation=low-vision` increases spacing and removes dim styling. Color
-never carries the only indication of status, node type, hierarchy, or errors.
+Human CLI output is plain by default, including short help, long help, parser
+diagnostics, and validation reports. This default follows `NO_COLOR` without
+requiring terminal detection. An explicit global `--color` overrides
+`NO_COLOR` and selects the standard palette; `--color=<palette>` selects
+`high-contrast`, `protanopia`, `deuteranopia`, `tritanopia`, or
+`achromatopsia`. Layout and emphasis are independently selected through
+`--presentation=<mode>`; `low-vision` expands spacing, removes dim styling, and
+may use ANSI typographic emphasis without adding hue. Color never carries the
+only indication of status, node type, hierarchy, or errors.
+
+With `-h` or `--help`, visual options style the requested help. The root help
+documents these renderer controls in full. Focused `validate` and `check` help
+only indicates that they are available because they also style normal human
+execution. Each focused help documents its own `-h, --help`; the consolidated
+root reference documents that option once instead of repeating it in every
+embedded command section. Other commands accept visual options only when
+rendering help, preventing successful command output from silently ignoring
+them.
 
 ```sh
+workspace-validator --color -h
+workspace-validator --color=high-contrast --help
+workspace-validator config --presentation=low-vision --help
+workspace-validator validate --color=deuteranopia --help
 workspace-validator validate --color=high-contrast
 workspace-validator validate --color=deuteranopia --presentation=low-vision
 workspace-validator validate --presentation=low-vision
 ```
 
 `--format=json` emits only the version 4 `ValidationReport`; visual options are
-therefore rejected in JSON mode. Reports keep tools, groups, suites, concrete
-checks, and the optional repository gate structurally distinct. Captured output
-is bounded by `outputLimitBytes` for each stream.
+therefore rejected in JSON mode. Visual options without help are also rejected
+for commands other than `validate` and `check`. Reports keep tools, groups,
+suites, concrete checks, and the optional repository gate structurally
+distinct. Captured output is bounded by `outputLimitBytes` for each stream.
 
 ## Library Usage
 
@@ -240,7 +308,9 @@ println!("{json}");
 `execution::run_with_progress` accepts an implementation of
 `execution::progress::ProgressReporter` for typed lifecycle events. The
 checked-in [`examples/inspect.rs`](examples/inspect.rs) demonstrates
-non-destructive configuration and plan inspection.
+non-destructive configuration and plan inspection. Human renderers consume
+`theme::Theme`; palette and presentation profiles remain composable and usable
+independently from the CLI.
 
 The Rust API, CLI commands and exit codes, schema shapes, JSON report, execution
 semantics, palette names, and presentation names are observable contracts.
@@ -278,8 +348,12 @@ rejected rather than inferred or converted.
 
 Published package contents include:
 
-- [`schemas/config.schema.json`](schemas/config.schema.json);
-- [`schemas/report.schema.json`](schemas/report.schema.json);
+- the configuration, report, and knowledge contracts under the
+  [`schemas` directory](schemas/);
+- the human flow, stable reference, embedded knowledge source, and maintainer
+  guidance under [`docs/validation`](docs/validation/README.md);
+- the agent-neutral workflow bundle under
+  [`skills/workspace-validator`](skills/workspace-validator/SKILL.md);
 - [`CONFIG_DESIGN.md`](CONFIG_DESIGN.md);
 - [`CHANGELOG.md`](CHANGELOG.md);
 - [`SECURITY.md`](SECURITY.md);
@@ -300,3 +374,14 @@ the CLI. `cargo audit` rejects known RustSec advisories, while `cargo deny`
 applies the license, source, and duplicate-dependency policy in
 [`deny.toml`](deny.toml). The package job verifies the isolated crate archive
 and smoke-tests the packaged binary. The CI workflow never publishes a package.
+
+Knowledge maintainers verify the machine-readable contracts, declared assets,
+references, recipe configurations, generated source index, and deterministic
+tree digest with:
+
+```sh
+cargo run --locked --example knowledge_release -- --check
+```
+
+Use `--write` only when `sources.json` changed and `SOURCES.md` must be
+regenerated. Editorial quality remains a human review responsibility.

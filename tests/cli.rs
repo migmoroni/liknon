@@ -1,9 +1,30 @@
 mod common;
 use serde_json::Value;
-#[cfg(unix)]
-use std::process::Stdio;
 use std::{fs, process::Command};
+#[cfg(unix)]
+use std::{os::fd::OwnedFd, os::unix::net::UnixStream, process::Stdio};
 use tempfile::TempDir;
+
+fn command_help(arguments: &[&str]) -> String {
+    command_help_with_environment(arguments, &[])
+}
+
+fn command_help_with_environment(arguments: &[&str], environment: &[(&str, &str)]) -> String {
+    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .args(arguments)
+        .envs(environment.iter().copied())
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{} returned {:?}: {}",
+        arguments.join(" "),
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stderr.is_empty());
+    String::from_utf8(output.stdout).unwrap()
+}
 
 fn init_candidate(root: &std::path::Path) -> (std::path::PathBuf, Vec<u8>) {
     let mut value = common::base_config("definitely-missing");
@@ -12,6 +33,24 @@ fn init_candidate(root: &std::path::Path) -> (std::path::PathBuf, Vec<u8>) {
     let path = root.join("candidate.json");
     fs::write(&path, &bytes).unwrap();
     (path, bytes)
+}
+
+#[cfg(unix)]
+fn unwritable_stream() -> Stdio {
+    let (reader, writer) = UnixStream::pair().unwrap();
+    drop(reader);
+    Stdio::from(OwnedFd::from(writer))
+}
+
+#[cfg(unix)]
+fn output_with_unwritable_stdout(command: &mut Command) -> std::process::Output {
+    command
+        .stdout(unwritable_stream())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap()
+        .wait_with_output()
+        .unwrap()
 }
 
 #[test]
@@ -29,14 +68,15 @@ fn init_requires_a_capability_flag() {
 #[test]
 fn init_installs_exact_validated_bytes_and_reuses_them() {
     let temp = TempDir::new().unwrap();
-    let (candidate, bytes) = init_candidate(temp.path());
+    let workspace = common::canonical_path(temp.path());
+    let (candidate, bytes) = init_candidate(&workspace);
     let bin = env!("CARGO_BIN_EXE_workspace-validator");
 
     let created = Command::new(bin)
         .args(["init", "--config"])
         .arg(&candidate)
         .arg("--format=json")
-        .current_dir(temp.path())
+        .current_dir(&workspace)
         .output()
         .unwrap();
     assert!(
@@ -52,7 +92,7 @@ fn init_installs_exact_validated_bytes_and_reuses_them() {
     assert_eq!(document["resources"][0]["status"], "created");
     assert!(document["resources"][0]["digest"].as_str().unwrap().len() == 64);
     assert_eq!(
-        fs::read(temp.path().join(".validation/config.json")).unwrap(),
+        fs::read(workspace.join(".validation/config.json")).unwrap(),
         bytes
     );
 
@@ -60,7 +100,7 @@ fn init_installs_exact_validated_bytes_and_reuses_them() {
         .args(["init", "--config"])
         .arg(&candidate)
         .arg("--format=json")
-        .current_dir(temp.path())
+        .current_dir(&workspace)
         .output()
         .unwrap();
     assert!(reused.status.success());
@@ -71,14 +111,15 @@ fn init_installs_exact_validated_bytes_and_reuses_them() {
 #[test]
 fn init_reports_conflicts_and_never_overwrites() {
     let temp = TempDir::new().unwrap();
-    let (candidate, _) = init_candidate(temp.path());
-    fs::create_dir(temp.path().join(".validation")).unwrap();
-    fs::write(temp.path().join(".validation/config.json"), b"different").unwrap();
+    let workspace = common::canonical_path(temp.path());
+    let (candidate, _) = init_candidate(&workspace);
+    fs::create_dir(workspace.join(".validation")).unwrap();
+    fs::write(workspace.join(".validation/config.json"), b"different").unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--format=json")
-        .current_dir(temp.path())
+        .current_dir(&workspace)
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(1));
@@ -87,7 +128,7 @@ fn init_reports_conflicts_and_never_overwrites() {
     assert_eq!(document["status"], "conflict");
     assert_eq!(document["resources"][0]["status"], "conflict");
     assert_eq!(
-        fs::read(temp.path().join(".validation/config.json")).unwrap(),
+        fs::read(workspace.join(".validation/config.json")).unwrap(),
         b"different"
     );
 }
@@ -95,16 +136,17 @@ fn init_reports_conflicts_and_never_overwrites() {
 #[test]
 fn init_uses_canonical_destination_semantics_and_starts_no_tool() {
     let temp = TempDir::new().unwrap();
-    let marker = temp.path().join("preflight-ran");
+    let workspace = common::canonical_path(temp.path());
+    let marker = workspace.join("preflight-ran");
     let mut value = common::base_config(common::process_fixture());
     value["workspaceRoot"] = "..".into();
     value["tools"][0]["versionArgs"] = serde_json::json!(["mark-version", marker]);
-    let candidate = common::write_config(temp.path(), &value);
+    let candidate = common::write_config(&workspace, &value);
     let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--workspace")
-        .arg(temp.path())
+        .arg(&workspace)
         .current_dir(std::env::temp_dir())
         .output()
         .unwrap();
@@ -122,8 +164,10 @@ fn init_rejects_symlinked_candidates_and_workspace_escape() {
     use std::os::unix::fs::symlink;
     let workspace = TempDir::new().unwrap();
     let outside = TempDir::new().unwrap();
-    let (outside_candidate, _) = init_candidate(outside.path());
-    let link = workspace.path().join("candidate-link.json");
+    let workspace_root = common::canonical_path(workspace.path());
+    let outside_root = common::canonical_path(outside.path());
+    let (outside_candidate, _) = init_candidate(&outside_root);
+    let link = workspace_root.join("candidate-link.json");
     symlink(&outside_candidate, &link).unwrap();
     let bin = env!("CARGO_BIN_EXE_workspace-validator");
     for candidate in [&link, &outside_candidate] {
@@ -131,7 +175,7 @@ fn init_rejects_symlinked_candidates_and_workspace_escape() {
             .args(["init", "--config"])
             .arg(candidate)
             .arg("--workspace")
-            .arg(workspace.path())
+            .arg(&workspace_root)
             .arg("--format=json")
             .output()
             .unwrap();
@@ -139,7 +183,7 @@ fn init_rejects_symlinked_candidates_and_workspace_escape() {
         let document: Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(document["status"], "failed");
     }
-    assert!(!workspace.path().join(".validation").exists());
+    assert!(!workspace_root.join(".validation").exists());
 }
 
 #[cfg(unix)]
@@ -148,20 +192,22 @@ fn init_rejects_a_symlinked_destination_directory() {
     use std::os::unix::fs::symlink;
     let workspace = TempDir::new().unwrap();
     let outside = TempDir::new().unwrap();
-    let (candidate, _) = init_candidate(workspace.path());
-    symlink(outside.path(), workspace.path().join(".validation")).unwrap();
+    let workspace_root = common::canonical_path(workspace.path());
+    let outside_root = common::canonical_path(outside.path());
+    let (candidate, _) = init_candidate(&workspace_root);
+    symlink(&outside_root, workspace_root.join(".validation")).unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
         .args(["init", "--config"])
         .arg(candidate)
         .arg("--workspace")
-        .arg(workspace.path())
+        .arg(&workspace_root)
         .arg("--format=json")
         .output()
         .unwrap();
     assert_eq!(output.status.code(), Some(1));
     let document: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(document["resources"][0]["status"], "conflict");
-    assert!(!outside.path().join("config.json").exists());
+    assert!(!outside_root.join("config.json").exists());
 }
 
 #[test]
@@ -379,13 +425,28 @@ fn visual_usage_rejects_ambiguous_unknown_and_json_combinations() {
 }
 
 #[test]
+fn visual_execution_options_are_rejected_by_unsupported_commands() {
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    for arguments in [
+        &["init", "--color"][..],
+        &["config", "validate", "--color=standard"][..],
+        &["list", "--presentation=low-vision"][..],
+        &["knowledge", "catalog", "--presentation=standard"][..],
+    ] {
+        let output = Command::new(binary).args(arguments).output().unwrap();
+        assert_eq!(output.status.code(), Some(3), "{}", arguments.join(" "));
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        assert!(
+            stderr.contains("apply to command execution only for validate and check"),
+            "{}:\n{stderr}",
+            arguments.join(" ")
+        );
+    }
+}
+
+#[test]
 fn help_lists_palettes_and_presentations_as_distinct_options() {
-    let output = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
-        .args(["validate", "--help"])
-        .output()
-        .unwrap();
-    assert!(output.status.success());
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stdout = command_help(&["--help"]);
     for palette in [
         "standard",
         "high-contrast",
@@ -398,31 +459,700 @@ fn help_lists_palettes_and_presentations_as_distinct_options() {
     }
     assert!(stdout.contains("--color[=<PALETTE>]"), "{stdout}");
     assert!(stdout.contains("--presentation=<MODE>"), "{stdout}");
-    assert!(
-        stdout.contains("[possible values: standard, high-contrast, protanopia, deuteranopia, tritanopia, achromatopsia]"),
-        "{stdout}"
-    );
-    assert!(
-        stdout.contains("[possible values: standard, low-vision]"),
-        "{stdout}"
-    );
-    assert!(!stdout.contains("[possible values: standard, high-contrast, low-vision]"));
-    assert!(!stdout.contains("plain"));
+    for description in [
+        "Standard semantic terminal palette",
+        "Higher-contrast semantic terminal palette",
+        "Semantic palette adapted for protanopia",
+        "Semantic palette adapted for deuteranopia",
+        "Semantic palette adapted for tritanopia",
+        "Semantic palette that does not rely on hue distinctions",
+        "Compact terminal layout and standard emphasis",
+        "Expanded spacing and stronger emphasis for low-vision readability",
+    ] {
+        assert!(
+            stdout.contains(description),
+            "missing {description:?} in:\n{stdout}"
+        );
+    }
+    assert!(!stdout.contains("- plain:"));
 }
 
 #[test]
-fn root_help_and_version_are_successful_cli_outcomes() {
-    let binary = env!("CARGO_BIN_EXE_workspace-validator");
-    for argument in ["--help", "--version"] {
-        let output = Command::new(binary).arg(argument).output().unwrap();
-        assert!(
-            output.status.success(),
-            "{argument} returned {:?}: {}",
-            output.status.code(),
-            String::from_utf8_lossy(&output.stderr)
-        );
-        assert!(!output.stdout.is_empty());
+fn visual_help_controls_are_documented_only_for_supported_execution() {
+    for arguments in [["-h"].as_slice(), ["--help"].as_slice()] {
+        let help = command_help(arguments);
+        assert!(help.contains("--color[=<PALETTE>]"), "{help}");
+        assert!(help.contains("--presentation=<MODE>"), "{help}");
     }
+
+    for arguments in [&["validate", "--help"][..], &["check", "--help"][..]] {
+        let help = command_help(arguments);
+        assert!(help.contains("--color[=<PALETTE>]"), "{help}");
+        assert!(help.contains("--presentation=<MODE>"), "{help}");
+        assert!(help.contains("See root --help"), "{help}");
+        assert!(
+            !help.contains("Standard semantic terminal palette"),
+            "{help}"
+        );
+    }
+
+    for arguments in [
+        &["init", "--help"][..],
+        &["config", "--help"][..],
+        &["config", "validate", "--help"][..],
+        &["list", "--help"][..],
+        &["explain", "--help"][..],
+        &["explain", "group", "--help"][..],
+        &["explain", "suite", "--help"][..],
+        &["explain", "check", "--help"][..],
+        &["schema", "--help"][..],
+        &["knowledge", "--help"][..],
+        &["knowledge", "catalog", "--help"][..],
+        &["knowledge", "show", "--help"][..],
+    ] {
+        let help = command_help(arguments);
+        assert!(
+            !help.contains("--color"),
+            "{}:\n{help}",
+            arguments.join(" ")
+        );
+        assert!(
+            !help.contains("--presentation"),
+            "{}:\n{help}",
+            arguments.join(" ")
+        );
+    }
+}
+
+#[test]
+fn hidden_visual_controls_still_style_focused_help() {
+    let plain = command_help_with_environment(&["config", "--help"], &[("NO_COLOR", "1")]);
+    let colored = command_help_with_environment(
+        &["config", "--color=standard", "--help"],
+        &[("NO_COLOR", "1")],
+    );
+    assert!(colored.contains('\u{1b}'));
+    assert_eq!(console::strip_ansi_codes(&colored), plain);
+
+    let low_vision = command_help_with_environment(
+        &["config", "--presentation=low-vision", "--help"],
+        &[("NO_COLOR", "1")],
+    );
+    let low_vision_plain = console::strip_ansi_codes(&low_vision);
+    assert!(low_vision.contains('\u{1b}'));
+    assert!(low_vision_plain.lines().count() > plain.lines().count());
+    assert!(!low_vision_plain.contains("--presentation"));
+    assert!(!low_vision_plain.contains("--color"));
+
+    let root_standard = command_help_with_environment(&["--help"], &[("NO_COLOR", "1")]);
+    let root_low_vision = command_help_with_environment(
+        &["--presentation=low-vision", "--help"],
+        &[("NO_COLOR", "1")],
+    );
+    assert!(root_low_vision.contains('\u{1b}'));
+    assert!(
+        console::strip_ansi_codes(&root_low_vision).lines().count() > root_standard.lines().count()
+    );
+}
+
+#[test]
+fn low_vision_short_help_separates_neighboring_commands_and_options() {
+    let rendered =
+        command_help_with_environment(&["-h", "--presentation=low-vision"], &[("NO_COLOR", "1")]);
+    let plain = console::strip_ansi_codes(&rendered);
+
+    assert!(
+        plain.contains(
+            "init       Provisions validated consumer-owned resources without executing checks\n\n  validate"
+        ),
+        "{plain}"
+    );
+    assert!(
+        plain.contains("Selects the layout and emphasis of human CLI output [possible values: standard, low-vision]\n\n  -h, --help"),
+        "{plain}"
+    );
+}
+
+#[test]
+fn root_help_describes_every_command() {
+    let stdout = command_help(&["--help"]);
+    for description in [
+        "Provisions validated consumer-owned resources without executing checks",
+        "Runs a configured group or suite after configuration and tool preflight",
+        "Runs one reusable check directly at the workspace root",
+        "Inspects and validates configuration without executing configured programs",
+        "Lists configured groups, suites, checks, and tools without executing them",
+        "Explains one configured group, suite, or check without executing it",
+        "Prints the generated JSON Schema for a public CLI contract",
+        "Reads validation guidance embedded in this binary without loading configuration",
+        "Prints help at the root or after any command",
+        "The -h flag prints a compact summary; --help prints complete details",
+    ] {
+        assert!(
+            stdout.contains(description),
+            "missing {description:?} in:\n{stdout}"
+        );
+    }
+    assert_eq!(
+        stdout
+            .matches(
+                "Supports --color and --presentation for human validation output; see root Options"
+            )
+            .count(),
+        2,
+        "{stdout}"
+    );
+}
+
+#[test]
+fn help_option_is_documented_once_in_each_requested_help_page() {
+    let root = command_help(&["--help"]);
+    assert_eq!(root.matches("-h, --help").count(), 1, "{root}");
+
+    for arguments in [
+        &["init", "--help"][..],
+        &["validate", "--help"][..],
+        &["check", "--help"][..],
+        &["config", "--help"][..],
+        &["config", "validate", "--help"][..],
+        &["list", "--help"][..],
+        &["explain", "--help"][..],
+        &["explain", "group", "--help"][..],
+        &["explain", "suite", "--help"][..],
+        &["explain", "check", "--help"][..],
+        &["schema", "--help"][..],
+        &["knowledge", "--help"][..],
+        &["knowledge", "catalog", "--help"][..],
+        &["knowledge", "show", "--help"][..],
+    ] {
+        let focused = command_help(arguments);
+        assert_eq!(
+            focused.matches("-h, --help").count(),
+            1,
+            "{}:\n{focused}",
+            arguments.join(" ")
+        );
+    }
+}
+
+#[test]
+fn root_short_help_stays_compact_while_long_help_flattens_the_command_tree() {
+    let short = command_help(&["-h"]);
+    assert!(short.contains("Commands:"), "{short}");
+    assert!(short.contains("validate"), "{short}");
+    assert!(!short.contains("workspace-validator validate:"), "{short}");
+    assert!(
+        short.contains("Usage: workspace-validator <COMMAND> [OPTIONS]"),
+        "{short}"
+    );
+    assert!(short.contains("--color[=<PALETTE>]"), "{short}");
+    assert!(short.contains("--presentation=<MODE>"), "{short}");
+
+    let long = command_help(&["--help"]);
+    let commands_position = long.find("Commands:").expect("root command index");
+    let options_position = long.find("Options:").expect("root options");
+    let first_separator_position = long.find(&"─".repeat(78)).expect("first command section");
+    assert!(commands_position < options_position, "{long}");
+    assert!(options_position < first_separator_position, "{long}");
+    let command_index = &long[commands_position..options_position];
+    for command in [
+        "init",
+        "validate",
+        "check",
+        "config",
+        "list",
+        "explain",
+        "schema",
+        "knowledge",
+    ] {
+        assert!(
+            command_index.lines().any(|line| {
+                line.trim_start()
+                    .strip_prefix(command)
+                    .and_then(|remainder| remainder.chars().next())
+                    .is_some_and(char::is_whitespace)
+            }),
+            "missing {command:?} from command index:\n{command_index}"
+        );
+    }
+    let top_level_commands = [
+        "init:",
+        "validate:",
+        "check:",
+        "config:",
+        "list:",
+        "explain:",
+        "schema:",
+        "knowledge:",
+    ];
+    let nested_commands = [
+        "config validate:",
+        "explain group:",
+        "explain suite:",
+        "explain check:",
+        "knowledge catalog:",
+        "knowledge show:",
+    ];
+    let separator = "─".repeat(78);
+    let nested_separator = "─".repeat(39);
+    assert_eq!(
+        long.lines().filter(|line| *line == separator).count(),
+        top_level_commands.len(),
+        "{long}"
+    );
+    assert_eq!(
+        long.lines()
+            .filter(|line| *line == nested_separator)
+            .count(),
+        nested_commands.len(),
+        "{long}"
+    );
+    for command in top_level_commands {
+        assert!(long.contains(command), "missing {command:?} in:\n{long}");
+        assert!(
+            long.contains(&format!("{separator}\n{command}")),
+            "missing separator before {command:?} in:\n{long}"
+        );
+    }
+    for command in nested_commands {
+        assert!(long.contains(command), "missing {command:?} in:\n{long}");
+        assert!(
+            long.contains(&format!("{nested_separator}\n{command}")),
+            "missing nested separator before {command:?} in:\n{long}"
+        );
+    }
+    assert!(
+        long.contains("Usage: workspace-validator <COMMAND> [OPTIONS]"),
+        "{long}"
+    );
+    for usage in [
+        "Usage: workspace-validator init [OPTIONS]",
+        "Usage: workspace-validator validate [OPTIONS] [TARGET]",
+        "Usage: workspace-validator check [OPTIONS] <CHECK_ID>",
+        "Usage: workspace-validator config <COMMAND>",
+        "Usage: workspace-validator config validate [OPTIONS]",
+        "Usage: workspace-validator list [OPTIONS]",
+        "Usage: workspace-validator explain <COMMAND>",
+        "Usage: workspace-validator explain group [OPTIONS] <GROUP_ID>",
+        "Usage: workspace-validator explain suite [OPTIONS] <SUITE_ID>",
+        "Usage: workspace-validator explain check [OPTIONS] <CHECK_ID>",
+        "Usage: workspace-validator schema <CONTRACT>",
+        "Usage: workspace-validator knowledge <COMMAND>",
+        "Usage: workspace-validator knowledge catalog [OPTIONS]",
+        "Usage: workspace-validator knowledge show <DOCUMENT_ID>",
+    ] {
+        assert!(long.contains(usage), "missing {usage:?} in:\n{long}");
+    }
+    for old_heading in [
+        "workspace-validator init:",
+        "workspace-validator config validate:",
+        "workspace-validator explain suite:",
+        "workspace-validator knowledge show:",
+    ] {
+        assert!(
+            !long.contains(old_heading),
+            "unexpected heading {old_heading:?} in:\n{long}"
+        );
+    }
+    for generated in [
+        "workspace-validator help:",
+        "workspace-validator config help:",
+        "workspace-validator explain help:",
+        "workspace-validator knowledge help:",
+    ] {
+        assert!(
+            !long.contains(generated),
+            "unexpected {generated:?} in:\n{long}"
+        );
+    }
+    for option in [
+        "--config <CONFIG>",
+        "--workspace <WORKSPACE>",
+        "--format <FORMAT>",
+        "--color[=<PALETTE>]",
+        "--presentation=<MODE>",
+        "--tree",
+    ] {
+        assert!(long.contains(option), "missing {option:?} in:\n{long}");
+    }
+    for argument in [
+        "[TARGET]",
+        "<CHECK_ID>",
+        "<GROUP_ID>",
+        "<SUITE_ID>",
+        "<CONTRACT>",
+        "<DOCUMENT_ID>",
+    ] {
+        assert!(long.contains(argument), "missing {argument:?} in:\n{long}");
+    }
+    assert!(
+        long.contains("Without this flag, output contains no ANSI color"),
+        "{long}"
+    );
+
+    let focused = command_help(&["validate", "--help"]);
+    assert!(!focused.contains(&separator), "{focused}");
+}
+
+#[test]
+fn root_low_vision_help_adds_space_after_hierarchical_separators() {
+    let rendered = command_help_with_environment(
+        &["--presentation=low-vision", "--help"],
+        &[("NO_COLOR", "1")],
+    );
+    let plain = console::strip_ansi_codes(&rendered);
+
+    let full_separator = "─".repeat(78);
+    let nested_separator = "─".repeat(39);
+    let lines = plain.lines().collect::<Vec<_>>();
+    let mut separator_count = 0;
+    for (index, line) in lines.iter().enumerate() {
+        if *line == full_separator || *line == nested_separator {
+            separator_count += 1;
+            assert_eq!(
+                lines.get(index + 1),
+                Some(&""),
+                "separator lacks its low-vision gap:\n{plain}"
+            );
+        }
+    }
+    assert_eq!(separator_count, 14, "{plain}");
+}
+
+#[test]
+fn root_help_guidance_lives_in_the_top_options_block() {
+    let rendered = command_help(&["--help"]);
+    let guidance = "Prints help at the root or after any command";
+    let guidance_position = rendered.find(guidance).expect("root help guidance");
+    let first_command_separator = rendered
+        .find(&"─".repeat(78))
+        .expect("first command separator");
+
+    assert!(guidance_position < first_command_separator, "{rendered}");
+    assert!(
+        !rendered.trim_end().ends_with("complete details."),
+        "{rendered}"
+    );
+}
+
+#[test]
+fn generated_help_subcommands_are_disabled() {
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    for arguments in [
+        &["help"][..],
+        &["config", "help"][..],
+        &["explain", "help"][..],
+        &["knowledge", "help"][..],
+    ] {
+        let output = Command::new(binary).args(arguments).output().unwrap();
+        assert_eq!(output.status.code(), Some(3), "{}", arguments.join(" "));
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        assert!(
+            stderr.contains("unrecognized subcommand 'help'"),
+            "{}:\n{stderr}",
+            arguments.join(" ")
+        );
+    }
+}
+
+#[test]
+fn short_and_long_help_share_accessible_palette_semantics() {
+    let cases: &[(&[&str], &[&str])] = &[
+        (&["-h"], &["--color=standard", "-h"]),
+        (&["--help"], &["--color=standard", "--help"]),
+        (&["validate", "-h"], &["validate", "--color=standard", "-h"]),
+        (
+            &["validate", "--help"],
+            &["validate", "--color=standard", "--help"],
+        ),
+    ];
+
+    for (plain_arguments, colored_arguments) in cases {
+        let plain = command_help_with_environment(plain_arguments, &[("NO_COLOR", "1")]);
+        assert!(!plain.contains('\u{1b}'), "{}", plain_arguments.join(" "));
+
+        let colored = command_help_with_environment(colored_arguments, &[("NO_COLOR", "1")]);
+        assert!(
+            colored.contains('\u{1b}'),
+            "{}",
+            colored_arguments.join(" ")
+        );
+        assert_eq!(
+            console::strip_ansi_codes(&colored),
+            plain,
+            "{}",
+            colored_arguments.join(" ")
+        );
+    }
+
+    let plain = command_help(&["--help"]);
+    for palette in [
+        "standard",
+        "high-contrast",
+        "protanopia",
+        "deuteranopia",
+        "tritanopia",
+        "achromatopsia",
+    ] {
+        let option = format!("--color={palette}");
+        let colored = command_help(&[&option, "--help"]);
+        assert!(colored.contains('\u{1b}'), "palette {palette}");
+        assert_eq!(
+            console::strip_ansi_codes(&colored),
+            plain,
+            "palette {palette}"
+        );
+    }
+}
+
+#[test]
+fn parser_diagnostics_follow_the_global_palette() {
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let plain = Command::new(binary)
+        .arg("unknown")
+        .env("NO_COLOR", "1")
+        .output()
+        .unwrap();
+    let colored = Command::new(binary)
+        .args(["--color=high-contrast", "unknown"])
+        .env("NO_COLOR", "1")
+        .output()
+        .unwrap();
+
+    assert_eq!(plain.status.code(), Some(3));
+    assert_eq!(colored.status.code(), Some(3));
+    assert!(plain.stdout.is_empty());
+    assert!(colored.stdout.is_empty());
+    assert!(!plain.stderr.contains(&0x1b));
+    assert!(colored.stderr.contains(&0x1b));
+    assert_eq!(
+        console::strip_ansi_codes(&String::from_utf8_lossy(&colored.stderr)),
+        String::from_utf8_lossy(&plain.stderr)
+    );
+}
+
+#[test]
+fn command_help_describes_every_argument_and_option() {
+    let cases: &[(&[&str], &[&str])] = &[
+        (
+            &["init", "--help"],
+            &[
+                "Path to the complete configuration candidate to install",
+                "does not discover an existing workspace configuration",
+                "Sets the destination workspace boundary",
+                "must remain within this boundary",
+                "Selects the initialization result format",
+                "machine-readable initialization result without terminal styling",
+            ],
+        ),
+        (
+            &["validate", "--help"],
+            &[
+                "Group or suite ID; defaults to the configured default group",
+                "Uses an explicit configuration file instead of discovery",
+                "discovery walks upward from the process current directory",
+                "Selects the validation report format",
+                "JSON emits only the versioned ValidationReport",
+                "Styles human validation output with ANSI color",
+                "See root --help for palettes and rendering behavior",
+                "Selects the layout and emphasis of human validation output",
+                "See root --help for presentation modes and rendering behavior",
+            ],
+        ),
+        (
+            &["check", "--help"],
+            &[
+                "ID of the configured check to run",
+                "Uses an explicit configuration file instead of discovery",
+                "discovery walks upward from the process current directory",
+                "Selects the validation report format",
+                "JSON emits only the versioned ValidationReport",
+                "Styles human validation output with ANSI color",
+                "See root --help for palettes and rendering behavior",
+                "Selects the layout and emphasis of human validation output",
+                "See root --help for presentation modes and rendering behavior",
+            ],
+        ),
+        (
+            &["config", "--help"],
+            &["Validates configuration and filesystem semantics without starting configured tools"],
+        ),
+        (
+            &["config", "validate", "--help"],
+            &[
+                "Uses an explicit configuration file instead of discovery",
+                "discovery walks upward from the process current directory",
+            ],
+        ),
+        (
+            &["list", "--help"],
+            &[
+                "Also prints the configured default group's reachable execution hierarchy",
+                "Without this flag, the command lists the available groups",
+                "Uses an explicit configuration file instead of discovery",
+            ],
+        ),
+        (
+            &["explain", "--help"],
+            &[
+                "Shows membership, hierarchy, resolved invocations, and required tools for a group",
+                "Shows directory, membership, resolved invocations, and required tools for a suite",
+                "Shows the template and resolved direct and suite-bound invocations for a check",
+            ],
+        ),
+        (
+            &["explain", "group", "--help"],
+            &[
+                "ID of the configured group to explain",
+                "Uses an explicit configuration file instead of discovery",
+            ],
+        ),
+        (
+            &["explain", "suite", "--help"],
+            &[
+                "ID of the configured suite to explain",
+                "Uses an explicit configuration file instead of discovery",
+            ],
+        ),
+        (
+            &["explain", "check", "--help"],
+            &[
+                "ID of the configured check to explain",
+                "Uses an explicit configuration file instead of discovery",
+            ],
+        ),
+        (
+            &["schema", "--help"],
+            &["Public contract whose JSON Schema is written to standard output"],
+        ),
+        (
+            &["knowledge", "--help"],
+            &[
+                "Lists the embedded catalog used for progressive discovery",
+                "Writes one canonical Markdown document selected by stable ID",
+            ],
+        ),
+        (
+            &["knowledge", "catalog", "--help"],
+            &[
+                "Selects the embedded catalog format",
+                "exact embedded canonical catalog for machine consumption",
+            ],
+        ),
+        (
+            &["knowledge", "show", "--help"],
+            &["Stable document ID returned by the embedded knowledge catalog"],
+        ),
+    ];
+
+    for (arguments, descriptions) in cases {
+        let stdout = command_help(arguments);
+        for description in *descriptions {
+            assert!(
+                stdout.contains(description),
+                "missing {description:?} from `{}` help:\n{stdout}",
+                arguments.join(" ")
+            );
+        }
+    }
+}
+
+#[test]
+fn root_version_is_a_successful_cli_outcome() {
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let output = Command::new(binary).arg("--version").output().unwrap();
+    assert!(
+        output.status.success(),
+        "--version returned {:?}: {}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(!output.stdout.is_empty());
+}
+
+#[test]
+fn embedded_knowledge_is_exact_read_only_and_independent_from_configuration() {
+    let temp = TempDir::new().unwrap();
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    let canonical_root =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("docs/validation/knowledge");
+    let canonical_catalog = fs::read(canonical_root.join("catalog.json")).unwrap();
+
+    let json = Command::new(binary)
+        .args(["knowledge", "catalog", "--format=json"])
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert!(json.status.success());
+    assert!(json.stderr.is_empty());
+    assert_eq!(json.stdout, canonical_catalog);
+
+    let human = Command::new(binary)
+        .args(["knowledge", "catalog"])
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert!(human.status.success());
+    let human = String::from_utf8(human.stdout).unwrap();
+    assert!(human.starts_with("Embedded validation knowledge ("));
+
+    let catalog: Value = serde_json::from_slice(&canonical_catalog).unwrap();
+    for document in catalog["documents"].as_array().unwrap() {
+        let id = document["id"].as_str().unwrap();
+        let path = document["path"].as_str().unwrap();
+        let output = Command::new(binary)
+            .args(["knowledge", "show", id])
+            .current_dir(temp.path())
+            .output()
+            .unwrap();
+        assert!(output.status.success(), "{id}");
+        assert!(output.stderr.is_empty(), "{id}");
+        assert_eq!(
+            output.stdout,
+            fs::read(canonical_root.join(path)).unwrap(),
+            "{id}"
+        );
+    }
+
+    assert!(!temp.path().join(".validation").exists());
+    assert_eq!(fs::read_dir(temp.path()).unwrap().count(), 0);
+}
+
+#[test]
+fn knowledge_show_rejects_non_ids_paths_and_unknown_documents() {
+    let temp = TempDir::new().unwrap();
+    let binary = env!("CARGO_BIN_EXE_workspace-validator");
+    for selector in [
+        "../escape",
+        "/absolute",
+        "reference/tools/cargo.md",
+        "tool.not-present",
+    ] {
+        let output = Command::new(binary)
+            .args(["knowledge", "show", selector])
+            .current_dir(temp.path())
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(3), "{selector}");
+        assert!(output.stdout.is_empty(), "{selector}");
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains("knowledge document ID"),
+            "{selector}"
+        );
+    }
+    assert_eq!(fs::read_dir(temp.path()).unwrap().count(), 0);
+}
+
+#[cfg(unix)]
+#[test]
+fn knowledge_output_failure_returns_four_without_panicking() {
+    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    command.args(["knowledge", "show", "tool.cargo"]);
+    let output = output_with_unwritable_stdout(&mut command);
+    assert_eq!(output.status.code(), Some(4));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("cannot write standard output"), "{stderr}");
+    assert!(!stderr.contains("panicked"), "{stderr}");
 }
 
 #[test]
@@ -621,16 +1351,9 @@ fn inspection_output_failure_returns_exit_four() {
         }));
     }
     let path = common::write_config(temp.path(), &value);
-    let output = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full; exec \"$1\" list --config \"$2\"",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
-        .arg(path)
-        .output()
-        .unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    command.args(["list", "--config"]).arg(path);
+    let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
     assert!(String::from_utf8_lossy(&output.stderr).contains("internal executor failure"));
 }
@@ -646,18 +1369,9 @@ fn explain_output_failures_return_four_without_panicking() {
         ("suite", "fixture"),
         ("check", "fixture.check"),
     ] {
-        let output = Command::new("sh")
-            .args([
-                "-c",
-                "exec 1>/dev/full; exec \"$1\" explain \"$2\" \"$3\" --config \"$4\"",
-                "workspace-validator-test",
-                env!("CARGO_BIN_EXE_workspace-validator"),
-                kind,
-                id,
-            ])
-            .arg(&path)
-            .output()
-            .unwrap();
+        let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+        command.args(["explain", kind, id, "--config"]).arg(&path);
+        let output = output_with_unwritable_stdout(&mut command);
         assert_eq!(output.status.code(), Some(4), "{kind}");
         let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(
@@ -696,16 +1410,11 @@ fn final_json_report_write_failure_returns_four_without_panicking() {
     let mut value = common::base_config("rustc");
     value["checks"][0]["args"] = serde_json::json!(["--version"]);
     let path = common::write_config(temp.path(), &value);
-    let output = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full; exec \"$1\" validate --format=json --config \"$2\"",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
-        .arg(path)
-        .output()
-        .unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    command
+        .args(["validate", "--format=json", "--config"])
+        .arg(path);
+    let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("cannot write standard output"), "{stderr}");
@@ -717,24 +1426,20 @@ fn final_json_report_write_failure_returns_four_without_panicking() {
 #[test]
 fn final_init_json_write_failure_returns_four_without_panicking() {
     let temp = TempDir::new().unwrap();
-    let (candidate, _) = init_candidate(temp.path());
-    let output = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full; exec \"$1\" init --format=json --config \"$2\"",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
+    let workspace = common::canonical_path(temp.path());
+    let (candidate, _) = init_candidate(&workspace);
+    let mut command = Command::new(env!("CARGO_BIN_EXE_workspace-validator"));
+    command
+        .args(["init", "--format=json", "--config"])
         .arg(candidate)
-        .current_dir(temp.path())
-        .output()
-        .unwrap();
+        .current_dir(&workspace);
+    let output = output_with_unwritable_stdout(&mut command);
     assert_eq!(output.status.code(), Some(4));
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("cannot write standard output"), "{stderr}");
     assert!(!stderr.contains("panicked"), "{stderr}");
     assert!(!stderr.contains("\"schemaVersion\""), "{stderr}");
-    assert!(temp.path().join(".validation/config.json").is_file());
+    assert!(workspace.join(".validation/config.json").is_file());
 }
 
 #[cfg(unix)]
@@ -744,15 +1449,14 @@ fn failed_stdout_and_stderr_sinks_preserve_exit_four() {
     let mut value = common::base_config("rustc");
     value["checks"][0]["args"] = serde_json::json!(["--version"]);
     let path = common::write_config(temp.path(), &value);
-    let status = Command::new("sh")
-        .args([
-            "-c",
-            "exec 1>/dev/full 2>/dev/full; exec \"$1\" validate --format=json --config \"$2\"",
-            "workspace-validator-test",
-            env!("CARGO_BIN_EXE_workspace-validator"),
-        ])
+    let status = Command::new(env!("CARGO_BIN_EXE_workspace-validator"))
+        .args(["validate", "--format=json", "--config"])
         .arg(path)
-        .status()
+        .stdout(unwritable_stream())
+        .stderr(unwritable_stream())
+        .spawn()
+        .unwrap()
+        .wait()
         .unwrap();
     assert_eq!(status.code(), Some(4));
 }

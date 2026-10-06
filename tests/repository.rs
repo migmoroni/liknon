@@ -6,7 +6,9 @@ use std::{
     sync::{atomic::AtomicBool, Arc},
 };
 use tempfile::TempDir;
-use workspace_validator::{config, contracts::report::Status, execution, planning, reporting};
+use workspace_validator::{
+    config, contracts::report::Status, execution, planning, reporting, theme::Theme,
+};
 
 #[test]
 fn repository_integrity_is_typed_and_counted_once_outside_checks() {
@@ -30,10 +32,14 @@ fn repository_integrity_is_typed_and_counted_once_outside_checks() {
     let plan = planning::target(&validated, None).unwrap();
     let outcome = execution::run(&validated, &plan, Arc::new(AtomicBool::new(false)));
     let repo = outcome.report.repository.as_ref().unwrap();
-    assert_eq!(repo.integrity.status, Status::Fail);
+    assert_eq!(
+        repo.integrity.status,
+        Status::Fail,
+        "repository integrity was blocked: {:?}",
+        repo.integrity.reason
+    );
     assert_eq!(repo.introduced.as_ref().unwrap(), &vec!["introduced"]);
-    let human =
-        reporting::result::human::render(&outcome.report, &reporting::theme::Theme::plain());
+    let human = reporting::result::human::render(&outcome.report, &Theme::plain());
     assert!(human.contains("GATE"));
     assert!(human.contains("Introduced paths:\n│         introduced"));
     assert!(outcome
@@ -67,8 +73,7 @@ fn unavailable_repository_tool_still_produces_blocked_report() {
     assert_eq!(repo.integrity.status, Status::Blocked);
     assert!(repo.before.is_none());
     assert!(repo.integrity.reason.is_some());
-    let human =
-        reporting::result::human::render(&outcome.report, &reporting::theme::Theme::plain());
+    let human = reporting::result::human::render(&outcome.report, &Theme::plain());
     assert!(human.contains("GATE  BLOCKED"));
     assert!(human.contains(repo.integrity.reason.as_deref().unwrap()));
 }
@@ -104,12 +109,16 @@ fn repository_evidence_separates_preexisting_state_from_run_mutations() {
     .unwrap();
     let plan = planning::target(&validated, None).unwrap();
     let outcome = execution::run(&validated, &plan, Arc::new(AtomicBool::new(false)));
-    let human =
-        reporting::result::human::render(&outcome.report, &reporting::theme::Theme::plain());
+    let human = reporting::result::human::render(&outcome.report, &Theme::plain());
     let json = reporting::result::json::render(&outcome.report).unwrap();
     let json: serde_json::Value = serde_json::from_str(&json).unwrap();
     let report = outcome.report.repository.unwrap();
 
+    assert!(
+        report.before.is_some(),
+        "initial repository snapshot was unavailable: {:?}",
+        report.integrity.reason
+    );
     let before = report.before.unwrap();
     assert!(before.iter().any(|entry| entry.ends_with("pre-changed")));
     assert!(!before.iter().any(|entry| entry.ends_with("introduced")));
