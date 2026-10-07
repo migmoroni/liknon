@@ -13,8 +13,8 @@ phases.
 - [Phase B01.1](01-version-and-provenance.md) is complete.
 - The [initial platform contract](README.md#initial-platform-contract) is
   approved.
-- Windows and macOS signing identities and verification procedures from Phase
-  B01.0 are available through protected signing environments.
+- The Windows self-signed identity, protected-key boundary, macOS ad hoc signing
+  procedure, and verification contracts from Phase B01.0 are available.
 
 ## Build Contract
 
@@ -23,12 +23,14 @@ phases.
   recorded.
 - Stripping occurs only where deterministic and appropriate for the target and
   precedes platform signing.
-- Dedicated signing jobs Authenticode-sign and RFC 3161-timestamp Windows
-  binaries with SHA-256, Developer ID-sign macOS binaries, and submit the
-  approved macOS notarization envelope. They receive only the target-specific
-  signing identity and no registry credential.
-- Final native bytes are hashed only after every transformation, signature, and
-  approved notarization step. Nothing subsequently modifies them.
+- A dedicated Windows signing job Authenticode-signs each Windows binary with
+  the persistent project-controlled self-signed identity and applies an RFC 3161
+  SHA-256 timestamp. It receives only that target-specific identity and no
+  detached-release-signing or registry credential.
+- A macOS job applies an ad hoc signature after all other transformations. It
+  uses no signing credential and performs no notarization.
+- Final native bytes are hashed only after every transformation and declared
+  platform-signing step. Nothing subsequently modifies them.
 - Timestamped or otherwise non-reproducible signing output is retained exactly
   and never regenerated to retry assembly or publication.
 - Distribution assembly may copy those bytes but may not invoke a Liknon build.
@@ -47,10 +49,12 @@ Before a target may feed a public package, CI must prove:
   entry point on its declared RID;
 - the arm64 Linux build runs on native arm64 or a trustworthy equivalent;
 - macOS builds honor and test the declared deployment baseline;
-- macOS final artifacts pass Developer ID signature and notarization checks;
+- macOS final artifacts pass strict ad hoc signature and mutation checks, report
+  no publisher identity or notarization, and execute on clean native runners;
 - the Windows MSVC binary has no undeclared runtime dependency;
-- Windows final artifacts pass Authenticode signature, RFC 3161 timestamp,
-  certificate-chain, and publisher-identity verification;
+- Windows final artifacts pass Authenticode signature, expected self-signed
+  certificate fingerprint, RFC 3161 timestamp, and mutation verification while
+  retaining the expected absence of public certificate-chain trust;
 - executable permission metadata survives artifact transport;
 - the binary reports the Cargo-derived version;
 - representative `--help` and validation execution work on the target.
@@ -61,12 +65,14 @@ Before a target may feed a public package, CI must prove:
 2. Install only approved target and toolchain prerequisites in each job.
 3. Build the locked release binary once per target.
 4. Apply approved deterministic post-processing before signing.
-5. Pass Windows and macOS candidates through isolated target-specific signing,
-   RFC 3161 timestamping where applicable, and notarization jobs.
+5. Pass Windows candidates through the isolated self-signed Authenticode and RFC
+   3161 timestamping job. Apply macOS ad hoc signatures without a credential or
+   notarization step.
 6. Run native smoke tests and platform-signature verification against the final
    bytes before upload.
 7. Compute SHA-256 and record target, filename, size, toolchain, source commit,
-   and platform-signing evidence in the build manifest.
+   exact platform-authenticity mode, and mode-specific evidence in the build
+   manifest.
 8. Upload one private workflow artifact per target with executable metadata
    preserved.
 9. Set a bounded retention window sufficient for release recovery.
@@ -79,15 +85,24 @@ Before a target may feed a public package, CI must prove:
 - Native smoke tests run on every supported target.
 - Linux compatibility runs in both glibc and Alpine environments.
 - macOS and Windows tests use their native runner families.
-- macOS and Windows jobs reject unsigned, incorrectly signed, mutated, or
-  unnotarized artifacts as applicable.
+- macOS and Windows jobs reject unsigned, incorrectly signed, or mutated
+  artifacts. macOS additionally rejects any manifest claim that its initial ad
+  hoc artifact is notarized or has a publisher identity.
 - Windows jobs reject an absent, invalid, non-RFC-3161, or non-SHA-256 timestamp
   before final hashing.
+- Windows verification pins the expected self-signed certificate fingerprint
+  and does not require or simulate public chain trust. Clean installation tests
+  do not import the certificate into the user's trust stores.
+- macOS verification uses the native code-signing tools and actual execution; it
+  does not disable Gatekeeper, remove quarantine metadata, or simulate Developer
+  ID acceptance.
 - Hashes recorded before platform signing are rejected as non-final evidence.
 - The release matrix fails if any target cannot provide complete evidence.
 
 ## Exit Criterion
 
-CI has exactly one runnable, final signed and timestamped binary where required
-and one hashed binary per supported target. Every later phase consumes those
-exact artifacts without recompiling or modifying Liknon.
+CI has exactly one runnable, final platform-sealed binary under the declared
+mode and one hash per supported target. Windows is self-signed and timestamped;
+macOS is ad hoc signed and explicitly not notarized; Linux relies on signed
+release metadata rather than an invented native signer. Every later phase
+consumes those exact artifacts without recompiling or modifying Liknon.

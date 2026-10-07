@@ -53,9 +53,14 @@ crate.
   mutation.
 - Trust-lifecycle fixtures accept active and uncompromised retired keys in their
   defined scope and reject unknown or revoked signing keys.
-- Windows and macOS binaries retain the approved platform signatures and
-  notarization evidence after every package layer is extracted. Windows
-  extraction also preserves the verified RFC 3161 SHA-256 timestamp.
+- Windows binaries retain the approved self-signed Authenticode signature,
+  expected certificate fingerprint, and verified RFC 3161 SHA-256 timestamp
+  after every package layer is extracted.
+- macOS binaries retain their ad hoc signatures and explicit non-notarized
+  status after every package layer is extracted.
+- The public manifest reports the same platform-authenticity mode as the build
+  manifest and never promotes self-signed or ad hoc evidence to public trust in
+  a native signer.
 
 ### Native And Direct Installation
 
@@ -72,6 +77,11 @@ crate.
   malformed channel pointer, and unsupported target.
 - Confirm that a failed installation does not replace an existing binary.
 - Confirm default installation requires no elevated privileges.
+- Begin Windows tests without trusting the self-signed certificate and macOS
+  tests without weakening Gatekeeper or quarantine policy. Confirm that no
+  installer changes those settings.
+- Verify signed release metadata and native hashes independently from the
+  platform signature before evaluating any expected operating-system warning.
 
 ### Registry Binary Installation
 
@@ -134,6 +144,11 @@ points, exercise:
 - Linux arm64 runs on native arm64 or the approved equivalent.
 - macOS binaries run against the declared deployment baseline.
 - Windows executes without an undeclared runtime dependency.
+- Windows native verification proves the expected self-signed fingerprint,
+  timestamp, and mutation detection while recording the absence of public chain
+  trust as expected state.
+- macOS native verification proves strict ad hoc signature validation, mutation
+  detection, lack of notarization, and actual execution on clean runners.
 - Unix executable permissions survive every archive and package layer.
 
 ### Repository Hygiene
@@ -175,7 +190,7 @@ validation target identifier.
 5. Execute two-version update and uninstall fixtures independently for every
    primary global package-manager frontend.
 6. Emit concise machine-readable evidence identifying artifact, target, test,
-   and result.
+   declared platform-authenticity mode, public-trust status, and result.
 7. Fail the joined phase if any channel lacks evidence for any advertised
    platform.
 

@@ -38,6 +38,21 @@ Every installation runs `liknon --version`, `liknon --help`, and a representativ
 `liknon validate` fixture. Reported version and native hash must agree with the
 release evidence.
 
+Windows verification begins on a clean host that does not trust the project's
+self-signed certificate. macOS verification begins without disabling Gatekeeper,
+removing quarantine metadata, or installing a local trust anchor. Tests record
+the operating system's actual response, verify the signed release manifest and
+native hash independently, and confirm that installation changes no host trust
+or security setting.
+
+If macOS blocks the verified standalone CLI, test Apple's user-mediated
+`Open Anyway` path first. If that path does not apply and direct quarantine
+removal is required, exercise the documented fallback only after manifest and
+hash verification, against the exact Liknon binary, in a clean disposable test
+environment. Confirm that it removes only `com.apple.quarantine`, preserves all
+other extended attributes, uses no recursive option, and is never performed by
+an installer or package-manager launcher.
+
 For the first public release, uninstall every package-manager installation and
 prove that its command shim or script no longer resolves. Starting with the
 second public release, begin from the immediately preceding supported version,
@@ -92,8 +107,24 @@ Update canonical documentation to explain:
 - independent trust-root acquisition, installer authentication, signed-manifest
   verification, key rotation and emergency revocation, and manual archive
   SHA-256 verification;
-- Windows Authenticode publisher and RFC 3161 timestamp verification, plus macOS
-  Developer ID and notarization expectations;
+- the distinction between platform support, release authenticity, and public
+  native-signer trust;
+- Windows self-signed Authenticode fingerprint and RFC 3161 timestamp
+  verification, the expected absence of verified-publisher and SmartScreen
+  reputation claims, and the later CA-trusted mode only when it actually exists;
+- macOS ad hoc signature verification, explicit non-notarized status, expected
+  Gatekeeper implications, and Developer ID plus notarization only when that
+  trust mode actually exists;
+- safe manual verification of signed release metadata and hashes before a user
+  makes any operating-system-mediated decision;
+- Apple's user-mediated `Open Anyway` procedure as the preferred macOS
+  exception, when applicable;
+- a clearly warned, exact-path `xattr -d com.apple.quarantine` fallback only
+  when target-native tests prove it necessary for the standalone CLI, and only
+  after authenticity and integrity verification;
+- an explicit prohibition on automatic quarantine removal, `xattr -c`,
+  `xattr -cr`, recursive attribute removal, or instructions that clear unrelated
+  extended attributes;
 - custom-domain, immutable-path, and stable-pointer semantics;
 - that npm, RubyGems, PyPI, and NuGet perform no secondary binary download;
 - that PyPI provides platform wheels only and no importable Python API;
@@ -122,11 +153,15 @@ wording that can drift.
 4. Update and verify the stable pointer only after all channel tests pass.
 5. Update all canonical installation and support documentation.
 6. Search for stale channel counts, unsupported platforms, old package names,
-   and obsolete installation commands.
-7. Preserve public evidence for the release without retaining credentials.
+   obsolete installation commands, or claims that self-signed or ad hoc
+   artifacts have public operating-system trust.
+7. Validate any macOS manual-exception instructions against the released bytes
+   and prove that they appear only after cryptographic verification.
+8. Preserve public evidence for the release without retaining credentials.
 
 ## Exit Criterion
 
 Public instructions reproduce every tested installation, update, and uninstall
 path, the stable pointer resolves only to a fully verified release, and no
-documentation promises an unverified channel, runtime, or platform.
+documentation promises an unverified channel, runtime, platform, publisher
+identity, certificate-chain trust, or notarization state.

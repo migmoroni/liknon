@@ -38,8 +38,10 @@ This track includes:
 
 - one deterministic version contract shared by every channel artifact;
 - one native build per supported Rust target;
-- native platform signing before final hashing where required by the public
-  platform contract;
+- native platform sealing under an explicitly disclosed trust mode before final
+  hashing where required by the public platform contract;
+- release authenticity through signed metadata and hashes independently from
+  operating-system trust in a native signer;
 - private transport of built binaries between GitHub Actions jobs;
 - immutable direct archives and user-local installers served through a
   Cloudflare R2 custom domain;
@@ -118,9 +120,12 @@ This track does not introduce:
    Release. GitHub Release binary assets remain prohibited.
 5. CI builds a native binary once for each Rust target. Distribution jobs may
    copy verified bytes but may not rebuild Liknon.
-6. Required platform signing and notarization occur once after build and before
-   final hashing. Windows Authenticode signatures include an RFC 3161 timestamp
-   using SHA-256. The resulting signed bytes are the canonical native artifact
+6. Native platform sealing occurs once after build and before final hashing.
+   The initial Windows artifact uses a persistent project-controlled self-signed
+   Authenticode identity plus an RFC 3161 timestamp using SHA-256. The initial
+   macOS artifacts use ad hoc code signatures and are not notarized. These modes
+   provide platform-local integrity evidence but do not claim public trust from
+   the operating system. The resulting bytes are the canonical native artifacts
    reused by every binary channel.
 7. Cloudflare Direct, npm, RubyGems, PyPI, and NuGet contain the same verified
    final native binary bytes for a given target.
@@ -145,10 +150,11 @@ This track does not introduce:
 14. A published version is immutable. A partial release resumes from the exact
     retained local artifacts only after destination-specific equivalence is
     proven, or it is replaced by a new patch version.
-15. Human publication approval is a credential-free gate. Native signing and
-    each publication destination use separate protected environments or an
-    equivalently isolated identity boundary, so no destination job can obtain
-    another destination's credential.
+15. Human publication approval is a credential-free gate. Detached release
+    signing, Windows native signing, and each publication destination use
+    separate protected environments or equivalently isolated identity
+    boundaries, so no job can obtain another boundary's credential. macOS ad
+    hoc signing carries no identity.
 
 ## Proposed Repository Layout
 
@@ -206,19 +212,26 @@ in the working tree.
 
 ## Initial Platform Contract
 
-| Rust build target | Native filename | Direct archive suffix | npm package | RubyGems platform package(s) | PyPI wheel platform tag(s) | NuGet RID package(s) |
-| --- | --- | --- | --- | --- | --- | --- |
-| `x86_64-unknown-linux-musl` | `liknon` | `x86_64-unknown-linux-musl.tar.gz` | `@liknon/linux-x64` | `liknon` for `x86_64-linux-gnu` and `x86_64-linux-musl` | Approved x86_64 manylinux and/or musllinux tags | `liknon.linux-x64` and/or `liknon.linux-musl-x64` after independent proof |
-| `aarch64-unknown-linux-musl` | `liknon` | `aarch64-unknown-linux-musl.tar.gz` | `@liknon/linux-arm64` | `liknon` for `aarch64-linux-gnu` and `aarch64-linux-musl` | Approved aarch64 manylinux and/or musllinux tags | `liknon.linux-arm64` and/or `liknon.linux-musl-arm64` after independent proof |
-| `x86_64-apple-darwin` | `liknon` | `x86_64-apple-darwin.tar.gz` | `@liknon/darwin-x64` | `liknon` for `x86_64-darwin` | `macosx_<baseline>_x86_64` | `liknon.osx-x64` |
-| `aarch64-apple-darwin` | `liknon` | `aarch64-apple-darwin.tar.gz` | `@liknon/darwin-arm64` | `liknon` for `arm64-darwin` | `macosx_<baseline>_arm64` | `liknon.osx-arm64` |
-| `x86_64-pc-windows-msvc` | `liknon.exe` | `x86_64-pc-windows-msvc.zip` | `@liknon/win32-x64` | `liknon` for `x64-mingw-ucrt` | `win_amd64` | `liknon.win-x64` |
+| Rust build target | Initial platform authenticity | Native filename | Direct archive suffix | npm package | RubyGems platform package(s) | PyPI wheel platform tag(s) | NuGet RID package(s) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `x86_64-unknown-linux-musl` | Not applicable; signed release metadata and hashes | `liknon` | `x86_64-unknown-linux-musl.tar.gz` | `@liknon/linux-x64` | `liknon` for `x86_64-linux-gnu` and `x86_64-linux-musl` | Approved x86_64 manylinux and/or musllinux tags | `liknon.linux-x64` and/or `liknon.linux-musl-x64` after independent proof |
+| `aarch64-unknown-linux-musl` | Not applicable; signed release metadata and hashes | `liknon` | `aarch64-unknown-linux-musl.tar.gz` | `@liknon/linux-arm64` | `liknon` for `aarch64-linux-gnu` and `aarch64-linux-musl` | Approved aarch64 manylinux and/or musllinux tags | `liknon.linux-arm64` and/or `liknon.linux-musl-arm64` after independent proof |
+| `x86_64-apple-darwin` | Ad hoc code signature; not notarized | `liknon` | `x86_64-apple-darwin.tar.gz` | `@liknon/darwin-x64` | `liknon` for `x86_64-darwin` | `macosx_<baseline>_x86_64` | `liknon.osx-x64` |
+| `aarch64-apple-darwin` | Ad hoc code signature; not notarized | `liknon` | `aarch64-apple-darwin.tar.gz` | `@liknon/darwin-arm64` | `liknon` for `arm64-darwin` | `macosx_<baseline>_arm64` | `liknon.osx-arm64` |
+| `x86_64-pc-windows-msvc` | Self-signed Authenticode with RFC 3161 timestamp | `liknon.exe` | `x86_64-pc-windows-msvc.zip` | `@liknon/win32-x64` | `liknon` for `x64-mingw-ucrt` | `win_amd64` | `liknon.win-x64` |
 
 The package names are desired names until ownership and availability are
 confirmed. A target enters the public matrix only after its native and packaged
 forms pass the verification defined in Phase B01.8. Exact Linux wheel tags,
 Linux NuGet RIDs, and the macOS deployment baseline are decisions of Phase
 B01.0, not values inferred during packaging.
+
+Platform support and public native-signer trust are separate claims. Windows
+and macOS enter the initial matrix only after their declared self-signed and ad
+hoc modes pass native execution and integrity tests. Neither mode is described
+as a verified publisher, a trusted certificate chain, or notarized software.
+The signed release manifest and its independently delivered trust root remain
+the cross-platform authenticity authority.
 
 ## Implementation Order
 
@@ -256,8 +269,19 @@ only when its own exit criterion and applicable tests pass.
       hash-verified binary per target.
 - [ ] Windows and macOS native artifacts satisfy the platform-signing contract
       before final hashes are recorded and reused by every binary channel.
+- [ ] Windows is described and verified as self-signed rather than publicly
+      trusted; macOS is described and verified as ad hoc signed and not
+      notarized.
 - [ ] Every Windows Authenticode signature carries a verified RFC 3161 timestamp
       using SHA-256 before the final binary hash is recorded.
+- [ ] No installer, launcher, or package imports a self-signed certificate into
+      a user trust store or automatically disables, bypasses, or weakens
+      SmartScreen, Gatekeeper, quarantine, or another operating-system security
+      policy.
+- [ ] macOS documentation prefers Apple's user-mediated `Open Anyway` path and
+      permits a path-specific `xattr -d com.apple.quarantine` fallback only after
+      signed-manifest and native-hash verification. It never recommends
+      `xattr -c`, `xattr -cr`, broad recursion, or automatic quarantine removal.
 - [ ] Distribution assembly jobs cannot rebuild Liknon.
 - [ ] npm, gem, wheel, and .NET Tool installations require no Rust toolchain or
       secondary download.
@@ -297,9 +321,10 @@ only when its own exit criterion and applicable tests pass.
       publication.
 - [ ] Partial publication resumes from exact retained local artifacts only after
       destination-specific equivalence is proven.
-- [ ] Human publication approval exposes no credential; native signing and each
-      destination use isolated identity boundaries, and build jobs remain
-      unprivileged.
+- [ ] Human publication approval exposes no credential; detached release
+      signing, Windows native signing, and each destination use isolated
+      identity boundaries, macOS ad hoc signing carries no identity, and build
+      jobs remain unprivileged.
 - [ ] Registry publication uses OIDC or trusted publishing wherever supported;
       any unavoidable first-publication credential is narrowly scoped, audited,
       and revoked after bootstrap.
@@ -334,8 +359,11 @@ only when its own exit criterion and applicable tests pass.
 - [NuGet trusted publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing)
 - [macOS Developer ID distribution](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac/)
 - [macOS notarization](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
+- [macOS code-signing requirements and ad hoc signatures](https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/RequirementLang/RequirementLang.html)
+- [Apple guidance for safely opening unnotarized software](https://support.apple.com/en-us/102445)
 - [Windows SignTool](https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool)
 - [Authenticode time stamping](https://learn.microsoft.com/en-us/windows/win32/seccrypto/time-stamping-authenticode-signatures)
+- [Windows code-signing options and self-signed limitations](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/code-signing-options)
 - [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/)
 - [Cloudflare R2 public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/)
 - [Cloudflare cache with R2](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)

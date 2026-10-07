@@ -53,7 +53,7 @@ At release execution, after native builds complete in Phase B01.2, CI creates
       "file": "liknon",
       "sha256": "<sha256>",
       "platformAuthenticity": {
-        "requirement": "not-required",
+        "mode": "not-applicable",
         "method": "none"
       },
       "consumers": [
@@ -72,12 +72,19 @@ At release execution, after native builds complete in Phase B01.2, CI creates
 
 This manifest is private workflow provenance rather than a runtime API. Every
 assembly and verification job consumes it and validates hashes before touching
-a native binary. Each artifact record also states whether platform signing is
-required and the approved method. Required records additionally identify the
-verified signer and retained verification evidence. Windows records additionally
-identify the verified RFC 3161 timestamp authority, timestamp, and digest
-algorithms. This phase implements and tests the manifest producer against
-fixtures; Phase B01.2 supplies its real native-build records.
+a native binary. Each artifact record states its exact platform-authenticity
+mode and method. The initial accepted modes are `not-applicable` for Linux,
+`self-signed` with `authenticode` for Windows, and `ad-hoc` with
+`apple-code-signing` for macOS. A future `publicly-trusted` mode may be introduced
+only with its own reviewed evidence contract; it is not inferred from the
+presence of a signature.
+
+Windows records additionally identify the expected certificate subject and
+SHA-256 fingerprint, signature digest, verified RFC 3161 timestamp authority,
+timestamp, and timestamp digest. macOS records the code-directory identity,
+successful strict signature verification, and `notarized: false`. Linux records
+no invented native signer. This phase implements and tests the manifest producer
+against fixtures; Phase B01.2 supplies its real native-build records.
 
 ## Public Direct-Release Manifest
 
@@ -89,6 +96,9 @@ records:
 - immutable archive path, byte size, and SHA-256;
 - extracted native filename and SHA-256;
 - archive format and target identifier.
+- declared platform-authenticity mode and method, plus the non-secret public
+  verification identity or explicit non-notarized status applicable to that
+  target.
 
 At release level it also records:
 
@@ -113,7 +123,8 @@ from, but intentionally narrower than, the internal build manifest.
 2. Remove literal Cargo package versions from workflow paths.
 3. Enforce the approved canonical version grammar before any staging or
    destination query.
-4. Define typed or structurally validated schemas for both manifests.
+4. Define typed or structurally validated schemas for both manifests, including
+   target-specific platform-authenticity modes and evidence.
 5. Implement internal build-manifest generation from normalized native-job
    metadata and test it with fixtures.
 6. Implement deterministic public-manifest generation from a build manifest,
@@ -136,8 +147,14 @@ from, but intentionally narrower than, the internal build manifest.
 - Repeated public-manifest generation from the same inputs is byte-identical.
 - Signature verification succeeds for the exact manifest and fails after any
   byte changes.
-- Required Windows authenticity records without complete RFC 3161 timestamp
+- Windows records that claim anything other than the approved self-signed mode,
+  omit the expected certificate fingerprint, or lack complete RFC 3161 timestamp
   evidence are rejected.
+- macOS records that omit ad hoc verification evidence, claim a publisher
+  identity, or claim notarization are rejected.
+- Linux records that invent a platform-native signer are rejected.
+- Public-manifest generation preserves the exact disclosed trust mode without
+  promoting self-signed or ad hoc evidence to public trust.
 - Workflow package paths contain no authored release version.
 
 ## Exit Criterion

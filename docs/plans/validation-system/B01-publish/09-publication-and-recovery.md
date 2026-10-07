@@ -29,8 +29,8 @@ The workflow separates these trust zones:
    immutable-release setting, destination state, custom-domain readiness, and
    normal project gates.
 2. **Native build and signing:** build one binary per target without destination
-   credentials, apply isolated native platform signing where required, and test
-   the final bytes.
+   credentials, apply the declared native platform-authenticity mode, and test
+   the final bytes without overstating public operating-system trust.
 3. **Build-manifest assembly:** record target, filename, toolchain, commit, size,
    and SHA-256.
 4. **Distribution assembly:** create direct archives, installers, Cargo package,
@@ -52,16 +52,20 @@ recovery.
 
 The protected human-approval gate contains no publication or signing credential.
 Passing it authorizes destination jobs to start but does not itself expose an
-identity. Native signing and every publication destination use distinct
-protected environments or an equivalent isolation mechanism. OIDC policies bind
+identity. Detached release signing, Windows native signing, and every
+publication destination use distinct protected environments or an equivalent
+isolation mechanism; macOS ad hoc signing uses no identity. OIDC policies bind
 the exact repository, workflow, destination environment, and supported package
 scope wherever the provider permits those claims.
 
 ## Credential Boundaries
 
 - Build, assembly, and verification jobs have no publish credential.
-- Native signing jobs use signing-only environments and cannot publish to any
-  destination.
+- The Windows signing job uses a signing-only environment containing only the
+  persistent self-signed Authenticode identity and cannot publish to any
+  destination. The macOS ad hoc signing job uses no signing credential.
+- Detached release-signing credentials remain separate from the Windows
+  native-signing identity and from every publication destination.
 - The GitHub Release job uses its own destination environment, receives
   repository `contents: write` permission, and has no external destination
   identity.
@@ -74,9 +78,9 @@ scope wherever the provider permits those claims.
 - An unavoidable first-publication credential is destination-scoped, used only
   for the documented bootstrap operation, audited, and revoked before a normal
   release can be considered complete.
-- Persistent R2 and native-signing credentials, when required, are isolated from
-  one another and from every registry, have accountable owners, and follow their
-  recorded rotation procedures.
+- Persistent R2, detached-release-signing, and Windows native-signing credentials
+  are isolated from one another and from every registry, have accountable
+  owners, and follow their recorded rotation procedures.
 - A destination job cannot modify another destination.
 - Secrets never enter manifests, archives, logs, cache keys, or committed
   configuration.
@@ -169,6 +173,9 @@ objects is not the normal recovery mechanism.
 7. Record publication evidence without credentials or mutable aliases.
 8. Exercise failure injection after each destination boundary to prove resumable
    behavior.
+9. Preserve and compare each artifact's declared platform-authenticity mode
+   during destination readback without treating registry-envelope signatures as
+   native publisher trust.
 
 ## Verification
 
@@ -178,6 +185,8 @@ objects is not the normal recovery mechanism.
   writes.
 - Build and assembly jobs cannot access publication identities.
 - The human-approval gate exposes no publication or signing identity.
+- The Windows native-signing identity cannot access detached release signing or
+  any destination, and macOS ad hoc signing requires no stored identity.
 - Every destination job is unable to authenticate to the other destinations.
 - An interrupted workflow resumes from the exact retained artifacts.
 - A destination mismatch blocks retry and requires a new version.
@@ -194,5 +203,5 @@ Each destination exposes a mutually consistent immutable version, or any
 partial release remains safely resumable from the exact retained artifacts
 after destination-specific equivalence checks, with no rebuild, overwrite,
 long-lived registry publication token, or cross-destination credential
-exposure. Persistent R2 and native-signing credentials remain confined to their
-separately governed boundaries.
+exposure. Persistent R2, detached-release-signing, and Windows native-signing
+credentials remain confined to their separately governed boundaries.

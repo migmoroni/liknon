@@ -53,8 +53,8 @@ The `r2.dev` development endpoint is not a production channel.
   handwritten version.
 - Unix archives preserve executable permissions.
 - Windows uses ZIP and the exact `liknon.exe` filename.
-- Archive SHA-256, size, format, and extracted-binary SHA-256 appear in the
-  public manifest.
+- Archive SHA-256, size, format, extracted-binary SHA-256, and exact declared
+  platform-authenticity mode appear in the public manifest.
 - `SHA256SUMS` lists archives and installer scripts, not the manifest or its
   signature; the signed manifest records the checksum document's own hash.
 - Repeated assembly from identical inputs is deterministic where the selected
@@ -99,6 +99,9 @@ The versioned POSIX and PowerShell installers must:
 - accept an explicit installation directory;
 - replace the destination only after all verification succeeds;
 - clean temporary files on success, failure, or interruption;
+- never import the Windows self-signed certificate into a user trust store,
+  disable or bypass SmartScreen or Gatekeeper, remove quarantine metadata, or
+  alter another operating-system security policy;
 - distinguish unsupported platforms, missing signature or hash verification
   tools, invalid signatures, malformed metadata, hash failures, and network
   failures;
@@ -111,6 +114,17 @@ material, and only then executes it. Installer signatures cannot be bootstrapped
 solely from the same R2 origin. A `curl | sh` form may be secondary and must
 state that it forgoes installer authentication before execution. Manual archive
 download and verification remain fully supported.
+
+The direct-distribution trust chain authenticates the release even when the
+native platform does not trust its signer. Documentation presents Windows as
+self-signed and macOS as ad hoc signed and not notarized, explains the warnings
+that may result, and directs users to verify the signed manifest and hashes. It
+does not turn an operating-system bypass into an automated installation step.
+For macOS, it prefers Apple's user-mediated `Open Anyway` flow. Only when the
+tested standalone CLI requires it may troubleshooting show
+`xattr -d com.apple.quarantine` against the exact installed binary, after
+verification and with an explicit warning. Broad or recursive attribute
+clearing is not documented.
 
 Automated consumers pin a concrete version rather than defaulting to `latest`
 or `stable`.
@@ -138,7 +152,8 @@ or `stable`.
 3. Generate release-specific installers without creating a second version
    source, then sign each installer for pre-execution verification.
 4. Generate `SHA256SUMS` and the public `manifest.json`, including installer and
-   checksum-document hashes, deterministically.
+   checksum-document hashes plus each target's disclosed platform-authenticity
+   mode, deterministically.
 5. Sign the exact final manifest bytes as `manifest.sig`.
 6. Add fixtures for active, rotated, retired, unknown, and revoked signing-key
    states under the trust model approved in Phase B01.0.
@@ -165,6 +180,8 @@ or `stable`.
 - Manual installation follows the documented hash-verification path.
 - Installation succeeds in a path containing spaces and without elevated
   privileges.
+- Installation changes no certificate trust store, Gatekeeper, SmartScreen,
+  quarantine, or equivalent host-security setting.
 - Tampered archives, mismatched manifests, malformed pointers, interrupted
   downloads, and unsupported targets fail without replacing an existing binary.
 - Staging leaves tracked files unchanged.
