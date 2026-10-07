@@ -148,14 +148,25 @@ approved verification identity, and authenticate the exact manifest bytes
 before parsing any release metadata. Fetching an installer and its trust root
 solely from the same mutable origin is not an accepted bootstrap.
 
+The public trust contract assigns stable identifiers to signing keys and defines
+how keys become active, rotate, retire, and are revoked after compromise. The
+selected mechanism may use a long-lived root with release-signing keys or an
+independently distributed trusted-key set, but it must preserve verification of
+releases signed by retired, uncompromised keys and let current trust material
+reject revoked keys. The exact mechanism is decided and tested in this phase
+rather than improvised by an installer.
+
 ### Native Platform Signing
 
-Every Windows binary entering a public binary channel is Authenticode signed.
-Every macOS binary is Developer ID signed and passes the notarization procedure
-approved for its submission and distribution envelopes. Signing and
-notarization occur after compilation and other byte transformations but before
-final hashes and package assembly. The signed native bytes become the sole
-artifact reused by Cloudflare Direct, npm, RubyGems, PyPI, and NuGet.
+Every Windows binary entering a public binary channel is Authenticode signed
+with SHA-256 and receives an RFC 3161 timestamp using SHA-256 from the approved
+timestamp authority. Verification covers the signature, timestamp, certificate
+chain, and expected publisher identity. Every macOS binary is Developer ID
+signed and passes the notarization procedure approved for its submission and
+distribution envelopes. Signing, timestamping, and notarization occur after
+compilation and other byte transformations but before final hashes and package
+assembly. The final native bytes become the sole artifact reused by Cloudflare
+Direct, npm, RubyGems, PyPI, and NuGet.
 
 Signing identities are isolated from build and registry credentials. If the
 required identity or target-native verification cannot be established, that
@@ -169,11 +180,18 @@ publishing mechanism wherever supported. Phase B01.0 records the current
 first-publication procedure for each registry, including whether a pending
 publisher can create the project or a human bootstrap publication is required.
 
-Any unavoidable bootstrap credential is destination-scoped, exposed only to a
-protected release environment, used once, audited, and revoked immediately
-after trusted publishing is established. Normal releases do not use long-lived
-registry tokens. The protected release environment requires explicit human
-approval before any publishing identity becomes available.
+Human approval occurs in a credential-free protected gate. Native signing and
+each publication destination use separate protected environments or an
+equivalently isolated identity boundary. Each destination's OIDC policy is bound
+to the exact repository, workflow, environment, and package scope supported by
+that provider. A job cannot obtain another destination's identity merely because
+the release was approved.
+
+Any unavoidable bootstrap credential is destination-scoped, exposed only to its
+destination environment after approval, used once, audited, and revoked
+immediately after trusted publishing is established. Normal registry releases
+do not use long-lived publication tokens. Persistent R2 or native-signing
+credentials, when unavoidable, remain separately scoped, stored, and rotated.
 
 ## Decisions To Record
 
@@ -199,13 +217,16 @@ rather than leaving them implicit in workflow code:
 - exact wheel compatibility tags and their supporting evidence;
 - exact NuGet RID package IDs and their supporting compatibility evidence;
 - GitHub tag-signing identity and immutable-release repository setting;
-- Windows Authenticode identity and verification procedure;
+- Windows Authenticode identity, SHA-256 digest policy, RFC 3161 timestamp
+  authority, and signature and timestamp verification procedure;
 - macOS Developer ID identity, notarization procedure, and verification
   evidence;
 - manifest- and installer-signing identity, algorithm, independently delivered
-  trust root, and verification method;
-- trusted-publishing mechanism, protected environment, first-publication
-  bootstrap, and accountable owner for each destination.
+  trust root, key identifiers, activation, rotation, retirement, emergency
+  revocation, and verification method;
+- credential-free human approval gate plus the trusted-publishing mechanism,
+  isolated protected environment or equivalent identity boundary,
+  first-publication bootstrap, and accountable owner for each destination.
 
 No registry or Cloudflare secret is committed. This phase records ownership and
 required secret boundaries, not secret values.
@@ -223,15 +244,19 @@ required secret boundaries, not secret values.
    connectivity without making `r2.dev` a release path.
 5. Select and document minimum npm, pnpm, Ruby, RubyGems, Bundler, Python, pip,
    pipx, and uv versions; record the fixed .NET SDK 10.0 minimum.
-6. Establish Windows and macOS signing identities and prove target-native
-   signature and notarization verification before final hashing.
+6. Establish Windows and macOS signing identities; prove RFC 3161 SHA-256
+   timestamping for Authenticode and target-native signature, timestamp, and
+   notarization verification before final hashing.
 7. Select detached signatures for the manifest and installers, define the
-   independently delivered trust root, and document the bootstrap procedure.
+   independently delivered trust root, define and test key activation, rotation,
+   retirement, and emergency revocation, and document the bootstrap procedure.
 8. Confirm every row in the [initial platform
    contract](README.md#initial-platform-contract) on native or trustworthy
    emulated runners.
-9. Configure a protected release environment and record destination ownership,
-   OIDC or trusted-publishing setup, and first-publication prerequisites.
+9. Configure a credential-free protected approval gate plus isolated signing and
+   destination environments or equivalent identity boundaries. Record each
+   destination's ownership, OIDC or trusted-publishing policy, and
+   first-publication prerequisites.
 10. Mark unavailable targets as unsupported rather than weakening or
    mislabeling the matrix.
 
@@ -265,13 +290,19 @@ required secret boundaries, not secret values.
   resolution and execution.
 - The signing method can sign and verify a fixed test payload using trust
   material stored outside R2.
+- A key-lifecycle fixture proves that a newly active key signs a new release,
+  an uncompromised retired key still verifies its historical release, and a key
+  marked revoked is rejected by current trust material.
 - A direct installer obtained through the documented bootstrap rejects a forged
   installer signature and a forged manifest before parsing metadata.
-- Windows and macOS verification tools accept the final signed test binaries;
-  macOS also proves the selected notarization path.
+- Windows verification tools accept the final signature, RFC 3161 SHA-256
+  timestamp, certificate chain, and publisher identity. macOS verification tools
+  accept the final signed test binary and prove the selected notarization path.
 - Each platform has a credible native execution environment for later smoke
   tests.
 - Every external account and credential has a named human owner.
+- Approval-gate jobs have no publication or signing credential, and every
+  signing or destination job is unable to obtain another boundary's identity.
 - Every registry has a documented trusted-publishing path and an explicit,
   revocable procedure for any unavoidable first-publication bootstrap.
 
@@ -279,6 +310,7 @@ required secret boundaries, not secret values.
 
 Every advertised channel, package, runtime, and platform has a tested identity,
 an accountable owner, and a recorded compatibility decision. Version grammar,
-tag immutability, native signing, installer trust bootstrap, and publication
-identity are proven. Later phases can consume these decisions without inventing
-names, versions, trust roots, wheel tags, or platform promises.
+tag immutability, native signing and timestamping, installer trust bootstrap and
+key lifecycle, and isolated publication identity are proven. Later phases can
+consume these decisions without inventing names, versions, trust roots, wheel
+tags, or platform promises.

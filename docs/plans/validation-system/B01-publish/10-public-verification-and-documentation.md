@@ -54,6 +54,9 @@ Phase B01.8.
 - `manifest.json`, `manifest.sig`, and `SHA256SUMS` agree after edge delivery.
 - POSIX and PowerShell installer signatures verify through the independent trust
   bootstrap before either script is executed.
+- Current independently obtained trust material accepts the release signing key,
+  rejects unknown or revoked keys, and retains the intended historical behavior
+  for uncompromised retired keys.
 - Downloaded archive bytes match the public manifest.
 - Negative responses under the immutable release prefix are not cached.
 - The bucket lock protects the released prefix.
@@ -87,7 +90,10 @@ Update canonical documentation to explain:
   commands;
 - version-pinned direct downloads and POSIX/PowerShell installers;
 - independent trust-root acquisition, installer authentication, signed-manifest
-  verification, and manual archive SHA-256 verification;
+  verification, key rotation and emergency revocation, and manual archive
+  SHA-256 verification;
+- Windows Authenticode publisher and RFC 3161 timestamp verification, plus macOS
+  Developer ID and notarization expectations;
 - custom-domain, immutable-path, and stable-pointer semantics;
 - that npm, RubyGems, PyPI, and NuGet perform no secondary binary download;
 - that PyPI provides platform wheels only and no importable Python API;

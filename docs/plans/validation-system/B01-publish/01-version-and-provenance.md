@@ -74,9 +74,10 @@ This manifest is private workflow provenance rather than a runtime API. Every
 assembly and verification job consumes it and validates hashes before touching
 a native binary. Each artifact record also states whether platform signing is
 required and the approved method. Required records additionally identify the
-verified signer and retained verification evidence. This phase implements and
-tests the manifest producer against fixtures; Phase B01.2 supplies its real
-native-build records.
+verified signer and retained verification evidence. Windows records additionally
+identify the verified RFC 3161 timestamp authority, timestamp, and digest
+algorithms. This phase implements and tests the manifest producer against
+fixtures; Phase B01.2 supplies its real native-build records.
 
 ## Public Direct-Release Manifest
 
@@ -135,6 +136,8 @@ from, but intentionally narrower than, the internal build manifest.
 - Repeated public-manifest generation from the same inputs is byte-identical.
 - Signature verification succeeds for the exact manifest and fails after any
   byte changes.
+- Required Windows authenticity records without complete RFC 3161 timestamp
+  evidence are rejected.
 - Workflow package paths contain no authored release version.
 
 ## Exit Criterion

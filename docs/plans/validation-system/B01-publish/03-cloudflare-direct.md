@@ -14,8 +14,8 @@ the first public upload.
 ## Dependencies
 
 - [Phase B01.2](02-native-builds.md) is complete.
-- The custom domain, R2 bucket, signing model, and platform matrix approved in
-  Phase B01.0 are available.
+- The custom domain, R2 bucket, signing and key-lifecycle model, and platform
+  matrix approved in Phase B01.0 are available.
 - Every native input matches `build-manifest.json`.
 
 ## Public Object Layout
@@ -88,6 +88,8 @@ The versioned POSIX and PowerShell installers must:
 - obtain the exact `manifest.json` and `manifest.sig` for the selected version;
 - verify the detached signature over the exact manifest bytes against the
   Phase B01.0 trust root before parsing or trusting any manifest field;
+- resolve the manifest signing-key identifier through current, independently
+  acquired trust material and reject unknown or revoked keys;
 - detect only supported operating-system and architecture combinations;
 - select the exact archive declared by the public manifest;
 - download through HTTPS into a temporary directory;
@@ -104,11 +106,11 @@ The versioned POSIX and PowerShell installers must:
   obtained from release metadata.
 
 Primary documentation downloads the installer and its detached signature as
-files, verifies the installer against the independently obtained trust root, and
-only then executes it. Installer signatures cannot be bootstrapped solely from
-the same R2 origin. A `curl | sh` form may be secondary and must state that it
-forgoes installer authentication before execution. Manual archive download and
-verification remain fully supported.
+files, verifies the installer against current independently obtained trust
+material, and only then executes it. Installer signatures cannot be bootstrapped
+solely from the same R2 origin. A `curl | sh` form may be secondary and must
+state that it forgoes installer authentication before execution. Manual archive
+download and verification remain fully supported.
 
 Automated consumers pin a concrete version rather than defaulting to `latest`
 or `stable`.
@@ -138,15 +140,20 @@ or `stable`.
 4. Generate `SHA256SUMS` and the public `manifest.json`, including installer and
    checksum-document hashes, deterministically.
 5. Sign the exact final manifest bytes as `manifest.sig`.
-6. Define reviewed cache rules, content metadata, bucket lock, and stable-channel
+6. Add fixtures for active, rotated, retired, unknown, and revoked signing-key
+   states under the trust model approved in Phase B01.0.
+7. Define reviewed cache rules, content metadata, bucket lock, and stable-channel
    shape as reproducible infrastructure configuration.
-7. Keep all staged outputs under `target/distribution/direct/`.
+8. Keep all staged outputs under `target/distribution/direct/`.
 
 ## Verification
 
 - Archive and extracted-binary hashes match the build manifest.
 - `manifest.sig` validates with the independent trust root and fails after
   mutation.
+- A new release validates after planned key rotation, an historical release
+  signed by an uncompromised retired key remains verifiable, and current trust
+  material rejects unknown and revoked keys.
 - Installer signatures validate through the independently documented bootstrap
   and fail after script mutation.
 - The signed manifest authenticates `SHA256SUMS`; a modified checksum document
@@ -166,5 +173,5 @@ or `stable`.
 
 Direct archives and authenticated installers work without a language toolchain,
 elevated privileges, or an external package manager. Installers authenticate
-metadata before use, and every staged byte is covered by versioned, signed
-metadata derived from the native build manifest.
+metadata and signing-key status before use, and every staged byte is covered by
+versioned, signed metadata derived from the native build manifest.

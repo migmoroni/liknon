@@ -51,8 +51,11 @@ crate.
   build evidence.
 - `manifest.sig` verifies against the independent trust root and fails after
   mutation.
+- Trust-lifecycle fixtures accept active and uncompromised retired keys in their
+  defined scope and reject unknown or revoked signing keys.
 - Windows and macOS binaries retain the approved platform signatures and
-  notarization evidence after every package layer is extracted.
+  notarization evidence after every package layer is extracted. Windows
+  extraction also preserves the verified RFC 3161 SHA-256 timestamp.
 
 ### Native And Direct Installation
 

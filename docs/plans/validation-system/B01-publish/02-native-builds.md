@@ -23,9 +23,10 @@ phases.
   recorded.
 - Stripping occurs only where deterministic and appropriate for the target and
   precedes platform signing.
-- Dedicated signing jobs Authenticode-sign Windows binaries, Developer ID-sign
-  macOS binaries, and submit the approved macOS notarization envelope. They
-  receive only the target-specific signing identity and no registry credential.
+- Dedicated signing jobs Authenticode-sign and RFC 3161-timestamp Windows
+  binaries with SHA-256, Developer ID-sign macOS binaries, and submit the
+  approved macOS notarization envelope. They receive only the target-specific
+  signing identity and no registry credential.
 - Final native bytes are hashed only after every transformation, signature, and
   approved notarization step. Nothing subsequently modifies them.
 - Timestamped or otherwise non-reproducible signing output is retained exactly
@@ -48,7 +49,8 @@ Before a target may feed a public package, CI must prove:
 - macOS builds honor and test the declared deployment baseline;
 - macOS final artifacts pass Developer ID signature and notarization checks;
 - the Windows MSVC binary has no undeclared runtime dependency;
-- Windows final artifacts pass Authenticode verification;
+- Windows final artifacts pass Authenticode signature, RFC 3161 timestamp,
+  certificate-chain, and publisher-identity verification;
 - executable permission metadata survives artifact transport;
 - the binary reports the Cargo-derived version;
 - representative `--help` and validation execution work on the target.
@@ -59,8 +61,8 @@ Before a target may feed a public package, CI must prove:
 2. Install only approved target and toolchain prerequisites in each job.
 3. Build the locked release binary once per target.
 4. Apply approved deterministic post-processing before signing.
-5. Pass Windows and macOS candidates through isolated target-specific signing
-   and notarization jobs.
+5. Pass Windows and macOS candidates through isolated target-specific signing,
+   RFC 3161 timestamping where applicable, and notarization jobs.
 6. Run native smoke tests and platform-signature verification against the final
    bytes before upload.
 7. Compute SHA-256 and record target, filename, size, toolchain, source commit,
@@ -79,11 +81,13 @@ Before a target may feed a public package, CI must prove:
 - macOS and Windows tests use their native runner families.
 - macOS and Windows jobs reject unsigned, incorrectly signed, mutated, or
   unnotarized artifacts as applicable.
+- Windows jobs reject an absent, invalid, non-RFC-3161, or non-SHA-256 timestamp
+  before final hashing.
 - Hashes recorded before platform signing are rejected as non-final evidence.
 - The release matrix fails if any target cannot provide complete evidence.
 
 ## Exit Criterion
 
-CI has exactly one runnable, final signed binary where required and one hashed
-binary per supported target. Every later phase consumes those exact artifacts
-without recompiling or modifying Liknon.
+CI has exactly one runnable, final signed and timestamped binary where required
+and one hashed binary per supported target. Every later phase consumes those
+exact artifacts without recompiling or modifying Liknon.

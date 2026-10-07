@@ -13,9 +13,9 @@ bytes.
 
 - [Phase B01.8](08-end-to-end-verification.md) is complete.
 - Every final candidate archive and both manifests are retained exactly.
-- Destination trusted-publishing identities and any approved bootstrap
-  credentials from Phase B01.0 are available only through the protected release
-  environment.
+- The credential-free approval gate and the isolated signing and destination
+  environments or equivalent identity boundaries approved in Phase B01.0 are
+  configured.
 
 ## Workflow And Trust Boundaries
 
@@ -38,9 +38,10 @@ The workflow separates these trust zones:
    rebuilding Liknon.
 5. **Distribution verification:** prove every embedded native binary matches the
    build manifest.
-6. **Destination publication:** after protected-environment approval, give each
-   isolated job only its own OIDC or trusted-publishing identity, or its
-   explicitly approved one-time bootstrap credential.
+6. **Destination publication:** after the credential-free approval gate, give
+   each isolated job only its own destination environment and OIDC or
+   trusted-publishing identity, or its explicitly approved one-time bootstrap
+   credential.
 7. **Post-publication handoff:** expose destination evidence to Phase B01.10
    without exposing publication credentials.
 
@@ -49,24 +50,33 @@ artifacts are private workflow transport, not a public download channel. Their
 retention is the shortest reviewed window that still permits deterministic
 recovery.
 
-The protected release environment requires human approval before publication
-jobs start. Approval does not expose publishing identities to preflight, build,
-signing, assembly, or verification jobs.
+The protected human-approval gate contains no publication or signing credential.
+Passing it authorizes destination jobs to start but does not itself expose an
+identity. Native signing and every publication destination use distinct
+protected environments or an equivalent isolation mechanism. OIDC policies bind
+the exact repository, workflow, destination environment, and supported package
+scope wherever the provider permits those claims.
 
 ## Credential Boundaries
 
 - Build, assembly, and verification jobs have no publish credential.
-- The GitHub Release job receives repository `contents: write` permission and
-  no external destination identity.
-- The Cloudflare job receives one bucket-scoped credential and cannot publish
-  to a registry.
-- crates.io, npm, RubyGems, PyPI, and NuGet jobs each receive only their own
+- Native signing jobs use signing-only environments and cannot publish to any
+  destination.
+- The GitHub Release job uses its own destination environment, receives
+  repository `contents: write` permission, and has no external destination
   identity.
+- The Cloudflare job uses its own destination environment, receives one
+  bucket-scoped credential, and cannot publish to a registry.
+- crates.io, npm, RubyGems, PyPI, and NuGet jobs each use a distinct destination
+  environment and receive only their own identity.
 - Registry jobs use OIDC or destination-native trusted publishing wherever the
   registry supports it.
 - An unavoidable first-publication credential is destination-scoped, used only
   for the documented bootstrap operation, audited, and revoked before a normal
   release can be considered complete.
+- Persistent R2 and native-signing credentials, when required, are isolated from
+  one another and from every registry, have accountable owners, and follow their
+  recorded rotation procedures.
 - A destination job cannot modify another destination.
 - Secrets never enter manifests, archives, logs, cache keys, or committed
   configuration.
@@ -146,7 +156,8 @@ objects is not the normal recovery mechanism.
 
 ## Implementation Tasks
 
-1. Add the dedicated release workflow and concurrency policy.
+1. Add the dedicated release workflow, credential-free approval gate, isolated
+   signing and destination environments, and concurrency policy.
 2. Implement signed-tag, canonical-version, immutable-release, and destination
    preflight before publishing identities are exposed.
 3. Add isolated Cloudflare, npm, RubyGems, PyPI, NuGet, and crates.io
@@ -166,6 +177,7 @@ objects is not the normal recovery mechanism.
 - A noncanonical version or unavailable immutable-release protection blocks all
   writes.
 - Build and assembly jobs cannot access publication identities.
+- The human-approval gate exposes no publication or signing identity.
 - Every destination job is unable to authenticate to the other destinations.
 - An interrupted workflow resumes from the exact retained artifacts.
 - A destination mismatch blocks retry and requires a new version.
@@ -181,4 +193,6 @@ objects is not the normal recovery mechanism.
 Each destination exposes a mutually consistent immutable version, or any
 partial release remains safely resumable from the exact retained artifacts
 after destination-specific equivalence checks, with no rebuild, overwrite,
-long-lived normal-release token, or cross-destination credential exposure.
+long-lived registry publication token, or cross-destination credential
+exposure. Persistent R2 and native-signing credentials remain confined to their
+separately governed boundaries.

@@ -119,7 +119,8 @@ This track does not introduce:
 5. CI builds a native binary once for each Rust target. Distribution jobs may
    copy verified bytes but may not rebuild Liknon.
 6. Required platform signing and notarization occur once after build and before
-   final hashing. The resulting signed bytes are the canonical native artifact
+   final hashing. Windows Authenticode signatures include an RFC 3161 timestamp
+   using SHA-256. The resulting signed bytes are the canonical native artifact
    reused by every binary channel.
 7. Cloudflare Direct, npm, RubyGems, PyPI, and NuGet contain the same verified
    final native binary bytes for a given target.
@@ -132,8 +133,11 @@ This track does not introduce:
 10. npm, RubyGems, PyPI, and NuGet perform no secondary download and remain
     operational independently from Cloudflare.
 11. Direct installers authenticate the exact public manifest before trusting
-    its fields, then verify archive and extracted-binary SHA-256 values before
-    installation. They require no elevated privileges by default.
+    its fields, resolve its signing-key identity through independently delivered
+    public trust material, then verify archive and extracted-binary SHA-256
+    values before installation. The trust contract defines key activation,
+    rotation, retirement, and emergency revocation. Installers require no
+    elevated privileges by default.
 12. Unsupported platforms fail explicitly and never fall back to compilation or
     silently select another binary.
 13. Versioned Cloudflare object keys are never overwritten. Mutable channel
@@ -141,6 +145,10 @@ This track does not introduce:
 14. A published version is immutable. A partial release resumes from the exact
     retained local artifacts only after destination-specific equivalence is
     proven, or it is replaced by a new patch version.
+15. Human publication approval is a credential-free gate. Native signing and
+    each publication destination use separate protected environments or an
+    equivalently isolated identity boundary, so no destination job can obtain
+    another destination's credential.
 
 ## Proposed Repository Layout
 
@@ -248,6 +256,8 @@ only when its own exit criterion and applicable tests pass.
       hash-verified binary per target.
 - [ ] Windows and macOS native artifacts satisfy the platform-signing contract
       before final hashes are recorded and reused by every binary channel.
+- [ ] Every Windows Authenticode signature carries a verified RFC 3161 timestamp
+      using SHA-256 before the final binary hash is recorded.
 - [ ] Distribution assembly jobs cannot rebuild Liknon.
 - [ ] npm, gem, wheel, and .NET Tool installations require no Rust toolchain or
       secondary download.
@@ -267,6 +277,8 @@ only when its own exit criterion and applicable tests pass.
       bytes before parsing or trusting any manifest field.
 - [ ] Public direct metadata has a documented detached signature and an
       independently available trust root.
+- [ ] Direct-distribution trust material identifies keys stably and has tested
+      activation, rotation, retirement, and emergency-revocation behavior.
 - [ ] NuGet uses the .NET SDK 10 RID-specific tool model: platform packages are
       published before the pointer package and installation retrieves only the
       compatible RID package.
@@ -285,7 +297,9 @@ only when its own exit criterion and applicable tests pass.
       publication.
 - [ ] Partial publication resumes from exact retained local artifacts only after
       destination-specific equivalence is proven.
-- [ ] Destination credentials are isolated and build jobs are unprivileged.
+- [ ] Human publication approval exposes no credential; native signing and each
+      destination use isolated identity boundaries, and build jobs remain
+      unprivileged.
 - [ ] Registry publication uses OIDC or trusted publishing wherever supported;
       any unavoidable first-publication credential is narrowly scoped, audited,
       and revoked after bootstrap.
@@ -321,6 +335,7 @@ only when its own exit criterion and applicable tests pass.
 - [macOS Developer ID distribution](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac/)
 - [macOS notarization](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
 - [Windows SignTool](https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool)
+- [Authenticode time stamping](https://learn.microsoft.com/en-us/windows/win32/seccrypto/time-stamping-authenticode-signatures)
 - [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/)
 - [Cloudflare R2 public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/)
 - [Cloudflare cache with R2](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)
