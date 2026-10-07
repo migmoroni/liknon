@@ -1,4 +1,4 @@
-# Phase B01.8: Verify Distribution End To End
+# Phase B01.9: Verify Distribution End To End
 
 [Back to the distribution plan](README.md)
 
@@ -10,11 +10,13 @@ the intended version and native bytes and behaves like the same Liknon CLI.
 
 ## Dependencies
 
-- [Cloudflare Direct assembly](03-cloudflare-direct.md) is complete.
-- [npm package assembly](04-npm-packages.md) is complete.
-- [RubyGems package assembly](05-rubygems-packages.md) is complete.
-- [PyPI wheel assembly](06-pypi-wheels.md) is complete.
-- [NuGet .NET Tool assembly](07-nuget-dotnet-tool.md) is complete.
+- [crates.io source-package assembly](03-crates-io-source-package.md) is
+  complete.
+- [Cloudflare Direct assembly](04-cloudflare-direct.md) is complete.
+- [npm package assembly](05-npm-packages.md) is complete.
+- [RubyGems package assembly](06-rubygems-packages.md) is complete.
+- [PyPI wheel assembly](07-pypi-wheels.md) is complete.
+- [NuGet .NET Tool assembly](08-nuget-dotnet-tool.md) is complete.
 - All final candidate artifacts and manifests are retained in private workflow
   storage.
 
@@ -27,25 +29,36 @@ the intended version and native bytes and behaves like the same Liknon CLI.
 - `cargo test --all-targets --locked`;
 - `cargo test --doc --locked`;
 - the declared minimum Rust version where applicable;
-- `cargo package --locked`;
-- `cargo publish --dry-run --locked`;
 - .NET Tool packaging tests under SDK 10, plus formatting, warnings-as-errors
   build, and tests for the managed launcher when one is present.
 
-The Cargo package inspection confirms inclusion of every runtime source,
-schema, knowledge document, skill, license, and branding asset required by the
-crate.
+### Cargo Source Installation
+
+- Consume the exact retained `.crate` and evidence produced by Phase B01.3.
+- Recompute its hash and canonical logical inventory before extraction.
+- Install only from the extracted package into isolated Cargo and target homes
+  on every advertised source-build platform and Rust baseline.
+- Run `liknon --version`, `liknon --help`, `liknon knowledge catalog`, and the
+  representative validation fixture through that installation.
+- Prove that compilation cannot read the original repository or user-specific
+  Cargo configuration.
+- Uninstall it and confirm that no active executable remains in the isolated
+  Cargo root.
 
 ### Identity And Byte Equality
 
-- Cargo metadata, release tag, native CLI, public direct metadata, npm packages,
-  gems, wheels, and every .NET Tool pointer/RID package report the same version.
+- Cargo metadata, retained Cargo source package, release tag, native CLI, public
+  direct metadata, npm packages, gems, wheels, and every .NET Tool pointer/RID
+  package report the same version.
 - The shared version is canonical `MAJOR.MINOR.PATCH`; no destination-specific
   normalization or translated version is accepted.
 - Every direct archive, npm tarball, gem, wheel, and pointer/RID `.nupkg` is
   extracted.
 - Each extracted native binary SHA-256 equals the corresponding entry in
   `build-manifest.json`.
+- Every Linux package and direct archive maps to exactly one build-manifest
+  record with the same architecture and libc; cross-libc and cross-architecture
+  reuse fails verification even when an executable happens to run.
 - Direct archive SHA-256 and size equal the public manifest.
 - `manifest.json` and `SHA256SUMS` are deterministic projections of the same
   build evidence.
@@ -70,6 +83,8 @@ crate.
 - Test manual installation using the documented verification procedure.
 - Test POSIX and PowerShell installation from a local HTTP origin without
   Cargo, Node, Ruby, Python, or .NET.
+- Confirm the direct installer requests only the exact GNU or MUSL archive for
+  the detected Linux architecture and does not probe or download alternatives.
 - Verify each installer signature through the independent bootstrap before
   execution, then prove the installer verifies `manifest.sig` before parsing
   manifest fields.
@@ -99,6 +114,9 @@ crate.
   payload, and absence of MSBuild project assets.
 - Install the local pointer package globally with .NET SDK 10 on each supported
   host and prove that only its matching RID package is retrieved.
+- On Linux x64 and arm64, prove every npm, RubyGems, PyPI, and NuGet frontend
+  retrieves only its matching GNU or MUSL package and no alternative libc or
+  architecture payload.
 - Confirm no Python sdist is produced or accepted as a fallback.
 - Confirm npm, gem, wheel, and .NET Tool installation performs no secondary
   download, lifecycle build, Rust source compilation, or Cloudflare request.
@@ -140,8 +158,10 @@ points, exercise:
 
 ### Platform Coverage
 
-- Linux musl binaries run on both glibc-based Linux and Alpine.
-- Linux arm64 runs on native arm64 or the approved equivalent.
+- Linux GNU binaries run on the declared minimum and current glibc environments.
+- Linux MUSL binaries run on the declared Alpine/MUSL baseline.
+- Linux x64 and arm64 GNU/MUSL variants run natively or through the separately
+  approved trustworthy equivalent without crossing target identities.
 - macOS binaries run against the declared deployment baseline.
 - Windows executes without an undeclared runtime dependency.
 - Windows native verification proves the expected self-signed fingerprint,
@@ -184,7 +204,8 @@ validation target identifier.
 
 1. Add a release-candidate verification workflow or reusable jobs with no
    publication credentials.
-2. Download every private native and staged package artifact.
+2. Download the retained Cargo source package and every private native and
+   staged binary-package artifact.
 3. Verify the build and public manifests before invoking any launcher.
 4. Execute the complete matrix above in clean target environments.
 5. Execute two-version update and uninstall fixtures independently for every
@@ -196,8 +217,9 @@ validation target identifier.
 
 ## Exit Criterion
 
-Every distribution artifact is independently installable, contains the exact
-native binary intended for its platform, preserves the Liknon process contract,
-and passes the complete pre-publication matrix without destination credentials.
-Every primary package-manager frontend also proves update and complete removal
-without stale command resolution.
+Every distribution artifact is independently installable and preserves the
+Liknon process contract. The Cargo package compiles solely from its retained
+source contents, every binary distribution contains the exact native binary
+intended for its platform, and the complete pre-publication matrix passes
+without destination credentials. Every primary package-manager frontend also
+proves update and complete removal without stale command resolution.

@@ -37,6 +37,8 @@ deliberately outside this design.
 This track includes:
 
 - one deterministic version contract shared by every channel artifact;
+- one inspected Cargo source-package candidate that compiles independently from
+  the repository checkout;
 - one native build per supported Rust target;
 - native platform sealing under an explicitly disclosed trust mode before final
   hashing where required by the public platform contract;
@@ -128,7 +130,8 @@ This track does not introduce:
    the operating system. The resulting bytes are the canonical native artifacts
    reused by every binary channel.
 7. Cloudflare Direct, npm, RubyGems, PyPI, and NuGet contain the same verified
-   final native binary bytes for a given target.
+   final native binary bytes for a given target. Linux GNU and MUSL targets are
+   separate artifacts and never substitute for or feed one another's packages.
 8. Generated binaries, release-specific metadata and installers, staged package
    trees, and distribution archives are never committed.
 9. npm and Ruby launchers, plus a .NET launcher when the Phase B01.0 prototype
@@ -147,9 +150,13 @@ This track does not introduce:
     silently select another binary.
 13. Versioned Cloudflare object keys are never overwritten. Mutable channel
     pointers are separate objects and are not version identity.
-14. A published version is immutable. A partial release resumes from the exact
-    retained local artifacts only after destination-specific equivalence is
-    proven, or it is replaced by a new patch version.
+14. A published version is immutable. A partial release resumes from exact
+    retained native and binary-package artifacts only after destination-specific
+    equivalence is proven. Because `cargo publish` owns Cargo archive creation,
+    a crates.io retry instead uses the exact signed source commit, lockfile,
+    Cargo toolchain, and approved logical package inventory from Phase B01.3.
+    If either recovery contract cannot be satisfied, the release is replaced by
+    a new patch version.
 15. Human publication approval is a credential-free gate. Detached release
     signing, Windows native signing, and each publication destination use
     separate protected environments or equivalently isolated identity
@@ -170,8 +177,10 @@ distribution/
 │   │   └── bin/
 │   │       └── liknon.js
 │   └── platforms/
-│       ├── linux-x64/package.json
-│       ├── linux-arm64/package.json
+│       ├── linux-x64-gnu/package.json
+│       ├── linux-x64-musl/package.json
+│       ├── linux-arm64-gnu/package.json
+│       ├── linux-arm64-musl/package.json
 │       ├── darwin-x64/package.json
 │       ├── darwin-arm64/package.json
 │       └── win32-x64/package.json
@@ -191,6 +200,8 @@ distribution/
 
 .github/workflows/
 └── release.yml
+
+target/package/                      # Cargo-generated .crate and extracted tree
 
 target/distribution/                 # generated and ignored
 ├── native/
@@ -214,17 +225,26 @@ in the working tree.
 
 | Rust build target | Initial platform authenticity | Native filename | Direct archive suffix | npm package | RubyGems platform package(s) | PyPI wheel platform tag(s) | NuGet RID package(s) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `x86_64-unknown-linux-musl` | Not applicable; signed release metadata and hashes | `liknon` | `x86_64-unknown-linux-musl.tar.gz` | `@liknon/linux-x64` | `liknon` for `x86_64-linux-gnu` and `x86_64-linux-musl` | Approved x86_64 manylinux and/or musllinux tags | `liknon.linux-x64` and/or `liknon.linux-musl-x64` after independent proof |
-| `aarch64-unknown-linux-musl` | Not applicable; signed release metadata and hashes | `liknon` | `aarch64-unknown-linux-musl.tar.gz` | `@liknon/linux-arm64` | `liknon` for `aarch64-linux-gnu` and `aarch64-linux-musl` | Approved aarch64 manylinux and/or musllinux tags | `liknon.linux-arm64` and/or `liknon.linux-musl-arm64` after independent proof |
+| `x86_64-unknown-linux-gnu` | Not applicable; signed release metadata and hashes | `liknon` | `x86_64-unknown-linux-gnu.tar.gz` | `@liknon/linux-x64-gnu` | `liknon` for `x86_64-linux-gnu` | Approved x86_64 manylinux tag(s) | `liknon.linux-x64` for RID `linux-x64` |
+| `x86_64-unknown-linux-musl` | Not applicable; signed release metadata and hashes | `liknon` | `x86_64-unknown-linux-musl.tar.gz` | `@liknon/linux-x64-musl` | `liknon` for `x86_64-linux-musl` | Approved x86_64 musllinux tag(s) | `liknon.linux-musl-x64` for RID `linux-musl-x64` |
+| `aarch64-unknown-linux-gnu` | Not applicable; signed release metadata and hashes | `liknon` | `aarch64-unknown-linux-gnu.tar.gz` | `@liknon/linux-arm64-gnu` | `liknon` for `aarch64-linux-gnu` | Approved aarch64 manylinux tag(s) | `liknon.linux-arm64` for RID `linux-arm64` |
+| `aarch64-unknown-linux-musl` | Not applicable; signed release metadata and hashes | `liknon` | `aarch64-unknown-linux-musl.tar.gz` | `@liknon/linux-arm64-musl` | `liknon` for `aarch64-linux-musl` | Approved aarch64 musllinux tag(s) | `liknon.linux-musl-arm64` for RID `linux-musl-arm64` |
 | `x86_64-apple-darwin` | Ad hoc code signature; not notarized | `liknon` | `x86_64-apple-darwin.tar.gz` | `@liknon/darwin-x64` | `liknon` for `x86_64-darwin` | `macosx_<baseline>_x86_64` | `liknon.osx-x64` |
 | `aarch64-apple-darwin` | Ad hoc code signature; not notarized | `liknon` | `aarch64-apple-darwin.tar.gz` | `@liknon/darwin-arm64` | `liknon` for `arm64-darwin` | `macosx_<baseline>_arm64` | `liknon.osx-arm64` |
 | `x86_64-pc-windows-msvc` | Self-signed Authenticode with RFC 3161 timestamp | `liknon.exe` | `x86_64-pc-windows-msvc.zip` | `@liknon/win32-x64` | `liknon` for `x64-mingw-ucrt` | `win_amd64` | `liknon.win-x64` |
 
 The package names are desired names until ownership and availability are
 confirmed. A target enters the public matrix only after its native and packaged
-forms pass the verification defined in Phase B01.8. Exact Linux wheel tags,
+forms pass the verification defined in Phase B01.9. Exact Linux wheel tags,
 Linux NuGet RIDs, and the macOS deployment baseline are decisions of Phase
 B01.0, not values inferred during packaging.
+
+Every matrix row is a distinct native artifact. Linux GNU and MUSL targets are
+built, hashed, packaged, and tested independently for both x64 and arm64. A GNU
+package never contains the MUSL binary, a MUSL package never contains the GNU
+binary, and no platform package contains more than one Liknon executable. Each
+installer or package resolver retrieves only the row matching the host's
+operating system, architecture, and, on Linux, libc.
 
 Platform support and public native-signer trust are separate claims. Windows
 and macOS enter the initial matrix only after their declared self-signed and ad
@@ -240,18 +260,21 @@ the cross-platform authenticity authority.
 | B01.0 | [Public Contract](00-public-contract.md) | Current release-ready source | Confirmed version grammar, channel identities, runtimes, immutable-tag enforcement, signing model, publishing identities, and platform feasibility |
 | B01.1 | [Version And Provenance](01-version-and-provenance.md) | B01.0 | Cargo-derived version authority and deterministic manifest tooling |
 | B01.2 | [Native Builds](02-native-builds.md) | B01.1 | One tested, final signed native binary where required per target and the completed build manifest |
-| B01.3 | [Cloudflare Direct](03-cloudflare-direct.md) | B01.2 | Verified direct archives, metadata, and installers |
-| B01.4 | [npm Packages](04-npm-packages.md) | B01.2 | Self-contained npm platform packages and root launcher |
-| B01.5 | [RubyGems Packages](05-rubygems-packages.md) | B01.2 | Self-contained Ruby platform gems and launcher |
-| B01.6 | [PyPI Wheels](06-pypi-wheels.md) | B01.2 | Self-contained platform wheels containing the verified native executable |
-| B01.7 | [NuGet .NET Tool](07-nuget-dotnet-tool.md) | B01.2 | .NET Tool pointer package plus exact-version RID packages containing verified native assets |
-| B01.8 | [End-To-End Verification](08-end-to-end-verification.md) | B01.3-B01.7 | Cross-channel byte identity, installation, update, and uninstall evidence |
-| B01.9 | [Publication And Recovery](09-publication-and-recovery.md) | B01.8 | Trusted, isolated, resumable publication with destination-specific readback |
-| B01.10 | [Public Verification And Documentation](10-public-verification-and-documentation.md) | B01.9 | Verified public installs, stable pointer, and accurate documentation |
+| B01.3 | [crates.io Source Package](03-crates-io-source-package.md) | B01.1 | Inspected Cargo source package proven independently buildable and installable |
+| B01.4 | [Cloudflare Direct](04-cloudflare-direct.md) | B01.2 | Verified direct archives, metadata, and installers |
+| B01.5 | [npm Packages](05-npm-packages.md) | B01.2 | Self-contained npm platform packages and root launcher |
+| B01.6 | [RubyGems Packages](06-rubygems-packages.md) | B01.2 | Self-contained Ruby platform gems and launcher |
+| B01.7 | [PyPI Wheels](07-pypi-wheels.md) | B01.2 | Self-contained platform wheels containing the verified native executable |
+| B01.8 | [NuGet .NET Tool](08-nuget-dotnet-tool.md) | B01.2 | .NET Tool pointer package plus exact-version RID packages containing verified native assets |
+| B01.9 | [End-To-End Verification](09-end-to-end-verification.md) | B01.3-B01.8 | Source-package identity, cross-channel byte identity, installation, update, and uninstall evidence |
+| B01.10 | [Publication And Recovery](10-publication-and-recovery.md) | B01.9 | Trusted, isolated, resumable publication with destination-specific readback |
+| B01.11 | [Public Verification And Documentation](11-public-verification-and-documentation.md) | B01.10 | Verified public installs, stable pointer, and accurate documentation |
 
-Complete phases in order. B01.3 through B01.7 may be implemented in parallel
-only after B01.2 is complete; B01.8 joins all five results. A phase is complete
-only when its own exit criterion and applicable tests pass.
+B01.2 and B01.3 both follow B01.1 and may be implemented independently. B01.4
+through B01.8 may be implemented in parallel only after B01.2 is complete;
+B01.9 joins the Cargo source package and all five binary-distribution assembly
+results. A phase is complete only when its own exit criterion and applicable
+tests pass.
 
 ## Global Acceptance Criteria
 
@@ -263,10 +286,21 @@ only when its own exit criterion and applicable tests pass.
 - [ ] The signed release tag is locked by a metadata-only immutable GitHub
       Release containing no uploaded binary assets.
 - [ ] GitHub and crates.io are tested source-build channels.
+- [ ] The retained `.crate` passes `cargo publish --dry-run`, is inspected from
+      its extracted contents, and builds and installs without repository-only
+      files on the declared Rust baselines and source-build platforms.
+- [ ] The Cargo package contains all required runtime assets and excludes
+      generated binaries, release staging, credentials, and unrelated local
+      state.
 - [ ] GitHub Releases are not used as a native-binary installation source.
 - [ ] CI builds exactly one binary for each declared Rust target.
+- [ ] Linux x64 and arm64 each have distinct GNU and MUSL native builds, hashes,
+      direct archives, and package variants.
 - [ ] Cloudflare Direct, npm, RubyGems, PyPI, and NuGet consume the same
       hash-verified binary per target.
+- [ ] Every platform package contains exactly one target-matching native binary,
+      and installation retrieves no package for another OS, architecture, or
+      Linux libc.
 - [ ] Windows and macOS native artifacts satisfy the platform-signing contract
       before final hashes are recorded and reused by every binary channel.
 - [ ] Windows is described and verified as self-signed rather than publicly
@@ -319,8 +353,10 @@ only when its own exit criterion and applicable tests pass.
 - [ ] Unsupported platforms fail explicitly without compilation fallback.
 - [ ] Every final distribution artifact is inspected and tested before
       publication.
-- [ ] Partial publication resumes from exact retained local artifacts only after
-      destination-specific equivalence is proven.
+- [ ] Partial publication resumes from exact retained native and binary-package
+      artifacts only after destination-specific equivalence is proven; crates.io
+      retries reproduce the approved package inventory from the exact signed
+      source, lockfile, and Cargo toolchain.
 - [ ] Human publication approval exposes no credential; detached release
       signing, Windows native signing, and each destination use isolated
       identity boundaries, macOS ad hoc signing carries no identity, and build

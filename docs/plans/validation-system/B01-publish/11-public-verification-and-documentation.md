@@ -1,4 +1,4 @@
-# Phase B01.10: Verify Public Installation And Documentation
+# Phase B01.11: Verify Public Installation And Documentation
 
 [Back to the distribution plan](README.md)
 
@@ -10,7 +10,7 @@ support that has been proven.
 
 ## Dependencies
 
-- [Phase B01.9](09-publication-and-recovery.md) completed publication or reached
+- [Phase B01.10](10-publication-and-recovery.md) completed publication or reached
   a fully recovered consistent state.
 - Every destination exposes the intended immutable version.
 - Publication evidence and the public direct manifest are available.
@@ -21,7 +21,8 @@ Run in clean target environments:
 
 - verify the metadata-only immutable GitHub Release, signed tag, and exact
   source commit, then clone that tag and install it with locked Cargo;
-- install the exact version from crates.io on the supported Rust baseline;
+- install the exact version from crates.io on every advertised source-build
+  platform with the release and minimum supported Rust toolchains;
 - install the npm root package globally through npm and pnpm on every supported
   platform using separate clean user prefixes;
 - install the matching gem globally through RubyGems and verify the same
@@ -59,7 +60,7 @@ second public release, begin from the immediately preceding supported version,
 use each documented package-manager update command to reach the candidate, run
 the same identity and behavior checks, and then uninstall it. These public tests
 complement rather than replace the two-version local lifecycle fixtures from
-Phase B01.8.
+Phase B01.9.
 
 ## Download-Domain Verification
 
@@ -99,6 +100,9 @@ Update canonical documentation to explain:
 - which channels install verified native binaries without Rust;
 - exact supported OS, architecture, libc, Node, npm, pnpm, Ruby, RubyGems,
   Bundler, Python, pip, pipx, uv, .NET SDK 10+, and Rust ranges;
+- the distinct Linux GNU and MUSL artifacts for x64 and arm64, their
+  ecosystem-native package names, and the guarantee that installation retrieves
+  only the matching OS, architecture, and libc payload;
 - signed Git tag selection and immutable GitHub Release verification for source
   builds;
 - crates.io, npm, RubyGems, PyPI, and NuGet installation, upgrade, and uninstall

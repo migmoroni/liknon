@@ -1,4 +1,4 @@
-# Phase B01.5: Assemble RubyGems Packages
+# Phase B01.6: Assemble RubyGems Packages
 
 [Back to the distribution plan](README.md)
 
@@ -33,6 +33,9 @@ Cargo fallback.
 
 - Build one platform gem for each RubyGems platform declared in the [shared
   matrix](README.md#initial-platform-contract).
+- Map every Linux GNU platform gem only to its matching GNU Rust target and
+  every Linux MUSL platform gem only to its matching MUSL Rust target. A native
+  binary may not be repackaged across those libc variants.
 - Stage gems in deterministic directories under `target/distribution/rubygems/`.
 - Do not derive package identity from mutable environment such as
   `ENV["GEM_PLATFORM"]` inside the gemspec.
@@ -62,6 +65,8 @@ Cargo fallback.
   `liknon validate` fixture from that global installation.
 - In a separate Bundler fixture, resolve the same version from an isolated
   local gem source and confirm Bundler selects the matching platform variant.
+- Confirm RubyGems and Bundler retrieve only the matching OS, architecture, and
+  Linux libc variant rather than installing both GNU and MUSL packages.
 - Run the same smoke tests through `bundle exec liknon` to verify Bundler
   compatibility without presenting Bundler as the global installation path.
 - Install the first lifecycle fixture version, update globally to the second,

@@ -1,4 +1,4 @@
-# Phase B01.3: Assemble Cloudflare Direct Distribution
+# Phase B01.4: Assemble Cloudflare Direct Distribution
 
 [Back to the distribution plan](README.md)
 
@@ -8,7 +8,7 @@ Create immutable native archives, public release metadata, and user-local
 installers for users who want a ready Liknon binary without Cargo, Node, Ruby,
 Python, .NET, or a repository clone.
 
-This phase assembles and tests direct distribution locally. Phase B01.9 performs
+This phase assembles and tests direct distribution locally. Phase B01.10 performs
 the first public upload.
 
 ## Dependencies
@@ -33,7 +33,9 @@ https://<download-domain>/
 │       ├── install.sh.sig
 │       ├── install.ps1
 │       ├── install.ps1.sig
+│       ├── liknon-v<VERSION>-x86_64-unknown-linux-gnu.tar.gz
 │       ├── liknon-v<VERSION>-x86_64-unknown-linux-musl.tar.gz
+│       ├── liknon-v<VERSION>-aarch64-unknown-linux-gnu.tar.gz
 │       ├── liknon-v<VERSION>-aarch64-unknown-linux-musl.tar.gz
 │       ├── liknon-v<VERSION>-x86_64-apple-darwin.tar.gz
 │       ├── liknon-v<VERSION>-aarch64-apple-darwin.tar.gz
@@ -90,7 +92,8 @@ The versioned POSIX and PowerShell installers must:
   Phase B01.0 trust root before parsing or trusting any manifest field;
 - resolve the manifest signing-key identifier through current, independently
   acquired trust material and reject unknown or revoked keys;
-- detect only supported operating-system and architecture combinations;
+- detect only supported operating-system and architecture combinations and,
+  on Linux, distinguish the approved GNU and MUSL environments;
 - select the exact archive declared by the public manifest;
 - download through HTTPS into a temporary directory;
 - verify the archive SHA-256 before extraction;
@@ -175,6 +178,9 @@ or `stable`.
   is rejected before it is used for manual verification.
 - POSIX and PowerShell installers work against a local HTTP origin without
   Rust, Node, Ruby, Python, or .NET.
+- Linux installers request only the archive matching the detected architecture
+  and libc and reject an unknown libc instead of falling back to another Linux
+  binary.
 - Installers reject a forged manifest before parsing it, including when a
   matching forged archive and forged hash values are supplied beside it.
 - Manual installation follows the documented hash-verification path.

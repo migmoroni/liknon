@@ -42,9 +42,12 @@ phases.
 
 Before a target may feed a public package, CI must prove:
 
-- Linux musl binaries are static and run on glibc-based Linux and Alpine;
-- each Linux binary suits every declared GNU/musl RubyGems and PyPI platform
-  variant;
+- Linux GNU binaries are built against the approved minimum glibc baseline and
+  run on that baseline and a current glibc distribution;
+- Linux MUSL binaries satisfy the approved static-linking contract and run on
+  the supported Alpine/MUSL baseline;
+- x64 and arm64 each produce distinct GNU and MUSL artifacts, and every Linux
+  binary feeds only package variants carrying its own architecture and libc;
 - every native binary runs through the approved direct or managed .NET Tool
   entry point on its declared RID;
 - the arm64 Linux build runs on native arm64 or a trustworthy equivalent;
@@ -61,7 +64,9 @@ Before a target may feed a public package, CI must prove:
 
 ## Implementation Tasks
 
-1. Add the target build matrix to the release workflow.
+1. Add the target build matrix to the release workflow, including separate
+   `x86_64-unknown-linux-gnu`, `x86_64-unknown-linux-musl`,
+   `aarch64-unknown-linux-gnu`, and `aarch64-unknown-linux-musl` jobs.
 2. Install only approved target and toolchain prerequisites in each job.
 3. Build the locked release binary once per target.
 4. Apply approved deterministic post-processing before signing.
@@ -83,7 +88,11 @@ Before a target may feed a public package, CI must prove:
   detected.
 - Downloaded workflow artifacts match the build manifest.
 - Native smoke tests run on every supported target.
-- Linux compatibility runs in both glibc and Alpine environments.
+- Every Linux GNU target runs in its declared minimum and current glibc
+  environments; every Linux MUSL target runs in its declared Alpine/MUSL
+  environment.
+- GNU and MUSL outputs for the same architecture have distinct manifest records
+  and no downstream consumer is assigned to both.
 - macOS and Windows tests use their native runner families.
 - macOS and Windows jobs reject unsigned, incorrectly signed, or mutated
   artifacts. macOS additionally rejects any manifest claim that its initial ad

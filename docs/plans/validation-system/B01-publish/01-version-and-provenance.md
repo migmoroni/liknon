@@ -49,7 +49,7 @@ At release execution, after native builds complete in Phase B01.2, CI creates
   "releaseToolchain": "<exact-rustc-version>",
   "artifacts": [
     {
-      "target": "x86_64-unknown-linux-musl",
+      "target": "x86_64-unknown-linux-gnu",
       "file": "liknon",
       "sha256": "<sha256>",
       "platformAuthenticity": {
@@ -57,13 +57,11 @@ At release execution, after native builds complete in Phase B01.2, CI creates
         "method": "none"
       },
       "consumers": [
-        "direct:x86_64-unknown-linux-musl",
-        "npm:linux-x64",
+        "direct:x86_64-unknown-linux-gnu",
+        "npm:linux-x64-gnu",
         "gem:x86_64-linux-gnu",
-        "gem:x86_64-linux-musl",
-        "pypi:linux-x64",
-        "nuget:linux-x64",
-        "nuget:linux-musl-x64"
+        "pypi:manylinux-x64",
+        "nuget:linux-x64"
       ]
     }
   ]
@@ -78,6 +76,11 @@ mode and method. The initial accepted modes are `not-applicable` for Linux,
 `apple-code-signing` for macOS. A future `publicly-trusted` mode may be introduced
 only with its own reviewed evidence contract; it is not inferred from the
 presence of a signature.
+
+Linux GNU and MUSL builds appear as separate artifact records for x64 and
+arm64. Each consumer belongs to exactly one record: direct archives, npm
+packages, RubyGems variants, PyPI wheels, and NuGet RID packages may not cross a
+libc boundary or resolve one consumer from multiple native targets.
 
 Windows records additionally identify the expected certificate subject and
 SHA-256 fingerprint, signature digest, verified RFC 3161 timestamp authority,
@@ -144,6 +147,8 @@ from, but intentionally narrower than, the internal build manifest.
 - Manifest schema-version mismatches fail closed.
 - Duplicate targets, unknown consumers, unsafe paths, and missing hashes are
   rejected.
+- Duplicate consumer assignments and any GNU-to-MUSL or MUSL-to-GNU package
+  mapping are rejected.
 - Repeated public-manifest generation from the same inputs is byte-identical.
 - Signature verification succeeds for the exact manifest and fails after any
   byte changes.

@@ -1,4 +1,4 @@
-# Phase B01.9: Publish With Resumable State
+# Phase B01.10: Publish With Resumable State
 
 [Back to the distribution plan](README.md)
 
@@ -6,12 +6,13 @@
 
 Publish one fully verified release to GitHub, R2, npm, RubyGems, PyPI, NuGet,
 and crates.io while isolating credentials and making a partial
-multi-destination release safely resumable without rebuilding or replacing
-bytes.
+multi-destination release safely resumable without rebuilding native artifacts,
+replacing accepted package versions, or changing the approved Cargo source
+inventory.
 
 ## Dependencies
 
-- [Phase B01.8](08-end-to-end-verification.md) is complete.
+- [Phase B01.9](09-end-to-end-verification.md) is complete.
 - Every final candidate archive and both manifests are retained exactly.
 - The credential-free approval gate and the isolated signing and destination
   environments or equivalent identity boundaries approved in Phase B01.0 are
@@ -33,16 +34,17 @@ The workflow separates these trust zones:
    the final bytes without overstating public operating-system trust.
 3. **Build-manifest assembly:** record target, filename, toolchain, commit, size,
    and SHA-256.
-4. **Distribution assembly:** create direct archives, installers, Cargo package,
-   npm tarballs, gems, wheels, and the .NET Tool pointer/RID packages without
-   rebuilding Liknon.
-5. **Distribution verification:** prove every embedded native binary matches the
-   build manifest.
+4. **Distribution assembly:** retain the Phase B01.3 Cargo source-package
+   candidate and create direct archives, installers, npm tarballs, gems, wheels,
+   and the .NET Tool pointer/RID packages without rebuilding Liknon.
+5. **Distribution verification:** prove the Cargo package matches its approved
+   logical inventory and every embedded native binary matches the build
+   manifest.
 6. **Destination publication:** after the credential-free approval gate, give
    each isolated job only its own destination environment and OIDC or
    trusted-publishing identity, or its explicitly approved one-time bootstrap
    credential.
-7. **Post-publication handoff:** expose destination evidence to Phase B01.10
+7. **Post-publication handoff:** expose destination evidence to Phase B01.11
    without exposing publication credentials.
 
 Third-party actions are pinned to full commit SHAs. Internal GitHub Actions
@@ -105,11 +107,13 @@ scope wherever the provider permits those claims.
    each accepted package identity back.
 11. Publish the top-level .NET Tool pointer package only after every referenced
     RID package is available at the exact version.
-12. Publish the Cargo source package through the isolated crates.io job.
+12. Publish from the same clean signed source commit and locked Cargo toolchain
+    used to produce the Phase B01.3 candidate, then read the accepted Cargo
+    source package back through crates.io.
 13. Record the destination response, immutable identity, and applicable digest
     or verified logical contents for every successful operation.
 
-`channels/stable.json` is not updated here. Phase B01.10 updates it only after
+`channels/stable.json` is not updated here. Phase B01.11 updates it only after
 all intended public installation paths pass.
 
 ## Destination Equivalence Contract
@@ -122,10 +126,14 @@ normalize their outer package envelope:
   headers;
 - the GitHub Release must retain the exact signed tag and commit and contain no
   uploaded binary assets;
-- npm, RubyGems, PyPI, and crates.io must match package identity, exact version,
+- npm, RubyGems, and PyPI must match package identity, exact version,
   registry-reported digest where available, logical package contents, and every
   embedded native hash; raw package equality is additionally required only when
   the registry guarantees preservation of uploaded bytes;
+- crates.io must match crate identity, exact version, source commit evidence,
+  canonical logical package inventory, and registry checksum. Raw `.crate`
+  equality is required only when the Cargo and registry path guarantees
+  preservation of the uploaded bytes;
 - NuGet must match package identity, exact version, RID and pointer
   relationships, valid repository signature, logical package contents, and the
   embedded native hash. Raw downloaded `.nupkg` equality is not required after
@@ -141,9 +149,12 @@ retained candidate and build manifest.
 GitHub, R2, and five registries cannot commit atomically. Recovery follows
 these rules:
 
-1. Never rebuild or restage an artifact merely to retry publication.
+1. Never rebuild or restage a native or binary-package artifact merely to retry
+   publication. A crates.io retry may rerun Cargo packaging only from the exact
+   signed source commit, lockfile, Cargo toolchain, and approved logical
+   inventory from Phase B01.3.
 2. Before skipping an existing object or package, apply its destination-specific
-   equivalence predicate to the retained artifact and build manifest.
+   equivalence predicate to the retained evidence and applicable manifest.
 3. Resume only missing operations whose prerequisites remain hash-identical.
 4. Publish package dependency leaves before packages that reference them.
 5. Treat the NuGet pointer package as that registry's completion marker; never
@@ -188,7 +199,9 @@ objects is not the normal recovery mechanism.
 - The Windows native-signing identity cannot access detached release signing or
   any destination, and macOS ad hoc signing requires no stored identity.
 - Every destination job is unable to authenticate to the other destinations.
-- An interrupted workflow resumes from the exact retained artifacts.
+- An interrupted workflow resumes from exact retained native and binary-package
+  artifacts; crates.io resumes only from the exact approved source-package
+  inputs and logical inventory.
 - A destination mismatch blocks retry and requires a new version.
 - A repository-signed NuGet package passes through logical-content and embedded
   binary verification without an invalid raw-archive equality requirement.

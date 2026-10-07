@@ -1,4 +1,4 @@
-# Phase B01.6: Assemble PyPI Wheels
+# Phase B01.7: Assemble PyPI Wheels
 
 [Back to the distribution plan](README.md)
 
@@ -62,8 +62,9 @@ Wheel metadata hashes do not replace release provenance.
 - `Requires-Python` records the installer baseline approved in Phase B01.0.
 - Every platform tag accurately represents the operating system, architecture,
   libc contract, and macOS deployment baseline of the contained binary.
-- A Linux binary may appear in more than one wheel envelope only when each
-  manylinux or musllinux tag has independent compatibility evidence.
+- Every manylinux wheel contains the matching GNU Rust target and every
+  musllinux wheel contains the matching MUSL Rust target. The same Linux binary
+  may not be advertised across both libc families.
 - Wheel filenames, `WHEEL` tags, and staged platform identity must agree.
 - No wheel declares Python dependencies, build dependencies, entry-point
   wrappers, or installation hooks.
@@ -116,6 +117,9 @@ local cache.
   executable is installed.
 - Confirm unsupported platforms report that no compatible distribution exists
   rather than compiling or selecting another binary.
+- Confirm each Linux installer frontend downloads only the wheel matching the
+  host architecture and libc and never substitutes a manylinux wheel for
+  musllinux or the reverse.
 - Confirm no sdist, build hook, Maturin invocation, Cargo invocation, or
   Cloudflare request occurs.
 

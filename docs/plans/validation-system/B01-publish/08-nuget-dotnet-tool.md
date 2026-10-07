@@ -1,4 +1,4 @@
-# Phase B01.7: Assemble The NuGet .NET Tool
+# Phase B01.8: Assemble The NuGet .NET Tool
 
 [Back to the distribution plan](README.md)
 
@@ -40,10 +40,12 @@ liknon
 └── liknon.osx-arm64
 ```
 
-Only RIDs approved in Phase B01.0 are emitted. The illustrative Linux GNU and
-musl variants above may contain the same static Rust binary only after each RID
-claim has independent execution evidence. No RID-agnostic `any` package or
-source-build fallback is published.
+Only RIDs approved in Phase B01.0 are emitted. The standard `linux-x64` and
+`linux-arm64` RIDs receive their matching GNU Rust binaries; the
+`linux-musl-x64` and `linux-musl-arm64` RIDs receive their matching MUSL Rust
+binaries. These are four distinct native artifacts and may not be substituted
+or reused across RID packages. No RID-agnostic `any` package or source-build
+fallback is published.
 
 All RID packages use the exact pointer-package version. The .NET CLI infers the
 host RID, resolves the matching package, and downloads only that platform
@@ -159,6 +161,9 @@ handwritten approximation of the .NET Tool package layout.
 - Publish the complete candidate set to an isolated local NuGet source, install
   `liknon` globally on each supported host, and prove that only the pointer and
   matching RID package are retrieved.
+- Prove Linux GNU installation never retrieves a MUSL RID package, Linux MUSL
+  installation never retrieves a GNU RID package, and neither retrieves another
+  architecture's package.
 - Run `liknon --version`, `liknon --help`, and a representative
   `liknon validate` fixture from a clean global tool home.
 - Exercise arguments, paths containing spaces, current directory, environment,

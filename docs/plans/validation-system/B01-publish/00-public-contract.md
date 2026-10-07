@@ -55,7 +55,8 @@ cargo install "liknon@<VERSION>" --locked
 
 This path requires a compatible Rust toolchain and compiles locally. The Cargo
 package must contain every runtime source, schema, knowledge document, skill,
-license, and branding asset required by the crate.
+license, and branding asset required by the crate. Its assembly and package-only
+verification are defined by [Phase B01.3](03-crates-io-source-package.md).
 
 ### Cross-Registry Version Grammar
 
@@ -78,7 +79,10 @@ The desired root package is `liknon`, supported by exact-version platform
 packages under the desired `@liknon` scope. Name and scope availability remain
 unconfirmed until checked against the registry and assigned to an accountable
 owner. Global installation is verified with both npm and pnpm in isolated
-user-owned prefixes.
+user-owned prefixes. Linux uses distinct `linux-x64-gnu`, `linux-x64-musl`,
+`linux-arm64-gnu`, and `linux-arm64-musl` packages, each containing only its
+matching Rust target. Package metadata and the launcher must cause installation
+to retrieve only the host-compatible OS, architecture, and libc payload.
 
 ### RubyGems Binary Packages
 
@@ -97,10 +101,10 @@ expose an importable Python API or invoke a Rust build backend.
 
 Project-name ownership, supported Python installer baseline, exact platform
 tags, and native-script behavior on every target must be confirmed before wheel
-metadata is treated as a public contract. A single native binary may feed more
-than one Linux wheel envelope only when every advertised tag is independently
-validated. The pip user scheme, pipx, and `uv tool` are the supported
-globally-invocable installation frontends.
+metadata is treated as a public contract. Linux manylinux wheels contain only
+the matching GNU build and musllinux wheels contain only the matching MUSL
+build; one native artifact cannot cross that libc boundary. The pip user scheme,
+pipx, and `uv tool` are the supported globally-invocable installation frontends.
 
 ### NuGet .NET Tool
 
@@ -186,6 +190,8 @@ signature integrity.
 Linux has no platform-native signing requirement in the initial matrix. Its
 artifacts remain covered by the same signed release metadata, hashes, package
 registry evidence, and target-native execution tests as every other platform.
+GNU and MUSL are separate native targets for both supported architectures and
+must retain separate compatibility evidence through every distribution channel.
 
 Platform sealing occurs after compilation and every other byte transformation
 but before final hashes and package assembly. The final native bytes become the
@@ -252,6 +258,8 @@ rather than leaving them implicit in workflow code:
 - .NET SDK 10.0 as the minimum NuGet frontend and `net10.0` as the managed
   launcher target when a launcher is required;
 - supported Rust baseline inherited from `Cargo.toml`;
+- minimum supported glibc baseline and Alpine/MUSL baseline for each Linux
+  architecture;
 - canonical `MAJOR.MINOR.PATCH` release grammar and exact-text checks for every
   registry;
 - confirmed target matrix and evidence available for every target;
@@ -288,7 +296,8 @@ required secret boundaries, not secret values.
 4. Reserve the download domain, create the R2 bucket, and confirm custom-domain
    connectivity without making `r2.dev` a release path.
 5. Select and document minimum npm, pnpm, Ruby, RubyGems, Bundler, Python, pip,
-   pipx, and uv versions; record the fixed .NET SDK 10.0 minimum.
+   pipx, and uv versions; record the fixed .NET SDK 10.0 minimum and the Linux
+   glibc and Alpine/MUSL compatibility baselines.
 6. Establish the persistent Windows self-signed signing identity and protected
    key boundary; prove Authenticode and RFC 3161 SHA-256 timestamp verification.
    Prove macOS ad hoc signing, mutation detection, and clean-runner execution.

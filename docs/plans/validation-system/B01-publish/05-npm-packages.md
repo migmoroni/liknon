@@ -1,4 +1,4 @@
-# Phase B01.4: Assemble npm Packages
+# Phase B01.5: Assemble npm Packages
 
 [Back to the distribution plan](README.md)
 
@@ -24,7 +24,7 @@ native bytes from another version.
 The root package has no install scripts. Installation obtains all required
 content from npm itself and never contacts Cloudflare, GitHub, or another binary
 host. Both npm and pnpm must install it globally into an isolated user-owned
-prefix and select the same platform package.
+prefix and select the same single platform package.
 
 ## Platform Packages
 
@@ -34,8 +34,17 @@ Each desired `@liknon/<platform>` package contains only:
 - notices required by the license;
 - one native binary under a stable internal path.
 
-Its manifest declares the applicable `os`, `cpu`, and, where necessary, `libc`
-restrictions from the [platform matrix](README.md#initial-platform-contract).
+Linux publishes four distinct packages:
+
+- `@liknon/linux-x64-gnu`;
+- `@liknon/linux-x64-musl`;
+- `@liknon/linux-arm64-gnu`;
+- `@liknon/linux-arm64-musl`.
+
+Every platform manifest declares the applicable `os` and `cpu` restrictions
+from the [platform matrix](README.md#initial-platform-contract). Linux packages
+also declare the matching `libc` restriction. Each package receives only the
+native binary built for that exact OS, architecture, and libc tuple.
 
 Committed manifests are safe templates with a development placeholder and
 `"private": true`. Staging writes complete manifests under
@@ -47,7 +56,7 @@ Committed manifests are safe templates with a development placeholder and
 The launcher must:
 
 - map supported `process.platform` and `process.arch` pairs explicitly;
-- distinguish Linux libc only where package selection requires it;
+- distinguish GNU and MUSL on every supported Linux architecture;
 - resolve the exact platform package through Node's package resolver;
 - execute its binary directly without a shell;
 - preserve arguments, current directory, environment, standard streams, exit
@@ -90,6 +99,9 @@ in CI.
 - Confirm each frontend installs the root package and only the compatible
   platform payload, even when its lock or metadata records other optional
   variants.
+- Confirm GNU hosts retrieve only the matching GNU package, MUSL hosts retrieve
+  only the matching MUSL package, and neither frontend downloads the other
+  Linux libc or architecture payloads.
 - Compare the extracted native binary with `build-manifest.json`.
 - Test arguments, current directory, environment, standard streams, success,
   nonzero status, and signals.
