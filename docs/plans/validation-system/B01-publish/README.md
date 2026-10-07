@@ -38,6 +38,8 @@ This track includes:
 
 - one deterministic version contract shared by every channel artifact;
 - one native build per supported Rust target;
+- native platform signing before final hashing where required by the public
+  platform contract;
 - private transport of built binaries between GitHub Actions jobs;
 - immutable direct archives and user-local installers served through a
   Cloudflare R2 custom domain;
@@ -70,6 +72,12 @@ pass by finding a Liknon command installed by another frontend. Project-local,
 ephemeral, and package-runner forms may remain ecosystem capabilities, but
 they are not the primary installation contract of this track.
 
+Each primary frontend must also replace an older package through its supported
+global update or upgrade operation and remove its command completely through
+its uninstall operation. Local two-version fixtures prove those lifecycle
+semantics before the first publication; public previous-to-current upgrade
+tests begin when a second public version exists.
+
 ## Non-Goals
 
 This track does not introduce:
@@ -99,29 +107,40 @@ This track does not introduce:
 ## Architectural Invariants
 
 1. `Cargo.toml` is the only authored version source.
-2. The release tag, direct metadata, `liknon --version`, Cargo package, npm
+2. The initial cross-registry version grammar is canonical SemVer core
+   `MAJOR.MINOR.PATCH`, with no leading zeroes, prerelease suffix, or build
+   metadata. Extending this grammar requires a reviewed mapping contract before
+   a release uses it.
+3. The release tag, direct metadata, `liknon --version`, Cargo package, npm
    packages, platform gems, platform wheels, and .NET Tool pointer and RID
-   packages use that exact version.
-3. CI builds a native binary once for each Rust target. Distribution jobs may
+   packages use that exact version text.
+4. Every release tag is signed and locked by a metadata-only immutable GitHub
+   Release. GitHub Release binary assets remain prohibited.
+5. CI builds a native binary once for each Rust target. Distribution jobs may
    copy verified bytes but may not rebuild Liknon.
-4. Cloudflare Direct, npm, RubyGems, PyPI, and NuGet contain the same verified
-   native binary bytes for a given target.
-5. Generated binaries, release-specific metadata and installers, staged package
+6. Required platform signing and notarization occur once after build and before
+   final hashing. The resulting signed bytes are the canonical native artifact
+   reused by every binary channel.
+7. Cloudflare Direct, npm, RubyGems, PyPI, and NuGet contain the same verified
+   final native binary bytes for a given target.
+8. Generated binaries, release-specific metadata and installers, staged package
    trees, and distribution archives are never committed.
-6. npm and Ruby launchers, plus a .NET launcher when the Phase B01.0 prototype
+9. npm and Ruby launchers, plus a .NET launcher when the Phase B01.0 prototype
    proves one necessary, contain transport logic only and preserve the CLI
    process contract. PyPI installs the native executable directly and adds no
    Python launcher or importable API.
-7. npm, RubyGems, PyPI, and NuGet perform no secondary download and remain
-   operational independently from Cloudflare.
-8. Direct installers use immutable versioned artifacts, verify SHA-256 before
-   installation, and require no elevated privileges by default.
-9. Unsupported platforms fail explicitly and never fall back to compilation or
-   silently select another binary.
-10. Versioned Cloudflare object keys are never overwritten. Mutable channel
+10. npm, RubyGems, PyPI, and NuGet perform no secondary download and remain
+    operational independently from Cloudflare.
+11. Direct installers authenticate the exact public manifest before trusting
+    its fields, then verify archive and extracted-binary SHA-256 values before
+    installation. They require no elevated privileges by default.
+12. Unsupported platforms fail explicitly and never fall back to compilation or
+    silently select another binary.
+13. Versioned Cloudflare object keys are never overwritten. Mutable channel
     pointers are separate objects and are not version identity.
-11. A published version is immutable. A partial release resumes from retained,
-    hash-identical artifacts or is replaced by a new patch version.
+14. A published version is immutable. A partial release resumes from the exact
+    retained local artifacts only after destination-specific equivalence is
+    proven, or it is replaced by a new patch version.
 
 ## Proposed Repository Layout
 
@@ -129,7 +148,8 @@ This track does not introduce:
 distribution/
 ├── direct/
 │   ├── install.sh
-│   └── install.ps1
+│   ├── install.ps1
+│   └── public-key.txt
 ├── npm/
 │   ├── root/
 │   │   ├── package.json
@@ -196,16 +216,16 @@ B01.0, not values inferred during packaging.
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
-| B01.0 | [Public Contract](00-public-contract.md) | Current release-ready source | Confirmed channel identities, runtimes, domain, signing model, and platform feasibility |
+| B01.0 | [Public Contract](00-public-contract.md) | Current release-ready source | Confirmed version grammar, channel identities, runtimes, immutable-tag enforcement, signing model, publishing identities, and platform feasibility |
 | B01.1 | [Version And Provenance](01-version-and-provenance.md) | B01.0 | Cargo-derived version authority and deterministic manifest tooling |
-| B01.2 | [Native Builds](02-native-builds.md) | B01.1 | One tested, hashed native binary per target and the completed build manifest |
+| B01.2 | [Native Builds](02-native-builds.md) | B01.1 | One tested, final signed native binary where required per target and the completed build manifest |
 | B01.3 | [Cloudflare Direct](03-cloudflare-direct.md) | B01.2 | Verified direct archives, metadata, and installers |
 | B01.4 | [npm Packages](04-npm-packages.md) | B01.2 | Self-contained npm platform packages and root launcher |
 | B01.5 | [RubyGems Packages](05-rubygems-packages.md) | B01.2 | Self-contained Ruby platform gems and launcher |
 | B01.6 | [PyPI Wheels](06-pypi-wheels.md) | B01.2 | Self-contained platform wheels containing the verified native executable |
 | B01.7 | [NuGet .NET Tool](07-nuget-dotnet-tool.md) | B01.2 | .NET Tool pointer package plus exact-version RID packages containing verified native assets |
-| B01.8 | [End-To-End Verification](08-end-to-end-verification.md) | B01.3-B01.7 | Cross-channel byte identity and installation evidence |
-| B01.9 | [Publication And Recovery](09-publication-and-recovery.md) | B01.8 | Isolated, resumable publication to every destination |
+| B01.8 | [End-To-End Verification](08-end-to-end-verification.md) | B01.3-B01.7 | Cross-channel byte identity, installation, update, and uninstall evidence |
+| B01.9 | [Publication And Recovery](09-publication-and-recovery.md) | B01.8 | Trusted, isolated, resumable publication with destination-specific readback |
 | B01.10 | [Public Verification And Documentation](10-public-verification-and-documentation.md) | B01.9 | Verified public installs, stable pointer, and accurate documentation |
 
 Complete phases in order. B01.3 through B01.7 may be implemented in parallel
@@ -215,13 +235,19 @@ only when its own exit criterion and applicable tests pass.
 ## Global Acceptance Criteria
 
 - [ ] `Cargo.toml` is the sole authored release version.
+- [ ] The version matches canonical `MAJOR.MINOR.PATCH` and requires no
+      registry-specific normalization.
 - [ ] The release tag, direct metadata, native CLI, and every package report the
       same version.
+- [ ] The signed release tag is locked by a metadata-only immutable GitHub
+      Release containing no uploaded binary assets.
 - [ ] GitHub and crates.io are tested source-build channels.
 - [ ] GitHub Releases are not used as a native-binary installation source.
 - [ ] CI builds exactly one binary for each declared Rust target.
 - [ ] Cloudflare Direct, npm, RubyGems, PyPI, and NuGet consume the same
       hash-verified binary per target.
+- [ ] Windows and macOS native artifacts satisfy the platform-signing contract
+      before final hashes are recorded and reused by every binary channel.
 - [ ] Distribution assembly jobs cannot rebuild Liknon.
 - [ ] npm, gem, wheel, and .NET Tool installations require no Rust toolchain or
       secondary download.
@@ -237,6 +263,8 @@ only when its own exit criterion and applicable tests pass.
       uploaded and read back successfully.
 - [ ] Direct installers verify archive and extracted-binary hashes before
       replacing the destination.
+- [ ] Direct installers verify the detached signature over the exact manifest
+      bytes before parsing or trusting any manifest field.
 - [ ] Public direct metadata has a documented detached signature and an
       independently available trust root.
 - [ ] NuGet uses the .NET SDK 10 RID-specific tool model: platform packages are
@@ -247,14 +275,20 @@ only when its own exit criterion and applicable tests pass.
       logic.
 - [ ] npm, pnpm, gem, Bundler, pip, pipx, uv, and global .NET Tool paths have
       isolated installation and execution evidence appropriate to their role.
+- [ ] npm, pnpm, gem, pip, pipx, uv, and .NET Tool have isolated update and
+      uninstall evidence without stale command shims.
 - [ ] npm, RubyGems, PyPI, and NuGet do not depend on Cloudflare at installation
       or runtime.
 - [ ] Launchers contain no validation logic and preserve CLI process behavior.
 - [ ] Unsupported platforms fail explicitly without compilation fallback.
 - [ ] Every final distribution artifact is inspected and tested before
       publication.
-- [ ] Partial publication resumes only from identical retained artifacts.
+- [ ] Partial publication resumes from exact retained local artifacts only after
+      destination-specific equivalence is proven.
 - [ ] Destination credentials are isolated and build jobs are unprivileged.
+- [ ] Registry publication uses OIDC or trusted publishing wherever supported;
+      any unavoidable first-publication credential is narrowly scoped, audited,
+      and revoked after bootstrap.
 - [ ] Generated binaries, release metadata, installers, and archives remain
       untracked.
 - [ ] Public documentation describes only verified channels and platforms.
@@ -262,18 +296,31 @@ only when its own exit criterion and applicable tests pass.
 ## Normative References
 
 - [Cargo `install`](https://doc.rust-lang.org/cargo/commands/cargo-install.html)
+- [Cargo manifest version field](https://doc.rust-lang.org/cargo/reference/manifest.html#the-version-field)
 - [Cargo package publishing](https://doc.rust-lang.org/cargo/reference/publishing.html)
+- [Python version specifiers](https://packaging.python.org/en/latest/specifications/version-specifiers/)
+- [NuGet package versioning](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning)
 - [npm `package.json` reference](https://docs.npmjs.com/files/package.json/)
 - [RubyGems platforms](https://guides.rubygems.org/platforms/)
 - [RubyGems specification reference](https://guides.rubygems.org/specification-reference/)
 - [Wheel binary package format](https://packaging.python.org/en/latest/specifications/binary-distribution-format/)
 - [Python platform compatibility tags](https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/)
-- [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/)
 - [.NET tools overview](https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools)
 - [Create a .NET tool](https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools-how-to-create)
 - [`dotnet tool install`](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-tool-install)
 - [RID-specific .NET tools](https://learn.microsoft.com/en-us/dotnet/core/tools/rid-specific-tools)
 - [NuGet package publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/publish-a-package)
+- [NuGet signed packages](https://learn.microsoft.com/en-us/nuget/reference/signed-packages-reference)
+- [GitHub immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)
+- [GitHub deployment environments](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments)
+- [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/)
+- [RubyGems trusted publishing](https://guides.rubygems.org/trusted-publishing/)
+- [PyPI trusted publishing](https://docs.pypi.org/trusted-publishers/)
+- [crates.io trusted publishing](https://blog.rust-lang.org/2025/07/11/crates-io-development-update-2025-07/)
+- [NuGet trusted publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing)
+- [macOS Developer ID distribution](https://developer.apple.com/documentation/xcode/creating-distribution-signed-code-for-the-mac/)
+- [macOS notarization](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
+- [Windows SignTool](https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool)
 - [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/)
 - [Cloudflare R2 public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/)
 - [Cloudflare cache with R2](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)

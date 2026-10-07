@@ -73,12 +73,18 @@ in CI.
 5. Create all tarballs with `npm pack`.
 6. Inspect package names, versions, platform metadata, contents, permissions,
    scripts, and dependency versions.
+7. Add non-publishable two-version package fixtures that use the same root,
+   platform-selection, launcher, and shim layout for update and uninstall tests.
 
 ## Verification
 
 - Publish the staged tarballs to an isolated local registry and install the root
   package globally with npm in a clean user-owned prefix without Cargo.
 - Repeat the global installation with pnpm in a separate clean prefix.
+- For npm and pnpm independently, install the first lifecycle fixture version,
+  update globally to the second, prove that the command resolves only the second
+  version, uninstall it, and prove that no executable shim or platform package
+  remains active.
 - Run `liknon --version`, `liknon --help`, and a representative
   `liknon validate` fixture after each installation.
 - Confirm each frontend installs the root package and only the compatible
@@ -95,6 +101,6 @@ in CI.
 
 ## Exit Criterion
 
-Local npm tarballs install globally through npm and pnpm and run with the exact
-release binary without Rust, Cargo, lifecycle compilation, or an external
-binary host.
+Local npm tarballs install, update, and uninstall globally through npm and pnpm
+without stale shims, and the release candidate runs with the exact release
+binary without Rust, Cargo, lifecycle compilation, or an external binary host.

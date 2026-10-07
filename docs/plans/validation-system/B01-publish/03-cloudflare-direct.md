@@ -30,7 +30,9 @@ https://<download-domain>/
 │       ├── manifest.sig
 │       ├── SHA256SUMS
 │       ├── install.sh
+│       ├── install.sh.sig
 │       ├── install.ps1
+│       ├── install.ps1.sig
 │       ├── liknon-v<VERSION>-x86_64-unknown-linux-musl.tar.gz
 │       ├── liknon-v<VERSION>-aarch64-unknown-linux-musl.tar.gz
 │       ├── liknon-v<VERSION>-x86_64-apple-darwin.tar.gz
@@ -53,6 +55,8 @@ The `r2.dev` development endpoint is not a production channel.
 - Windows uses ZIP and the exact `liknon.exe` filename.
 - Archive SHA-256, size, format, and extracted-binary SHA-256 appear in the
   public manifest.
+- `SHA256SUMS` lists archives and installer scripts, not the manifest or its
+  signature; the signed manifest records the checksum document's own hash.
 - Repeated assembly from identical inputs is deterministic where the selected
   archive format and toolchain support it; unavoidable metadata is normalized.
 
@@ -81,6 +85,9 @@ purges are limited to mutable channel metadata or incident response.
 
 The versioned POSIX and PowerShell installers must:
 
+- obtain the exact `manifest.json` and `manifest.sig` for the selected version;
+- verify the detached signature over the exact manifest bytes against the
+  Phase B01.0 trust root before parsing or trusting any manifest field;
 - detect only supported operating-system and architecture combinations;
 - select the exact archive declared by the public manifest;
 - download through HTTPS into a temporary directory;
@@ -90,14 +97,18 @@ The versioned POSIX and PowerShell installers must:
 - accept an explicit installation directory;
 - replace the destination only after all verification succeeds;
 - clean temporary files on success, failure, or interruption;
-- distinguish unsupported platforms, missing verification tools, malformed
-  metadata, hash failures, and network failures;
+- distinguish unsupported platforms, missing signature or hash verification
+  tools, invalid signatures, malformed metadata, hash failures, and network
+  failures;
 - never execute Cargo, npm, RubyGems, Python package tools, or a command
   obtained from release metadata.
 
-Primary documentation downloads the installer as a file before execution so it
-can be inspected. A `curl | sh` form may be secondary and must state its trust
-tradeoff. Manual archive download and verification remain fully supported.
+Primary documentation downloads the installer and its detached signature as
+files, verifies the installer against the independently obtained trust root, and
+only then executes it. Installer signatures cannot be bootstrapped solely from
+the same R2 origin. A `curl | sh` form may be secondary and must state that it
+forgoes installer authentication before execution. Manual archive download and
+verification remain fully supported.
 
 Automated consumers pin a concrete version rather than defaulting to `latest`
 or `stable`.
@@ -119,12 +130,14 @@ or `stable`.
 
 ## Implementation Tasks
 
-1. Add version-neutral POSIX and PowerShell installer templates.
+1. Add version-neutral POSIX and PowerShell installer templates that pin the
+   approved manifest-verification identity.
 2. Assemble one target-specific archive from each manifest-verified binary.
-3. Generate the public `manifest.json` and `SHA256SUMS` deterministically.
-4. Sign the exact manifest bytes as `manifest.sig`.
-5. Generate release-specific installers without creating a second version
-   source.
+3. Generate release-specific installers without creating a second version
+   source, then sign each installer for pre-execution verification.
+4. Generate `SHA256SUMS` and the public `manifest.json`, including installer and
+   checksum-document hashes, deterministically.
+5. Sign the exact final manifest bytes as `manifest.sig`.
 6. Define reviewed cache rules, content metadata, bucket lock, and stable-channel
    shape as reproducible infrastructure configuration.
 7. Keep all staged outputs under `target/distribution/direct/`.
@@ -134,8 +147,14 @@ or `stable`.
 - Archive and extracted-binary hashes match the build manifest.
 - `manifest.sig` validates with the independent trust root and fails after
   mutation.
+- Installer signatures validate through the independently documented bootstrap
+  and fail after script mutation.
+- The signed manifest authenticates `SHA256SUMS`; a modified checksum document
+  is rejected before it is used for manual verification.
 - POSIX and PowerShell installers work against a local HTTP origin without
   Rust, Node, Ruby, Python, or .NET.
+- Installers reject a forged manifest before parsing it, including when a
+  matching forged archive and forged hash values are supplied beside it.
 - Manual installation follows the documented hash-verification path.
 - Installation succeeds in a path containing spaces and without elevated
   privileges.
@@ -145,6 +164,7 @@ or `stable`.
 
 ## Exit Criterion
 
-Direct archives and installers work without a language toolchain, elevated
-privileges, or an external package manager, and every staged byte is covered by
-versioned, signed metadata derived from the native build manifest.
+Direct archives and authenticated installers work without a language toolchain,
+elevated privileges, or an external package manager. Installers authenticate
+metadata before use, and every staged byte is covered by versioned, signed
+metadata derived from the native build manifest.

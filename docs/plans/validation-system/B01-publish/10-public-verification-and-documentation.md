@@ -19,7 +19,8 @@ support that has been proven.
 
 Run in clean target environments:
 
-- clone the tagged GitHub source and install it with locked Cargo;
+- verify the metadata-only immutable GitHub Release, signed tag, and exact
+  source commit, then clone that tag and install it with locked Cargo;
 - install the exact version from crates.io on the supported Rust baseline;
 - install the npm root package globally through npm and pnpm on every supported
   platform using separate clean user prefixes;
@@ -30,12 +31,20 @@ Run in clean target environments:
 - install the exact NuGet pointer package globally with .NET SDK 10 on every
   supported platform and confirm only the matching RID package is retrieved;
 - download and verify a direct archive manually;
-- run the versioned POSIX installer on supported Unix targets;
-- run the versioned PowerShell installer on Windows.
+- authenticate and run the versioned POSIX installer on supported Unix targets;
+- authenticate and run the versioned PowerShell installer on Windows.
 
 Every installation runs `liknon --version`, `liknon --help`, and a representative
 `liknon validate` fixture. Reported version and native hash must agree with the
 release evidence.
+
+For the first public release, uninstall every package-manager installation and
+prove that its command shim or script no longer resolves. Starting with the
+second public release, begin from the immediately preceding supported version,
+use each documented package-manager update command to reach the candidate, run
+the same identity and behavior checks, and then uninstall it. These public tests
+complement rather than replace the two-version local lifecycle fixtures from
+Phase B01.8.
 
 ## Download-Domain Verification
 
@@ -43,6 +52,8 @@ release evidence.
 - Versioned objects return the intended content type, disposition, length,
   cache headers, and immutable semantics.
 - `manifest.json`, `manifest.sig`, and `SHA256SUMS` agree after edge delivery.
+- POSIX and PowerShell installer signatures verify through the independent trust
+  bootstrap before either script is executed.
 - Downloaded archive bytes match the public manifest.
 - Negative responses under the immutable release prefix are not cached.
 - The bucket lock protects the released prefix.
@@ -70,10 +81,13 @@ Update canonical documentation to explain:
 - which channels install verified native binaries without Rust;
 - exact supported OS, architecture, libc, Node, npm, pnpm, Ruby, RubyGems,
   Bundler, Python, pip, pipx, uv, .NET SDK 10+, and Rust ranges;
-- Git tag selection for source builds;
-- crates.io, npm, RubyGems, PyPI, and NuGet installation and upgrade commands;
+- signed Git tag selection and immutable GitHub Release verification for source
+  builds;
+- crates.io, npm, RubyGems, PyPI, and NuGet installation, upgrade, and uninstall
+  commands;
 - version-pinned direct downloads and POSIX/PowerShell installers;
-- manual archive, SHA-256, and signature verification;
+- independent trust-root acquisition, installer authentication, signed-manifest
+  verification, and manual archive SHA-256 verification;
 - custom-domain, immutable-path, and stable-pointer semantics;
 - that npm, RubyGems, PyPI, and NuGet perform no secondary binary download;
 - that PyPI provides platform wheels only and no importable Python API;
@@ -95,15 +109,18 @@ wording that can drift.
 ## Implementation Tasks
 
 1. Add post-publication jobs for every supported channel and platform.
-2. Verify production domain headers, bytes, metadata, and bucket protections.
-3. Update and verify the stable pointer only after all channel tests pass.
-4. Update all canonical installation and support documentation.
-5. Search for stale channel counts, unsupported platforms, old package names,
+2. Add clean uninstall checks for the first release and previous-to-current
+   public upgrade checks for subsequent releases.
+3. Verify production domain headers, bytes, metadata, signatures, and bucket
+   protections.
+4. Update and verify the stable pointer only after all channel tests pass.
+5. Update all canonical installation and support documentation.
+6. Search for stale channel counts, unsupported platforms, old package names,
    and obsolete installation commands.
-6. Preserve public evidence for the release without retaining credentials.
+7. Preserve public evidence for the release without retaining credentials.
 
 ## Exit Criterion
 
-Public instructions reproduce every tested installation path, the stable pointer
-resolves only to a fully verified release, and no documentation promises an
-unverified channel, runtime, or platform.
+Public instructions reproduce every tested installation, update, and uninstall
+path, the stable pointer resolves only to a fully verified release, and no
+documentation promises an unverified channel, runtime, or platform.

@@ -40,6 +40,8 @@ crate.
 
 - Cargo metadata, release tag, native CLI, public direct metadata, npm packages,
   gems, wheels, and every .NET Tool pointer/RID package report the same version.
+- The shared version is canonical `MAJOR.MINOR.PATCH`; no destination-specific
+  normalization or translated version is accepted.
 - Every direct archive, npm tarball, gem, wheel, and pointer/RID `.nupkg` is
   extracted.
 - Each extracted native binary SHA-256 equals the corresponding entry in
@@ -49,6 +51,8 @@ crate.
   build evidence.
 - `manifest.sig` verifies against the independent trust root and fails after
   mutation.
+- Windows and macOS binaries retain the approved platform signatures and
+  notarization evidence after every package layer is extracted.
 
 ### Native And Direct Installation
 
@@ -58,6 +62,9 @@ crate.
 - Test manual installation using the documented verification procedure.
 - Test POSIX and PowerShell installation from a local HTTP origin without
   Cargo, Node, Ruby, Python, or .NET.
+- Verify each installer signature through the independent bootstrap before
+  execution, then prove the installer verifies `manifest.sig` before parsing
+  manifest fields.
 - Reject a modified archive, mismatched manifest, interrupted download,
   malformed channel pointer, and unsupported target.
 - Confirm that a failed installation does not replace an existing binary.
@@ -84,6 +91,26 @@ crate.
   download, lifecycle build, Rust source compilation, or Cloudflare request.
 - Test an omitted npm optional platform dependency and unsupported package
   platforms, plus an unsupported .NET Tool host.
+
+### Package-Manager Lifecycle
+
+For npm, pnpm, RubyGems, the pip user scheme, pipx, `uv tool`, and .NET Tool,
+exercise two non-publishable fixture versions assembled through the same
+package, launcher, platform-selection, and command-shim paths as release
+artifacts:
+
+- install the first fixture version globally into a clean isolated home;
+- update or upgrade to the second version using the frontend's supported global
+  command;
+- prove that the invoked command resolves only the second version and payload;
+- uninstall through the same frontend;
+- prove that no active command shim, script, or conflicting platform payload
+  remains.
+
+Lifecycle fixtures validate package-manager replacement behavior only. They do
+not satisfy release identity or native-byte checks; the actual release candidate
+is separately installed and compared with `build-manifest.json` in the same
+matrix.
 
 ### Launcher Transparency
 
@@ -142,9 +169,11 @@ validation target identifier.
 2. Download every private native and staged package artifact.
 3. Verify the build and public manifests before invoking any launcher.
 4. Execute the complete matrix above in clean target environments.
-5. Emit concise machine-readable evidence identifying artifact, target, test,
+5. Execute two-version update and uninstall fixtures independently for every
+   primary global package-manager frontend.
+6. Emit concise machine-readable evidence identifying artifact, target, test,
    and result.
-6. Fail the joined phase if any channel lacks evidence for any advertised
+7. Fail the joined phase if any channel lacks evidence for any advertised
    platform.
 
 ## Exit Criterion
@@ -152,3 +181,5 @@ validation target identifier.
 Every distribution artifact is independently installable, contains the exact
 native binary intended for its platform, preserves the Liknon process contract,
 and passes the complete pre-publication matrix without destination credentials.
+Every primary package-manager frontend also proves update and complete removal
+without stale command resolution.

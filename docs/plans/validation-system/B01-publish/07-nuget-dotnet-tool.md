@@ -144,7 +144,9 @@ handwritten approximation of the .NET Tool package layout.
 5. Pack every RID package and the pointer package without invoking Cargo.
 6. Inspect package IDs, exact versions, RID relationships, metadata, contents,
    native hashes, permissions, and absence of project build assets.
-7. Prove assembly leaves tracked files unchanged.
+7. Add non-publishable two-version pointer/RID fixtures using the same tool and
+   command-shim layout for update and uninstall tests.
+8. Prove assembly leaves tracked files unchanged.
 
 ## Verification
 
@@ -171,8 +173,9 @@ handwritten approximation of the .NET Tool package layout.
   invocation, source compilation, Cloudflare request, or project modification.
 - Confirm the package set contains no MSBuild props, targets, compile assets,
   library API, or validation logic in a conditional launcher.
-- Update between two locally published fixture versions and uninstall through
-  global .NET Tool commands without leaving a conflicting command shim.
+- Update between the two locally published lifecycle fixture versions, prove
+  that only the second version executes, and uninstall through global .NET Tool
+  commands without leaving a conflicting command shim.
 
 ## Publication Ordering Contract
 

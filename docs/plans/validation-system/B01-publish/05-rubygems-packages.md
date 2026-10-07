@@ -51,6 +51,8 @@ Cargo fallback.
 4. Build every platform gem with strict validation.
 5. Inspect platform, version, files, permissions, executable metadata, and
    runtime requirements.
+6. Add non-publishable two-version gem fixtures that use the same platform,
+   executable, runner, and shim layout for update and uninstall tests.
 
 ## Verification
 
@@ -62,6 +64,9 @@ Cargo fallback.
   local gem source and confirm Bundler selects the matching platform variant.
 - Run the same smoke tests through `bundle exec liknon` to verify Bundler
   compatibility without presenting Bundler as the global installation path.
+- Install the first lifecycle fixture version, update globally to the second,
+  prove that the executable resolves only the intended current version, remove
+  all fixture versions, and prove that no active `liknon` shim remains.
 - Compare the extracted native binary with `build-manifest.json`.
 - Test arguments, current directory, environment, standard streams, success,
   nonzero status, and signals.
@@ -72,6 +77,7 @@ Cargo fallback.
 
 ## Exit Criterion
 
-Every local platform gem installs globally through RubyGems and resolves
-correctly through Bundler with the exact release binary, without Rust, Cargo,
-runtime downloads, or a generic source fallback.
+Every local platform gem installs, updates, and uninstalls globally through
+RubyGems without stale shims and resolves correctly through Bundler with the
+exact release binary, without Rust, Cargo, runtime downloads, or a generic
+source fallback.

@@ -89,6 +89,8 @@ local cache.
 6. Generate standards-compliant `METADATA`, `WHEEL`, and `RECORD` files.
 7. Pack and inspect each wheel without producing an sdist.
 8. Prove assembly leaves tracked files unchanged and invokes no Rust build.
+9. Add non-publishable two-version wheel fixtures using the same script layout
+   for update and uninstall tests.
 
 ## Verification
 
@@ -99,6 +101,10 @@ local cache.
   a clean temporary user base and expose its scripts directory on `PATH`.
 - Install the same wheel globally for the isolated user with `pipx install` and
   `uv tool install`, using a separate clean home for each frontend.
+- For the pip user scheme, pipx, and `uv tool` independently, install the first
+  lifecycle fixture version, upgrade to the second, prove that the command
+  resolves only the second version, uninstall it, and prove no active script or
+  tool shim remains.
 - Remove or isolate each installation before testing the next frontend so a
   previously installed command cannot satisfy another frontend's smoke test.
 - Run `liknon --version`, `liknon --help`, and a representative
@@ -115,7 +121,8 @@ local cache.
 
 ## Exit Criterion
 
-Every local platform wheel installs a globally invocable exact release binary
-through the pip user scheme, pipx, and `uv tool`, without Rust, source
-compilation, a Python runtime wrapper, a secondary download, or an importable
-Python API.
+Every local platform wheel installs, upgrades, and uninstalls a globally
+invocable command through the pip user scheme, pipx, and `uv tool` without stale
+scripts. The release candidate contains the exact release binary without Rust,
+source compilation, a Python runtime wrapper, a secondary download, or an
+importable Python API.
