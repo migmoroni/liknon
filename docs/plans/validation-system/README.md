@@ -472,6 +472,17 @@ then the incremental value of public documentation, then the incremental value
 of AI-Tool, and finally the complete AI-Engineering system so failures can be
 attributed to the correct evaluation layer.
 
+### Distribution Track
+
+Distribution is planned separately from the numbered validation-system phases:
+
+| Track | Document | Relationship | Primary result |
+| --- | --- | --- | --- |
+| B01 | [Multi-Channel CLI Distribution](B01-publish/README.md) | Cross-cutting; does not change phase order or imply Phase 7 completion | Source installation through GitHub and crates.io, plus one-build-per-target binary distribution through Cloudflare Direct, npm, RubyGems, PyPI, and NuGet |
+
+This track may run for a commit independently approved for release. It does not
+change Liknon's runtime, configuration, report, knowledge, or AI-flow contracts.
+
 ## 7. Planned Documentation And Skill Layout
 
 The authored documentation separates shared knowledge, shared technical
