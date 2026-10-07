@@ -94,6 +94,8 @@ The versioned POSIX and PowerShell installers must:
   acquired trust material and reject unknown or revoked keys;
 - detect only supported operating-system and architecture combinations and,
   on Linux, distinguish the approved GNU and MUSL environments;
+- on Linux, accept `--libc=gnu|musl` as an explicit selection and otherwise use
+  the approved automatic precedence;
 - select the exact archive declared by the public manifest;
 - download through HTTPS into a temporary directory;
 - verify the archive SHA-256 before extraction;
@@ -110,6 +112,33 @@ The versioned POSIX and PowerShell installers must:
   failures;
 - never execute Cargo, npm, RubyGems, Python package tools, or a command
   obtained from release metadata.
+
+### Linux Selection Algorithm
+
+The POSIX installer resolves Linux targets before requesting an archive:
+
+1. Validate the supported architecture.
+2. If `--libc=gnu` or `--libc=musl` is present, select that variant and retain
+   `explicit` as the decision source.
+3. Otherwise, run the approved GNU/glibc and MUSL capability probes.
+4. If both are detected, select GNU and retain `gnu-tiebreak` as the decision
+   source.
+5. If exactly one is detected, select it and retain `single-detected` as the
+   decision source.
+6. If neither is detected, stop before requesting an archive and explain the
+   explicit override.
+
+The installer does not classify libc from distribution files, distribution
+names, container metadata, or Docker availability. It resolves one manifest
+record and downloads one archive; downloading candidates to discover which one
+runs is prohibited. Explicit selection does not waive architecture or runtime
+baseline checks. In particular, a selected GNU binary must satisfy the declared
+minimum glibc baseline, and failure does not trigger a MUSL fallback.
+
+Before download, the installer emits a concise selection diagnostic containing
+the operating system, architecture, detected libc implementations, decision
+source, and selected Rust target. Tests preserve the same fields as
+machine-readable release evidence.
 
 Primary documentation downloads the installer and its detached signature as
 files, verifies the installer against current independently obtained trust
@@ -151,18 +180,20 @@ or `stable`.
 
 1. Add version-neutral POSIX and PowerShell installer templates that pin the
    approved manifest-verification identity.
-2. Assemble one target-specific archive from each manifest-verified binary.
-3. Generate release-specific installers without creating a second version
+2. Implement the POSIX Linux selector, `--libc=gnu|musl` override, stable
+   diagnostics, and deterministic probes approved in Phase B01.0.
+3. Assemble one target-specific archive from each manifest-verified binary.
+4. Generate release-specific installers without creating a second version
    source, then sign each installer for pre-execution verification.
-4. Generate `SHA256SUMS` and the public `manifest.json`, including installer and
+5. Generate `SHA256SUMS` and the public `manifest.json`, including installer and
    checksum-document hashes plus each target's disclosed platform-authenticity
    mode, deterministically.
-5. Sign the exact final manifest bytes as `manifest.sig`.
-6. Add fixtures for active, rotated, retired, unknown, and revoked signing-key
+6. Sign the exact final manifest bytes as `manifest.sig`.
+7. Add fixtures for active, rotated, retired, unknown, and revoked signing-key
    states under the trust model approved in Phase B01.0.
-7. Define reviewed cache rules, content metadata, bucket lock, and stable-channel
+8. Define reviewed cache rules, content metadata, bucket lock, and stable-channel
    shape as reproducible infrastructure configuration.
-8. Keep all staged outputs under `target/distribution/direct/`.
+9. Keep all staged outputs under `target/distribution/direct/`.
 
 ## Verification
 
@@ -178,9 +209,19 @@ or `stable`.
   is rejected before it is used for manual verification.
 - POSIX and PowerShell installers work against a local HTTP origin without
   Rust, Node, Ruby, Python, or .NET.
-- Linux installers request only the archive matching the detected architecture
-  and libc and reject an unknown libc instead of falling back to another Linux
-  binary.
+- Linux automatic selection chooses GNU on a GNU-only fixture, MUSL on a
+  MUSL-only fixture, and GNU when both implementations are detected, for both
+  x64 and arm64.
+- `--libc=gnu` and `--libc=musl` select the requested matching artifact,
+  including on a dual-libc fixture, while an unknown automatic result fails
+  before any archive request.
+- A selected GNU artifact that cannot satisfy the declared glibc baseline fails
+  without requesting or executing the MUSL artifact.
+- Every Linux case records the detected implementations, decision source, and
+  selected target and requests exactly one archive without probing an
+  alternative download.
+- Changing distribution or container labels without changing the libc probes
+  does not change selection.
 - Installers reject a forged manifest before parsing it, including when a
   matching forged archive and forged hash values are supplied beside it.
 - Manual installation follows the documented hash-verification path.

@@ -132,32 +132,40 @@ This track does not introduce:
 7. Cloudflare Direct, npm, RubyGems, PyPI, and NuGet contain the same verified
    final native binary bytes for a given target. Linux GNU and MUSL targets are
    separate artifacts and never substitute for or feed one another's packages.
-8. Generated binaries, release-specific metadata and installers, staged package
+8. When Liknon-owned installation code must select a Linux libc artifact,
+   automatic selection chooses GNU when both GNU/glibc and MUSL are detected,
+   chooses the sole detected implementation when exactly one is present, and
+   fails without downloading a native archive when neither can be identified.
+   Where a channel exposes an explicit supported selection, as Cloudflare Direct
+   does, that selection takes precedence. Ecosystem-native package resolvers
+   remain authoritative for the platform variant they resolve and are not
+   contradicted by a second Liknon selector.
+9. Generated binaries, release-specific metadata and installers, staged package
    trees, and distribution archives are never committed.
-9. npm and Ruby launchers, plus a .NET launcher when the Phase B01.0 prototype
+10. npm and Ruby launchers, plus a .NET launcher when the Phase B01.0 prototype
    proves one necessary, contain transport logic only and preserve the CLI
    process contract. PyPI installs the native executable directly and adds no
    Python launcher or importable API.
-10. npm, RubyGems, PyPI, and NuGet perform no secondary download and remain
+11. npm, RubyGems, PyPI, and NuGet perform no secondary download and remain
     operational independently from Cloudflare.
-11. Direct installers authenticate the exact public manifest before trusting
+12. Direct installers authenticate the exact public manifest before trusting
     its fields, resolve its signing-key identity through independently delivered
     public trust material, then verify archive and extracted-binary SHA-256
     values before installation. The trust contract defines key activation,
     rotation, retirement, and emergency revocation. Installers require no
     elevated privileges by default.
-12. Unsupported platforms fail explicitly and never fall back to compilation or
+13. Unsupported platforms fail explicitly and never fall back to compilation or
     silently select another binary.
-13. Versioned Cloudflare object keys are never overwritten. Mutable channel
+14. Versioned Cloudflare object keys are never overwritten. Mutable channel
     pointers are separate objects and are not version identity.
-14. A published version is immutable. A partial release resumes from exact
+15. A published version is immutable. A partial release resumes from exact
     retained native and binary-package artifacts only after destination-specific
     equivalence is proven. Because `cargo publish` owns Cargo archive creation,
     a crates.io retry instead uses the exact signed source commit, lockfile,
     Cargo toolchain, and approved logical package inventory from Phase B01.3.
     If either recovery contract cannot be satisfied, the release is replaced by
     a new patch version.
-15. Human publication approval is a credential-free gate. Detached release
+16. Human publication approval is a credential-free gate. Detached release
     signing, Windows native signing, and each publication destination use
     separate protected environments or equivalently isolated identity
     boundaries, so no job can obtain another boundary's credential. macOS ad
@@ -246,6 +254,20 @@ binary, and no platform package contains more than one Liknon executable. Each
 installer or package resolver retrieves only the row matching the host's
 operating system, architecture, and, on Linux, libc.
 
+Throughout this plan, `gnu` identifies the glibc-linked Rust target and package
+variant. It does not mean every Unix-like environment. GNU and MUSL may both be
+installed on one Linux system; that coexistence is valid. A Liknon-owned
+automatic selector chooses GNU in that case. An explicit supported libc choice
+wins, a single detected implementation selects itself, and an unclassified host
+fails without trial downloads or silent fallback. Distribution names and
+container status are not libc detectors.
+
+Package-manager channels use their native platform metadata, compatibility tags,
+or runtime identifiers to resolve one variant. Once that resolver has selected a
+platform package, a launcher does not reinterpret the host or replace the
+resolved artifact. The explicit override and dual-libc tie-break are implemented
+where Liknon itself owns selection, most visibly in the direct POSIX installer.
+
 Platform support and public native-signer trust are separate claims. Windows
 and macOS enter the initial matrix only after their declared self-signed and ad
 hoc modes pass native execution and integrity tests. Neither mode is described
@@ -301,6 +323,17 @@ tests pass.
 - [ ] Every platform package contains exactly one target-matching native binary,
       and installation retrieves no package for another OS, architecture, or
       Linux libc.
+- [ ] Every Liknon-owned automatic Linux selector chooses GNU when both
+      GNU/glibc and MUSL are detected, chooses the sole detected implementation,
+      and fails before downloading a native archive when neither is
+      identifiable; the direct installer additionally honors its explicit libc
+      selection.
+- [ ] Linux selection downloads exactly one payload, never infers libc from a
+      distribution or container label, and never silently falls back across the
+      GNU/MUSL boundary.
+- [ ] RubyGems, PyPI, and NuGet accept their ecosystem-native platform result as
+      authoritative and do not run a conflicting libc selector after package
+      resolution.
 - [ ] Windows and macOS native artifacts satisfy the platform-signing contract
       before final hashes are recorded and reused by every binary channel.
 - [ ] Windows is described and verified as self-signed rather than publicly

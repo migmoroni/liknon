@@ -43,8 +43,9 @@ Linux publishes four distinct packages:
 
 Every platform manifest declares the applicable `os` and `cpu` restrictions
 from the [platform matrix](README.md#initial-platform-contract). Linux packages
-also declare the matching `libc` restriction. Each package receives only the
-native binary built for that exact OS, architecture, and libc tuple.
+also declare the matching `libc` restriction: GNU packages use npm's `glibc`
+value and MUSL packages use `musl`. Each package receives only the native binary
+built for that exact OS, architecture, and libc tuple.
 
 Committed manifests are safe templates with a development placeholder and
 `"private": true`. Staging writes complete manifests under
@@ -56,7 +57,8 @@ Committed manifests are safe templates with a development placeholder and
 The launcher must:
 
 - map supported `process.platform` and `process.arch` pairs explicitly;
-- distinguish GNU and MUSL on every supported Linux architecture;
+- consume the Linux variant made available by npm or pnpm's `libc` metadata
+  rather than classifying the host from distribution or container names;
 - resolve the exact platform package through Node's package resolver;
 - execute its binary directly without a shell;
 - preserve arguments, current directory, environment, standard streams, exit
@@ -67,6 +69,14 @@ The launcher must:
 
 The supported mapping is a small explicit table covered by tests rather than an
 unchecked interpolation of package identifiers.
+
+npm and pnpm own download-time platform filtering for this channel. The launcher
+does not fetch a missing alternative or override the package manager's resolved
+libc. If both exact-version Linux packages are nevertheless resolvable, the
+launcher deterministically selects the GNU package; it never selects whichever
+package happens to be found first. If no matching package is resolvable, it
+reports the platform and installed-package mismatch without a secondary
+download.
 
 The minimum supported Node version selected in Phase B01.0 is encoded in
 `engines.node`. The approved npm and pnpm versions are exercised independently
@@ -102,6 +112,9 @@ in CI.
 - Confirm GNU hosts retrieve only the matching GNU package, MUSL hosts retrieve
   only the matching MUSL package, and neither frontend downloads the other
   Linux libc or architecture payloads.
+- Confirm a GNU host that also has MUSL available still retrieves and runs the
+  GNU package, and a launcher fixture exposing both exact-version package
+  candidates chooses GNU deterministically.
 - Compare the extracted native binary with `build-manifest.json`.
 - Test arguments, current directory, environment, standard streams, success,
   nonzero status, and signals.

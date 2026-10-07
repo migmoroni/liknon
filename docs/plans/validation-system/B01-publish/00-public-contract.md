@@ -160,6 +160,35 @@ releases signed by retired, uncompromised keys and let current trust material
 reject revoked keys. The exact mechanism is decided and tested in this phase
 rather than improvised by an installer.
 
+### Linux Libc Selection
+
+`gnu` is the public suffix for the glibc-linked Linux target; `musl` identifies
+the distinct MUSL target. Both implementations may legitimately be available on
+one system. Their coexistence is not an installation error.
+
+Whenever Liknon-owned installation code must choose between those artifacts, it
+applies this precedence:
+
+1. An explicit supported `gnu` or `musl` selection wins.
+2. If automatic detection finds both GNU/glibc and MUSL, select GNU.
+3. If automatic detection finds exactly one, select that implementation.
+4. If neither can be identified, fail before retrieving a native archive and
+   require an explicit selection.
+
+Selection uses reviewed runtime-capability probes. It does not infer libc from
+the Linux distribution name, the presence of a container runtime, or whether the
+process happens to run inside a container. The chosen artifact must still meet
+its declared compatibility baseline, and a failed compatibility check never
+causes silent fallback to the other libc.
+
+Cloudflare Direct exposes this choice through the POSIX installer's
+`--libc=gnu|musl` option and otherwise uses the automatic policy. Package-manager
+channels instead declare exact platform metadata, compatibility tags, or RIDs.
+Their native resolver is authoritative once it selects a package; Ruby, Python,
+or .NET launchers do not repeat libc detection or replace that package. npm and
+pnpm must use the declared `libc` metadata, while the Node launcher only resolves
+the package made available by that contract and performs no secondary download.
+
 ### Native Platform Signing
 
 Release authenticity and native platform trust are separate contracts. The
@@ -260,6 +289,9 @@ rather than leaving them implicit in workflow code:
 - supported Rust baseline inherited from `Cargo.toml`;
 - minimum supported glibc baseline and Alpine/MUSL baseline for each Linux
   architecture;
+- GNU/MUSL detection probes, the `--libc=gnu|musl` direct-installer override,
+  the GNU preference when both implementations are detected, and the diagnostic
+  evidence emitted for each selection;
 - canonical `MAJOR.MINOR.PATCH` release grammar and exact-text checks for every
   registry;
 - confirmed target matrix and evidence available for every target;
@@ -297,7 +329,9 @@ required secret boundaries, not secret values.
    connectivity without making `r2.dev` a release path.
 5. Select and document minimum npm, pnpm, Ruby, RubyGems, Bundler, Python, pip,
    pipx, and uv versions; record the fixed .NET SDK 10.0 minimum and the Linux
-   glibc and Alpine/MUSL compatibility baselines.
+   glibc and Alpine/MUSL compatibility baselines. Approve the Linux libc probes,
+   explicit override, automatic precedence, and failure behavior without using
+   distribution or container names as detection inputs.
 6. Establish the persistent Windows self-signed signing identity and protected
    key boundary; prove Authenticode and RFC 3161 SHA-256 timestamp verification.
    Prove macOS ad hoc signing, mutation detection, and clean-runner execution.
@@ -330,6 +364,12 @@ required secret boundaries, not secret values.
   object over TLS without exposing the production bucket through `r2.dev`.
 - Runtime baselines are supported by their package metadata formats and CI
   runners.
+- Direct-installer fixtures prove explicit GNU and MUSL selection, automatic
+  GNU-only and MUSL-only selection, GNU selection when both are detected, and a
+  pre-download error when neither is identifiable.
+- Linux selection evidence records operating system, architecture, detected
+  libc implementations, decision source, selected target, and downloaded
+  archive; every successful case retrieves exactly one archive.
 - Every proposed wheel tag is accepted by PyPI and accurately describes the
   native executable it contains.
 - A local .NET SDK 10 prototype creates a pointer package and one package per

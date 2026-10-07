@@ -71,6 +71,12 @@ Wheel metadata hashes do not replace release provenance.
 - No wheel contacts Cloudflare, GitHub, or another host during installation or
   execution.
 
+pip, pipx, and uv select from standard compatibility tags. Their selected wheel
+is authoritative for this channel: the installed native script performs no libc
+detection and cannot replace a manylinux wheel with a musllinux wheel or the
+reverse. The shared GNU tie-break applies only to Liknon-owned selectors, not to
+a platform result already resolved by Python packaging tags.
+
 The channel does not use Maturin, PyO3, CFFI, or another Rust build backend.
 Assembly uses maintained Wheel-format tooling capable of packing a pre-staged
 tree without invoking Cargo. A candidate packer that cannot preserve this

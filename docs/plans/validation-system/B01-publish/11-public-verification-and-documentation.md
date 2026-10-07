@@ -103,6 +103,17 @@ Update canonical documentation to explain:
 - the distinct Linux GNU and MUSL artifacts for x64 and arm64, their
   ecosystem-native package names, and the guarantee that installation retrieves
   only the matching OS, architecture, and libc payload;
+- that `gnu` denotes the glibc-linked target, GNU and MUSL may legitimately
+  coexist, and automatic Liknon-owned selection prefers GNU when both are
+  detected;
+- the direct POSIX installer's `--libc=gnu|musl` override, sole-detected and
+  dual-detected behavior, unknown-libc error, compatibility checks, and guarantee
+  that it requests exactly one archive without silent fallback;
+- that distribution names, container names, and Docker availability do not
+  determine libc selection;
+- that RubyGems, PyPI, and NuGet use their ecosystem-native platform resolution
+  without a conflicting second selector, while npm and pnpm use package `libc`
+  metadata;
 - signed Git tag selection and immutable GitHub Release verification for source
   builds;
 - crates.io, npm, RubyGems, PyPI, and NuGet installation, upgrade, and uninstall

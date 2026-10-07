@@ -52,6 +52,12 @@ host RID, resolves the matching package, and downloads only that platform
 payload during installation. Platform selection never occurs on the first
 Liknon execution and never requires a secondary host.
 
+The inferred RID is authoritative for this channel. Liknon does not inspect
+installed libc implementations after NuGet resolution or replace a
+`linux-musl-*` RID package with a `linux-*` package. The shared GNU tie-break
+applies only when Liknon-owned code performs automatic selection before an
+ecosystem resolver has selected a platform package.
+
 The public installation form is global:
 
 ```sh

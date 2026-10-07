@@ -98,6 +98,32 @@ the intended version and native bytes and behaves like the same Liknon CLI.
 - Verify signed release metadata and native hashes independently from the
   platform signature before evaluating any expected operating-system warning.
 
+### Linux Libc Selection
+
+Exercise the Liknon-owned direct selector on both x64 and arm64 fixtures:
+
+- GNU detected alone selects the GNU archive;
+- MUSL detected alone selects the MUSL archive;
+- GNU and MUSL detected together select the GNU archive;
+- `--libc=gnu` and `--libc=musl` override automatic selection;
+- no detected implementation fails before an archive request;
+- a GNU selection below the declared glibc baseline fails without trying MUSL;
+- changing distribution or container labels alone does not change the result;
+- every successful case requests exactly one target archive.
+
+Each case emits machine-readable evidence containing operating system,
+architecture, detected libc implementations, decision source (`explicit`,
+`single-detected`, or `gnu-tiebreak`), selected Rust target, selected artifact,
+and request count. This is installation-selection evidence and does not alter
+`build-manifest.json`, whose purpose remains native artifact provenance.
+
+Registry tests separately prove their ecosystem-native resolution. RubyGems,
+PyPI, and NuGet accept the platform gem, wheel tag, or RID selected by their
+resolver and run no second libc selector. npm and pnpm use package `libc`
+metadata; on a GNU host with MUSL also available they retrieve only the GNU
+package, and a launcher fixture with both exact-version candidates resolves GNU
+without a first-found rule or secondary download.
+
 ### Registry Binary Installation
 
 - Run `npm pack` for the root and every platform package.
@@ -211,7 +237,9 @@ validation target identifier.
 5. Execute two-version update and uninstall fixtures independently for every
    primary global package-manager frontend.
 6. Emit concise machine-readable evidence identifying artifact, target, test,
-   declared platform-authenticity mode, public-trust status, and result.
+   declared platform-authenticity mode, public-trust status, and result. Linux
+   selection cases additionally identify detected libc implementations,
+   decision source, selected target and artifact, and archive request count.
 7. Fail the joined phase if any channel lacks evidence for any advertised
    platform.
 

@@ -62,6 +62,11 @@ Before a target may feed a public package, CI must prove:
 - the binary reports the Cargo-derived version;
 - representative `--help` and validation execution work on the target.
 
+In artifact and package names, GNU means the glibc-linked target. Build jobs do
+not perform host-selection logic: they produce and prove all four Linux target
+artifacts independently so later selectors and ecosystem resolvers can choose
+without rebuilding or crossing libc identities.
+
 ## Implementation Tasks
 
 1. Add the target build matrix to the release workflow, including separate

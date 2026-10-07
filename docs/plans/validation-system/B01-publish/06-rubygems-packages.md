@@ -46,6 +46,12 @@ Cargo fallback.
   `required_rubygems_version`.
 - Never contact Cloudflare, GitHub, or another binary host during installation.
 
+RubyGems and Bundler platform resolution is authoritative for this channel. Once
+they select a platform gem, the Ruby launcher executes only its co-packaged
+binary; it does not inspect system libc availability, replace the selected gem,
+or perform a second download. The shared GNU tie-break applies only where
+Liknon-owned code performs automatic selection before package resolution.
+
 ## Implementation Tasks
 
 1. Add the Ruby executable, runner, and deterministic gemspec/staging metadata.
