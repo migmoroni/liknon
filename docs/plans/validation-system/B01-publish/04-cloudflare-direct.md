@@ -17,6 +17,8 @@ the first public upload.
 - The custom domain, R2 bucket, signing and key-lifecycle model, and platform
   matrix approved in Phase B01.0 are available.
 - Every native input matches `build-manifest.json`.
+- External readiness checkpoint [AP-4](accounts-and-permissions.md#ap-4) is
+  complete; the bucket-scoped publication credential remains deferred.
 
 ## Public Object Layout
 

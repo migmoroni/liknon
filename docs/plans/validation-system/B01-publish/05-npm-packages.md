@@ -13,6 +13,8 @@ that embed the already-built native binaries.
 - The npm name, scope, Node, npm, and pnpm baselines, and owners from Phase
   B01.0 are confirmed.
 - Every native input matches `build-manifest.json`.
+- External readiness checkpoint [AP-5](accounts-and-permissions.md#ap-5) is
+  complete; no placeholder package or publisher binding is created here.
 
 ## Root Package
 

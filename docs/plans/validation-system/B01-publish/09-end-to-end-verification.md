@@ -19,6 +19,8 @@ the intended version and native bytes and behaves like the same Liknon CLI.
 - [NuGet .NET Tool assembly](08-nuget-dotnet-tool.md) is complete.
 - All final candidate artifacts and manifests are retained in private workflow
   storage.
+- External readiness checkpoint [AP-9](accounts-and-permissions.md#ap-9) is
+  complete, and this phase has no public destination credential.
 
 ## Verification Layers
 

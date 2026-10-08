@@ -13,6 +13,8 @@ binary behind a transparent Ruby executable.
 - The gem name, Ruby, RubyGems, and Bundler baselines, platform identifiers,
   and owner from Phase B01.0 are confirmed.
 - Every native input matches `build-manifest.json`.
+- External readiness checkpoint [AP-6](accounts-and-permissions.md#ap-6) is
+  complete; pending trusted publishing remains deferred until release.
 
 ## Gem Layout
 

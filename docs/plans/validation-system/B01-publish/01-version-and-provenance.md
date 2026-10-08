@@ -12,6 +12,8 @@ distribution channel.
 
 - [Phase B01.0](00-public-contract.md) is complete.
 - Package, domain, platform, runtime, and signing decisions are recorded.
+- External readiness checkpoint [AP-1](accounts-and-permissions.md#ap-1) is
+  complete.
 
 ## Version Authority
 

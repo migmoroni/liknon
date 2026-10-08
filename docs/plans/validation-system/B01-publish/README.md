@@ -12,6 +12,11 @@ purpose is to make one Rust implementation installable through the source,
 package, and direct-download channels preferred by different users without
 creating parallel implementations of Liknon.
 
+External setup is staged by the [accounts, permissions, and publication
+authority runbook](accounts-and-permissions.md). Its AP checkpoints are completed
+just before the phases that need them; accounts and short-lived publisher
+bindings are not configured all at once.
+
 ## Objective
 
 Publish the same Liknon CLI through seven channels:
@@ -276,6 +281,10 @@ The signed release manifest and its independently delivered trust root remain
 the cross-platform authenticity authority.
 
 ## Implementation Order
+
+The external checkpoint associated with each phase is listed in
+[the AP checkpoint map](accounts-and-permissions.md#phase-checkpoint-map) and is
+also linked from that phase's dependencies.
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |

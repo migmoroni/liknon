@@ -16,8 +16,9 @@ later phases must consume.
 - A Liknon commit otherwise suitable for release work.
 - The shared invariants and platform matrix in the [plan
   index](README.md#architectural-invariants).
-- Human ownership of the intended registry accounts, Cloudflare account, and
-  download domain.
+- External readiness checkpoint [AP-0](accounts-and-permissions.md#ap-0) is
+  complete. Registry accounts and publisher bindings are activated later at
+  their channel-specific checkpoints.
 
 ## Channel Contract
 
@@ -318,8 +319,9 @@ required secret boundaries, not secret values.
 
 ## Implementation Tasks
 
-1. Reserve or verify the crate, npm root/scope, RubyGem, PyPI project, and NuGet
-   package names.
+1. Record the intended crate, npm root/scope, RubyGem, PyPI project, and NuGet
+   package names and verify current availability without publishing placeholder
+   packages. Account activation follows the channel-specific AP checkpoints.
 2. Verify that canonical `MAJOR.MINOR.PATCH` text is accepted without
    normalization by every destination and encode that grammar as a release
    precondition.

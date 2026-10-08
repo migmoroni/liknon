@@ -18,6 +18,8 @@ package.
 - The crate name, ownership, minimum supported Rust version, license, repository,
   documentation, and release identity from Phase B01.0 are confirmed.
 - The exact signed source commit and its lockfile pass the normal project gates.
+- External readiness checkpoint [AP-3](accounts-and-permissions.md#ap-3) is
+  complete; no publication token is created in this phase.
 
 ## Cargo Package Contract
 

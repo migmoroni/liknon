@@ -14,6 +14,8 @@ support that has been proven.
   a fully recovered consistent state.
 - Every destination exposes the intended immutable version.
 - Publication evidence and the public direct manifest are available.
+- Post-publication external readiness checkpoint
+  [AP-11](accounts-and-permissions.md#ap-11) is completed as part of this phase.
 
 ## Public Installation Verification
 

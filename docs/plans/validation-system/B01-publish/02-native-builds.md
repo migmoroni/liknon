@@ -15,6 +15,8 @@ phases.
   approved.
 - The Windows self-signed identity, protected-key boundary, macOS ad hoc signing
   procedure, and verification contracts from Phase B01.0 are available.
+- External readiness checkpoint [AP-2](accounts-and-permissions.md#ap-2) is
+  complete.
 
 ## Build Contract
 

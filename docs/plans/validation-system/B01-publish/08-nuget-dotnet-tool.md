@@ -23,6 +23,8 @@ prebuilt Rust executable directly as the RID tool entry point.
   a minimal `net10.0` launcher and has proven the selected form globally on
   every supported platform.
 - Every native input matches `build-manifest.json`.
+- External readiness checkpoint [AP-8](accounts-and-permissions.md#ap-8) is
+  complete; the trusted-publishing policy remains deferred until release.
 
 ## Distribution Model
 

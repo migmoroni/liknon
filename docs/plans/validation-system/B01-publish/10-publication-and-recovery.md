@@ -17,12 +17,20 @@ inventory.
 - The credential-free approval gate and the isolated signing and destination
   environments or equivalent identity boundaries approved in Phase B01.0 are
   configured.
+- Just-in-time external readiness checkpoint
+  [AP-10](accounts-and-permissions.md#ap-10) is complete.
 
 ## Workflow And Trust Boundaries
 
 The existing continuous-integration workflow remains non-publishing. A
 dedicated release workflow runs for an explicitly selected release tag with
 `cancel-in-progress: false`.
+
+The human release owner authorizes publication; GitHub Actions executes it from
+the retained candidates. Routine package publication does not occur from the
+maintainer workstation. First-publication credentials follow the temporary CI
+bootstrap contract in the [external readiness
+runbook](accounts-and-permissions.md#publication-authority).
 
 The workflow separates these trust zones:
 

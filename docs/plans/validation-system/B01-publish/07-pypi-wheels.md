@@ -14,6 +14,8 @@ Python implementation, launcher, import API, or runtime dependency.
 - The PyPI project name, publishing owner, Python, pip, pipx, and uv baselines,
   and exact wheel compatibility tags from Phase B01.0 are confirmed.
 - Every native input matches `build-manifest.json`.
+- External readiness checkpoint [AP-7](accounts-and-permissions.md#ap-7) is
+  complete; pending trusted publishing remains deferred until release.
 
 ## Distribution Model
 
