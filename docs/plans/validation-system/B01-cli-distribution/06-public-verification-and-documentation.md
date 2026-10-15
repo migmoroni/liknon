@@ -4,8 +4,8 @@
 
 ## Purpose
 
-Verify the actual public source and binary surfaces, publish the stable pointer
-only after success, and make public instructions reproduce tested behavior.
+Verify all public source and native surfaces, publish the stable pointer only
+after success, and make public instructions reproduce tested behavior.
 
 ## Dependencies
 
@@ -21,17 +21,19 @@ From clean environments that cannot read private workflow artifacts:
 - clone the canonical GitHub repository, fetch and verify the released signed
   tag, build or install with locked dependencies, and run representative CLI
   behavior;
+- install the exact `liknon-cli` version from crates.io in an isolated Cargo
+  home and run both command names;
 - download and authenticate one manual archive for every supported target;
 - download, authenticate, and execute the versioned POSIX and PowerShell
   installers against the production domain;
-- verify version, help, schema output, and a representative validation without
-  an ecosystem pack;
+- verify both aliases, version, help, schema output, and representative
+  validation;
 - exercise update and uninstall behavior where a previous public version
   exists;
 - verify unsupported platforms and integrity failures remain explicit.
 
-Public verification must not succeed by finding another `liknon` executable on
-`PATH`.
+Public verification must not succeed by finding another `liknon` or
+`liknon-cli` executable on `PATH`.
 
 ## Download-Domain Verification
 
@@ -47,8 +49,8 @@ Public verification must not succeed by finding another `liknon` executable on
 
 After every public check passes:
 
-1. create `channels/stable.json` as a narrow pointer to the exact versioned
-   manifest;
+1. create `channels/liknon-cli/stable.json` as a narrow pointer to the exact
+   versioned manifest;
 2. upload it through the Cloudflare publication boundary;
 3. read it back through the custom domain;
 4. resolve and authenticate its versioned manifest;
@@ -62,6 +64,7 @@ Document in one canonical installation reference:
 
 - source installation from an exact signed tag;
 - the exact `apps/liknon-cli` source-install path;
+- crates.io installation, update, and uninstall behavior;
 - source update and uninstall behavior;
 - authenticated POSIX and PowerShell installer usage;
 - manual archive selection, signature verification, and hash verification;
@@ -74,17 +77,17 @@ Document in one canonical installation reference:
 - safe, user-mediated macOS exception guidance where target-native testing
   requires it;
 - unsupported-platform, unavailable-verifier, and integrity-error behavior;
-- how to verify `liknon --version` and report a release-security incident;
+- how to verify both command aliases and report a release-security incident;
 - that GitHub does not host Liknon binary assets;
-- that authored knowledge and skills are installed separately through B02
-  ecosystem packages and are not contained in the CLI binary.
+- that `liknon-knowledge` is an independent B02 application and B03 ecosystem
+  packages contain AI resources; neither is contained in this CLI.
 
 Update README, installation reference, security guidance, and changelog without
 duplicating canonical wording that can drift.
 
 ## Implementation Tasks
 
-1. Add post-publication source and binary verification jobs.
+1. Add post-publication GitHub, crates.io, and binary verification jobs.
 2. Verify production domain bytes, headers, signatures, and protections.
 3. Update the stable pointer only after complete success.
 4. Update canonical installation and support documentation.

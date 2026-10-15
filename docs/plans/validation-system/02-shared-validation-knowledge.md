@@ -21,18 +21,18 @@ catalogs make it discoverable, traceable, and mechanically verifiable without
 duplicating prose.
 
 This phase owns knowledge meaning, source quality, editorial boundaries,
-initial content, and routing behavior. It does not own binary embedding,
-package-manager publication, pack activation, CLI distribution, AI authority,
-or workspace mutation. Repository and product separation belongs to
-[A01](A01-product-and-repository-separation/README.md); ecosystem delivery
-belongs to [B02](B02-ecosystem-packs/README.md).
+initial content, and routing behavior. It does not own application packaging,
+CLI distribution, AI authority, agent resources, or workspace mutation.
+Repository and product separation belongs to
+[A01](A01-product-and-repository-separation/README.md); knowledge application
+delivery belongs to [B02](B02-knowledge-cli-and-corpus/README.md).
 
 ## 2. Position And Status
 
 Phase 1 provides stable CLI and configuration behavior. Phase 2 establishes the
 accepted initial corpus and deterministic content checks. Phase 2.1 applies the
-full editorial profiles. A01 then assigns the accepted resources to shared,
-Rust, and JavaScript/TypeScript packs before Phase 3 adds further AI operations.
+full editorial profiles. A01 then separates the complete corpus from validation
+execution and AI resources before Phase 3 adds further AI operations.
 
 Accepted content work:
 
@@ -49,78 +49,61 @@ Accepted content work:
 - [x] The corpus is usable without network access while clearly identifying
       when deeper external detail is unavailable.
 
-Packaging, pack manifests, final source paths, and CLI retrieval are A01 and
-B02 acceptance criteria, not retroactive Phase 2 implementation tasks.
+Application packaging, final source paths, and CLI retrieval are A01 and B02
+acceptance criteria, not retroactive Phase 2 implementation tasks.
 
 ## 3. Knowledge Ownership Model
 
-After A01, authored knowledge has one owner under `packs/`:
+After A01, authored knowledge has one canonical owner:
 
 ```text
-packs/
-├── shared/
-│   └── knowledge/
-│       ├── README.md
-│       ├── catalog.json
-│       ├── sources.json
-│       ├── SOURCES.md
-│       ├── explanations/
-│       │   ├── foundations/
-│       │   ├── patterns/
-│       │   └── concerns/
-│       ├── how-to/recipes/
-│       └── reference/standards/
-├── rust/
-│   └── knowledge/
-│       ├── catalog.json
-│       ├── sources.json
-│       ├── explanations/
-│       │   ├── languages/
-│       │   └── technologies/
-│       ├── how-to/recipes/
-│       └── reference/tools/
-└── javascript-typescript/
-    └── knowledge/
-        ├── catalog.json
-        ├── sources.json
-        ├── explanations/
-        │   ├── languages/
-        │   └── technologies/
-        ├── how-to/recipes/
-        └── reference/tools/
+docs/validation/knowledge/
+├── README.md
+├── catalog.json
+├── sources.json
+├── SOURCES.md
+├── explanations/
+│   ├── foundations/
+│   ├── patterns/
+│   ├── concerns/
+│   ├── languages/
+│   └── technologies/
+├── how-to/
+│   └── recipes/
+└── reference/
+    ├── standards/
+    └── tools/
 ```
 
 This is an ownership map, not a requirement to create empty directories.
-Directories exist only when they contain approved resources.
+Directories exist only when they contain approved resources. Language and tool
+facets organize one corpus; they are not separately installed products.
 
 Shared foundations, patterns, general concerns, and standards remain usable by
 workspaces in any language. Rust and JavaScript/TypeScript are initial positive
 slices because maintained consumers exercise them. A stack-specific guide,
-tool, example, or recipe never enters the shared pack merely to make the shared
-catalog appear broader.
+tool, example, or recipe enters the corpus only when its scope and maintained
+consumer evidence justify it.
 
 Each document has one canonical authored path and one resource identity. It may
-relate to documents in other packs by stable pack and resource IDs. Do not copy
-guidance because it applies to multiple facets or because several ecosystem
-packages need the shared baseline.
+relate to any other document by stable ID. Do not copy guidance merely because
+it applies to multiple facets.
 
 Knowledge is audience-neutral. It contains no process activation, persistence
 behavior, decision authority, or conversational control. Operational skills
-and human-only guidance are separate resource kinds even when the shared pack
-distributes them alongside knowledge.
+and human-only guidance are separate products and do not enter the corpus.
 
 ## 4. Catalog Contract
 
-Each pack maintains a machine-verifiable catalog for its substantive knowledge
-documents. Pack composition produces a deterministic aggregate catalog without
-rewriting the authored catalogs.
+The corpus maintains one machine-verifiable catalog for its substantive
+documents.
 
 Each document entry records:
 
-- stable resource ID and owning pack ID;
+- stable document ID;
 - document kind: `foundation`, `pattern`, `language`, `framework`,
   `technology`, `tool`, `concern`, `standard`, or `recipe`;
-- canonical relative path inside the pack;
+- canonical relative path inside the corpus;
 - concise summary and questions the document helps answer;
 - applicability tags and relevant evidence dimensions;
 - related resource identities;
@@ -133,7 +116,7 @@ applicability tags come from declared compact vocabularies. Status is `draft`
 or `reviewed`.
 
 The catalog contains routing metadata, not a second copy of guidance. Paths
-resolve inside the real owning pack, IDs are unique in that pack, and every
+resolve inside the canonical corpus, IDs are globally unique, and every
 substantive guide appears exactly once. Category indexes and generated source
 indexes are navigation assets, not duplicate topic guides.
 
@@ -144,10 +127,8 @@ constraints.
 
 ## 5. Source And Traceability Contract
 
-Each pack maintains the source records used by its guidance. Shared source
-records live in the shared pack; ecosystem-only records live with that
-ecosystem. A composed catalog may deduplicate an identical source identity and
-digest, but packages do not fork source records.
+The corpus maintains one canonical source register. Shared and
+ecosystem-specific claims use the same identity and provenance contract.
 
 Each source records:
 
@@ -202,7 +183,7 @@ and review rules belong to
 
 ### Foundations
 
-The initial shared pack covers:
+The initial foundations cover:
 
 - a validation model linking failure, consequence, invariant, evidence,
   oracle, and residual uncertainty;
@@ -217,7 +198,7 @@ The initial shared pack covers:
 
 ### Reusable Patterns
 
-The initial shared pack includes:
+The initial reusable patterns include:
 
 - evidence chains from consequence to evidence and residual uncertainty;
 - isolation and determinism;
@@ -225,10 +206,9 @@ The initial shared pack includes:
 
 ### Ecosystem Slices
 
-The Rust pack includes the current Rust, Cargo, rustfmt, Clippy, and Rust CLI
-release material. The JavaScript/TypeScript pack includes the current
-JavaScript, TypeScript, Node.js, pnpm, compiler, test-tool, and package-gate
-material.
+The corpus includes explicitly scoped Rust, Cargo, rustfmt, Clippy, and Rust
+CLI release material, plus JavaScript, TypeScript, Node.js, pnpm, compiler,
+test-tool, and package-gate material.
 
 Recipes compose existing foundations, patterns, language guidance, and tools
 for one bounded scenario. They are examples, not policy. Their complete config
@@ -241,28 +221,28 @@ simulate completeness.
 
 ## 8. Retrieval And Progressive Disclosure
 
-A01 preserves the read-only CLI namespace while changing its source from
-compiled assets to explicitly active packs:
+A01 moves read-only knowledge access into the independent complete-corpus
+application:
 
 ```text
-liknon knowledge catalog [--format=human|json]
-liknon knowledge show <resource-id>
+liknon-knowledge catalog [--format=human|json]
+liknon-knowledge show <DOCUMENT_ID>
 ```
 
-The composed catalog identifies pack ownership. `show` accepts only a stable
-resource selector and returns exact canonical UTF-8 Markdown bytes. It does not
-accept arbitrary paths, URLs, or undocumented aliases.
+The catalog identifies document scope and applicability. `show` accepts only a
+stable document selector and returns exact canonical UTF-8 Markdown bytes. It
+does not accept arbitrary paths, URLs, or undocumented aliases.
 
 Knowledge operations:
 
 - execute before configuration loading;
-- do not inspect or create `.validation/` unless an explicit pack activation
-  operation was separately requested;
+- do not inspect or create `.validation/`;
 - do not execute checks, tools, scripts, or repository providers;
 - do not read AI policy or persistence;
 - do not access the network;
 - emit deterministic machine output without ANSI;
-- use no embedded-content or repository-relative fallback.
+- use the complete versioned corpus packaged with the knowledge application and
+  no repository-relative fallback.
 
 Progressive consumption follows this sequence:
 
@@ -284,16 +264,15 @@ Verify mechanically:
 
 - every catalog and source register satisfies its actual compiled schema before
   typed and semantic validation;
-- stable IDs are unique in their owning pack and all relationships resolve;
+- stable IDs are globally unique and all relationships resolve;
 - every substantive Markdown guide has exactly one catalog entry;
 - catalog paths, internal links, and source-location citations resolve within
-  their declared boundaries;
-- generated `SOURCES.md` files are deterministic;
-- pack composition preserves unique identities and deterministic routing;
-- exact duplicate shared packs deduplicate and conflicting bytes fail;
+  the corpus boundary;
+- generated `SOURCES.md` is deterministic;
+- catalog generation preserves unique identities and deterministic routing;
 - recipe JSON satisfies config schema and normal semantic validation in a
   deterministic temporary workspace without executing commands;
-- no empty topic or recipe placeholders enter a pack;
+- no empty topic or recipe placeholders enter the corpus;
 - no knowledge content activates flows or becomes executable policy.
 
 Version small model-neutral routing fixtures for exact selection, valid
@@ -333,14 +312,15 @@ keeps prompts, deterministic assertions, and rubrics provider-neutral.
 - [x] Knowledge remains independent from validation planning and execution.
 - [x] Knowledge contains no flow activation, persistence, authority, or
       human-only conversational instruction.
-- [ ] A01 assigns every accepted resource to exactly one authored pack owner
-      and removes embedded CLI content.
-- [ ] B02 proves independent ecosystem packaging and polyglot composition.
+- [ ] A01 assigns every accepted document to the canonical corpus and removes
+      it from the validation CLI.
+- [ ] B02 proves independent knowledge application packaging and cross-channel
+      exact-byte retrieval.
 
 ## 11. Handoff
 
 Phase 2.1 refounds the accepted corpus under standards-informed editorial
 profiles while preserving stable resource identities and source traceability.
-A01 then separates the repository and pack sources. Phase 3 consumes selected
-knowledge from active packs and never copies it into an operational skill or
-`.validation/`.
+A01 then separates the corpus, validation application, and AI resources.
+Phase 3 consumes selected knowledge through `liknon-knowledge` and never copies
+it into an operational skill or `.validation/`.

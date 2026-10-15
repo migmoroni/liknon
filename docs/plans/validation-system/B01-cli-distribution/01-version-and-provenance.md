@@ -4,9 +4,9 @@
 
 ## Purpose
 
-Derive every CLI release identity from structured root-workspace metadata and
-create deterministic internal and public evidence linking one source commit to
-each native artifact.
+Derive every CLI release identity from structured package metadata and create
+deterministic internal and public evidence linking one source commit to the
+crates.io source package and each native artifact.
 
 ## Dependencies
 
@@ -21,18 +21,19 @@ the release unless:
 
 - the selected package is exactly the CLI package approved in B01.0;
 - the version matches canonical `MAJOR.MINOR.PATCH`;
-- the workflow commit is exactly tagged `v<VERSION>`;
+- the workflow commit is exactly tagged `liknon-cli-v<VERSION>`;
 - the annotated tag signature is valid under the approved identity;
 - source and lockfile pass release gates;
-- no GitHub release identity or Cloudflare versioned key contains conflicting
-  content for that version.
+- no crates.io version, GitHub release identity, or Cloudflare versioned key
+  contains conflicting content for that version.
 
 Release automation does not parse `Cargo.toml` with regular expressions, carry
 a second handwritten version, or normalize versions per destination.
 
-The selected package is `apps/liknon-cli`; its package name and binary target
-are validated separately, and its version must be inherited from the root
-workspace release authority.
+The selected package is `apps/liknon-cli`. Its package name `liknon-cli`,
+package version, and binary targets `liknon` and `liknon-cli` are validated
+separately. Shared workspace metadata may define version policy, but it is not a
+second application-version value.
 
 ## Internal Build Manifest
 
@@ -42,13 +43,14 @@ After native builds, CI creates `build-manifest.json`:
 {
   "schemaVersion": 1,
   "version": "<cargo-version>",
-  "tag": "v<cargo-version>",
+  "tag": "liknon-cli-v<cargo-version>",
   "commit": "<full-source-commit>",
   "releaseToolchain": "<exact-rustc-version>",
   "artifacts": [
     {
       "target": "x86_64-unknown-linux-gnu",
-      "file": "liknon",
+      "payloadFile": "liknon",
+      "installedCommands": ["liknon", "liknon-cli"],
       "size": 0,
       "sha256": "<sha256>",
       "platformAuthenticity": {
@@ -73,7 +75,7 @@ Direct assembly derives a narrower public `manifest.json`. It records:
 
 - schema version, Liknon version, tag, and source commit;
 - immutable archive path, target, size, format, and SHA-256;
-- extracted executable name, size, and SHA-256;
+- extracted command names, size, payload equality, and SHA-256;
 - accurate platform-authenticity mode and public verification evidence;
 - installer path, size, hash, detached-signature path, algorithm, and key ID;
 - `SHA256SUMS` path, size, and hash.
@@ -85,16 +87,17 @@ The public manifest contains no workflow internals or credentials.
 ## Implementation Tasks
 
 1. Select the CLI package and version using structured Cargo metadata.
-2. Remove authored release versions from workflow and staging paths.
-3. Enforce the approved version, tag, commit, and signature contract before
+2. Validate both binary targets and assemble the inspected crates.io candidate.
+3. Remove authored release versions from workflow and staging paths.
+4. Enforce the approved version, tag, commit, and signature contract before
    artifact assembly.
-4. Define structurally validated schemas for internal and public manifests.
-5. Generate the internal manifest from normalized native-job evidence.
-6. Generate the public manifest deterministically from verified direct
+5. Define structurally validated schemas for internal and public manifests.
+6. Generate the internal manifest from normalized native-job evidence.
+7. Generate the public manifest deterministically from verified direct
    archives, checksum data, and installers.
-7. Reject duplicate targets, unsafe paths, unknown consumers, incomplete
+8. Reject duplicate targets, unsafe paths, unknown consumers, incomplete
    signing evidence, size mismatches, and hash mismatches.
-8. Preserve stable serialization required by detached signatures.
+9. Preserve stable serialization required by detached signatures.
 
 ## Verification
 
@@ -111,6 +114,6 @@ The public manifest contains no workflow internals or credentials.
 
 ## Exit Criterion
 
-One workspace-derived identity and deterministic manifest tooling connect the
-signed source revision to every direct-distribution artifact without introducing
-a second version or provenance source.
+One package-derived identity and deterministic evidence connect the signed
+source revision to the crates.io package and every direct artifact without
+introducing another version or provenance source.

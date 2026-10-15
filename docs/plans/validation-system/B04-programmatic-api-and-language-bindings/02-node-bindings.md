@@ -1,11 +1,11 @@
-# Phase B03.2: Publish Node.js Bindings
+# Phase B04.2: Publish Node.js Bindings
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
 
-Expose the approved Liknon programmatic contract as an idiomatic importable
-JavaScript/TypeScript package.
+Extend the existing npm `liknon` package with the approved idiomatic
+JavaScript/TypeScript programmatic contract.
 
 ## Design Gate
 
@@ -29,10 +29,11 @@ artifacts, never the Liknon CLI executable, and expose no global `bin` entry.
 - Representative read-only and execution APIs pass shared conformance fixtures.
 - Installation selects only the matching native artifact and performs no hidden
   CLI invocation.
+- Existing B03 resource exports remain compatible and independently usable.
 - Exceptions, cancellation, streams, callbacks, and process cleanup behave
   safely.
 
 ## Exit Criterion
 
 Node.js applications import Liknon through the normal package dependency model
-and receive idiomatic in-process behavior conforming to B03.0.
+and receive idiomatic in-process behavior conforming to B04.0.

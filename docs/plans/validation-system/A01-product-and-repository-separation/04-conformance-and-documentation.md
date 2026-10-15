@@ -4,9 +4,9 @@
 
 ## Purpose
 
-Prove that the new repository boundaries preserve validation behavior, enforce
-content separation, and leave every maintained document and test aligned with
-the current product model.
+Prove that the new repository boundaries preserve validation behavior, expose
+the complete knowledge corpus independently, and leave every maintained
+document and test aligned with the current product model.
 
 ## Conformance Matrix
 
@@ -14,33 +14,38 @@ Verify independently:
 
 - core configuration, planning, execution, cancellation, timeout, and report
   semantics;
-- CLI arguments, help, streams, progress, themes, signals, and exit statuses;
-- generic pack validation, compatibility, composition, and materialization;
-- shared, Rust, JavaScript/TypeScript, and polyglot pack fixtures;
-- source installation from `apps/liknon-cli`;
-- package inventory proving the CLI excludes authored pack content;
+- validation CLI arguments, help, streams, progress, themes, signals, aliases,
+  and exit statuses;
+- knowledge CLI catalog, lookup, exact bytes, formats, aliases, and provenance;
+- source installation of each application;
+- validation artifacts excluding knowledge and AI resources;
+- knowledge artifacts excluding validation execution and AI resources;
+- Rust, JavaScript/TypeScript, Ruby, Python, and .NET AI-resource inventories;
 - repository inventory proving each authored resource has one owner.
 
 Existing outcome fixtures compare the pre-extraction structured meaning with
-the new core and CLI paths. Text snapshots may change only where the approved
-pack-selection contract requires a new explicit diagnostic.
+the new core and validation-CLI paths. Knowledge fixtures compare catalog IDs
+and returned bytes with canonical files.
 
 ## Documentation Reconciliation
 
 Update maintained documentation and plans so they consistently state:
 
-- the CLI is one application, not the public language library;
-- GitHub source installation targets `apps/liknon-cli`;
-- the CLI contains no embedded validation knowledge or skill bundle;
-- ecosystem content is obtained through B02 packages and consumed through the
-  generic pack contract;
-- `docs/validation/knowledge` and root `skills/liknon` are not canonical target
-  paths after extraction;
-- B01 distributes only the CLI, B02 distributes packs, and B03 governs true
-  programmatic APIs and language bindings.
+- `liknon-cli` is the validation application with commands `liknon` and
+  `liknon-cli`;
+- `liknon-knowledge` is the complete, independent knowledge application with
+  commands `liknon-knowledge` and `liknon-k`;
+- `liknon knowledge` does not exist;
+- B01 distributes the validation CLI;
+- B02 distributes the knowledge CLI and corpus;
+- B03 distributes non-CLI `liknon` ecosystem packages with AI resources;
+- B04 governs future in-process APIs and bindings in those packages;
+- knowledge retrieval has no hidden package discovery or workspace activation
+  state;
+- package registries distribute AI resources, not either CLI.
 
-Search the entire repository for obsolete root-package paths, package include
-rules, embedded-knowledge claims, old install commands, and cross-track links.
+Search the entire repository for obsolete root-package paths, old include
+rules, embedded-knowledge claims, old track links, and stale install commands.
 
 ## Required Gates
 
@@ -49,12 +54,14 @@ rules, embedded-knowledge claims, old install commands, and cross-track links.
 - `cargo test --workspace --all-targets --locked`;
 - `cargo test --workspace --doc --locked`;
 - ignored outcome fixtures;
+- knowledge editorial and exact-byte checks;
 - MSRV validation;
-- isolated `cargo install --path apps/liknon-cli --locked` smoke test;
-- package-content and local-link checks.
+- isolated installation smoke tests for both applications and all four command
+  names;
+- artifact-content and local-link checks.
 
 ## Exit Criterion
 
 All product-boundary and behavior evidence passes, maintained documentation has
-no contradictory ownership claim, and B01 and B02 can begin without moving
-runtime or content responsibilities again.
+no contradictory ownership claim, and B01 through B03 can begin without moving
+responsibilities again.

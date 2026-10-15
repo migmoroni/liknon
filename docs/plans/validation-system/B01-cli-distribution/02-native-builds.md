@@ -4,8 +4,8 @@
 
 ## Purpose
 
-Produce exactly one runnable `liknon` executable for each supported Rust target
-and make those final bytes the sole inputs to direct distribution.
+Produce one final runnable validation payload for each supported Rust target
+and expose it under `liknon` and `liknon-cli` in direct distribution.
 
 ## Dependencies
 
@@ -19,7 +19,7 @@ and make those final bytes the sole inputs to direct distribution.
 
 - Each Rust target has one unprivileged build job.
 - Every job builds the `apps/liknon-cli` package and selects only its `liknon`
-  binary target.
+  binary target as the canonical native payload.
 - The release Rust toolchain and locked dependency graph are recorded exactly.
 - All deterministic post-processing occurs before platform signing.
 - Windows signing runs in an isolated job with only its self-signed
@@ -48,17 +48,19 @@ Before a target can feed a public archive, CI proves:
   fingerprint, timestamp, and mutation verification while retaining the
   expected absence of public certificate-chain trust;
 - executable permission metadata survives private artifact transport;
-- `liknon --version`, representative help, and validation execution succeed.
-- Binary and archive inventories contain no authored pack payload.
+- both command names report the same version and produce equivalent help and
+  validation behavior;
+- binary and archive inventories contain no knowledge or AI-resource payload.
 
 ## Implementation Tasks
 
 1. Add one release build job for each target in the platform contract.
 2. Install only approved target and toolchain prerequisites.
-3. Build once with the committed lockfile.
+3. Build the canonical native payload once with the committed lockfile.
 4. Apply approved deterministic post-processing.
 5. Apply isolated Windows signing and macOS ad hoc signing.
-6. Run native smoke and signature checks against final bytes.
+6. Run native smoke and signature checks against final bytes and both command
+   names.
 7. Record target, filename, size, toolchain, commit, SHA-256, authenticity mode,
    and mode-specific evidence in the build manifest.
 8. Upload one private workflow artifact per target with executable metadata
@@ -77,6 +79,6 @@ Before a target can feed a public archive, CI proves:
 
 ## Exit Criterion
 
-CI retains exactly one runnable, final, accurately described executable and
-hash for each supported target. Every later B01 phase consumes those exact
-bytes without recompilation or mutation.
+CI retains exactly one runnable, final, accurately described payload and hash
+for each supported target. Every later B01 phase exposes those exact bytes
+under both names without recompilation or mutation.

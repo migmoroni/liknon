@@ -1,11 +1,11 @@
-# Phase B03.5: Publish .NET Bindings
+# Phase B04.5: Publish .NET Bindings
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
 
-Expose the approved Liknon programmatic contract through an idiomatic managed
-.NET library referenced by applications.
+Extend the existing NuGet `liknon` package with the approved idiomatic managed
+.NET validation API.
 
 ## Design Gate
 
@@ -30,6 +30,7 @@ native library payloads for the API and never the Liknon CLI executable.
 - Exceptions preserve the approved taxonomy and no native panic crosses the
   boundary.
 - A consumer project builds, publishes, and runs without invoking the CLI.
+- Existing B03 resource APIs remain compatible and independently usable.
 
 ## Exit Criterion
 

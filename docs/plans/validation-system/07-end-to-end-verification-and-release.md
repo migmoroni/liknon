@@ -174,8 +174,8 @@ Prove that:
   its SHA-256 path;
 - declined report storage leaves no canonical report or dependent process
   artifact;
-- every resource returned by `liknon knowledge show` is byte-equivalent to its
-  canonical file in the owning active pack;
+- every resource returned by `liknon-knowledge show` is byte-equivalent to its
+  canonical file in the complete corpus;
 - the generated shared AI decision-policy contract is byte-equivalent to
   its canonical public document;
 - human-only operator guidance is absent from skill routes and operational skill
@@ -231,12 +231,12 @@ Update public documentation with separate entry points for:
 - Human Flow under `docs/validation/flows/human/`;
 - AI-Tool Flow under `docs/validation/flows/ai-tool/`;
 - AI-Engineering Flow under `docs/validation/flows/ai-engineering/`;
-- shared and ecosystem knowledge under their canonical `packs/*/knowledge/`
-  owners;
+- complete shared and ecosystem knowledge under
+  `docs/validation/knowledge/`;
 - CLI, initialization, configuration, report, persistence-command, and schema
   references under `docs/validation/reference/`;
-- human-only flow selection, governance, and work-context guidance under the
-  shared pack's `human/` resources;
+- human-only flow selection, governance, and work-context guidance under
+  `docs/validation/flows/human/`;
 - troubleshooting by exit and report status;
 - skill installation, compatibility, and update procedures.
 
@@ -259,9 +259,10 @@ artifacts.
 
 Implement and execute the complete
 [Agent Evaluation Program](agent-evaluation-program.md). Keep its four
-evaluation families isolated. Validate active pack inventories, skill routes,
-operational projections, pack-aware knowledge retrieval, and compatibility
-metadata deterministically before starting model-driven trials:
+evaluation families isolated. Validate the complete knowledge inventory,
+ecosystem AI-resource inventories, skill routes, operational projections,
+`liknon-knowledge` retrieval, and compatibility metadata deterministically
+before starting model-driven trials:
 
 1. **CLI-Only Discovery** provides only the executable name, workspace, task,
    and ordinary permissions. It evaluates whether an external agent can find
@@ -330,17 +331,18 @@ paired cross-family regressions that share the changed contract.
 - Run formatting, Clippy with warnings denied, all targets, Rustdoc tests, and
   ignored outcome fixtures.
 - Validate the declared MSRV and supported platform behavior.
-- Build and validate the shared and ecosystem packs plus the shared AI
-  decision-policy and immutable policy-boundary projections, then verify their
-  declared digests.
+- Build and validate the complete knowledge application and all selected B03
+  AI-resource packages, including the decision-policy and immutable
+  policy-boundary projections, then verify their declared digests.
 - Validate every process-artifact schema, explicit-reference fixture,
   report-storage fixture, and persistence-command contract included in the
   package.
-- Inspect the CLI package inventory independently from each pack and ecosystem
-  package inventory.
-- Verify skill manifest version, compatible CLI and pack-contract ranges,
+- Inspect both CLI inventories independently from each ecosystem package
+  inventory.
+- Verify skill manifest version, compatible validation and knowledge CLI
+  ranges,
   policy-boundary route, AI-Tool routes, AI-Engineering routes, absence of
-  copied knowledge resources, use of pack-aware CLI knowledge commands, and
+  copied knowledge resources, use of `liknon-knowledge` commands, and
   persistence contract versions.
 - Verify examples and fixtures are included or excluded intentionally.
 - Inspect versioned agent-evaluation scenarios and rubrics, keep them
@@ -390,8 +392,8 @@ paired cross-family regressions that share the changed contract.
 - [ ] Trust, approval, redaction, containment, and atomic-write boundaries
       survive adversarial fixtures.
 - [ ] Every documented report and exit outcome has a tested route.
-- [ ] Canonical pack knowledge, operational skill content, manifest routes, and
-      package inventories are consistent without embedded CLI content or a
+- [ ] The canonical corpus, operational skill content, manifest routes, and
+      package inventories are consistent without cross-product embedding or a
       copied knowledge subtree in a skill.
 - [ ] All four agent-evaluation families run across the declared model matrix
       with versioned scenarios, repeated-run evidence, deterministic assertions,

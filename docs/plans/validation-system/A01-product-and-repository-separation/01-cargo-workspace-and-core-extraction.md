@@ -6,24 +6,27 @@
 
 Create the virtual Cargo workspace and move deterministic validation behavior
 behind a terminal-independent internal core API while preserving one
-implementation and the current observable CLI behavior.
+implementation and the current observable validation behavior.
 
 ## Workspace Contract
 
-- The root `Cargo.toml` is virtual and owns shared package metadata, dependency
-  policy, lint policy, release profile, and intentional version inheritance.
-- The root `Cargo.lock` remains committed because the repository ships a CLI.
-- `crates/liknon-core` owns domain contracts and behavior.
-- `apps/liknon-cli` owns the binary target named `liknon` and is not published
-  through crates.io by B01.
-- Package dependency edges point from CLI to core, never from core to CLI.
-- The MSRV remains the root workspace contract and is verified for every Rust
-  member affected by a change.
+- The root `Cargo.toml` is virtual and owns shared package metadata,
+  dependencies, lints, release profile, and version policy.
+- The root `Cargo.lock` remains committed because the repository ships
+  applications.
+- `crates/liknon-core` owns validation contracts and behavior.
+- `apps/liknon-cli` owns binary targets `liknon` and `liknon-cli`.
+- `apps/liknon-knowledge` owns binary targets `liknon-knowledge` and
+  `liknon-k`.
+- Both names in each application invoke the same implementation.
+- Dependency edges point from applications to approved internal crates, never
+  from the core to an application.
+- The workspace MSRV is verified for every affected Rust member.
 
 ## Core Extraction
 
 Move configuration, contract types, DAG construction, planning, shell-free
-process execution, repository inspection, structured execution outcomes, and
+process execution, repository inspection, structured outcomes, and
 machine-readable report construction into `liknon-core`.
 
 The core API uses explicit values and paths. It does not:
@@ -33,32 +36,38 @@ The core API uses explicit values and paths. It does not:
 - write help or progress output;
 - choose ANSI palettes or presentation modes;
 - terminate the host process;
-- read process-wide current directory when an explicit workspace is required;
-- embed or discover authored knowledge and skills.
+- read a process-wide current directory when an explicit root is required;
+- embed, discover, catalog, or render authored knowledge or agent resources.
 
-Move Clap definitions, help, terminal themes, human report rendering, progress,
-Ctrl+C adaptation, stream selection, and exit-code mapping into
+Move Clap definitions, validation help, themes, human report rendering,
+progress, Ctrl+C adaptation, stream selection, and exit-code mapping into
 `apps/liknon-cli`.
+
+Keep knowledge command parsing, catalog lookup, document lookup, and knowledge
+rendering in `apps/liknon-knowledge`. Do not make either application a hidden
+subprocess dependency of the other.
 
 ## Reporting Boundary
 
 Structured report types and deterministic JSON serialization belong to core.
 Human report layout, hierarchy lines, terminal width, color, presentation, and
-live execution rendering belong to the CLI. Tests are split on the same line.
+live execution rendering belong to the validation CLI. Tests follow the same
+boundary.
 
 ## Verification
 
-- Existing configuration, planning, execution-state, cancellation, timeout,
-  and JSON report fixtures pass through core APIs.
-- Existing CLI fixtures preserve arguments, diagnostics, streams, human
+- Existing configuration, planning, execution, cancellation, timeout, and JSON
+  report fixtures pass through core APIs.
+- Existing validation-CLI fixtures preserve arguments, diagnostics, streams,
   rendering, and stable exit statuses.
-- Dependency inspection proves core has no Clap, console, indicatif, terminal,
-  or authored-content dependency.
+- Knowledge-CLI tests require no validation configuration or process runner.
+- Dependency inspection proves core has no Clap, terminal, or authored-content
+  dependency.
 - `cargo test --workspace --all-targets --locked` exercises all members.
-- `cargo install --path apps/liknon-cli --locked` produces one `liknon` binary.
+- Isolated installation proves both command names of each application.
 
 ## Exit Criterion
 
-The virtual workspace builds with one validation implementation in
-`liknon-core`, one terminal adapter in `apps/liknon-cli`, and no circular or
-presentation dependency in the core.
+The virtual workspace builds with one validation implementation, one validation
+terminal adapter, one independent knowledge application, and no circular,
+presentation, knowledge, or agent-resource dependency in the core.

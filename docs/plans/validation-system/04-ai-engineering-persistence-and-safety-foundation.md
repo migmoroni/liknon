@@ -22,8 +22,9 @@ but they never discover analytical context or influence an execution plan.
 
 - Phase 1 provides stable CLI, configuration, report, and Human Flow contracts.
 - Phases 2 and 2.1 provide source-backed reasoning guidance, progressive
-  disclosure, and stable editorial profiles; A01 exposes them through active
-  pack and resource IDs.
+  disclosure, and stable editorial profiles. A01 separates that corpus from AI
+  resources, B02 exposes it through stable document IDs, and B03 packages the
+  applicable agent instructions.
 - Phase 3 provides the human-owned AI decision policy, immutable
   policy-mutation boundary, read-only policy guidance, and the bounded AI-Tool
   operations that AI-Engineering composes.
@@ -373,9 +374,9 @@ references/
 Each process reference describes one process, requires explicit artifact inputs,
 loads `policy-boundary.md`, routes policy guidance and operational work through
 the applicable AI-Tool reference, and identifies only the knowledge categories
-it needs. The agent resolves those categories from explicitly active packs
-through `liknon knowledge catalog` and retrieves selected resources through
-`liknon knowledge show <resource-id>`; no knowledge files live in the skill. A
+it needs. The agent resolves those categories from the complete catalog through
+`liknon-knowledge catalog` and retrieves selected documents through
+`liknon-knowledge show <DOCUMENT_ID>`; no knowledge files live in the skill. A
 process may route directly to a documented CLI capability only
 when no AI-Tool operation covers that capability. It records the capability and
 reason, and it must not recreate, bypass, or locally reinterpret an existing
@@ -488,9 +489,8 @@ the expected conclusion or hidden answer.
 - [ ] Every decision records the exact policy digest without storing secrets.
 - [ ] Skill references load progressively and remain within their declared
       compatibility range.
-- [ ] AI-Engineering retrieves shared and ecosystem knowledge progressively
-      from active packs through the CLI, and skills contain no copied knowledge
-      subtree.
+- [ ] AI-Engineering retrieves relevant knowledge progressively through
+      `liknon-knowledge`, and skills contain no copied knowledge subtree.
 - [ ] AI-Engineering uses AI-Tool for every covered operation and uses the CLI
       directly only for an uncovered capability with an explicit documented
       reason.

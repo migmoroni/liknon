@@ -1,4 +1,4 @@
-# Phase B03.0: Define The Programmatic API Contract
+# Phase B04.0: Define The Programmatic API Contract
 
 [Back to the programmatic API and bindings plan](README.md)
 
@@ -17,7 +17,7 @@ until this phase has an approved exit record.
 ### Use Cases
 
 - Identify concrete host-application workflows for configuration, inspection,
-  planning, execution, reporting, core schemas, pack validation, and explicit
+  planning, execution, reporting, core schemas, and explicit initialization
   resource provisioning.
 - Separate reusable use cases from terminal presentation and shell-oriented
   ergonomics.
@@ -48,8 +48,10 @@ until this phase has an approved exit record.
   native extension systems, or combine approaches.
 - Version the Rust API, native ABI, serialized contracts, and language wrappers
   explicitly.
-- Decide whether CLI, ecosystem-pack, and library releases share any version
-  train or release independently.
+- Decide how validation CLI, knowledge CLI, B03 ecosystem package, API, ABI,
+  and wrapper versions relate while remaining explicit compatibility surfaces.
+- Preserve the existing B03 resource API and namespace when extending each
+  package.
 - Define supported targets and runtime baselines from measured package needs,
   not by copying B01's executable matrix automatically.
 

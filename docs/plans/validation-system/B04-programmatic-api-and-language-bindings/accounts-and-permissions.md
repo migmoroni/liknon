@@ -1,10 +1,10 @@
-# B03 Registry Accounts And Publication Authority
+# B04 Registry Accounts And Publication Authority
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Status
 
-Deferred until Phase B03.0 approves the public API and at least one language
+Deferred until Phase B04.0 approves the public API and at least one language
 binding has a release candidate. Do not create placeholder packages or
 long-lived publication credentials merely to satisfy this document.
 
@@ -18,16 +18,17 @@ long-lived publication credentials merely to satisfy this document.
 | Python library | PyPI | Imported module |
 | .NET library | NuGet | `PackageReference` |
 
-The final package identity must account for any B02 ecosystem package already
-present in that registry. B03 may extend it only under one approved coherent
-contract; otherwise it uses a distinct name. None of these identities grants
-permission to publish the CLI through that registry.
+Every binding extends the existing B03 `liknon` identity in its registry under
+one coherent package contract. B04 does not create a parallel package name.
+None of these identities grants permission to publish either CLI through that
+registry.
 
 ## Activation Rules
 
 For each language independently:
 
-1. approve its package name, owner, supported runtimes, and artifact inventory;
+1. confirm the existing `liknon` package owner, supported runtimes, resource
+   compatibility, and expanded artifact inventory;
 2. verify account recovery and strong multi-factor authentication;
 3. complete local package inspection and conformance tests;
 4. create the narrow protected GitHub environment for that registry;

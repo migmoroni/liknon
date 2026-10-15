@@ -5,51 +5,54 @@
 ## Purpose
 
 Classify every current source, schema, document, test, fixture, tool, and asset
-before moving files. The result is a complete migration ledger with one owner
-and one intended distribution surface per item.
+before moving files. The result is a complete replacement ledger with one
+owner and one intended distribution surface per item.
 
 ## Required Decisions
 
-- Approve the `liknon-core`, `liknon-pack`, and `liknon-cli` dependency
-  direction.
-- Classify each schema as a core contract, pack contract, content-authoring
-  contract, or repository-only evaluation contract.
-- Split current knowledge and skills into shared, Rust, and
-  JavaScript/TypeScript ownership without duplicating authored files.
-- Identify which initialization resources are generic CLI bootstrap resources
-  and which are supplied by packs.
+- Approve the dependency direction among `liknon-core`, `liknon-cli`, and
+  `liknon-knowledge`.
+- Classify each schema as a core contract, validation-CLI contract,
+  knowledge-CLI contract, AI-resource contract, or repository-only contract.
+- Classify every current knowledge file under the one complete corpus.
+- Split skills, prompts, agent guidance, and integration resources into shared
+  and Rust, JavaScript/TypeScript, Ruby, Python, or .NET ownership without
+  duplicating authored sources.
+- Identify which initialization resources are generic validation-CLI bootstrap
+  resources and which belong to ecosystem packages.
 - Separate structured report construction from human rendering and live
   progress.
 - Separate public runtime examples from maintainer fixtures and evaluations.
-- Record every documentation path whose command, installation path, or content
-  ownership changes.
+- Record every path whose command, installation path, package ownership, or
+  release identity changes.
 
-## Migration Ledger
+## Replacement Ledger
 
 For every current path, record:
 
-- current path and responsibility;
+- current responsibility;
 - target owner and target path;
-- runtime or publication consumers;
+- runtime and publication consumers;
 - contract and tests that protect it;
 - whether it moves, splits, or is removed;
-- whether moving it changes a public behavior or only repository structure.
+- whether moving it changes public behavior or repository structure only.
 
-No path may be classified as both CLI-owned and pack-owned. Shared content can
-be assembled into multiple ecosystem packages, but it has one authored owner.
+No path may be owned simultaneously by a CLI and an ecosystem package.
+Resources assembled into several packages retain one authored owner.
 
 ## Verification
 
 - Every file included by the current root package appears in the ledger.
-- Every `src` module and public re-export has one target crate or is explicitly
-  removed.
+- Every `src` module and public re-export has one target or is removed.
 - Every `include_bytes!`, `include_str!`, `OUT_DIR`, and build-script input has
   an approved owner.
 - Every current test has a destination aligned with the behavior it verifies.
-- No proposed target directory exists solely as a placeholder for future work.
+- Every current `liknon knowledge` route and embedded-knowledge consumer is
+  recorded for removal or replacement.
+- No proposed target directory exists solely as a placeholder.
 
 ## Exit Criterion
 
-The reviewed ledger covers the entire current package and leaves no unresolved
-ownership, dependency direction, schema location, content source, or
-distribution question needed by A01.1 and A01.2.
+The reviewed ledger covers the entire repository and leaves no unresolved
+ownership, dependency direction, schema location, resource source, command
+identity, or distribution question needed by A01.1 and A01.2.

@@ -4,9 +4,9 @@
 
 ## Purpose
 
-Prove before publication that clone-based source installation and every direct
-native path carry the intended version, source identity, and executable
-behavior.
+Prove before publication that GitHub source, packaged crates.io source, and
+every direct native path carry the intended version, source identity, aliases,
+and validation behavior.
 
 ## Dependencies
 
@@ -32,15 +32,25 @@ behavior.
 - Fetch and verify the exact signed release tag.
 - Build and install `apps/liknon-cli` with the committed lockfile and supported
   Rust baseline.
-- Run `liknon --version`, `liknon --help`, schema output, and a representative
-  validation fixture without activating any ecosystem pack.
+- Run both command names, schema output, and a representative validation
+  fixture.
 - Update an older source-installed fixture through the documented procedure.
 - Uninstall it and prove the isolated Cargo root no longer resolves `liknon`.
 
+### crates.io Candidate Installation
+
+- Inspect `cargo package --list` and the extracted `liknon-cli` crate.
+- Build and install the candidate in an isolated Cargo home.
+- Prove both command names and representative behavior match the GitHub source
+  candidate.
+- Prove the package uses no unpublished path dependency or repository-only
+  file.
+
 ### Identity And Byte Equality
 
-- Tag, commit, Cargo metadata, native CLI, build manifest, public manifest,
-  archives, checksums, and installers agree on one version and source identity.
+- Tag, commit, Cargo metadata, crates candidate, native CLI, build manifest,
+  public manifest, archives, checksums, and installers agree on one version and
+  source identity.
 - Every extracted executable hash equals its exact build-manifest record.
 - Cross-architecture and cross-libc mappings fail even if a binary happens to
   execute on the test host.
@@ -74,8 +84,8 @@ behavior.
 - Assembly and verification modify no tracked source or template.
 - No downstream job rebuilds or mutates Liknon.
 - No test can read publication or signing credentials.
-- CLI packages and archives contain no authored knowledge, skill, recipe, or
-  ecosystem pack.
+- CLI packages and archives contain no knowledge corpus, skill, prompt, or
+  ecosystem AI resource.
 
 ## Evidence Contract
 
@@ -95,14 +105,15 @@ Evidence contains no credential or secret path.
 
 1. Add credential-free release-candidate verification jobs.
 2. Download and authenticate every retained private candidate.
-3. Run source installation in an isolated clone.
+3. Run GitHub and crates.io source installation in isolated environments.
 4. Run direct archive and installer tests across the platform matrix.
-5. Exercise update, failure preservation, and uninstall fixtures.
+5. Exercise alias equivalence, update, failure preservation, and uninstall.
 6. Emit and retain the reviewed evidence set.
-7. Fail the joined phase when any advertised target lacks complete evidence.
+7. Fail the joined phase when any channel or target lacks complete evidence.
 
 ## Exit Criterion
 
-The source and direct-binary channels independently produce the same observable
-Liknon CLI contract. Every supported target is authenticated, installable,
-updatable, executable, and removable without publication credentials.
+GitHub source, crates.io source, and direct binaries independently produce the
+same observable validation CLI contract. Every supported target and both
+command names are authenticated, installable, updatable, executable, and
+removable without publication credentials.

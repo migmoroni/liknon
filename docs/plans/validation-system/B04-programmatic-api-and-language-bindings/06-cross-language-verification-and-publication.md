@@ -1,4 +1,4 @@
-# Phase B03.6: Verify And Publish Language Libraries
+# Phase B04.6: Verify And Publish Language Libraries
 
 [Back to the programmatic API and bindings plan](README.md)
 
@@ -9,10 +9,10 @@ language package that has independently completed its binding phase.
 
 ## Dependencies
 
-- [Phase B03.0](00-programmatic-api-contract.md) is complete.
+- [Phase B04.0](00-programmatic-api-contract.md) is complete.
 - At least one binding phase has an approved release candidate.
 - The corresponding account checkpoint in
-  [the B03 runbook](accounts-and-permissions.md) is complete.
+  [the B04 runbook](accounts-and-permissions.md) is complete.
 
 ## Conformance Contract
 
@@ -29,8 +29,8 @@ Idiomatic representation may differ, but observable domain meaning may not.
 
 ## Publication Contract
 
-- Build programmatic native artifacts independently from B01 CLI artifacts and
-  B02 content packages.
+- Build programmatic native artifacts independently from B01 and B02 CLI
+  artifacts, then assemble them into the existing B03 ecosystem packages.
 - Keep build jobs credential-free.
 - Inspect final source and native package contents before approval.
 - Use one protected publication identity per registry.
@@ -44,6 +44,8 @@ Idiomatic representation may differ, but observable domain meaning may not.
 
 - Clean consumer projects import the public package through normal dependency
   declarations.
+- Existing B03 resource inventories and explicit materialization remain
+  conformant after the API extension.
 - No package installs a global `liknon` command.
 - Platform selection retrieves only compatible native library artifacts.
 - Public package behavior matches the retained candidate and shared fixtures.

@@ -21,40 +21,42 @@ them.
 ```text
 https://<download-domain>/
 ├── releases/
-│   └── v<VERSION>/
-│       ├── manifest.json
-│       ├── manifest.sig
-│       ├── SHA256SUMS
-│       ├── install.sh
-│       ├── install.sh.sig
-│       ├── install.ps1
-│       ├── install.ps1.sig
-│       ├── liknon-v<VERSION>-x86_64-unknown-linux-gnu.tar.gz
-│       ├── liknon-v<VERSION>-x86_64-unknown-linux-musl.tar.gz
-│       ├── liknon-v<VERSION>-aarch64-unknown-linux-gnu.tar.gz
-│       ├── liknon-v<VERSION>-aarch64-unknown-linux-musl.tar.gz
-│       ├── liknon-v<VERSION>-x86_64-apple-darwin.tar.gz
-│       ├── liknon-v<VERSION>-aarch64-apple-darwin.tar.gz
-│       └── liknon-v<VERSION>-x86_64-pc-windows-msvc.zip
+│   └── liknon-cli/
+│       └── v<VERSION>/
+│           ├── manifest.json
+│           ├── manifest.sig
+│           ├── SHA256SUMS
+│           ├── install.sh
+│           ├── install.sh.sig
+│           ├── install.ps1
+│           ├── install.ps1.sig
+│           ├── liknon-cli-v<VERSION>-x86_64-unknown-linux-gnu.tar.gz
+│           ├── liknon-cli-v<VERSION>-x86_64-unknown-linux-musl.tar.gz
+│           ├── liknon-cli-v<VERSION>-aarch64-unknown-linux-gnu.tar.gz
+│           ├── liknon-cli-v<VERSION>-aarch64-unknown-linux-musl.tar.gz
+│           ├── liknon-cli-v<VERSION>-x86_64-apple-darwin.tar.gz
+│           ├── liknon-cli-v<VERSION>-aarch64-apple-darwin.tar.gz
+│           └── liknon-cli-v<VERSION>-x86_64-pc-windows-msvc.zip
 └── channels/
-    └── stable.json
+    └── liknon-cli/
+        └── stable.json
 ```
 
 The `r2.dev` development endpoint is not a production channel.
 
 ## Archive And Object Contract
 
-- Each archive contains the exact manifest-verified executable plus required
-  license and notice files.
+- Each archive contains the exact manifest-verified payload under both command
+  names plus required license and notice files.
 - Names derive from Cargo version and target identity.
 - Unix archives preserve executable permissions; Windows uses ZIP.
 - Archive and extracted-executable size and SHA-256 appear in the public
   manifest.
 - `SHA256SUMS` lists archives and installer scripts; the signed manifest records
   the checksum file's own hash.
-- Objects below `releases/v<VERSION>/` are immutable and use reviewed immutable
-  cache semantics.
-- `channels/stable.json` is the only planned mutable pointer and has a short
+- Objects below `releases/liknon-cli/v<VERSION>/` are immutable and use
+  reviewed immutable cache semantics.
+- `channels/liknon-cli/stable.json` is the only planned mutable pointer and has a short
   cache lifetime.
 - Negative responses under immutable paths are not cached.
 - Publication uploads and reads back every referenced object before
@@ -70,8 +72,9 @@ The versioned POSIX and PowerShell installers:
 - detect only supported operating systems and architectures;
 - on Linux, implement the approved automatic and explicit libc selection;
 - download exactly one declared archive through HTTPS;
-- verify archive and extracted-executable hashes;
-- install transactionally to a user-owned default or explicit destination;
+- verify archive and both extracted-command hashes;
+- install both names transactionally to a user-owned default or explicit
+  destination;
 - preserve an existing installation after any failure;
 - clean temporary state on success, failure, and interruption;
 - never execute metadata-provided commands, invoke Cargo, alter trust stores,
@@ -107,7 +110,8 @@ or recursive attribute clearing is prohibited.
 
 1. Add version-neutral POSIX and PowerShell installer templates.
 2. Implement deterministic target and Linux libc selection.
-3. Assemble one archive from each manifest-verified executable.
+3. Assemble one archive with both command names from each manifest-verified
+   payload.
 4. Generate and sign release-specific installers.
 5. Generate `SHA256SUMS` and deterministic public metadata.
 6. Sign the exact final manifest bytes.
@@ -117,7 +121,7 @@ or recursive attribute clearing is prohibited.
 
 ## Verification
 
-- Archive and executable hashes match internal build evidence.
+- Archive and both command hashes match internal build evidence.
 - Manifest and installer signatures fail after any mutation.
 - Key activation, rotation, retirement, and revocation fixtures behave exactly
   as documented.
@@ -129,7 +133,7 @@ or recursive attribute clearing is prohibited.
   none.
 - Forged or malformed metadata is rejected before use.
 - Installation works in paths containing spaces.
-- Failure never replaces a valid existing executable.
+- Failure never replaces either valid existing command.
 - Assembly modifies no tracked file.
 
 ## Exit Criterion

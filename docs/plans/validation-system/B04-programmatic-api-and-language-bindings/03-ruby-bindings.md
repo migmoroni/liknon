@@ -1,10 +1,11 @@
-# Phase B03.3: Publish Ruby Bindings
+# Phase B04.3: Publish Ruby Bindings
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
 
-Expose the approved Liknon programmatic contract as an idiomatic Ruby library.
+Extend the existing `liknon` gem with the approved idiomatic Ruby
+programmatic contract.
 
 ## Design Gate
 
@@ -28,6 +29,7 @@ extension. The gem exposes no CLI executable and does not shell out to `liknon`.
 - Native resources survive garbage collection, interruption, and callback
   failure safely.
 - Platform resolution retrieves only compatible native artifacts.
+- Existing B03 resource APIs remain compatible and independently usable.
 
 ## Exit Criterion
 

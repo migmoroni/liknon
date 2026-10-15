@@ -11,7 +11,8 @@ publishes nothing.
 ## Dependencies
 
 - [Plan A01](../A01-product-and-repository-separation/README.md) is complete.
-- The current CLI behavior and public name `liknon` are approved.
+- The current validation behavior, package name `liknon-cli`, and command names
+  `liknon` and `liknon-cli` are approved.
 - The repository is otherwise eligible to enter release preparation.
 - External readiness checkpoint [AP-0](accounts-and-permissions.md#ap-0) is
   complete.
@@ -23,7 +24,7 @@ publishes nothing.
 The canonical source identity is the approved public repository. A source
 release consists of:
 
-- one signed annotated tag `v<VERSION>`;
+- one signed annotated tag `liknon-cli-v<VERSION>`;
 - the exact commit selected by that tag;
 - the committed `Cargo.lock`;
 - a metadata-only immutable GitHub Release that locks the tag and carries no
@@ -32,6 +33,13 @@ release consists of:
 The documented source path clones the repository, checks out and verifies the
 exact tag, and installs the `apps/liknon-cli` package with locked dependencies.
 The default branch is never presented as a reproducible released version.
+
+### crates.io Source Package
+
+The crates.io channel publishes source package `liknon-cli` with both approved
+binary targets. The package builds from its own accepted contents, the locked
+dependency graph selected by the installer, and no unpublished path
+dependency. An accepted package version is immutable.
 
 ### Cloudflare Direct
 
@@ -49,12 +57,13 @@ them.
 
 ## Version Contract
 
-- The root virtual workspace `Cargo.toml` is the sole authored version source,
-  and `apps/liknon-cli` inherits that version.
+- The `apps/liknon-cli` Cargo package version is the sole authored version
+  source for this application and is read through structured Cargo metadata.
 - The initial grammar is canonical `MAJOR.MINOR.PATCH`.
-- The tag is exactly `v<VERSION>` and points to the workflow commit.
-- `liknon --version`, internal build evidence, public direct metadata, archive
-  names, and installer metadata carry that exact version.
+- The tag is exactly `liknon-cli-v<VERSION>` and points to the workflow commit.
+- `liknon --version`, `liknon-cli --version`, crates.io metadata, internal
+  build evidence, public direct metadata, archive names, and installer
+  metadata carry that exact version.
 - A previously published version is immutable.
 
 ## Platform And Linux Selection Contract
@@ -99,8 +108,9 @@ must never be described more strongly than its real trust mode.
 - GitHub Actions builds, verifies, and publishes exact retained artifacts.
 - Build and pre-publication verification jobs have no destination credential.
 - Human approval is a credential-free gate.
-- Detached release signing, Windows signing, GitHub Release publication, and
-  Cloudflare publication use separate identity boundaries.
+- crates.io publication, detached release signing, Windows signing, GitHub
+  Release publication, and Cloudflare publication use separate identity
+  boundaries.
 - macOS ad hoc signing requires no credential.
 
 ## Decisions To Record
@@ -110,7 +120,7 @@ must never be described more strongly than its real trust mode.
 - release version grammar and signed-tag identity;
 - supported targets and minimum runtime baselines;
 - archive formats and executable filenames;
-- source installation and update commands;
+- GitHub-source and crates.io installation and update commands;
 - default and explicit direct-installation directories;
 - libc probes and diagnostics;
 - detached-signature algorithm, trust-root location, and key lifecycle;
@@ -118,8 +128,8 @@ must never be described more strongly than its real trust mode.
 - macOS deployment baseline and accurately disclosed ad hoc mode;
 - artifact retention period required for recovery;
 - immutable-path, cache, budget, and monitoring policies;
-- exact CLI package and archive inventory proving that no authored pack content
-  enters the executable distribution.
+- exact CLI package and archive inventory proving that no knowledge corpus or
+  AI resource enters the executable distribution.
 
 ## Implementation Tasks
 
@@ -127,20 +137,23 @@ must never be described more strongly than its real trust mode.
    equivalent version-neutral configuration.
 2. Prototype source installation from an exact local signed-tag fixture without
    access to repository-external files.
-3. Build and execute each proposed native target through its real runtime path.
-4. Prototype Linux selector probes for GNU-only, MUSL-only, dual-libc, explicit,
+3. Package and install `liknon-cli` from an isolated crates.io candidate.
+4. Build and execute each proposed native target through its real runtime path.
+5. Prototype Linux selector probes for GNU-only, MUSL-only, dual-libc, explicit,
    and unknown environments.
-5. Prototype Windows and macOS signing and mutation verification without
+6. Prototype Windows and macOS signing and mutation verification without
    changing user trust settings.
-6. Prototype detached-manifest verification and key lifecycle fixtures.
-7. Confirm Cloudflare immutable-key, custom-domain, cache, and bucket-lock
+7. Prototype detached-manifest verification and key lifecycle fixtures.
+8. Confirm Cloudflare immutable-key, custom-domain, cache, and bucket-lock
    capabilities against the selected account design.
-8. Confirm that every required credential can be isolated as defined by the
+9. Confirm that every required credential can be isolated as defined by the
    [runbook](accounts-and-permissions.md).
 
 ## Verification
 
 - Source installation uses only the selected tag and committed files.
+- The packaged crate builds in isolation and installs both command names.
+- Both command names are behaviorally equivalent.
 - Every target executes and reports the expected version.
 - Linux selection requests exactly one matching archive in every successful
   case and none in an unknown case.
@@ -153,10 +166,10 @@ must never be described more strongly than its real trust mode.
 - The GitHub Release design cannot upload native binary assets.
 - Versioned Cloudflare objects cannot be overwritten by the normal release
   identity.
+- An accepted crates.io version cannot be replaced.
 
 ## Exit Criterion
 
-The two public channels, complete platform matrix, release identity, signing
-model, Linux selection behavior, Cloudflare boundary, and human/CI authority are
-explicit and empirically feasible. Later phases contain no unresolved product
-or trust decision.
+The three public channels, command aliases, complete platform matrix, release
+identity, signing model, registry and Cloudflare boundaries, and human/CI
+authority are explicit and empirically feasible.

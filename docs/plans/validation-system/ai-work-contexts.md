@@ -90,10 +90,9 @@ human to transcribe them.
 
 The agent then:
 
-1. loads the liknon skill, the requested AI-Engineering process
-   reference, the immutable policy boundary, and only the AI-Tool references
-   needed for it, then retrieves selected active-pack knowledge through the
-   CLI;
+1. loads the Liknon skill, the requested AI-Engineering process reference, the
+   immutable policy boundary, and only the AI-Tool references needed for it,
+   then retrieves selected knowledge documents through `liknon-knowledge`;
 2. verifies CLI and skill compatibility;
 3. invokes `policy validate` for the explicit active workspace root and records
    the exact path, schema version, and digest of the existing valid policy;

@@ -1,11 +1,11 @@
-# Phase B03.4: Publish Python Bindings
+# Phase B04.4: Publish Python Bindings
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
 
-Expose the approved Liknon programmatic contract as an idiomatic importable
-Python module.
+Extend the existing PyPI `liknon` project with the approved idiomatic
+programmatic Python module.
 
 ## Design Gate
 
@@ -29,6 +29,7 @@ it.
 - Shared fixtures produce equivalent domain outcomes.
 - Exceptions, cancellation, interpreter shutdown, and native cleanup are safe.
 - Wheel inspection and isolated installation prove correct platform selection.
+- Existing B03 resource APIs remain compatible and independently usable.
 
 ## Exit Criterion
 

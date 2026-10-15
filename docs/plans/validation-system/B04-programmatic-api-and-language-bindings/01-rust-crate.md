@@ -1,18 +1,18 @@
-# Phase B03.1: Publish The Rust Library Crate
+# Phase B04.1: Publish The Rust Library Crate
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
 
-Publish an importable Rust library whose public API implements the approved
-B03.0 contract. crates.io is a source distribution for this library, not a CLI
+Extend the existing crates.io `liknon` resource library with the public Rust
+API approved by B04.0. The package remains a library and is not a CLI
 installation channel.
 
 ## Dependencies
 
-- [Phase B03.0](00-programmatic-api-contract.md) is complete.
-- Crate name, ownership, version relationship, MSRV, and feature policy are
-  approved.
+- [Phase B04.0](00-programmatic-api-contract.md) is complete.
+- The existing B03 package ownership, version relationship, MSRV, feature
+  policy, and public resource namespace are approved for extension.
 - A01 has separated the core from CLI argument parsing, terminal rendering,
   process exit, and authored ecosystem content.
 
@@ -27,8 +27,8 @@ installation channel.
 - SemVer and MSRV policies;
 - Rustdoc examples and security guidance.
 
-The crate package must build from its own published contents. It cannot depend
-on unpublished path crates or repository-only files.
+The crate package must build from its own published contents, preserve the B03
+resource API, and avoid unpublished path crates or repository-only files.
 
 ## Verification
 
@@ -36,6 +36,7 @@ on unpublished path crates or repository-only files.
 - tests against the approved programmatic conformance fixtures;
 - Rustdoc, examples, feature combinations, and MSRV checks;
 - absence of CLI-only assets and implicit process-global behavior;
+- continued B03 resource inventory, retrieval, and materialization behavior;
 - publication readback and checksum verification when this phase reaches
   release.
 
