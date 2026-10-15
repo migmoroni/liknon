@@ -13,7 +13,7 @@ The canonical public document is authored at:
 docs/validation/reference/ai-decision-policy.md
 ```
 
-The distributed skill receives the exact generated projection of that document
+The shared pack skill receives the exact generated projection of that document
 and treats it as normative. `SKILL.md`, every AI-Tool operation, and every
 AI-Engineering process reference require the agent to load the immutable policy
 boundary before reading policy-controlled workspace data. They load the full
@@ -41,11 +41,11 @@ liknon contract as a local synthesis:
   explicit previews, reversibility, human-in-the-loop controls, and audit
   trails.
 
-The canonical shared source register at
-`docs/validation/knowledge/sources.json` contains exact editions, stable source
-IDs, primary URIs, precise locations, scope, and review dates.
-`docs/validation/knowledge/SOURCES.md` is its generated human-readable
-projection. The five numeric levels and category tables are this project's
+The canonical shared source register at `packs/shared/knowledge/sources.json`
+contains exact editions, stable source IDs, primary URIs, precise locations,
+scope, and review dates. The shared pack's `knowledge/SOURCES.md` is its
+generated human-readable projection. The five numeric levels and category
+tables are this project's
 normative synthesis; the document must not misrepresent them as a standard
 published verbatim by any one source.
 
@@ -628,5 +628,5 @@ attempt to persuade the agent to perform a prohibited mutation.
 - [ ] The validation executor and planner remain independent from AI decision
       policy; explicit artifact verification never affects execution planning or
       report semantics.
-- [ ] The canonical document and its distributed skill projection are
+- [ ] The canonical document and its shared-pack skill projection are
       byte-identical.

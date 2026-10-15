@@ -25,12 +25,12 @@ CLI and documentation directly without claiming AI-Tool behavior.
 
 - Phase 1 provides stable CLI, initialization, configuration, report, and Human
   Flow contracts.
-- Phase 2 provides the canonical shared-knowledge tree and the read-only
-  `liknon knowledge` retrieval interface. It preserves the
-  operational skill without a copied knowledge subtree.
+- Phase 2 provides the canonical knowledge model and initial corpus.
 - Phase 2.1 provides the standards-informed editorial architecture, canonical
   family paths, stable profile contracts, and version-neutral corpus consumed
   through that interface.
+- A01 separates the operational skill and authored knowledge into packs and
+  provides the pack-aware `liknon knowledge` retrieval interface.
 
 ## 3. Flow Contract
 
@@ -233,7 +233,7 @@ Use one concise top-level router, one mandatory immutable policy-boundary
 reference, and separate operational references from shared knowledge:
 
 ```text
-skills/liknon/
+packs/shared/skills/liknon/
 ├── SKILL.md
 ├── manifest.json
 └── references/
@@ -265,12 +265,12 @@ routes to exactly one primary operation. An operation may link to another
 AI-Tool reference when the current request genuinely requires both, but it must
 not eagerly load all operations.
 
-The five operational references are authored skill instructions. Shared
-knowledge remains audience-neutral under `docs/validation/knowledge/`, is
-embedded in the CLI by Phase 2, and is never copied into the skill. `SKILL.md`
-and the operation references use `liknon knowledge catalog` and
-`liknon knowledge show <document-id>` for progressive disclosure.
-Human-only files are not included in skill routing.
+The five operational references are authored skill instructions. Shared and
+ecosystem knowledge remains audience-neutral in separate pack resources and is
+never copied into the skill. `SKILL.md` and the operation references use
+`liknon knowledge catalog` and `liknon knowledge show <resource-id>` over
+explicitly active packs for progressive disclosure. Human-only resources are
+not included in skill routing.
 
 ## 7. Operation Requirements
 
@@ -374,12 +374,11 @@ absolute policy-mutation prohibition. The skill projection is generated from
 that canonical source rather than maintained independently.
 
 Register every standard, primary research work, and official reference used by
-the policy contract in `docs/validation/knowledge/sources.json` before citing
-it. Generate `docs/validation/knowledge/SOURCES.md` from that canonical
-register. Add only sources the contract actually uses; do not expand the shared
-knowledge tree merely to summarize those sources. Regenerate the canonical
-source index and rebuild the embedded knowledge assets after updating the
-register.
+the policy contract in `packs/shared/knowledge/sources.json` before citing it.
+Generate the shared pack's `knowledge/SOURCES.md` from that canonical register.
+Add only sources the contract actually uses; do not expand the shared
+knowledge merely to summarize those sources. Regenerate and reseal the shared
+pack after updating the register.
 
 The root validation index clearly distinguishes AI-Tool from Human Flow and
 AI-Engineering. It states that both AI flows require a valid human-owned policy,
@@ -417,8 +416,8 @@ Test at minimum:
 - policy category and continuation semantics from the normative contract;
 - complete source-register entries and valid primary links for every policy
   design source actually cited;
-- exact CLI retrieval of every selected shared-knowledge document after the
-  canonical source register and embedded assets are updated;
+- exact CLI retrieval of every selected shared-knowledge resource after the
+  canonical source register and shared pack are updated;
 - policy guidance for missing, invalid, and valid documents;
 - refusal to create, edit, format, replace, delete, move, rename, restore, or
   indirectly mutate policy, including after explicit user authorization and

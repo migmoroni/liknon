@@ -22,7 +22,8 @@ but they never discover analytical context or influence an execution plan.
 
 - Phase 1 provides stable CLI, configuration, report, and Human Flow contracts.
 - Phases 2 and 2.1 provide source-backed reasoning guidance, progressive
-  disclosure, and the stable editorial profiles consumed through document IDs.
+  disclosure, and stable editorial profiles; A01 exposes them through active
+  pack and resource IDs.
 - Phase 3 provides the human-owned AI decision policy, immutable
   policy-mutation boundary, read-only policy guidance, and the bounded AI-Tool
   operations that AI-Engineering composes.
@@ -264,9 +265,10 @@ The contracts additionally define:
 - prohibition of executable commands, credentials, source patches, report
   bodies, and raw diagnostic streams inside analytical artifacts.
 
-Canonical schemas and fixtures belong to the tool, ship in the source package
-and skill bundle as declared resources, and are tested for exact consistency.
-Consumer workspaces store artifact instances, not schema copies.
+Canonical schemas and fixtures belong to the core or CLI and are exposed
+through the tool's schema and validation contracts. Skills declare compatible
+contract versions rather than carrying private schema copies. Consumer
+workspaces store artifact instances, not schemas.
 
 ## 8. Policy Presence And Validation
 
@@ -371,10 +373,10 @@ references/
 Each process reference describes one process, requires explicit artifact inputs,
 loads `policy-boundary.md`, routes policy guidance and operational work through
 the applicable AI-Tool reference, and identifies only the knowledge categories
-it needs. The agent resolves those categories through `liknon
-knowledge catalog` and retrieves the selected documents through
-`liknon knowledge show <document-id>`; no knowledge files live in
-the skill. A process may route directly to a documented CLI capability only
+it needs. The agent resolves those categories from explicitly active packs
+through `liknon knowledge catalog` and retrieves selected resources through
+`liknon knowledge show <resource-id>`; no knowledge files live in the skill. A
+process may route directly to a documented CLI capability only
 when no AI-Tool operation covers that capability. It records the capability and
 reason, and it must not recreate, bypass, or locally reinterpret an existing
 AI-Tool operation. The AI-Engineering index is selected only when the human
@@ -486,8 +488,9 @@ the expected conclusion or hidden answer.
 - [ ] Every decision records the exact policy digest without storing secrets.
 - [ ] Skill references load progressively and remain within their declared
       compatibility range.
-- [ ] AI-Engineering retrieves shared knowledge progressively through the CLI
-      and the distributed skill contains no copied knowledge subtree.
+- [ ] AI-Engineering retrieves shared and ecosystem knowledge progressively
+      from active packs through the CLI, and skills contain no copied knowledge
+      subtree.
 - [ ] AI-Engineering uses AI-Tool for every covered operation and uses the CLI
       directly only for an uncovered capability with an explicit documented
       reason.

@@ -92,7 +92,8 @@ The agent then:
 
 1. loads the liknon skill, the requested AI-Engineering process
    reference, the immutable policy boundary, and only the AI-Tool references
-   needed for it, then retrieves selected shared knowledge through the CLI;
+   needed for it, then retrieves selected active-pack knowledge through the
+   CLI;
 2. verifies CLI and skill compatibility;
 3. invokes `policy validate` for the explicit active workspace root and records
    the exact path, schema version, and digest of the existing valid policy;

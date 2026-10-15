@@ -204,7 +204,7 @@ its domain and config digests match their explicit inputs.
 - audits the current config without running checks;
 - loads only relevant foundations, patterns, language, framework, technology,
   concern, standard, tool, and recipe guides selected through the knowledge
-  catalog and retrieved by stable document ID through the CLI;
+  catalog and retrieved by stable pack and resource ID through the CLI;
 - constructs the evidence matrix and proposed config diff;
 - delegates configuration mechanics to `ai-tool/config.md`;
 - delegates every effect classification to the normative decision policy;

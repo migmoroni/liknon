@@ -298,7 +298,7 @@ result.
 Use deterministic assertions for facts such as:
 
 - selected routes and loaded references;
-- selected knowledge document IDs and exact CLI retrieval commands;
+- selected pack and knowledge resource IDs plus exact CLI retrieval commands;
 - exact executable, arguments, working directory, and exit status;
 - schema-valid reports and process artifacts;
 - filesystem and repository mutations;
