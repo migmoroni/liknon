@@ -4,8 +4,8 @@
 
 ## Purpose
 
-Extend the existing NuGet `liknon` package with the approved idiomatic managed
-.NET validation API.
+Publish NuGet package `liknon` only when the approved idiomatic managed .NET
+API and a representative consumer are ready.
 
 ## Design Gate
 
@@ -30,7 +30,7 @@ native library payloads for the API and never the Liknon CLI executable.
 - Exceptions preserve the approved taxonomy and no native panic crosses the
   boundary.
 - A consumer project builds, publishes, and runs without invoking the CLI.
-- Existing B03 resource APIs remain compatible and independently usable.
+- The package contains no CLI executable or authored Hub resource payload.
 
 ## Exit Criterion
 

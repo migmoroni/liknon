@@ -19,6 +19,8 @@ until this phase has an approved exit record.
 - Identify concrete host-application workflows for configuration, inspection,
   planning, execution, reporting, core schemas, and explicit initialization
   resource provisioning.
+- Require at least one representative consumer for every capability selected
+  for a public language API.
 - Separate reusable use cases from terminal presentation and shell-oriented
   ergonomics.
 - Define which operations are read-only, which may execute external programs,
@@ -48,10 +50,11 @@ until this phase has an approved exit record.
   native extension systems, or combine approaches.
 - Version the Rust API, native ABI, serialized contracts, and language wrappers
   explicitly.
-- Decide how validation CLI, knowledge CLI, B03 ecosystem package, API, ABI,
-  and wrapper versions relate while remaining explicit compatibility surfaces.
-- Preserve the existing B03 resource API and namespace when extending each
-  package.
+- Decide how core, workspace contract, API, ABI, and wrapper versions relate
+  while remaining explicit compatibility surfaces.
+- Keep Hub access and resource mutation outside the binding boundary. A
+  read-only installed-resource API may be approved separately when a real
+  consumer requires it.
 - Define supported targets and runtime baselines from measured package needs,
   not by copying B01's executable matrix automatically.
 
@@ -66,6 +69,7 @@ that executes a validation plan. Each candidate boundary must prove:
 - error fidelity;
 - safe memory and resource ownership;
 - no CLI subprocess invocation;
+- no embedded authored-resource payload or implicit Hub access;
 - feasibility in at least two materially different host runtimes before a
   shared ABI is declared universal.
 
@@ -78,6 +82,7 @@ that executes a validation plan. Each candidate boundary must prove:
 - Workspace mutation cannot occur through a read-only entry point.
 - Invalid callbacks, cancellation, and host-language exceptions fail safely.
 - The design identifies every public compatibility surface and its owner.
+- Every proposed package has a named consumer or remains unimplemented.
 
 ## Exit Criterion
 

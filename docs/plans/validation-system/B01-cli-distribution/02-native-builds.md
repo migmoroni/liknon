@@ -5,7 +5,7 @@
 ## Purpose
 
 Produce one final runnable validation payload for each supported Rust target
-and expose it under `liknon` and `liknon-cli` in direct distribution.
+and expose it under `liknon` and `likx` in direct distribution.
 
 ## Dependencies
 

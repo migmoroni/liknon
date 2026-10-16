@@ -4,15 +4,15 @@
 
 ## Purpose
 
-Extend the existing crates.io `liknon` resource library with the public Rust
-API approved by B04.0. The package remains a library and is not a CLI
-installation channel.
+Publish the crates.io `liknon` library only when B04.0 approves a public Rust
+API and a representative consumer. The package is a library, not a CLI or
+resource-distribution channel.
 
 ## Dependencies
 
 - [Phase B04.0](00-programmatic-api-contract.md) is complete.
-- The existing B03 package ownership, version relationship, MSRV, feature
-  policy, and public resource namespace are approved for extension.
+- Package ownership, version relationship, MSRV, feature policy, and public
+  namespace are approved.
 - A01 has separated the core from CLI argument parsing, terminal rendering,
   process exit, and authored ecosystem content.
 
@@ -23,12 +23,13 @@ installation channel.
 - async/runtime neutrality where practical;
 - typed errors, reports, progress, cancellation, and timeouts;
 - feature flags and dependency surface;
-- schema and embedded-resource ownership;
+- schema and installed-resource metadata ownership;
 - SemVer and MSRV policies;
 - Rustdoc examples and security guidance.
 
-The crate package must build from its own published contents, preserve the B03
-resource API, and avoid unpublished path crates or repository-only files.
+The crate package must build from its own published contents and avoid
+unpublished path crates, repository-only files, authored resource payloads, or
+CLI assets.
 
 ## Verification
 
@@ -36,7 +37,7 @@ resource API, and avoid unpublished path crates or repository-only files.
 - tests against the approved programmatic conformance fixtures;
 - Rustdoc, examples, feature combinations, and MSRV checks;
 - absence of CLI-only assets and implicit process-global behavior;
-- continued B03 resource inventory, retrieval, and materialization behavior;
+- absence of Hub acquisition, resource mutation, and embedded authored content;
 - publication readback and checksum verification when this phase reaches
   release.
 

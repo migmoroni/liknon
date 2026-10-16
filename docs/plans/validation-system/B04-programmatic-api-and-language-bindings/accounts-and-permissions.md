@@ -18,17 +18,17 @@ long-lived publication credentials merely to satisfy this document.
 | Python library | PyPI | Imported module |
 | .NET library | NuGet | `PackageReference` |
 
-Every binding extends the existing B03 `liknon` identity in its registry under
-one coherent package contract. B04 does not create a parallel package name.
-None of these identities grants permission to publish either CLI through that
-registry.
+Each identity is created only when its binding is releasable and a
+representative consumer exists. B04 does not publish placeholder packages or
+parallel names. None of these identities grants permission to publish a CLI or
+authored Hub resources through that registry.
 
 ## Activation Rules
 
 For each language independently:
 
-1. confirm the existing `liknon` package owner, supported runtimes, resource
-   compatibility, and expanded artifact inventory;
+1. confirm the `liknon` package name, owner, supported runtimes, consumer, and
+   artifact inventory;
 2. verify account recovery and strong multi-factor authentication;
 3. complete local package inspection and conformance tests;
 4. create the narrow protected GitHub environment for that registry;

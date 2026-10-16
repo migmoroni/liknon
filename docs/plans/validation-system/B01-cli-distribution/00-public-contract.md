@@ -12,7 +12,7 @@ publishes nothing.
 
 - [Plan A01](../A01-product-and-repository-separation/README.md) is complete.
 - The current validation behavior, package name `liknon-cli`, and command names
-  `liknon` and `liknon-cli` are approved.
+  `liknon` and `likx` are approved.
 - The repository is otherwise eligible to enter release preparation.
 - External readiness checkpoint [AP-0](accounts-and-permissions.md#ap-0) is
   complete.
@@ -39,7 +39,10 @@ The default branch is never presented as a reproducible released version.
 The crates.io channel publishes source package `liknon-cli` with both approved
 binary targets. The package builds from its own accepted contents, the locked
 dependency graph selected by the installer, and no unpublished path
-dependency. An accepted package version is immutable.
+dependency. Exact required versions of the supporting `liknon-core` and
+`liknon-workspace` crates are published and read back first. Those supporting
+packages are implementation dependencies, not the future public API from B04.
+Every accepted package version is immutable.
 
 ### Cloudflare Direct
 
@@ -61,7 +64,7 @@ them.
   source for this application and is read through structured Cargo metadata.
 - The initial grammar is canonical `MAJOR.MINOR.PATCH`.
 - The tag is exactly `liknon-cli-v<VERSION>` and points to the workflow commit.
-- `liknon --version`, `liknon-cli --version`, crates.io metadata, internal
+- `liknon --version`, `likx --version`, crates.io metadata, internal
   build evidence, public direct metadata, archive names, and installer
   metadata carry that exact version.
 - A previously published version is immutable.
@@ -130,6 +133,8 @@ must never be described more strongly than its real trust mode.
 - immutable-path, cache, budget, and monitoring policies;
 - exact CLI package and archive inventory proving that no knowledge corpus or
   AI resource enters the executable distribution.
+- exact supporting-crate inventories and topological crates.io publication
+  order.
 
 ## Implementation Tasks
 
@@ -137,7 +142,8 @@ must never be described more strongly than its real trust mode.
    equivalent version-neutral configuration.
 2. Prototype source installation from an exact local signed-tag fixture without
    access to repository-external files.
-3. Package and install `liknon-cli` from an isolated crates.io candidate.
+3. Package and verify the complete supporting-crate closure, then package and
+   install `liknon-cli` from an isolated crates.io candidate.
 4. Build and execute each proposed native target through its real runtime path.
 5. Prototype Linux selector probes for GNU-only, MUSL-only, dual-libc, explicit,
    and unknown environments.

@@ -14,7 +14,7 @@ operation, in which case it follows canonical public reference documentation
 and preserves the same policy, trust, workspace, and evidence boundaries.
 
 The validation planner and executor remain unaware of this layer. They interpret
-only `.validation/config.json` and emit the normal validation report. Dedicated
+only `.liknon/validation/config.json` and emit the normal validation report. Dedicated
 persistence commands validate fixed contracts and explicitly supplied files,
 but they never discover analytical context or influence an execution plan.
 
@@ -22,9 +22,9 @@ but they never discover analytical context or influence an execution plan.
 
 - Phase 1 provides stable CLI, configuration, report, and Human Flow contracts.
 - Phases 2 and 2.1 provide source-backed reasoning guidance, progressive
-  disclosure, and stable editorial profiles. A01 separates that corpus from AI
-  resources, B02 exposes it through stable document IDs, and B03 packages the
-  applicable agent instructions.
+  disclosure, and stable editorial profiles. A01 separates authored resources
+  from the applications, B02 installs selected resources through Manager, and
+  B03 exposes those installed resources through Tool.
 - Phase 3 provides the human-owned AI decision policy, immutable
   policy-mutation boundary, read-only policy guidance, and the bounded AI-Tool
   operations that AI-Engineering composes.
@@ -34,20 +34,22 @@ but they never discover analytical context or influence an execution plan.
 Use this consumer-owned structure:
 
 ```text
-.validation/
-├── config.json
-├── policy.json
-├── reports/
-│   └── <sha256>.json
-└── persistence/
-    ├── domain/
-    │   └── <uuidv7>.json
-    ├── sensorium/
-    │   └── <uuidv7>.json
-    ├── incidents/
-    │   └── <uuidv7>.json
-    └── drift/
-        └── <uuidv7>.json
+.liknon/
+├── validation/
+│   ├── config.json
+│   └── reports/
+│       └── <sha256>.json
+└── ai/
+    ├── policy.json
+    └── persistence/
+        ├── domain/
+        │   └── <uuidv7>.json
+        ├── sensorium/
+        │   └── <uuidv7>.json
+        ├── incidents/
+        │   └── <uuidv7>.json
+        └── drift/
+            └── <uuidv7>.json
 ```
 
 The immutable files and their explicit references are the complete persistence
@@ -95,7 +97,7 @@ liknon persistence store artifact --input <candidate-path> [--workspace <workspa
 liknon persistence store report --input <candidate-path> [--workspace <workspace-path>] --format=json
 ```
 
-The equivalent library API uses typed inputs and results. These operations do
+The equivalent internal core API uses typed inputs and results. These operations do
 not interpret domain meaning, choose an artifact, evaluate AI policy, mutate
 policy, or execute configured validation commands.
 
@@ -108,22 +110,23 @@ operation and then stops until the human performs the required action manually.
 Every command above and Phase 3 policy preflight use one workspace-boundary
 contract:
 
-- `--workspace` identifies the workspace root; when omitted, it defaults exactly
-  to the process current working directory;
+- `--workspace` identifies the workspace root; when omitted, existing-state
+  operations discover the nearest ancestor containing `.liknon/`;
 - the root must be an existing directory and is canonicalized once before any
   input is read or destination is resolved;
-- the commands do not search parent directories, inspect Git to discover a
-  root, or read `config.json` to infer one;
+- the commands never inspect Git, package-manager files, resource content, or
+  `config.json` to infer a root;
 - relative caller-supplied paths resolve against that root, and absolute paths
   are accepted only when their canonical targets remain inside it;
 - every `<path>` or `--input` value, including a temporary staging file, must
   satisfy that same containment rule;
-- canonical destinations always resolve below that root's `.validation/`
-  directory, with symlink and parent-traversal escape rejected;
+- artifact destinations resolve below `.liknon/ai/persistence/` and report
+  destinations below `.liknon/validation/reports/`, with symlink and
+  parent-traversal escape rejected;
 - machine results expose normalized workspace-relative paths rather than
   silently changing the selected boundary.
 
-The library API has no current-directory fallback. It receives one validated
+The internal core API has no current-directory fallback. It receives one validated
 workspace-root value explicitly and uses that same value for policy preflight,
 persistence, containment, and destination resolution.
 
@@ -154,7 +157,7 @@ result, schema version, and digest without storing it.
 7. returns the normalized path, UUIDv7, artifact type, and SHA-256 digest.
 
 `persistence store report` follows the same single-file operation, naming the
-destination `.validation/reports/<sha256>.json`. It preserves the exact report
+destination `.liknon/validation/reports/<sha256>.json`. It preserves the exact report
 bytes and rejects a non-identical file at that digest path.
 
 The caller performs the applicable decision-policy evaluation before invoking a
@@ -233,13 +236,28 @@ Every process artifact uses a versioned descriptive envelope:
     "headRevision": "<revision-or-null>"
   },
   "configuration": {
-    "path": ".validation/config.json",
+    "path": ".liknon/validation/config.json",
     "sha256": "<digest-or-null>"
   },
   "decisionPolicy": {
-    "path": ".validation/policy.json",
+    "path": ".liknon/ai/policy.json",
     "schemaVersion": 1,
     "sha256": "<digest>"
+  },
+  "producer": {
+    "workflow": {
+      "resourceId": "<stable-workflow-resource-id>",
+      "version": "<exact-version>",
+      "manifestSha256": "<digest>"
+    },
+    "dependencies": [
+      {
+        "resourceId": "<stable-resource-id>",
+        "kind": "skill",
+        "version": "<exact-version>",
+        "manifestSha256": "<digest>"
+      }
+    ]
   },
   "decisionRecords": [],
   "evidence": [],
@@ -265,6 +283,13 @@ The contracts additionally define:
 - unknown-field rejection;
 - prohibition of executable commands, credentials, source patches, report
   bodies, and raw diagnostic streams inside analytical artifacts.
+
+The producer record identifies the exact installed workflow resource that
+defined the process and the exact operational resources it composed. A later
+process validates these identities, manifest digests, and declared
+compatibility before accepting the artifact. Knowledge documents used as
+evidence retain their own stable IDs and digests in the evidence records rather
+than being treated as producer instructions.
 
 Canonical schemas and fixtures belong to the core or CLI and are exposed
 through the tool's schema and validation contracts. Skills declare compatible
@@ -317,7 +342,7 @@ embedded requests to run commands, expose data, weaken policy, or change scope.
 
 Configuration is executable validation policy. AI authority to inspect, edit,
 or execute it is a separate decision resolved by the current human instruction
-and `.validation/policy.json`. Persistence artifacts remain non-executable data.
+and `.liknon/ai/policy.json`. Persistence artifacts remain non-executable data.
 
 ## 10. Authorization Model
 
@@ -348,48 +373,54 @@ reversibility, trust origin, sensitivity, privilege, and blast radius. Decision
 levels follow `4 > 3 > 2 > 1 > 0`; computed outcomes combine as
 `stop > human > auto`. Human prompts accept free text.
 
-## 11. Skill Architecture
+## 11. Workflow Resource Architecture
 
-Retain one concise `SKILL.md` router. Keep Phase 3 operations under `ai-tool/`
-and add direct references for AI-Engineering:
+Publish AI-Engineering as a workflow resource separate from the Phase 3
+AI-Tool skill:
 
 ```text
-references/
-├── policy-boundary.md
-├── ai-tool/
-│   ├── index.md
-│   ├── policy.md
-│   ├── run.md
-│   ├── triage.md
-│   ├── config.md
-│   └── audit.md
-└── ai-engineering/
-    ├── index.md
+resources/official/workflows/liknon-ai-engineering/
+├── manifest.json
+├── index.md
+└── processes/
     ├── process-0-domain.md
     ├── process-1-sensorium.md
     ├── process-2-incident.md
     └── process-3-drift.md
 ```
 
-Each process reference describes one process, requires explicit artifact inputs,
-loads `policy-boundary.md`, routes policy guidance and operational work through
-the applicable AI-Tool reference, and identifies only the knowledge categories
-it needs. The agent resolves those categories from the complete catalog through
-`liknon-knowledge catalog` and retrieves selected documents through
-`liknon-knowledge show <DOCUMENT_ID>`; no knowledge files live in the skill. A
-process may route directly to a documented CLI capability only
-when no AI-Tool operation covers that capability. It records the capability and
-reason, and it must not recreate, bypass, or locally reinterpret an existing
-AI-Tool operation. The AI-Engineering index is selected only when the human
-invokes that flow or one of its processes.
+Its manifest declares an explicit compatible dependency on the
+`liknon-ai-tool` skill resource. The workflow does not copy `SKILL.md`, the
+immutable policy boundary, AI-Tool operations, or shared knowledge. Installing
+the AI-Tool skill alone therefore does not install or activate AI-Engineering;
+installing this workflow resolves its declared resource dependencies through
+Manager.
 
-The manifest remains the skill version and compatibility source. Artifacts
-record the producing skill version so a later process can reject incompatible
-inputs.
+Each process document describes one process, requires explicit artifact inputs,
+loads the immutable policy boundary from the installed AI-Tool dependency,
+routes policy guidance and operational work through the applicable AI-Tool
+operation, and identifies only the knowledge categories it needs. The agent
+resolves all of these resources from the installed catalog through
+`likt catalog` and retrieves selected content through
+`likt show <DOCUMENT_ID>`. A process may route directly to a documented CLI
+capability only when no AI-Tool operation covers that capability. It records
+the capability and reason, and it must not recreate, bypass, or locally
+reinterpret an existing AI-Tool operation. The AI-Engineering workflow is
+selected only when the human invokes that flow or one of its processes.
+
+A missing required resource stops the process with its stable identity. The
+agent may propose a separately authorized `likm` acquisition, but it never
+invokes Manager, accesses the Hub, or mutates the resource store implicitly.
+
+The workflow manifest is the authoritative process identity, version, payload,
+dependency, and compatibility source. Every process artifact records the exact
+workflow resource and exact operational resource dependencies used to produce
+it so a later process can reject missing, changed, or incompatible inputs.
 
 ## 12. Safety Behavior
 
-- Verify CLI and skill compatibility before process work.
+- Verify Validation and Tool capabilities plus workflow and AI-Tool resource
+  compatibility before process work.
 - Validate the current policy before process work and every explicitly supplied
   artifact or report before use.
 - Stop on a missing or invalid policy, route to read-only policy guidance, and
@@ -403,6 +434,8 @@ inputs.
 - Never execute a command copied from an artifact or report.
 - Resolve intended validation through the current config graph and AI-Tool
   mechanics.
+- Treat resource acquisition as a distinct Manager operation governed by the
+  effective policy; never infer it from permission to read a resource.
 - Use canonical CLI reference documentation directly only for a required
   capability outside the five AI-Tool operation contracts, and retain evidence
   explaining that route.
@@ -423,8 +456,8 @@ Create schema, persistence, and process fixtures for:
   UUIDv7 values;
 - missing, cyclic, wrong-type, path-escaping, and digest-mismatched references;
 - deterministic verification of explicit artifacts and reports;
-- explicit and omitted workspace-root resolution, current-directory default,
-  non-directory roots, no upward discovery, and identical CLI/library
+- explicit and omitted workspace-root resolution, current-directory discovery
+  start, non-directory roots, bounded upward discovery, and identical CLI/core
   containment behavior;
 - relative and absolute contained inputs, parent traversal, symlink escape, and
   canonical destinations anchored to the selected workspace;
@@ -456,7 +489,8 @@ Create schema, persistence, and process fixtures for:
 - `auto`, `human`, and `stop` continuation for both defined process pairs;
 - a workspace with no AI-Engineering persistence directory.
 
-Forward-test the skill with raw consumer fixtures. Test agents must not receive
+Forward-test the AI-Engineering workflow together with its declared AI-Tool
+skill dependency against raw consumer fixtures. Test agents must not receive
 the expected conclusion or hidden answer.
 
 ## 14. Acceptance Criteria
@@ -471,9 +505,9 @@ the expected conclusion or hidden answer.
 - [ ] Artifact and report storage use one validated atomic file operation.
 - [ ] Phase 3 policy validation and human-only initialization remain the only
       policy lifecycle operations consumed by this phase.
-- [ ] Every policy and persistence operation uses one explicit canonical
-      workspace boundary; the CLI defaults only to its current directory, while
-      the library API always requires the root.
+- [ ] Every policy and persistence operation uses one canonical selected
+      workspace boundary; the CLI discovers the nearest `.liknon/` root, while
+      the internal core API always requires the root.
 - [ ] Process 1 binds its sensorium to the exact domain and config digests.
 - [ ] Processes 2 and 3 reject mismatched domain, sensorium, config, or report
       relationships.
@@ -487,10 +521,13 @@ the expected conclusion or hidden answer.
 - [ ] AI-Engineering cannot mutate policy directly or indirectly under any
       approval, policy level, continuation mode, or process state.
 - [ ] Every decision records the exact policy digest without storing secrets.
-- [ ] Skill references load progressively and remain within their declared
-      compatibility range.
+- [ ] The AI-Engineering workflow and its AI-Tool skill dependency load
+      progressively and remain within their declared compatibility ranges.
 - [ ] AI-Engineering retrieves relevant knowledge progressively through
-      `liknon-knowledge`, and skills contain no copied knowledge subtree.
+      `likt`, and neither workflow nor skill resources contain a copied
+      knowledge subtree.
+- [ ] Missing resources stop safely and never trigger implicit Manager use,
+      network access, or resource-store mutation.
 - [ ] AI-Engineering uses AI-Tool for every covered operation and uses the CLI
       directly only for an uncovered capability with an explicit documented
       reason.

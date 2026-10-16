@@ -32,8 +32,8 @@ From clean environments that cannot read private workflow artifacts:
   exists;
 - verify unsupported platforms and integrity failures remain explicit.
 
-Public verification must not succeed by finding another `liknon` or
-`liknon-cli` executable on `PATH`.
+Public verification must not succeed by finding another `liknon` or `likx`
+executable on `PATH`.
 
 ## Download-Domain Verification
 
@@ -79,8 +79,8 @@ Document in one canonical installation reference:
 - unsupported-platform, unavailable-verifier, and integrity-error behavior;
 - how to verify both command aliases and report a release-security incident;
 - that GitHub does not host Liknon binary assets;
-- that `liknon-knowledge` is an independent B02 application and B03 ecosystem
-  packages contain AI resources; neither is contained in this CLI.
+- that `liknon-manager` and `liknon-tool` are independent applications and
+  modular resources are installed separately; none is contained in this CLI.
 
 Update README, installation reference, security guidance, and changelog without
 duplicating canonical wording that can drift.

@@ -39,12 +39,13 @@ and validation behavior.
 
 ### crates.io Candidate Installation
 
-- Inspect `cargo package --list` and the extracted `liknon-cli` crate.
+- Inspect `cargo package --list` and the extracted supporting and `liknon-cli`
+  crates.
 - Build and install the candidate in an isolated Cargo home.
 - Prove both command names and representative behavior match the GitHub source
   candidate.
-- Prove the package uses no unpublished path dependency or repository-only
-  file.
+- Prove the package resolves the exact supporting versions from a registry-only
+  environment and uses no unpublished path dependency or repository-only file.
 
 ### Identity And Byte Equality
 

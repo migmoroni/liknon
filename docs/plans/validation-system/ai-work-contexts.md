@@ -9,7 +9,7 @@ or persistence schema. It is not part of the Human Flow or AI-Tool Flow.
 It specifies the public guide to be authored at:
 
 ```text
-docs/validation/human/ai-work-contexts.md
+docs/validation/flows/human/ai-work-contexts.md
 ```
 
 The guide helps a human organize conversations with an AI agent for clearer,
@@ -39,7 +39,7 @@ Use one focused context for Processes 0 and 1:
 - consequences and invariants;
 - uncertainty and human-provided domain decisions;
 - evidence coverage;
-- reconciliation with `.validation/config.json`.
+- reconciliation with `.liknon/validation/config.json`.
 
 These processes benefit from sharing one conversational context because
 coverage design directly depends on the domain model it evaluates. After
@@ -90,10 +90,12 @@ human to transcribe them.
 
 The agent then:
 
-1. loads the Liknon skill, the requested AI-Engineering process reference, the
-   immutable policy boundary, and only the AI-Tool references needed for it,
-   then retrieves selected knowledge documents through `liknon-knowledge`;
-2. verifies CLI and skill compatibility;
+1. loads the requested process from the installed `liknon-ai-engineering`
+   workflow, its declared `liknon-ai-tool` skill dependency and immutable
+   policy boundary, and only the AI-Tool operations needed for it, then
+   retrieves selected knowledge documents through `likt`;
+2. verifies Validation and Tool capabilities plus the exact workflow and skill
+   resource compatibility;
 3. invokes `policy validate` for the explicit active workspace root and records
    the exact path, schema version, and digest of the existing valid policy;
 4. verifies every explicitly supplied artifact and report through the
@@ -108,6 +110,11 @@ The agent then:
 9. classifies every other governed effect under all applicable decision
    categories and requests a free-text human decision exactly when the
    restrictive result is `human`.
+
+If Step 1 cannot resolve a required installed resource, the process stops and
+reports its stable identity. Resource acquisition is a separate Manager action;
+the agent does not invoke `likm`, access the Hub, or mutate the resource store
+without a distinct policy evaluation and human authority.
 
 If Step 3 reports a missing policy, the process stops before Step 4. The agent
 routes to the advisory AI-Tool `policy` operation, asks the human to run
@@ -135,10 +142,10 @@ The guide explains that the human:
   objective;
 - supplies exact prerequisite artifact paths when starting outside a direct
   process handoff;
-- initializes `.validation/policy.json` directly through
+- initializes `.liknon/ai/policy.json` directly through
   `liknon init --policy`, then reviews and selects its continuation
   and decision levels;
-- opens and changes `.validation/policy.json` manually; no agent performs that
+- opens and changes `.liknon/ai/policy.json` manually; no agent performs that
   action on the human's behalf;
 - provides domain decisions that repository evidence cannot establish;
 - answers policy-required free-text decisions and may constrain or perform the
@@ -200,8 +207,8 @@ The public guide must:
 - avoid implying that the validation planner or executor reads AI persistence;
 - link to the AI-Engineering Flow, authorization model, Human Flow, and AI-Tool
   Flow without duplicating their contracts;
-- remain outside the distributed skill routes so agent behavior never depends
-  on human-only conversational guidance.
+- remain outside distributed skill and workflow routes so agent behavior never
+  depends on human-only conversational guidance.
 
 ## 9. Verification
 
@@ -217,6 +224,8 @@ Documentation and forward trials verify that:
 - missing or mismatched prerequisite paths stop with a precise explanation;
 - a missing policy stops before process work and produces exact
   human-controlled initialization and review guidance;
+- a missing workflow, skill, or knowledge resource stops before process work
+  and never causes implicit Manager or network activity;
 - no artifact or schema requires a chat or session identifier;
 - changing conversational organization does not change executable policy or
   validator results;

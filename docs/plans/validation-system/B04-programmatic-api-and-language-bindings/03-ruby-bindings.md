@@ -4,8 +4,8 @@
 
 ## Purpose
 
-Extend the existing `liknon` gem with the approved idiomatic Ruby
-programmatic contract.
+Publish the `liknon` gem only when the approved idiomatic Ruby programmatic
+contract and a representative consumer are ready.
 
 ## Design Gate
 
@@ -29,7 +29,7 @@ extension. The gem exposes no CLI executable and does not shell out to `liknon`.
 - Native resources survive garbage collection, interruption, and callback
   failure safely.
 - Platform resolution retrieves only compatible native artifacts.
-- Existing B03 resource APIs remain compatible and independently usable.
+- The gem contains no CLI executable or authored Hub resource payload.
 
 ## Exit Criterion
 

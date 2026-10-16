@@ -18,6 +18,10 @@ The status markers are normative:
 - All phase items below are `[x]`; no implementation work remains in this
   phase.
 
+The path and workspace names below express the canonical post-A01 contract.
+A01 owns their structural application; Phase 1 completion markers record the
+accepted Human Flow semantics that the separation must preserve.
+
 The inspection exit-code boundary and canonical initialization lifecycle are
 complete. Candidate validation and installed loading now use the same ordinary
 filesystem semantics.
@@ -47,13 +51,14 @@ parallel implementations.
 - [x] `liknon init --config <candidate-path>` provisions the
       canonical configuration.
 - [x] The command requires a provisioning capability, supports an explicit
-      `--workspace`, and otherwise uses exactly the current working directory.
-- [x] Initialization does not discover a root through Git, parents, or candidate
-      content.
+      `--workspace`, otherwise uses the nearest existing `.liknon/` root, and
+      falls back to the exact current directory when creating a new root.
+- [x] Initialization does not discover a root through Git, language tooling,
+      or candidate content.
 - [x] A candidate must be a contained regular file; symlinks, traversal, and
       workspace escape are rejected.
 - [x] The candidate is validated for its canonical destination at
-      `<workspace>/.validation/config.json`.
+      `<workspace>/.liknon/validation/config.json`.
 - [x] The exact validated bytes are published atomically without overwriting a
       different destination.
 - [x] Identical bytes produce `reused`; different or invalid existing bytes
@@ -129,7 +134,7 @@ parallel implementations.
 
 ### 2.3 Completed Scope
 
-1. [x] Provision the canonical `.validation/` directory while it is empty, then
+1. [x] Provision the canonical `.liknon/validation/` directory while it is empty, then
        validate candidate paths through the ordinary filesystem-aware
        configuration path before publishing `config.json`.
 2. [x] Distinguish semantic `explain` failures from output failures so all three
@@ -196,8 +201,8 @@ Completed implementation:
 
 - [x] Parse the candidate as a complete `Config` document before creating a
       destination directory. Malformed JSON and unknown fields must fail without
-      creating `.validation/`.
-- [x] Inspect `<workspace>/.validation` with symlink-aware metadata. If absent,
+      creating `.liknon/validation/`.
+- [x] Inspect `<workspace>/.liknon/validation` with symlink-aware metadata. If absent,
       create exactly that directory with `create_dir` or equivalent exclusive
       single-directory creation. If another actor creates it concurrently,
       inspect the resulting entry before continuing. A file, symlink, or other
@@ -206,7 +211,7 @@ Completed implementation:
       temporary file, `config.json`, or any other resource before the candidate
       has passed complete semantic and filesystem validation.
 - [x] After the directory exists, validate the candidate bytes for the exact
-      canonical destination `<workspace>/.validation/config.json` through the
+      canonical destination `<workspace>/.liknon/validation/config.json` through the
       same filesystem-aware path used by ordinary configuration loading. Keep
       one source of truth for `workspaceRoot`, suite-directory containment,
       symlink traversal, `..`, cycles, and operating-system path errors.
@@ -220,10 +225,10 @@ Completed implementation:
       authority for canonicalization and excessive-link errors.
 - [x] Whenever provisioning finishes without a created or reused `config.json`,
       the config must remain unpublished. When the current invocation created
-      `.validation/`, attempt to remove it with `remove_dir` only; this may
+      `.liknon/validation/`, attempt to remove it with `remove_dir` only; this may
       succeed only while the directory is still empty. Cleanup is best-effort
       and must never delete files or replace the primary result.
-- [x] A pre-existing real `.validation/` directory may contain other resources
+- [x] A pre-existing real `.liknon/validation/` directory may contain other resources
       and is not required to be empty. Preserve every existing entry and retain
       the current `created`, `reused`, and `conflict` behavior for `config.json`.
 - [x] Keep directory preparation as an internal step of config provisioning.
@@ -235,8 +240,8 @@ Completed implementation:
 
 Completed regression coverage:
 
-- [x] Prove malformed candidate bytes do not create `.validation/`.
-- [x] Prove a valid candidate succeeds when `.validation/` is absent, when it is
+- [x] Prove malformed candidate bytes do not create `.liknon/validation/`.
+- [x] Prove a valid candidate succeeds when `.liknon/validation/` is absent, when it is
       already empty, and when it contains an unrelated entry that must remain
       untouched.
 - [x] Prove a semantic or filesystem validation failure never publishes
@@ -245,7 +250,7 @@ Completed regression coverage:
 - [x] Compare candidate validation with installed loading for `workspaceRoot: "."`,
       empty and repeated current-directory forms, direct symlinks to the
       canonical directory, symlink-plus-parent traversal, and an absolute
-      external symlink whose target is the canonical `.validation/` directory.
+      external symlink whose target is the canonical `.liknon/validation/` directory.
 - [x] Reject unrelated dangling links, missing descendants, unsafe canonical
       directory entries, and a path exceeding the operating system's symlink
       limit without publishing the candidate.
@@ -370,13 +375,13 @@ complete gate must be repeated after the pending work.
 - [x] Final validation-report and initialization-result write failures translate
       to exit code `4` without panic.
 - [x] Candidate and installed loading remain equivalent through local and
-      absolute external symlinks to `.validation/`, including parent traversal.
+      absolute external symlinks to `.liknon/validation/`, including parent traversal.
 - [x] Excessive symlink traversal is rejected before publication by ordinary
       filesystem canonicalization.
 - [x] An unrelated dangling symlink or a missing descendant remains invalid.
 - [x] Failed validation publishes no config and preserves or safely removes an
       empty directory created by the current invocation.
-- [x] Existing unrelated entries under `.validation/` remain untouched.
+- [x] Existing unrelated entries under `.liknon/validation/` remain untouched.
 - [x] Writer failures from `explain group`, `explain suite`, and
       `explain check` return exit code `4`; semantic selection failures continue
       to return `3`.
@@ -435,10 +440,11 @@ complete gate must be repeated after the pending work.
       execution, initialization, and inspection output failures.
 - [x] Every distributed example validates byte-for-byte at its documented
       canonical location.
-- [x] The validator does not read `.validation/policy.json`,
-      `.validation/reports/`, or `.validation/persistence/` as execution input.
+- [x] The validator does not read `.liknon/ai/policy.json`,
+      `.liknon/validation/reports/`, or `.liknon/ai/persistence/` as execution input.
 - [x] No Human Flow command requires an AI agent or skill.
-- [x] The skill manifest is the only bundle-version and CLI-compatibility source.
+- [x] Human Flow commands do not depend on an installed skill, workflow, or
+      resource manifest.
 - [x] Existing trusted configuration runs without hidden installation or
       workspace repair.
 - [x] The complete Rust gate, outcome fixtures, package inspection, MSRV checks,

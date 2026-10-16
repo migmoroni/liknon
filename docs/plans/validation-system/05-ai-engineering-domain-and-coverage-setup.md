@@ -13,11 +13,12 @@ These processes run at onboarding, after a domain-relevant change, when the
 human directs the agent to reassess them, or after a drift assessment recommends
 recalibration. They do not run before every normal validation.
 
-Every invocation loads the immutable policy boundary, verifies CLI and skill
-compatibility, validates the current decision policy, and validates each
-explicitly supplied artifact before using its content. Missing or invalid policy
-routes to read-only `AI-Tool/policy` guidance and stops until the human performs
-the required creation or correction manually.
+Every invocation loads the immutable policy boundary, verifies Validation and
+Tool capabilities plus workflow and AI-Tool resource compatibility, validates
+the current decision policy, and validates each explicitly supplied artifact
+before using its content. Missing or invalid policy routes to read-only
+`AI-Tool/policy` guidance and stops until the human performs the required
+creation or correction manually.
 
 ## 2. Dependencies
 
@@ -37,9 +38,9 @@ The agent begins with:
 - workspace instructions and declared product documentation;
 - repository manifests and lockfiles;
 - a bounded directory inventory;
-- the existing `.validation/policy.json` path and digest returned by
+- the existing `.liknon/ai/policy.json` path and digest returned by
   `policy validate` for the explicit active workspace root;
-- the current `.validation/config.json`, when present;
+- the current `.liknon/validation/config.json`, when present;
 - build, packaging, persistence, deployment, and release documentation relevant
   to the product;
 - an explicitly supplied preceding domain artifact when recalibrating;
@@ -92,7 +93,7 @@ correction reruns Process 0 and creates another immutable artifact; it never
 rewrites the preceding one.
 
 Neither process may create, edit, format, replace, delete, move, restore, or
-otherwise mutate `.validation/policy.json`. A policy recommendation is delegated
+otherwise mutate `.liknon/ai/policy.json`. A policy recommendation is delegated
 to the advisory AI-Tool `policy` operation, and only the human applies it.
 
 A completed domain artifact remains valid evidence for its recorded repository
@@ -151,7 +152,9 @@ The sensorium artifact records:
 - rejected alternatives and rationale when relevant;
 - prerequisites requiring human action;
 - residual risk and uncertainty;
-- skill and guidance versions used for the analysis.
+- exact producing workflow, operational skill dependency, and selected
+  guidance resource identities, versions, and manifest or payload digests used
+  for the analysis.
 
 It does not contain shell expressions or an alternate executable command graph.
 Human-readable command examples may appear only as explanatory evidence and are
@@ -186,9 +189,9 @@ config, whether the config remains unchanged, an eligible change is applied, or
 a proposal remains a documented gap. Operational processes accept it only when
 its domain and config digests match their explicit inputs.
 
-## 6. Skill Behavior
+## 6. Workflow Behavior
 
-### `ai-engineering/process-0-domain.md`
+### `processes/process-0-domain.md`
 
 - loads source policy, validation strategy, and only relevant domain guidance;
 - gathers evidence before conclusions;
@@ -198,13 +201,13 @@ its domain and config digests match their explicit inputs.
 - applies `processContinuation` only after the artifact is validated and stored
   and Process 1 preconditions hold.
 
-### `ai-engineering/process-1-sensorium.md`
+### `processes/process-1-sensorium.md`
 
 - requires and verifies one exact domain artifact;
 - audits the current config without running checks;
 - loads only relevant foundations, patterns, language, framework, technology,
   concern, standard, tool, and recipe guides selected through the knowledge
-  catalog and retrieved by stable document ID through `liknon-knowledge`;
+  catalog and retrieved by stable document ID through `likt`;
 - constructs the evidence matrix and proposed config diff;
 - delegates configuration mechanics to `ai-tool/config.md`;
 - delegates every effect classification to the normative decision policy;

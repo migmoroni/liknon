@@ -4,8 +4,8 @@
 
 ## Purpose
 
-Extend the existing PyPI `liknon` project with the approved idiomatic
-programmatic Python module.
+Publish the PyPI `liknon` project only when the approved idiomatic
+programmatic Python module and a representative consumer are ready.
 
 ## Design Gate
 
@@ -29,7 +29,7 @@ it.
 - Shared fixtures produce equivalent domain outcomes.
 - Exceptions, cancellation, interpreter shutdown, and native cleanup are safe.
 - Wheel inspection and isolated installation prove correct platform selection.
-- Existing B03 resource APIs remain compatible and independently usable.
+- The project contains no CLI executable or authored Hub resource payload.
 
 ## Exit Criterion
 

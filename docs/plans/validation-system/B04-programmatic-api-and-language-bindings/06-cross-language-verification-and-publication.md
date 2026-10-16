@@ -29,8 +29,8 @@ Idiomatic representation may differ, but observable domain meaning may not.
 
 ## Publication Contract
 
-- Build programmatic native artifacts independently from B01 and B02 CLI
-  artifacts, then assemble them into the existing B03 ecosystem packages.
+- Build programmatic native artifacts independently from all three CLI
+  artifacts, then assemble only the approved language packages.
 - Keep build jobs credential-free.
 - Inspect final source and native package contents before approval.
 - Use one protected publication identity per registry.
@@ -44,9 +44,8 @@ Idiomatic representation may differ, but observable domain meaning may not.
 
 - Clean consumer projects import the public package through normal dependency
   declarations.
-- Existing B03 resource inventories and explicit materialization remain
-  conformant after the API extension.
 - No package installs a global `liknon` command.
+- No package embeds authored Hub resources or performs implicit Hub access.
 - Platform selection retrieves only compatible native library artifacts.
 - Public package behavior matches the retained candidate and shared fixtures.
 - Partial publication recovery never rebuilds or replaces an accepted version.

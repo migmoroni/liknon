@@ -4,13 +4,13 @@
 
 This directory defines distribution for the validation command-line
 application after [A01](../A01-product-and-repository-separation/README.md)
-separates it from the core, knowledge application, and AI resources. It does
-not change validation behavior, configuration, report, or exit contracts.
+separates it from the core, resource management, and local resource tooling. It
+does not change validation behavior, configuration, report, or exit contracts.
 
-[B02](../B02-knowledge-cli-and-corpus/README.md) distributes the independent
-knowledge application. [B03](../B03-ecosystem-ai-packages/README.md) publishes
-non-CLI ecosystem packages. [B04](../B04-programmatic-api-and-language-bindings/README.md)
-governs future in-process APIs.
+[B02](../B02-resource-hub-and-manager/README.md) defines the resource Hub and
+`liknon-manager`. [B03](../B03-tool-cli/README.md) distributes the independent,
+offline `liknon-tool`. [B04](../B04-programmatic-api-and-language-bindings/README.md)
+governs future in-process APIs that have real language consumers.
 
 ## Objective
 
@@ -32,12 +32,13 @@ lock source identity and carry metadata but no Liknon binary assets.
 Every channel installs two command names backed by one implementation:
 
 - `liknon`, the canonical user command;
-- `liknon-cli`, the explicit product command.
+- `likx`, the explicit validation command.
 
 B01 includes:
 
 - one version and provenance contract for source and native artifacts;
-- one inspected crates.io source package;
+- one inspected `liknon-cli` source package and its exact supporting-crate
+  closure;
 - one final native executable payload per supported target;
 - two equivalent installed command names;
 - platform-specific sealing and verification where applicable;
@@ -47,10 +48,11 @@ B01 includes:
 - public verification, publication recovery, and documentation.
 
 The application contains the generic validation engine, CLI presentation, core
-schemas, and generic `.validation/` bootstrap. It does not contain:
+schemas, and generic `.liknon/validation/` bootstrap. It does not contain:
 
-- the `liknon-knowledge` application or knowledge corpus;
-- skills, prompts, AI-Tool or AI-Engineering resources;
+- `liknon-manager`, `liknon-tool`, the resource Hub, or installed resources;
+- knowledge, skills, workflows, prompts, guides, templates, collections, or
+  agent profiles;
 - npm, RubyGems, PyPI, or NuGet packages;
 - a programmatic validation binding or SDK;
 - binary assets attached to GitHub Releases;
@@ -70,7 +72,8 @@ lockfile and supported Rust toolchain.
 Install exact published source for package `liknon-cli` with locked
 dependencies. The package contains both binary targets and builds from its
 published contents without repository-only files or unpublished path
-dependencies.
+dependencies. Required `liknon-core` and `liknon-workspace` versions are
+published first when that exact supporting version is not already available.
 
 ### Cloudflare Direct
 
@@ -106,6 +109,8 @@ presentation surface, not another artifact source.
 14. Partial publication resumes only from exact retained candidates.
 15. Application artifacts exclude knowledge, AI resources, plans, fixtures,
     evaluations, and editorial tooling.
+16. crates.io supporting packages are published in dependency order and
+    verified by public readback before `liknon-cli` publication.
 
 ## Proposed Repository Layout
 
@@ -132,13 +137,13 @@ target/distribution/validation/      # Generated and ignored
 
 | Rust target | Installed commands | Direct archive | Initial platform authenticity |
 | --- | --- | --- | --- |
-| `x86_64-unknown-linux-gnu` | `liknon`, `liknon-cli` | `.tar.gz` | Signed release metadata and hashes |
-| `x86_64-unknown-linux-musl` | `liknon`, `liknon-cli` | `.tar.gz` | Signed release metadata and hashes |
-| `aarch64-unknown-linux-gnu` | `liknon`, `liknon-cli` | `.tar.gz` | Signed release metadata and hashes |
-| `aarch64-unknown-linux-musl` | `liknon`, `liknon-cli` | `.tar.gz` | Signed release metadata and hashes |
-| `x86_64-apple-darwin` | `liknon`, `liknon-cli` | `.tar.gz` | Ad hoc code signature; not notarized |
-| `aarch64-apple-darwin` | `liknon`, `liknon-cli` | `.tar.gz` | Ad hoc code signature; not notarized |
-| `x86_64-pc-windows-msvc` | `liknon.exe`, `liknon-cli.exe` | `.zip` | Project-controlled self-signed Authenticode with RFC 3161 timestamp |
+| `x86_64-unknown-linux-gnu` | `liknon`, `likx` | `.tar.gz` | Signed release metadata and hashes |
+| `x86_64-unknown-linux-musl` | `liknon`, `likx` | `.tar.gz` | Signed release metadata and hashes |
+| `aarch64-unknown-linux-gnu` | `liknon`, `likx` | `.tar.gz` | Signed release metadata and hashes |
+| `aarch64-unknown-linux-musl` | `liknon`, `likx` | `.tar.gz` | Signed release metadata and hashes |
+| `x86_64-apple-darwin` | `liknon`, `likx` | `.tar.gz` | Ad hoc code signature; not notarized |
+| `aarch64-apple-darwin` | `liknon`, `likx` | `.tar.gz` | Ad hoc code signature; not notarized |
+| `x86_64-pc-windows-msvc` | `liknon.exe`, `likx.exe` | `.zip` | Project-controlled self-signed Authenticode with RFC 3161 timestamp |
 
 Every row is a distinct artifact. A target becomes public only after native
 execution, archive, installer, alias-equivalence, and public-readback checks.
@@ -161,6 +166,8 @@ execution, archive, installer, alias-equivalence, and public-readback checks.
 - [ ] The signed tag and metadata-only GitHub Release contain no native binary
       assets.
 - [ ] GitHub and crates.io source installations pass in isolated environments.
+- [ ] The crates.io candidate resolves exact published supporting crates and no
+      repository-local path dependency.
 - [ ] Both command names are equivalent through every channel.
 - [ ] Exactly one final native payload is retained per target.
 - [ ] Linux x64 and arm64 each have separate GNU and MUSL artifacts.
@@ -195,4 +202,4 @@ execution, archive, installer, alias-equivalence, and public-readback checks.
 Liknon validation remains one lean application with two explicit command names.
 Users may compile it from a verified clone, install its source package from
 crates.io, or obtain one authenticated native target from Cloudflare without
-receiving the independent knowledge or ecosystem AI products.
+receiving the independent Manager, Tool, Hub, or modular resources.

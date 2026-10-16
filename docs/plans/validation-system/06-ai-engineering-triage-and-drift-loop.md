@@ -24,10 +24,11 @@ Every operational invocation requires:
 - one explicit stored validation report when Process 2 or Process 3 begins from
   existing evidence.
 
-The process verifies every path, schema, digest, relationship, skill version,
-and configuration reference before loading analytical content. Missing,
-mismatched, stale, or ambiguous inputs stop the operation and identify the exact
-setup process or validation run required next.
+The process verifies every path, schema, digest, relationship, producing
+workflow identity, operational resource dependency, and configuration reference
+before loading analytical content. Missing, mismatched, stale, or ambiguous
+inputs stop the operation and identify the exact setup process or validation
+run required next.
 
 A missing or invalid decision policy stops before those inputs are consumed.
 The process routes to read-only `AI-Tool/policy` guidance. Missing-policy

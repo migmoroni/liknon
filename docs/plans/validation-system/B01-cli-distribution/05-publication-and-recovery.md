@@ -54,18 +54,21 @@ artifacts are workflow transport, not a public download channel.
 
 1. Preflight crates.io, GitHub, and Cloudflare without writing.
 2. Reauthenticate all retained candidates and evidence.
-3. Publish the inspected `liknon-cli` source package to crates.io.
-4. Read the accepted package back and verify source and command inventory.
-5. Create the metadata-only immutable GitHub Release for the exact signed tag.
-6. Confirm it points to the expected commit and contains no binary asset.
-7. Upload immutable archives, checksum data, installer scripts, and detached
+3. Publish any inspected supporting-crate candidate not already available at
+   the exact required version, in dependency order, and verify public readback.
+4. Publish the inspected `liknon-cli` source package to crates.io.
+5. Read the accepted application package back and verify source, dependency,
+   and command inventory.
+6. Create the metadata-only immutable GitHub Release for the exact signed tag.
+7. Confirm it points to the expected commit and contains no binary asset.
+8. Upload immutable archives, checksum data, installer scripts, and detached
    installer signatures to versioned R2 keys.
-8. Read every object back through the production custom domain and compare bytes
+9. Read every object back through the production custom domain and compare bytes
    and headers.
-9. Upload `manifest.sig`, then `manifest.json` as the completion marker only
+10. Upload `manifest.sig`, then `manifest.json` as the completion marker only
    after every referenced object passes readback.
-10. Read back and authenticate the complete versioned release.
-11. Record immutable identities, hashes, headers, and destination responses.
+11. Read back and authenticate the complete versioned release.
+12. Record immutable identities, hashes, headers, and destination responses.
 
 The stable pointer is not updated here. Phase B01.6 updates it only after public
 installation succeeds.

@@ -31,7 +31,7 @@ Release automation does not parse `Cargo.toml` with regular expressions, carry
 a second handwritten version, or normalize versions per destination.
 
 The selected package is `apps/liknon-cli`. Its package name `liknon-cli`,
-package version, and binary targets `liknon` and `liknon-cli` are validated
+package version, and binary targets `liknon` and `likx` are validated
 separately. Shared workspace metadata may define version policy, but it is not a
 second application-version value.
 
@@ -50,7 +50,7 @@ After native builds, CI creates `build-manifest.json`:
     {
       "target": "x86_64-unknown-linux-gnu",
       "payloadFile": "liknon",
-      "installedCommands": ["liknon", "liknon-cli"],
+      "installedCommands": ["liknon", "likx"],
       "size": 0,
       "sha256": "<sha256>",
       "platformAuthenticity": {

@@ -29,8 +29,13 @@ CLI and documentation directly without claiming AI-Tool behavior.
 - Phase 2.1 provides the standards-informed editorial architecture, canonical
   family paths, stable profile contracts, and version-neutral corpus consumed
   through that interface.
-- A01 separates operational AI resources from the complete knowledge corpus
-  and provides the independent `liknon-knowledge` retrieval interface.
+- A01 separates authored modular resources from the three applications.
+- B02 provides explicit resource acquisition and organization through
+  `liknon-manager` / `likm`.
+- B03 provides offline, read-only access to installed resources through
+  `liknon-tool` / `likt`.
+- B02 and B03 end-to-end distribution and interoperability are complete before
+  this phase treats resource installation and retrieval as public contracts.
 
 ## 3. Flow Contract
 
@@ -40,7 +45,7 @@ For `config`, `run`, `triage`, and `audit`, the supported flow is:
 human requests one bounded task
   -> agent selects the AI-Tool Flow
   -> agent loads the immutable policy boundary
-  -> agent verifies CLI and skill compatibility
+  -> agent verifies application and AI-Tool skill-resource compatibility
   -> agent runs read-only policy validation
   -> missing or invalid policy routes to policy guidance and stops the task
   -> agent loads one operational reference
@@ -87,7 +92,7 @@ an earlier conversation.
 
 ### 4.1 Ownership And Scope
 
-`.validation/policy.json` is owned exclusively by the human operator. It defines
+`.liknon/ai/policy.json` is owned exclusively by the human operator. It defines
 when an agent may act automatically, must request a free-text human decision, or
 must stop. Its category levels govern both AI-Tool and AI-Engineering. Its
 `processContinuation` value is consumed only by the two declared
@@ -103,7 +108,7 @@ over every category level, every continuation mode, and every user request to
 the agent:
 
 - no agent may create, edit, format, replace, delete, move, rename, restore, or
-  otherwise mutate `.validation/policy.json`;
+  otherwise mutate `.liknon/ai/policy.json`;
 - no agent may invoke a command, script, patch, filesystem API, VCS operation,
   or indirect mechanism that performs such a mutation;
 - an explicit human request or approval does not lift this prohibition;
@@ -125,7 +130,7 @@ liknon policy validate [--workspace <workspace-path>] --format=json
 ```
 
 `--policy` provisions only the canonical conservative
-`.validation/policy.json`. It uses the shared versioned `InitResult`, workspace
+`.liknon/ai/policy.json`. It uses the shared versioned `InitResult`, workspace
 boundary, complete preflight, deterministic ordering, per-file atomic
 no-overwrite behavior, conflict handling, partial-result semantics, and
 idempotent retry contract established in Phase 1. Config and policy flags may be
@@ -148,16 +153,20 @@ exact bytes, and returns one bounded versioned result containing normalized
 path, schema version, digest, and status. Missing policy is a typed non-success
 result. The command never creates, modifies, repairs, or replaces a file.
 
-The library API always receives the workspace root explicitly. The CLI uses
-`--workspace` or exactly the current working directory and never discovers a
-different root through parents, Git, or configuration content.
+The internal core API always receives the workspace root explicitly. With
+`--workspace`, the CLI uses that exact boundary. Otherwise, commands requiring
+existing state discover the nearest ancestor containing `.liknon/` and fail if
+none exists. Initialization falls back to the exact current directory only
+when creating a new root. Git and configuration content never select the
+boundary.
 
 ### 4.3 Advisory `policy` Operation
 
 `references/ai-tool/policy.md` defines a read-only advisory operation. It:
 
 1. loads the immutable policy boundary before inspecting policy data;
-2. verifies CLI and skill compatibility;
+2. verifies the installed AI-Tool skill resource and its declared Validation
+   and Tool capability ranges;
 3. invokes `policy validate` against the explicit workspace root;
 4. explains missing, invalid, unsupported, or valid state without repairing it;
 5. explains every category, level, overlap rule, and `processContinuation` mode
@@ -195,8 +204,8 @@ work, the agent runs `policy validate` for the explicit workspace root.
 
 The AI-Tool Flow:
 
-- uses `.validation/config.json` as the sole executable validation policy;
-- validates and obeys `.validation/policy.json` as human-owned AI authority;
+- uses `.liknon/validation/config.json` as the sole executable validation policy;
+- validates and obeys `.liknon/ai/policy.json` as human-owned AI authority;
 - uses the current CLI and versioned report contract;
 - may read canonical shared knowledge through progressive disclosure;
 - follows system, host, workspace, repository, current user, immutable policy
@@ -209,9 +218,9 @@ The AI-Tool Flow:
 
 The AI-Tool Flow does not:
 
-- mutate `.validation/policy.json` by any direct or indirect mechanism;
-- create or update `.validation/persistence/`;
-- automatically establish `.validation/reports/` as a persistent report store;
+- mutate `.liknon/ai/policy.json` by any direct or indirect mechanism;
+- create or update `.liknon/ai/persistence/`;
+- automatically establish `.liknon/validation/reports/` as a persistent report store;
 - execute Processes 0 through 3;
 - create domain, sensorium, incident, or drift artifacts;
 - infer continuity, prior authorization, or unresolved work from chat history;
@@ -233,7 +242,7 @@ Use one concise top-level router, one mandatory immutable policy-boundary
 reference, and separate operational references from shared knowledge:
 
 ```text
-ai-resources/shared/skills/liknon/
+resources/official/skills/liknon-ai-tool/
 ├── SKILL.md
 ├── manifest.json
 └── references/
@@ -255,6 +264,11 @@ invokes an AI-Engineering process or requests its persistent system. The router
 must not activate AI-Engineering from task complexity, repository size, or the
 agent's preference.
 
+This skill resource contains only the AI-Tool Flow. AI-Engineering is published
+as a separate workflow resource in Phase 4. Installing or loading this skill
+therefore cannot implicitly install, route to, or activate an engineering
+process.
+
 `references/policy-boundary.md` is short, mandatory, and generated from the
 canonical public boundary. It states that agents may never mutate policy and
 defines the narrow read-only bootstrap behavior of `AI-Tool/policy`. Every
@@ -265,12 +279,19 @@ routes to exactly one primary operation. An operation may link to another
 AI-Tool reference when the current request genuinely requires both, but it must
 not eagerly load all operations.
 
-The five operational references are authored skill instructions. Validation
-knowledge remains audience-neutral in the separate complete corpus and is never
+The skill manifest is the authoritative identity, version, payload, dependency,
+and application-compatibility record for this resource. The five operational
+references are authored skill instructions. Validation
+knowledge remains audience-neutral in separate knowledge resources and is never
 copied into the skill. `SKILL.md` and operation references use
-`liknon-knowledge catalog` and `liknon-knowledge show <DOCUMENT_ID>` for
+`likt catalog` and `likt show <DOCUMENT_ID>` for
 progressive disclosure. Human-only resources are not included in skill
 routing.
+
+If a required resource is absent, the agent reports the exact missing identity
+and stops that operation. It may suggest an explicit `likm` action subject to
+the current policy and human authority, but it never invokes Manager silently
+or treats retrieval permission as installation permission.
 
 ## 7. Operation Requirements
 
@@ -377,8 +398,8 @@ Register every standard, primary research work, and official reference used by
 the policy contract in `docs/validation/knowledge/sources.json` before citing it.
 Generate `docs/validation/knowledge/SOURCES.md` from that canonical register.
 Add only sources the contract actually uses; do not expand the corpus merely
-to summarize those sources. Rebuild and verify the knowledge application after
-updating the register.
+to summarize those sources. Rebuild and verify affected resource artifacts and
+their catalog metadata after updating the register.
 
 The root validation index clearly distinguishes AI-Tool from Human Flow and
 AI-Engineering. It states that both AI flows require a valid human-owned policy,
@@ -390,7 +411,7 @@ initialize or correct it manually.
 - The human remains the authority for project intent, policy contents, external
   effects, and risk acceptance.
 - Only the human creates, changes, moves, restores, or deletes
-  `.validation/policy.json`.
+  `.liknon/ai/policy.json`.
 - The flow obeys system, host, workspace, repository, current user, immutable
   policy-boundary, and effective policy instructions in their precedence.
 - A request to analyze does not imply authority to execute or mutate.
@@ -416,8 +437,10 @@ Test at minimum:
 - policy category and continuation semantics from the normative contract;
 - complete source-register entries and valid primary links for every policy
   design source actually cited;
-- exact `liknon-knowledge` retrieval of every selected knowledge resource after
-  the canonical source register and corpus are updated;
+- exact `likt` retrieval of every selected knowledge resource after
+  the canonical source register and resource artifacts are updated;
+- missing-resource behavior that reports the stable identity and performs no
+  implicit `likm` invocation, network access, or workspace mutation;
 - policy guidance for missing, invalid, and valid documents;
 - refusal to create, edit, format, replace, delete, move, rename, restore, or
   indirectly mutate policy, including after explicit user authorization and
@@ -442,7 +465,8 @@ Test at minimum:
   report-store creation after every AI-Tool operation;
 - pre-existing AI-Engineering persistence that AI-Tool does not use as hidden
   task context;
-- stale or incompatible skill and CLI versions;
+- stale or incompatible AI-Tool resource versions and declared application
+  capability ranges;
 - prompt-injection text in repository files, policy values, and report output;
 - no duplicate run or unchanged-failure retry loop.
 
@@ -465,7 +489,7 @@ prompts and controlled AI-Engineering consumption, under the shared
 - namespaced AI-Tool skill references, including advisory `policy.md`;
 - top-level flow routing;
 - dedicated public AI-Tool documentation;
-- progressive knowledge routing through the read-only `liknon-knowledge`
+- progressive installed-resource routing through the read-only `likt`
   application;
 - bounded-request policy, safety, and authority tests;
 - representative forward-trial fixtures.
@@ -498,7 +522,9 @@ prompts and controlled AI-Engineering consumption, under the shared
 - [ ] The validation planner and executor never read or interpret policy.
 - [ ] Shared knowledge is loaded progressively and never activates a flow.
 - [ ] The skill contains no copied shared-knowledge subtree and retrieves
-      selected knowledge only through `liknon-knowledge`.
+      selected knowledge only through `likt`.
+- [ ] A missing resource never causes implicit Manager use, network access, or
+      installation.
 - [ ] Human-only documentation is not routed as an agent instruction.
 - [ ] Skill and public documentation preserve distinct responsibilities without
       semantic disagreement.

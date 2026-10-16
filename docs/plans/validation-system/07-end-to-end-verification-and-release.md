@@ -27,7 +27,7 @@ composition; they do not replace an incomplete earlier contract.
   outcomes;
 - inspect repository mutations reported for a concrete validation run;
 - diagnose and rerun a narrow scope manually;
-- operate successfully with only the CLI and `.validation/config.json`.
+- operate successfully with only the CLI and `.liknon/validation/config.json`.
 
 ### 3.2 CLI-Only Discovery
 
@@ -77,7 +77,8 @@ composition; they do not replace an incomplete earlier contract.
 - audit coverage without running checks;
 - make an authorized config edit within the bounded request;
 - reject an unauthorized installation or source change;
-- recognize stale skill and incompatible CLI versions;
+- recognize stale or incompatible AI-Tool skill and application-capability
+  versions;
 - inspect repository mutation evidence from a concrete report;
 - complete every operation without mutating AI decision policy or creating
   process artifacts;
@@ -112,7 +113,7 @@ composition; they do not replace an incomplete earlier contract.
 - evaluate exact report storage under `validationReportPersistence`,
   `sensitiveDataPersistence` when applicable, and every category implicated by
   the destination;
-- store permitted report bytes under `.validation/reports/<sha256>.json`;
+- store permitted report bytes under `.liknon/validation/reports/<sha256>.json`;
 - discard temporary report bytes when storage resolves to `stop` or is
   declined;
 - route every report outcome correctly;
@@ -135,8 +136,8 @@ composition; they do not replace an incomplete earlier contract.
 
 Prove that:
 
-- Human Flow works when `.validation/policy.json` and
-  `.validation/persistence/` are absent;
+- Human Flow works when `.liknon/ai/policy.json` and
+  `.liknon/ai/persistence/` are absent;
 - read-only AI-Tool policy guidance works when policy is absent or invalid, while
   every other AI operation stops before workspace work;
 - AI-Tool operations require and obey valid policy without creating or mutating
@@ -150,20 +151,22 @@ Prove that:
 - CLI-only trials receive no external validator documentation, externally
   supplied schemas, examples, skills, validator source code, process
   instructions, or evidence from another trial;
-- documentation-only direct-agent trials have no access to skill routes,
-  AI-Engineering process instructions, or evidence from another trial;
+- documentation-only direct-agent trials have no access to AI-Tool skill routes,
+  AI-Engineering workflow instructions, or evidence from another trial;
+- AI-Tool and AI-Engineering stop on a missing required resource and never
+  invoke `likm`, access the Hub, or mutate the resource store implicitly;
 - the validation planner and executor never discover or interpret
-  `.validation/policy.json` or process artifacts;
+  `.liknon/ai/policy.json` or process artifacts;
 - persistence commands operate only on caller-supplied files and never choose
   an artifact or report;
 - policy and persistence commands share one canonical workspace boundary, do
   not discover another root, and expose the same containment behavior through
-  CLI and library APIs;
+  CLI and internal core APIs;
 - every `init` capability uses that boundary, validates all requested resources
   before writing, and reports created, reused, conflicted, or partially
   committed resources exactly;
 - artifact content containing command-like text is never executed;
-- only `.validation/config.json` affects runner planning;
+- only `.liknon/validation/config.json` affects runner planning;
 - decision-policy changes affect AI authority but never runner planning or
   report semantics;
 - the same governed action, inputs, and policy produce the same decision across
@@ -174,13 +177,14 @@ Prove that:
   its SHA-256 path;
 - declined report storage leaves no canonical report or dependent process
   artifact;
-- every resource returned by `liknon-knowledge show` is byte-equivalent to its
-  canonical file in the complete corpus;
+- every resource returned by `likt show` is byte-equivalent to the payload
+  selected by the workspace lock and its authenticated source artifact;
 - the generated shared AI decision-policy contract is byte-equivalent to
   its canonical public document;
-- human-only operator guidance is absent from skill routes and operational skill
-  content;
-- skill compatibility gates prevent unsupported runtime interaction.
+- human-only operator guidance is absent from skill and workflow routes and
+  operational AI-resource content;
+- application-capability and installed-resource compatibility gates prevent
+  unsupported runtime interaction.
 
 ## 5. Security And Abuse Review
 
@@ -192,8 +196,8 @@ Test at minimum:
 - shell operators and redirections represented as untrusted text;
 - path traversal and symlink escape in config, report, and artifact paths;
 - explicit, omitted, nonexistent, non-directory, nested, and symlinked workspace
-  roots, including proof that omission means the exact current directory rather
-  than upward discovery;
+  roots, including nearest-ancestor `.liknon/` discovery for existing state and
+  exact-current-directory bootstrap only for initialization when no root exists;
 - malicious, oversized, unsupported, and digest-mismatched JSON artifacts;
 - mismatched domain, sensorium, config, report, and incident relationships;
 - attempts to select an artifact by directory order or filename recency;
@@ -207,8 +211,8 @@ Test at minimum:
 - adversarial attempts to make either AI flow create, edit, format, replace,
   delete, move, restore, initialize, or indirectly mutate policy, including
   explicit user authorization and policy level `0`;
-- missing, malformed, oversized, symlinked, incompatible, and stale supplied
-  skill manifests;
+- missing, malformed, oversized, incompatible, stale, and digest-mismatched
+  installed workflow and skill resource manifests;
 - dependency, source, generated-output, snapshot, database, command, network,
   VCS, external-state, scope, sensitive-data access, validation-report
   persistence, and sensitive-data persistence actions at applicable levels;
@@ -238,10 +242,11 @@ Update public documentation with separate entry points for:
 - human-only flow selection, governance, and work-context guidance under
   `docs/validation/flows/human/`;
 - troubleshooting by exit and report status;
-- skill installation, compatibility, and update procedures.
+- skill and workflow resource installation, compatibility, and update
+  procedures.
 
 Ensure the public CLI reference is complete and model-neutral. It must support a
-human or external agent reading it directly without requiring skill content,
+human or external agent reading it directly without requiring AI-resource content,
 while clearly distinguishing direct use from the policy and persistence
 guarantees of the two bundled AI flows.
 
@@ -249,7 +254,7 @@ Document the exact process-artifact envelopes, canonical destinations,
 single-file atomic storage, explicit parent references, report-byte storage,
 trust boundaries, continuation semantics, and decision-policy categories.
 
-Use diagrams that show `.validation/config.json` and the JSON report as the
+Use diagrams that show `.liknon/validation/config.json` and the JSON report as the
 shared runtime bridge. Show AI-Engineering composing AI-Tool operations rather
 than duplicating them. Show direct and fresh-conversation artifact handoff
 without implying that the validation planner or executor consumes process
@@ -259,9 +264,9 @@ artifacts.
 
 Implement and execute the complete
 [Agent Evaluation Program](agent-evaluation-program.md). Keep its four
-evaluation families isolated. Validate the complete knowledge inventory,
-ecosystem AI-resource inventories, skill routes, operational projections,
-`liknon-knowledge` retrieval, and compatibility metadata deterministically
+evaluation families isolated. Validate the selected resource inventory,
+manifest and lock, skill and workflow routes, operational projections, `likt` retrieval,
+and compatibility metadata deterministically
 before starting model-driven trials:
 
 1. **CLI-Only Discovery** provides only the executable name, workspace, task,
@@ -277,9 +282,9 @@ before starting model-driven trials:
    contracts. The measured surface is AI-Tool and its incremental value over
    the paired documentation-only baseline.
 4. **AI-Engineering End To End** uses representative projects, natural human
-   prompts, the complete skill, policy, artifacts, and processes. The measured
-   surface is AI-Engineering; AI-Tool is a required dependency rather than the
-   primary subject.
+   prompts, the AI-Engineering workflow, its AI-Tool skill dependency, policy,
+   artifacts, and processes. The measured surface is AI-Engineering; AI-Tool is
+   a required dependency rather than the primary subject.
 
 ### 7.1 Scenario And Model Matrix
 
@@ -331,25 +336,29 @@ paired cross-family regressions that share the changed contract.
 - Run formatting, Clippy with warnings denied, all targets, Rustdoc tests, and
   ignored outcome fixtures.
 - Validate the declared MSRV and supported platform behavior.
-- Build and validate the complete knowledge application and all selected B03
-  AI-resource packages, including the decision-policy and immutable
-  policy-boundary projections, then verify their declared digests.
+- Build and validate the Validation, Manager, and Tool applications
+  independently.
+- Validate Hub catalog fixtures, Manager resolution and transactions, the
+  workspace manifest and lock, installed resources, and offline Tool
+  consumption, including tamper and missing-resource cases.
+- Verify selected official resources, including decision-policy and immutable
+  policy-boundary projections, against their declared digests.
 - Validate every process-artifact schema, explicit-reference fixture,
   report-storage fixture, and persistence-command contract included in the
   package.
-- Inspect both CLI inventories independently from each ecosystem package
-  inventory.
-- Verify skill manifest version, compatible validation and knowledge CLI
-  ranges,
-  policy-boundary route, AI-Tool routes, AI-Engineering routes, absence of
-  copied knowledge resources, use of `liknon-knowledge` commands, and
+- Inspect all three CLI inventories independently from Hub resource
+  inventories and future language-library inventories.
+- Verify the separate AI-Tool skill and AI-Engineering workflow manifests,
+  their exact dependency and compatible Validation, Manager, and Tool
+  capability ranges, the policy-boundary route, operation and process routes,
+  absence of copied knowledge resources, use of `likt` commands, and
   persistence contract versions.
 - Verify examples and fixtures are included or excluded intentionally.
 - Inspect versioned agent-evaluation scenarios and rubrics, keep them
   repository-only unless a product contract explicitly declares them, and
   verify that raw provider credentials or sensitive run data are absent.
-- Record user-visible runtime, config, report, skill, and guidance changes in
-  the changelog.
+- Record user-visible runtime, config, report, resource, and guidance changes
+  in the changelog.
 - Produce checksums and the normal release evidence required by repository
   policy.
 
@@ -388,13 +397,15 @@ paired cross-family regressions that share the changed contract.
 - [ ] Neither AI flow mutates policy directly or indirectly under any approval,
       configured level, continuation mode, or process state.
 - [ ] `init`, `policy validate`, and every persistence operation use the declared
-      workspace boundary without config, Git, or parent-directory discovery.
+      nearest-ancestor or explicit workspace boundary without config or Git
+      discovery; initialization alone may bootstrap the exact current directory
+      when no root exists.
 - [ ] Trust, approval, redaction, containment, and atomic-write boundaries
       survive adversarial fixtures.
 - [ ] Every documented report and exit outcome has a tested route.
-- [ ] The canonical corpus, operational skill content, manifest routes, and
-      package inventories are consistent without cross-product embedding or a
-      copied knowledge subtree in a skill.
+- [ ] Canonical resource sources, operational skill and workflow content, Hub metadata,
+      workspace manifest and lock, and installed payloads are consistent
+      without cross-product embedding or a copied knowledge subtree in a skill.
 - [ ] All four agent-evaluation families run across the declared model matrix
       with versioned scenarios, repeated-run evidence, deterministic assertions,
       reviewed rubrics, and attributable results.
@@ -408,13 +419,18 @@ paired cross-family regressions that share the changed contract.
 ## 10. Final System Shape
 
 The released system presents one deterministic validator with three usage
-flows:
+flows, plus two independent resource applications:
 
 - Human Flow directly owns configuration and execution;
 - AI-Tool Flow provides bounded assistance through `policy`, `config`, `run`,
   `triage`, and `audit` under the human-owned decision policy;
 - AI-Engineering Flow composes those operations with decision policy and
   explicit immutable analytical artifacts.
+
+`liknon-manager` / `likm` acquires and organizes explicitly selected Hub
+resources. `liknon-tool` / `likt` consumes installed resources offline and
+read-only. Neither application changes validation semantics, and no AI flow
+silently turns Tool access into Manager authority.
 
 Human Flow remains sufficient on its own. AI-Tool remains bounded to the
 current request. AI-Engineering adds domain reasoning, coverage design,

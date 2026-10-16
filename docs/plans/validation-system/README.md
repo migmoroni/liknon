@@ -19,19 +19,19 @@ AI-Engineering Flow adds governed continuity and engineering processes while
 reusing the same AI-Tool operations and decision policy. Neither AI-Tool nor
 AI-Engineering replaces or extends the CLI execution contract.
 
-The validation CLI, schemas, and public documentation remain model-neutral
-interfaces. In process descriptions below, unqualified **CLI** means the
-validation application (`liknon` or `liknon-cli`); the knowledge application is
-always named `liknon-knowledge` or `liknon-k` explicitly.
-Humans and external agents may consume them directly without loading the
-distributed skill. Direct agent use is not a fourth governed flow and does not
+The three CLIs, schemas, resource contracts, and public documentation remain
+model-neutral interfaces. In process descriptions below, unqualified
+**Validation CLI** means `liknon` or `likx`; **Manager** means
+`liknon-manager` or `likm`; and **Tool** means `liknon-tool` or `likt`.
+Humans and external agents may consume them directly without loading an
+installed AI resource. Direct agent use is not a fourth governed flow and does not
 claim the policy, routing, persistence, or safety guarantees of AI-Tool or
 AI-Engineering. AI-Tool provides an optional operational interface for a human
 working through an agent, another compatible agent system, or AI-Engineering.
 
 Within this plan, an **AI operation** means an operation inside AI-Tool or an
 AI-Engineering process unless a section explicitly discusses a direct external
-agent. The human-only ownership of `.validation/policy.json` remains a public
+agent. The human-only ownership of `.liknon/ai/policy.json` remains a public
 boundary for every caller, while category-based agent enforcement is a contract
 of the two bundled AI flows.
 
@@ -57,8 +57,8 @@ liknon executes the selected group, suite, or check
 human consumes the human report or JSON report
 ```
 
-A human can complete this flow without an AI agent, an installed skill,
-`.validation/policy.json`, or any file below `.validation/persistence/`.
+A human can complete this flow without an AI agent, an installed AI resource,
+`.liknon/ai/policy.json`, or any file below `.liknon/ai/persistence/`.
 
 ### 2.2 AI-Tool Flow
 
@@ -66,7 +66,7 @@ A human can complete this flow without an AI agent, an installed skill,
 human requests one bounded validation task
                   |
                   v
-agent loads the liknon skill router
+agent loads the liknon-ai-tool skill router
                   |
                   v
 agent loads the immutable policy boundary and validates policy.json
@@ -77,7 +77,7 @@ agent loads the immutable policy boundary and validates policy.json
 agent loads only the required AI-Tool operation
                   |
                   v
-agent retrieves selected knowledge through liknon-knowledge
+agent uses likt to retrieve only the selected installed resources
                   |
                   v
 agent guides policy, inspects, configures, runs, triages, or audits as requested
@@ -90,10 +90,10 @@ agent interprets the canonical report and returns the bounded result
 ```
 
 The AI-Tool Flow provides `policy`, `config`, `run`, `triage`, and `audit`
-operations. It validates and obeys `.validation/policy.json` before every
+operations. It validates and obeys `.liknon/ai/policy.json` before every
 operation except the narrowly read-only policy-guidance path used when the
 document is missing or invalid. It never creates or mutates policy, writes
-`.validation/persistence/`, applies Processes 0 through 3, or implies continuity
+`.liknon/ai/persistence/`, applies Processes 0 through 3, or implies continuity
 between separate requests. It may consume structured CLI output for the current
 task, but it does not automatically establish the persistent report store or
 local continuity used by the AI-Engineering Flow.
@@ -110,13 +110,13 @@ load AI-Tool.
 human invokes and directs the agent
                   |
                   v
-agent loads the liknon skill and immutable policy boundary
+agent loads the liknon-ai-engineering workflow and its liknon-ai-tool dependency
                   |
                   v
-agent verifies CLI and skill compatibility
+agent verifies application and installed-resource compatibility
                   |
                   v
-agent validates the existing human-owned .validation/policy.json through the CLI
+agent validates the existing human-owned .liknon/ai/policy.json through the CLI
                   |
                   +-- missing or invalid --> read-only policy guidance; stop;
                   |                         human acts, reviews, and invokes again
@@ -125,7 +125,7 @@ agent validates the existing human-owned .validation/policy.json through the CLI
 agent loads required AI-Tool operations
                   |
                   v
-agent retrieves only relevant knowledge through liknon-knowledge
+agent uses likt to retrieve only relevant installed resources
                   |
                   v
 agent validates every explicitly supplied artifact and report
@@ -174,7 +174,7 @@ explicitly. A report status never grants storage authority.
 
 The human exclusively owns and mutates the AI decision policy and remains the
 final authority over product intent and risk acceptance. Every governed effect
-in either AI flow follows `.validation/policy.json`: it runs automatically only
+in either AI flow follows `.liknon/ai/policy.json`: it runs automatically only
 at the configured category level or when the current human instruction supplies
 the exact authority required by a `human` outcome. No authority, approval,
 category level, or continuation mode permits an agent to create, alter, move,
@@ -192,25 +192,27 @@ The system uses distinct runtime, governance, evidence, and content contracts:
 
 | Contract | Owner | Purpose |
 | --- | --- | --- |
-| `.validation/config.json` | Consumer workspace | Sole executable validation policy |
-| `.validation/policy.json` | Human operator in the consumer workspace | Governs AI-Tool and AI-Engineering authority without affecting validator planning |
+| `.liknon/validation/config.json` | Consumer workspace | Sole executable validation policy |
+| `.liknon/ai/policy.json` | Human operator in the consumer workspace | Governs AI-Tool and AI-Engineering authority without affecting validator planning |
 | `liknon-core` | This repository | Deterministic configuration, planning, execution, and structured outcomes |
-| `liknon` / `liknon-cli` | `apps/liknon-cli` | Terminal and process adapter over the core |
-| `liknon-knowledge` / `liknon-k` | `apps/liknon-knowledge` | Complete read-only validation-knowledge catalog and retrieval |
-| Liknon ecosystem packages | Registry packages named `liknon` | Skills, prompts, AI guidance, and explicit workspace integration |
+| `liknon` / `likx` | `apps/liknon-cli` | Validation terminal and process adapter over the core |
+| `liknon-manager` / `likm` | `apps/liknon-manager` | Hub access and explicit mutation of installed resource state |
+| `liknon-tool` / `likt` | `apps/liknon-tool` | Offline discovery and consumption of installed resources |
+| `.liknon/resources/manifest.json` and `lock.json` | Consumer workspace and Manager | Desired and exact installed resource state |
+| Liknon Resource Hub | Project-governed resource service | Authenticated metadata and immutable resource payloads |
 | Versioned validation report | `liknon-core` | Canonical evidence from one execution, whether consumed directly or stored by exact digest |
 
-Shared validation knowledge is authored independently from every flow in one
-complete corpus and distributed through `liknon-knowledge`. Humans may read its
-source or use that application; both AI flows retrieve only the document IDs
-relevant to the current decision. Operational instructions come from B03
-ecosystem resources, do not become validation knowledge, and are never
-activated by retrieving a knowledge document.
+Shared validation knowledge is authored independently from every flow and
+published as selectable resources. Manager obtains the resources explicitly;
+Tool retrieves only installed IDs relevant to the current decision. Skills,
+workflows, profiles, prompts, guides, templates, and knowledge retain distinct
+resource kinds and are never activated merely because Manager installed them
+or Tool returned their content.
 
-`.validation/persistence/` belongs only to the AI-Engineering Flow. The normal
+`.liknon/ai/persistence/` belongs only to the AI-Engineering Flow. The normal
 validation planner and executor never discover, read, interpret, or execute
 files from that directory. Dedicated persistence commands validate or store
-only an exact path supplied by the caller. `.validation/reports/` is a local
+only an exact path supplied by the caller. `.liknon/validation/reports/` is a local
 evidence store for exact JSON reports. A consuming process receives the exact
 report path from its caller or the preceding direct handoff.
 
@@ -218,16 +220,18 @@ AI-Engineering continuity is explicit: each process receives exact artifact and
 report paths, validates their digests and relationships, and records those
 references inside its own immutable result.
 
-`.validation/policy.json` is the human-owned decision policy obeyed by both AI
+`.liknon/ai/policy.json` is the human-owned decision policy obeyed by both AI
 flows. It is not executable validation configuration. Its complete normative
 semantics and immutable human-only mutation boundary are specified by
 [AI Decision Policy](ai-decision-policy.md).
 
 Policy and AI-Engineering persistence commands operate inside one selected
-workspace boundary. The CLI accepts `--workspace` and defaults its omission to
-the exact current working directory, without parent, Git, or configuration-based
-root discovery. The equivalent library APIs always require the workspace root
-explicitly.
+workspace boundary. Omission of `--workspace` discovers the nearest ancestor
+containing `.liknon/`; an explicit path selects that boundary directly. Git,
+language package files, resource content, and agent directories never redefine
+it. Initialization may create `.liknon/` at an explicit workspace or, when no
+root exists, at the exact current directory. Equivalent internal core APIs
+always receive the workspace root explicitly.
 
 Human-only guidance is separated from shared knowledge and AI instructions. It
 helps an operator select a flow, organize work contexts, and exercise policy
@@ -237,11 +241,11 @@ ownership, but it is never interpreted as an instruction to an agent.
 | --- | --- | --- | --- |
 | Primary operator | Human | Agent directed for one bounded task | Agent directed through engineering processes |
 | CLI and `config.json` | Direct use | Through AI-Tool operations | Through AI-Tool when covered; direct documented CLI use only for uncovered capabilities |
-| Shared knowledge | Canonical corpus source or `liknon-knowledge` | Progressive `liknon-knowledge` retrieval by stable document ID | Progressive `liknon-knowledge` retrieval by stable document ID |
+| Shared resources | Canonical sources or `likt` | Progressive `likt` retrieval by stable resource ID | Progressive `likt` retrieval by stable resource ID |
 | `policy.json` | Not used by direct CLI operation | Required; read-only guidance may operate when missing or invalid | Required and governed |
-| `.validation/persistence/` | Not used | Not used | Immutable process artifacts |
+| `.liknon/ai/persistence/` | Not used | Not used | Immutable process artifacts |
 | Persisted analytical context | Not used | Not used | Explicit immutable artifacts supplied by exact path and digest |
-| `.validation/reports/` persistent store | Not established automatically | Not established automatically | Exact reports stored and linked only after the applicable persistence decision |
+| `.liknon/validation/reports/` persistent store | Not established automatically | Not established automatically | Exact reports stored and linked only after the applicable persistence decision |
 | Processes 0 through 3 | Not used | Not used | Defining processes |
 | Cross-request continuity | Human-managed | None | Explicit validated persistence |
 
@@ -284,14 +288,16 @@ supported.
 
 | Concern | Source of truth |
 | --- | --- |
-| Executable programs, arguments, directories, dependencies, and composition | `.validation/config.json` |
-| AI-Tool and AI-Engineering authority plus AI-Engineering continuation | Human-owned `.validation/policy.json`, interpreted exclusively by the normative AI decision-policy contract |
-| Concrete validation outcome | Versioned JSON report emitted by the CLI and, when persistence is permitted for an AI-Engineering run, stored byte-for-byte under `.validation/reports/` |
+| Executable programs, arguments, directories, dependencies, and composition | `.liknon/validation/config.json` |
+| AI-Tool and AI-Engineering authority plus AI-Engineering continuation | Human-owned `.liknon/ai/policy.json`, interpreted exclusively by the normative AI decision-policy contract |
+| Concrete validation outcome | Versioned JSON report emitted by the CLI and, when persistence is permitted for an AI-Engineering run, stored byte-for-byte under `.liknon/validation/reports/` |
 | CLI and configuration mechanics | Runtime contracts, schemas, and canonical reference documentation |
-| Validation concepts and tool-selection evidence | `docs/validation/knowledge`, its source register, and exact documents returned by `liknon-knowledge` |
+| Validation concepts and tool-selection evidence | `docs/validation/knowledge`, published resource metadata, and exact installed documents returned by `likt` |
+| Desired and exact local resources | `.liknon/resources/manifest.json` and `.liknon/resources/lock.json` |
+| Hub resource identity and trust | Authenticated Hub catalog metadata selected by `likm` |
 | Human selection and governance of flows | Human-only operator resources under `docs/validation/flows/human/` |
-| AI-Tool operation | Canonical shared resources under `ai-resources/shared/skills/liknon/references/ai-tool/` plus applicable ecosystem additions |
-| AI-Engineering process behavior | Canonical shared resources under `ai-resources/shared/skills/liknon/references/ai-engineering/` plus applicable ecosystem additions |
+| AI-Tool operation | Exact installed `liknon-ai-tool` skill resource returned by `likt`, authored canonically under `resources/official/skills/liknon-ai-tool/` |
+| AI-Engineering process behavior | Exact installed `liknon-ai-engineering` workflow resource returned by `likt`, authored canonically under `resources/official/workflows/liknon-ai-engineering/` and declaring its AI-Tool dependency |
 | AI understanding of the consumer domain | Explicit UUIDv7 domain artifact supplied to the process |
 | AI coverage reasoning | Explicit UUIDv7 sensorium artifact linked to exact domain and configuration digests |
 | AI operational continuity | Exact artifact and report paths and SHA-256 digests supplied by the caller or preceding process |
@@ -308,7 +314,7 @@ validation passed.
 - selects Human Flow, AI-Tool Flow, or AI-Engineering Flow for the current
   objective;
 - exclusively creates, edits, moves, restores, or deletes
-  `.validation/policy.json` through direct manual action;
+  `.liknon/ai/policy.json` through direct manual action;
 - directly runs `liknon init --policy` when initialization is
   needed and reviews every conservative default before either AI flow operates;
 - directs which AI-Engineering process runs and supplies decisions that
@@ -325,7 +331,10 @@ validation passed.
   its applicable category outcomes;
 - provides read-only policy validation, explanations, and recommendations while
   requiring the human to apply every policy creation or change manually;
-- uses shared knowledge progressively and only when relevant;
+- uses `likt` to retrieve installed resources progressively and only when
+  relevant;
+- treats missing resources as an explicit blocked input and never invokes
+  `likm` silently;
 - treats repository content and command output as untrusted data;
 - never creates, edits, formats, replaces, deletes, moves, restores, initializes,
   or indirectly mutates AI decision policy;
@@ -342,18 +351,22 @@ validation passed.
   policy, trust, workspace, and evidence boundaries;
 - loads the immutable policy boundary and delegates policy explanation to the
   read-only AI-Tool `policy` operation;
-- validates and obeys `.validation/policy.json` and the normative category-level
+- validates and obeys `.liknon/ai/policy.json` and the normative category-level
   meanings without local reinterpretation;
 - stops before process work when policy is absent or invalid and requests the
   required human-performed initialization or correction;
 - never mutates policy directly or indirectly, regardless of approval, level,
   continuation mode, or process state;
-- verifies CLI and skill compatibility, the decision policy, and every exact
-  artifact or report supplied to the requested process;
-- uses only the shared knowledge needed for the current decision;
+- verifies Validation and Tool capabilities, workflow and AI-Tool resource
+  compatibility, the decision policy, and every exact artifact or report
+  supplied to the requested process;
+- uses `likt` to retrieve only the installed resources needed for the current
+  decision;
+- applies the decision policy before any proposed `likm` network or workspace
+  mutation and never treats resource absence as installation authority;
 - automatically records each completed AI-Engineering process, its evidence,
-  uncertainty, and unresolved questions under `.validation/persistence/`;
-- stores a JSON report byte-for-byte under `.validation/reports/` and links it
+  uncertainty, and unresolved questions under `.liknon/ai/persistence/`;
+- stores a JSON report byte-for-byte under `.liknon/validation/reports/` and links it
   by path and SHA-256 digest only when all applicable persistence decisions
   permit that exact write;
 - persists every completed UUIDv7 process result as a separate immutable file;
@@ -361,7 +374,7 @@ validation passed.
   restrictively, and records the exact policy digest used for the decision;
 - never represents configured validation as proof of complete correctness.
 
-### Liknon
+### Liknon Validation CLI
 
 - validates one complete declarative configuration;
 - provisions explicitly requested consumer resources through the deterministic,
@@ -373,13 +386,30 @@ validation passed.
   explicitly supplied AI artifacts and reports;
 - remains independent from AI orchestration and consumer-specific policy.
 
+### Liknon Manager
+
+- is the sole Liknon CLI that accesses the Hub or mutates installed resources;
+- exposes complete plans before installation, update, removal, or
+  materialization;
+- records exact desired and locked resource state;
+- verifies provenance, compatibility, inventory, and payload hashes;
+- never executes, interprets, or activates resource instructions.
+
+### Liknon Tool
+
+- reads and verifies only installed local resource state;
+- exposes progressive catalog, search, lookup, resolution, and context output;
+- operates offline and performs no resource or workspace mutation;
+- presents resource trust as provenance, not instruction authority;
+- never executes returned content or invokes another Liknon executable.
+
 ## 5. Cross-Cutting Invariants
 
-1. `.validation/config.json` is the only executable validation policy.
+1. `.liknon/validation/config.json` is the only executable validation policy.
 2. AI artifacts never become an alternate command source for the runner.
 3. When either AI flow proposes executable coverage, it resolves that proposal
    to config tool, check, suite, and group identifiers before execution.
-4. The CLI does not depend on an AI provider, model, chat protocol, or
+4. Validation CLI does not depend on an AI provider, model, chat protocol, or
    persistence directory.
 5. Human operation remains complete when AI resources are absent.
 6. Every AI-Tool operation except narrowly read-only policy guidance requires a
@@ -388,8 +418,9 @@ validation passed.
    policy, and apply the same category-level meanings.
 8. AI-Tool references never discover AI-Engineering persistence and never create
    implicit continuity between requests.
-9. Every AI-Engineering process verifies CLI and skill compatibility, validates
-   the policy, and validates every explicit artifact or report input.
+9. Every AI-Engineering process verifies application capabilities and the exact
+   workflow and AI-Tool resource compatibility, validates the policy, and
+   validates every explicit artifact or report input.
 10. Invoking an AI-Engineering process authorizes that process to create one
    bounded redacted immutable result without another approval prompt. Protected
    content that remains is governed by `sensitiveDataPersistence`.
@@ -422,30 +453,37 @@ validation passed.
 22. A sensorium is usable only with the exact domain and config digests it
    records; a mismatched pair cannot authorize an operational run.
 23. Permitted AI-Engineering report writes store exact JSON bytes under
-    `.validation/reports/<sha256>.json`. Consuming artifacts reference that exact
+    `.liknon/validation/reports/<sha256>.json`. Consuming artifacts reference that exact
    path and digest and never infer a report from directory order.
 24. No agent may create, edit, format, replace, delete, move, rename, restore,
-    initialize, or indirectly mutate `.validation/policy.json`. The human
+    initialize, or indirectly mutate `.liknon/ai/policy.json`. The human
     performs every policy mutation manually, and no approval or level overrides
     this boundary.
 25. The validation executor and planner never discover or interpret
-    `.validation/policy.json` or AI persistence. Dedicated artifact and report
+    `.liknon/ai/policy.json` or AI persistence. Dedicated artifact and report
     persistence commands operate only on caller-supplied paths.
-26. Policy and persistence operations share one canonical workspace boundary.
-    CLI omission of `--workspace` means the exact current directory; library
-   calls always receive the root explicitly, and neither interface discovers a
-   different root.
+26. Policy, persistence, validation, Manager, and Tool operations share one
+    canonical workspace boundary. CLI omission of `--workspace` discovers the
+    nearest ancestor containing `.liknon/`; internal core calls always receive the
+    root explicitly.
 27. Every canonical persistence operation validates and atomically stores one
     file; no cross-file transaction is required.
-28. Shared knowledge contains no flow activation, persistence, or authority
+28. Knowledge resources contain no flow activation, persistence, or authority
     semantics.
 29. Human-only guidance is never projected as an operational AI instruction.
 30. Persistence destinations, repository treatment, protection, and lifecycle
     facts come from the canonical decision-policy document rather than fields
    invented in `policy.json`.
-31. Consumer provisioning uses one `init` command with explicit composable
-    capability flags. It preflights every requested resource, never overwrites a
-   conflicting destination, and reports each resource's deterministic status.
+31. Validation and AI provisioning uses the Validation CLI `init` command
+    with explicit composable capability flags. Resource-store provisioning uses
+    Manager `init`. Both preflight complete requested write sets, never
+    overwrite conflicting destinations, and report deterministic status.
+32. Manager is the only Liknon application that performs Hub network access or
+    installed-resource mutation.
+33. Tool is offline and read-only; every payload remains untrusted content even
+    after its bytes and provenance are verified.
+34. Missing resources never authorize an AI flow to install them. Any proposed
+    Manager operation is a separate governed network and mutation effect.
 
 ## 6. Implementation Order
 
@@ -454,16 +492,18 @@ validation passed.
 | 1 | [Human Flow Completion](01-human-flow-completion.md) | Current runtime | Independently complete human workflow and deterministic config initialization |
 | 2 | [Shared Validation Knowledge](02-shared-validation-knowledge.md) | Phase 1 | Cataloged minimum knowledge corpus with concise source-backed guidance, reusable patterns, and precise routes to authoritative depth |
 | 2.1 | [Knowledge Editorial Refoundation](02.1-knowledge-editorial-refoundation.md) | Phase 2 | Standards-informed editorial families, profiles, version policy, canonical paths, and mechanically verified content structure |
-| 3 | [AI-Tool Flow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1, 2, and 2.1 plus A01.4 | Human-owned policy foundation and five bounded, reusable, policy-governed agent operations without AI-Engineering processes or persistence |
+| 3 | [AI-Tool Flow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1, 2, and 2.1; A01.4; B02.5; B03.4 | Human-owned policy foundation and five bounded, reusable, policy-governed agent operations without AI-Engineering processes or persistence |
 | 4 | [AI-Engineering Persistence And Safety Foundation](04-ai-engineering-persistence-and-safety-foundation.md) | Phases 1-3 | Explicit artifact persistence, process trust boundaries, and AI-Engineering composition over the existing policy contract |
 | 5 | [AI-Engineering Domain And Coverage Setup](05-ai-engineering-domain-and-coverage-setup.md) | Phase 4 | Automatically persisted domain and sensorium processes |
 | 6 | [AI-Engineering Triage And Drift Loop](06-ai-engineering-triage-and-drift-loop.md) | Phase 5 | Safe daily execution, remediation, and recalibration |
 | 7 | [End-To-End Verification And Release](07-end-to-end-verification-and-release.md) | Phases 1-6 | Proven isolation, composition, four-family agent evaluation, and distributable artifacts |
 
-Complete phases in order. After Phase 2.1, complete A01 before Phase 3 so later
-AI operations retrieve knowledge from the independent knowledge application
-and load instructions from B03 resources rather than embedding either concern
-in the validation CLI.
+Complete phases in order. After Phase 2.1, complete A01, B02, and B03 before
+Phase 3 so later AI operations retrieve installed resources through Tool rather
+than embedding knowledge or instructions in Validation CLI. A01 establishes
+the product boundary, B02 establishes the resource contract and Manager, and
+B03 completes offline Tool interoperability. Official resources may then evolve
+through Hub publication without rebuilding any CLI.
 
 [AI Work Contexts](ai-work-contexts.md) is cross-cutting human-only operator
 guidance for the AI-Engineering Flow rather than an implementation phase. Its
@@ -489,16 +529,16 @@ numbered validation-system phases:
 
 | Track | Document | Relationship | Primary result |
 | --- | --- | --- | --- |
-| A01 | [Product And Repository Separation](A01-product-and-repository-separation/README.md) | Runs after Phase 2.1 and before Phase 3 or publication implementation | Virtual workspace, terminal-free core, two independent CLIs, canonical corpus, and separate AI resources |
-| B01 | [Liknon Validation CLI Distribution](B01-cli-distribution/README.md) | Requires A01.4; does not imply Phase 7 completion | `liknon-cli` through GitHub source, crates.io source, and Cloudflare native artifacts |
-| B02 | [Liknon Knowledge CLI And Corpus](B02-knowledge-cli-and-corpus/README.md) | Requires A01.4 and the approved corpus | `liknon-knowledge` through GitHub source, crates.io source, and Cloudflare native artifacts |
-| B03 | [Liknon Ecosystem AI Packages](B03-ecosystem-ai-packages/README.md) | Requires A01.4 and Phase 3 resource contracts | Non-CLI `liknon` packages for Rust, JavaScript/TypeScript, Ruby, Python, and .NET |
-| B04 | [Liknon Programmatic API And Language Bindings](B04-programmatic-api-and-language-bindings/README.md) | Future API track; requires A01, B03 identities, and approved B04.0 | In-process validation APIs added to existing ecosystem packages |
+| A01 | [Product And Repository Separation](A01-product-and-repository-separation/README.md) | Runs after Phase 2.1 and before Phase 3 or publication implementation | Virtual workspace, terminal-independent contracts, three independent CLIs, and modular resource sources |
+| B01 | [Liknon Validation CLI Distribution](B01-cli-distribution/README.md) | Requires A01.4; does not imply Phase 7 completion | `liknon-cli` package with `liknon` and `likx` through GitHub source, crates.io source, and Cloudflare native artifacts |
+| B02 | [Liknon Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | Requires A01.4 and approved resource sources | Authenticated Hub plus `liknon-manager` and `likm` |
+| B03 | [Liknon Tool CLI](B03-tool-cli/README.md) | Requires A01.4 and B02.0; final interoperability requires B02.5 | Offline `liknon-tool` and `likt` |
+| B04 | [Liknon Programmatic API And Language Bindings](B04-programmatic-api-and-language-bindings/README.md) | Future API track; requires A01 and approved B04.0 | Justified SDKs and in-process APIs without copied CLIs or resource payloads |
 
-B01 and B02 may release independently after A01. B03 may release AI resources
-without rebuilding either CLI. B04 remains a future API track until its
-programmatic contract is approved. Defining a track does not itself change
-configuration, report, policy, or AI-flow contracts.
+B01, Manager, and Tool have independent releases. Hub resources release
+without rebuilding any CLI. B04 remains a future API track until a real
+programmatic contract and consumer are approved. Defining a track does not
+itself change configuration, report, policy, or AI-flow contracts.
 
 ## 7. Planned Documentation, Knowledge, And AI Resource Layout
 
@@ -515,44 +555,62 @@ docs/validation/
 │   ├── editorial-profiles.json
 │   └── profiles/
 ├── reference/                       # CLI, config, report, schema, and AI policy contracts
-├── knowledge/                       # Complete corpus distributed by liknon-knowledge
+├── knowledge/                       # Canonical authored knowledge resources
 └── flows/
     ├── human/                       # Human Flow contract and operation
     ├── ai-tool/                     # Policy guidance plus bounded AI-Tool operations
     └── ai-engineering/              # Processes, persistence, and trust
-ai-resources/
-├── shared/                           # Router, common operations, prompts, and safety
-├── rust/
-├── javascript-typescript/
-├── ruby/
-├── python/
-└── dotnet/
+resources/
+└── official/
+    ├── manifests/                   # Publishable resource metadata
+    ├── skills/
+    │   └── liknon-ai-tool/          # Router, policy boundary, bounded operations
+    ├── workflows/
+    │   └── liknon-ai-engineering/   # Processes; depends on liknon-ai-tool
+    ├── agent-profiles/
+    ├── prompts/
+    ├── guides/
+    ├── templates/
+    └── collections/
 ```
 
 Every AI route loads `policy-boundary.md`. AI-Engineering references route to
 AI-Tool operations when they need policy guidance, inspection, configuration,
 execution, triage, or audit. They use canonical public CLI references directly
 only when no AI-Tool operation covers the required capability, and they do not
-duplicate existing AI-Tool instructions. Skills and knowledge remain separate
-products. Both AI flows discover and retrieve only needed documents through
-`liknon-knowledge catalog` and `liknon-knowledge show`. Human-only resources
-are never routed as agent instructions.
+duplicate existing AI-Tool instructions. Skills and knowledge remain distinct
+resource kinds. Manager obtains explicit selections; both AI flows discover
+and retrieve only installed resources through `likt catalog`, `likt search`,
+and `likt show`. Human-only resources are never routed as agent instructions.
 
 ## 8. Planned Consumer Layout
 
 The completed system supports this consumer-owned layout:
 
 ```text
-.validation/
-├── config.json                       # Sole executable validation policy
-├── policy.json                       # Human-owned authority policy for both AI flows
-├── reports/                          # AI-Engineering immutable JSON evidence
-│   └── <sha256>.json                 # Exact CLI report bytes
-└── persistence/                      # Present only for the AI-Engineering Flow
-    ├── domain/                       # Immutable UUIDv7 domain artifacts
-    ├── sensorium/                    # Immutable UUIDv7 coverage-design artifacts
-    ├── incidents/                    # Immutable local UUIDv7 diagnostic records
-    └── drift/                        # Immutable local UUIDv7 drift assessments
+.liknon/
+├── validation/
+│   ├── config.json                   # Sole executable validation policy
+│   └── reports/
+│       └── <sha256>.json             # Exact persisted CLI report bytes
+├── resources/
+│   ├── manifest.json                 # Requested resource identities and constraints
+│   ├── lock.json                     # Exact versions, origins, dependencies, and hashes
+│   ├── knowledge/
+│   ├── skills/
+│   ├── workflows/
+│   ├── agent-profiles/
+│   ├── prompts/
+│   ├── guides/
+│   ├── templates/
+│   └── collections/
+└── ai/
+    ├── policy.json                   # Human-owned authority policy for both AI flows
+    └── persistence/
+        ├── domain/                   # Immutable UUIDv7 domain artifacts
+        ├── sensorium/                # Immutable UUIDv7 coverage-design artifacts
+        ├── incidents/                # Immutable local UUIDv7 diagnostic records
+        └── drift/                    # Immutable local UUIDv7 drift assessments
 ```
 
 The precise artifact and report-storage contracts are established in Phase 4.
@@ -562,11 +620,11 @@ Human Flow or AI-Tool Flow. Reports, incidents, and drift artifacts are ignored
 by the consumer repository. Domain and sensorium artifacts may be tracked when
 the consumer intentionally shares that analytical context.
 
-Configuration, report, and runtime schemas belong to core or the validation
-CLI. Knowledge catalog contracts belong to `liknon-knowledge`, and AI-resource
-manifests belong to B03 packages. Consumer workspaces store their configuration,
-policy, report, explicitly materialized AI resources, and process artifacts,
-not private schema copies or activation state.
+Configuration, report, and runtime schemas belong to core or Validation CLI.
+Resource manifests, locks, and Hub contracts belong to B02 and the shared
+workspace contract. Tool owns only local consumption semantics. Consumer
+workspaces store configuration, policy, reports, explicitly selected resources,
+locks, and process artifacts, not private schema copies.
 
 ## 9. Completion Definition
 
@@ -610,11 +668,12 @@ The unified plan is complete only when:
   and all destination-related categories permit the exact write;
 - humans can use separate setup and operational conversations or one unified
   conversation without changing system behavior;
-- no schema, artifact, skill reference, or runtime operation depends on a chat
-  identifier or previous chat history;
+- no schema, artifact, skill or workflow reference, or runtime operation depends
+  on a chat identifier or previous chat history;
 - every AI-triggered run still passes through the normal configuration and
   report contracts;
-- authorization boundaries are exercised by tests and realistic skill trials;
+- authorization boundaries are exercised by tests and realistic skill and
+  workflow trials;
 - CLI-only discovery, documentation-only direct CLI use, AI-Tool, and
   AI-Engineering are evaluated independently across the declared model matrix
   with reproducible scenarios and observable evidence;
@@ -623,10 +682,10 @@ The unified plan is complete only when:
 - the CLI install target and native artifacts contain only runtime, core
   schemas, CLI assets, examples, and documentation declared by B01, while the
   GitHub source channel still exposes the complete monorepo;
-- `liknon-knowledge` contains the exact complete corpus and no validation or AI
-  execution resources;
-- ecosystem packages contain exact declared shared and stack AI resources,
-  explicit resource APIs, and no CLI, knowledge corpus, or validation engine;
-- programmatic language packages, when B04 is implemented, extend those
-  package identities with real typed APIs rather than launchers or copied CLI
-  executables.
+- Manager can obtain selected knowledge and operational resources without
+  executing or activating them;
+- Tool consumes exact installed resources offline and embeds no corpus;
+- Validation CLI, Manager, and Tool remain separately installable and the site
+  offers each one independently;
+- programmatic language packages, when B04 is implemented, expose justified
+  typed APIs rather than resource copies, launchers, or copied CLI executables.

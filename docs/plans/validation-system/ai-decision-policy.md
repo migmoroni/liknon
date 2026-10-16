@@ -13,13 +13,13 @@ The canonical public document is authored at:
 docs/validation/reference/ai-decision-policy.md
 ```
 
-The shared AI resource
-`ai-resources/shared/skills/liknon/references/policy-boundary.md` is generated
-deterministically from that document and treats it as normative. `SKILL.md`,
-every AI-Tool operation, and every AI-Engineering process reference require the
-agent to load the immutable policy boundary before reading policy-controlled
-workspace data. They load the full contract before classifying or performing a
-governed effect.
+The policy-boundary projection in
+`resources/official/skills/liknon-ai-tool/references/policy-boundary.md` is
+generated deterministically from that document and treats it as normative.
+`SKILL.md`, every AI-Tool operation, and the dependent AI-Engineering workflow
+require the agent to load the immutable policy boundary before reading
+policy-controlled workspace data. They load the full contract before
+classifying or performing a governed effect.
 
 The document must define every category and every level explicitly. An agent
 must not infer, rename, merge, or locally reinterpret their meanings.
@@ -56,13 +56,17 @@ The consumer workspace has two policies with different owners and effects:
 
 | File | Responsibility | Consumer |
 | --- | --- | --- |
-| `.validation/config.json` | Defines the programs, arguments, composition, and repository-mutation detection used for validation | `liknon` CLI and library |
-| `.validation/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or stops; also defines the two AI-Engineering continuation transitions | AI-Tool and AI-Engineering |
+| `.liknon/validation/config.json` | Defines the programs, arguments, composition, and repository-mutation detection used for validation | Validation CLI and `liknon-core` |
+| `.liknon/ai/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or stops; also defines the two AI-Engineering continuation transitions | AI-Tool and AI-Engineering |
 
 `policy.json` never contributes commands, checks, suites, groups, arguments, or
 validation outcomes. The validation executor and planner do not discover, read,
 or interpret it. Both AI flows validate its schema and digest before applying
 policy decisions. `config.json` remains the sole executable validation policy.
+When either AI flow proposes a `likm` operation, the proposal is governed by
+this policy like any other command, network, or workspace effect. Manager does
+not interpret `policy.json` itself, and permission to read through `likt` never
+implies permission to acquire or mutate resources through `likm`.
 
 ## 3. Canonical Policy Shape
 
@@ -101,11 +105,11 @@ current persistence profile used by those decisions:
 
 | Content | Canonical destination | Repository treatment |
 | --- | --- | --- |
-| Exact validation reports | `.validation/reports/<sha256>.json` | Local and ignored |
-| Domain process results | `.validation/persistence/domain/<uuidv7>.json` | Determined by effective Git treatment of the concrete file |
-| Sensorium process results | `.validation/persistence/sensorium/<uuidv7>.json` | Determined by effective Git treatment of the concrete file |
-| Incident process results | `.validation/persistence/incidents/<uuidv7>.json` | Local and ignored |
-| Drift process results | `.validation/persistence/drift/<uuidv7>.json` | Local and ignored |
+| Exact validation reports | `.liknon/validation/reports/<sha256>.json` | Local and ignored |
+| Domain process results | `.liknon/ai/persistence/domain/<uuidv7>.json` | Determined by effective Git treatment of the concrete file |
+| Sensorium process results | `.liknon/ai/persistence/sensorium/<uuidv7>.json` | Determined by effective Git treatment of the concrete file |
+| Incident process results | `.liknon/ai/persistence/incidents/<uuidv7>.json` | Local and ignored |
+| Drift process results | `.liknon/ai/persistence/drift/<uuidv7>.json` | Local and ignored |
 
 The canonical local private store consists of the ignored destinations above.
 The AI-Engineering persistence system writes only these local destinations.
@@ -132,7 +136,7 @@ category tables below; they are not inferred from a numeric level.
 
 ### 4.1 Non-Configurable Mutation Boundary
 
-`.validation/policy.json` is created and changed only by the human operator. No
+`.liknon/ai/policy.json` is created and changed only by the human operator. No
 agent in either AI flow may create, edit, format, replace, delete, move, rename,
 restore, or otherwise mutate it. The prohibition includes direct file APIs,
 patches, shell or structured commands, scripts, VCS operations, generated
@@ -487,6 +491,14 @@ The normative public document includes at least these overlap examples:
 - installing a new validator matches `dependencyManagement`,
   `commandExecution`, `networkAccess`, and any resulting
   `workspaceMutation`;
+- listing or reading already installed resources through `likt` is read-only
+  and offline, but still matches `sensitiveDataAccess` when the selected payload
+  is classified as sensitive;
+- installing or updating a Hub resource through `likm` matches
+  `commandExecution`, `networkAccess`, and `workspaceMutation`, plus
+  `versionControlMutation` only when the resulting tracked files are committed;
+- removing a local resource through `likm` matches `commandExecution` and
+  `workspaceMutation`; it does not imply network authority;
 - changing `config.json` and running its first validation matches
   `workspaceMutation` for the edit and a separately evaluated
   `commandExecution`, plus dependency or network categories when applicable;
@@ -532,7 +544,7 @@ When required facts are missing, the agent requests clarification. When an
 action is prohibited by a superior rule, it stops. These outcomes are not
 downgraded by numeric levels.
 
-## 9. Documentation And Skill Requirements
+## 9. Documentation And AI Resource Requirements
 
 The canonical public document must contain:
 
@@ -553,12 +565,13 @@ The canonical public document must contain:
 - invalid-policy and missing-policy behavior;
 - the absolute boundaries above.
 
-The skill router loads `references/policy-boundary.md` before every AI operation.
-The boundary is an exact concise projection of the human-only policy-mutation
-rule and the read-only bootstrap exception. The router loads the full normative
-document whenever an effect must be classified. AI-Tool and AI-Engineering
-references link to the canonical projected contract rather than restating level
-semantics independently.
+The AI-Tool skill router loads `references/policy-boundary.md` before every
+AI-Tool operation. The boundary is an exact concise projection of the
+human-only policy-mutation rule and the read-only bootstrap exception. The
+router loads the full normative document whenever an effect must be classified.
+The dependent AI-Engineering workflow loads that same projection through its
+declared skill dependency. Neither resource restates level semantics
+independently.
 
 ## 10. Verification
 
@@ -567,8 +580,9 @@ Schema, decision-table, and forward-agent fixtures cover:
 - missing policy blocking every non-policy AI operation before work, exact
   human-facing initialization and review guidance, and direct human canonical
   level-4 initialization;
-- explicit workspace-root selection, current-directory CLI default, and absence
-  of parent, Git, or configuration-based root discovery;
+- explicit workspace-root selection, nearest-ancestor `.liknon/` discovery for
+  existing state, current-directory bootstrap for initialization when no root
+  exists, and absence of Git or configuration-based root discovery;
 - read-only `policy validate` and idempotent non-overwriting human-operated
   `init --policy`;
 - malformed, unsupported, unknown-field, and path-escaping policy;
@@ -595,7 +609,9 @@ Schema, decision-table, and forward-agent fixtures cover:
 - sensitive persistence in reports, AI artifacts, and external destinations;
 - a level-0 policy that still obeys absolute boundaries;
 - a level-4 policy that does not request duplicate approval for an exact action
-  already authorized by the current human instruction.
+  already authorized by the current human instruction;
+- Tool reads, missing-resource failures, and proposed Manager install, update,
+  and removal operations with no implicit escalation from `likt` to `likm`.
 
 Forward tests give agents only the policy when present, the current operation or
 process inputs, and raw workspace evidence. They do not disclose the expected

@@ -3,7 +3,8 @@
 ## 1. Purpose
 
 Define the model-neutral evaluation program used to measure how agents interact
-with `liknon` through four evaluation families:
+with the Liknon validation and resource surfaces through four evaluation
+families:
 
 1. the public CLI through only its executable and in-band output;
 2. the public CLI with public documentation but without bundled agent
@@ -45,9 +46,11 @@ Every evaluation run uses:
   qualitative criteria.
 
 Record at least the scenario version, fixture digest, prompt digest, permitted
-context, CLI version, skill version when present, documentation revision, model
-provider, model identifier, relevant model settings, run timestamp, completion
-status, observed actions, deterministic assertion results, rubric scores, human
+context, Validation, Manager, and Tool versions when present, resource lock and
+payload digests, exact skill and workflow resource identities, versions, and
+manifest digests when present, documentation revision, model provider, model
+identifier, relevant model settings, run timestamp, completion status,
+observed actions, deterministic assertion results, rubric scores, human
 interventions, and reviewer notes.
 
 Model credentials, provider secrets, private prompts, and sensitive project
@@ -170,9 +173,9 @@ harness's ordinary permissions and human controls.
 ### 4.2 Context Isolation
 
 Provide only the released CLI, `--help`, schemas, examples, and public
-documentation declared by the scenario. Withhold the distributed skill,
-AI-Tool references, AI-Engineering references, internal implementation plans,
-expected answers, and traces from other evaluation runs.
+documentation declared by the scenario. Withhold the distributed AI-Tool
+skill, AI-Engineering workflow, their operational references, internal
+implementation plans, expected answers, and traces from other evaluation runs.
 
 Use paired scenarios with Families A and C whenever the same task can be
 expressed across all three contexts. The comparisons separately measure the
@@ -191,7 +194,7 @@ Include at minimum:
 - narrow and rerun an affected scope from documented behavior;
 - diagnose invalid usage, invalid configuration, and internal reporting
   failures from exit status and structured output;
-- discover relevant documentation without relying on skill routes;
+- discover relevant documentation without relying on AI resource routes;
 - avoid inventing commands, flags, schemas, or semantics absent from the public
   contract.
 
@@ -232,7 +235,7 @@ blocked, and adversarial prompts. Include at minimum:
 
 - selecting the correct primary operation from a natural human request;
 - loading only the required operation and retrieving only relevant shared
-  knowledge through `liknon-knowledge`;
+  knowledge through `likt`;
 - validating policy and applying its effective decision before governed work;
 - inspecting and using exact CLI commands, directories, selections, and JSON
   reports;
@@ -243,6 +246,8 @@ blocked, and adversarial prompts. Include at minimum:
 - recognizing a request that legitimately spans two AI-Tool operations without
   eagerly loading all references;
 - keeping separate requests independent.
+- reporting a missing required resource by stable identity without silently
+  invoking Manager, accessing the Hub, or mutating `.liknon/resources/`.
 
 ### 5.4 Evaluation Questions
 
@@ -283,6 +288,8 @@ failure modes, and validation gaps. Include at minimum:
 - direct CLI use only for a required capability with no applicable AI-Tool
   operation, using canonical reference documentation and recording why the
   direct route was necessary.
+- missing-resource behavior that stops safely and requests a distinct,
+  policy-governed acquisition decision instead of invoking `likm` implicitly.
 
 ### 6.3 Evaluation Questions
 
@@ -298,8 +305,10 @@ result.
 Use deterministic assertions for facts such as:
 
 - selected routes and loaded references;
-- selected knowledge document IDs, AI-resource IDs, and exact application
+- selected knowledge document IDs, modular resource IDs, and exact application
   commands;
+- resource manifest, lock, payload digests, and absence of undeclared Hub or
+  Manager activity;
 - exact executable, arguments, working directory, and exit status;
 - schema-valid reports and process artifacts;
 - filesystem and repository mutations;
@@ -357,6 +366,8 @@ The evaluation program is complete when:
 - AI-Tool is evaluated through human prompts and AI-Engineering consumption and
   compared with paired documentation-only baselines where applicable;
 - AI-Engineering is evaluated independently as the end-to-end product;
+- missing-resource scenarios prove that Tool access never implies Manager or
+  network authority;
 - results contain enough evidence to attribute failures to CLI
   self-description, public documentation, AI-Tool, AI-Engineering, the runtime,
   or a model capability;

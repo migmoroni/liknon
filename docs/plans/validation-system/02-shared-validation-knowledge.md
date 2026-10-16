@@ -24,15 +24,16 @@ This phase owns knowledge meaning, source quality, editorial boundaries,
 initial content, and routing behavior. It does not own application packaging,
 CLI distribution, AI authority, agent resources, or workspace mutation.
 Repository and product separation belongs to
-[A01](A01-product-and-repository-separation/README.md); knowledge application
-delivery belongs to [B02](B02-knowledge-cli-and-corpus/README.md).
+[A01](A01-product-and-repository-separation/README.md); Hub publication and
+workspace acquisition belong to [B02](B02-resource-hub-and-manager/README.md),
+and local retrieval belongs to [B03](B03-tool-cli/README.md).
 
 ## 2. Position And Status
 
 Phase 1 provides stable CLI and configuration behavior. Phase 2 establishes the
 accepted initial corpus and deterministic content checks. Phase 2.1 applies the
-full editorial profiles. A01 then separates the complete corpus from validation
-execution and AI resources before Phase 3 adds further AI operations.
+full editorial profiles. A01 then separates authored resource sources from
+validation execution before Phase 3 adds further AI operations.
 
 Accepted content work:
 
@@ -49,8 +50,9 @@ Accepted content work:
 - [x] The corpus is usable without network access while clearly identifying
       when deeper external detail is unavailable.
 
-Application packaging, final source paths, and CLI retrieval are A01 and B02
-acceptance criteria, not retroactive Phase 2 implementation tasks.
+Resource packaging, final source paths, workspace acquisition, and Tool
+retrieval are A01, B02, and B03 acceptance criteria, not retroactive Phase 2
+implementation tasks.
 
 ## 3. Knowledge Ownership Model
 
@@ -221,12 +223,12 @@ simulate completeness.
 
 ## 8. Retrieval And Progressive Disclosure
 
-A01 moves read-only knowledge access into the independent complete-corpus
-application:
+A01 moves read-only access to installed knowledge resources into the
+independent Tool application:
 
 ```text
-liknon-knowledge catalog [--format=human|json]
-liknon-knowledge show <DOCUMENT_ID>
+likt catalog [--format=human|json]
+likt show <DOCUMENT_ID>
 ```
 
 The catalog identifies document scope and applicability. `show` accepts only a
@@ -236,13 +238,13 @@ does not accept arbitrary paths, URLs, or undocumented aliases.
 Knowledge operations:
 
 - execute before configuration loading;
-- do not inspect or create `.validation/`;
+- do not inspect or create `.liknon/validation/`;
 - do not execute checks, tools, scripts, or repository providers;
 - do not read AI policy or persistence;
 - do not access the network;
 - emit deterministic machine output without ANSI;
-- use the complete versioned corpus packaged with the knowledge application and
-  no repository-relative fallback.
+- resolve only resources present in the workspace manifest and lock, verify
+  their payloads, and use no repository-relative or network fallback.
 
 Progressive consumption follows this sequence:
 
@@ -314,13 +316,14 @@ keeps prompts, deterministic assertions, and rubrics provider-neutral.
       human-only conversational instruction.
 - [ ] A01 assigns every accepted document to the canonical corpus and removes
       it from the validation CLI.
-- [ ] B02 proves independent knowledge application packaging and cross-channel
-      exact-byte retrieval.
+- [ ] B02 proves deterministic publication, selection, and installation of
+      knowledge resources through the Hub and Manager.
+- [ ] B03 proves offline, exact-byte retrieval of installed resources.
 
 ## 11. Handoff
 
 Phase 2.1 refounds the accepted corpus under standards-informed editorial
 profiles while preserving stable resource identities and source traceability.
-A01 then separates the corpus, validation application, and AI resources.
-Phase 3 consumes selected knowledge through `liknon-knowledge` and never copies
-it into an operational skill or `.validation/`.
+A01 then separates authored resources from the three applications. Phase 3
+consumes selected installed knowledge through `likt` and never copies it into
+an operational skill or `.liknon/validation/`.

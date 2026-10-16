@@ -4,8 +4,9 @@
 
 ## Purpose
 
-Extend the existing npm `liknon` package with the approved idiomatic
-JavaScript/TypeScript programmatic contract.
+Publish npm package `liknon` only when the approved idiomatic
+JavaScript/TypeScript programmatic contract and a representative consumer are
+ready.
 
 ## Design Gate
 
@@ -29,7 +30,7 @@ artifacts, never the Liknon CLI executable, and expose no global `bin` entry.
 - Representative read-only and execution APIs pass shared conformance fixtures.
 - Installation selects only the matching native artifact and performs no hidden
   CLI invocation.
-- Existing B03 resource exports remain compatible and independently usable.
+- The package contains no CLI executable or authored Hub resource payload.
 - Exceptions, cancellation, streams, callbacks, and process cleanup behave
   safely.
 
