@@ -1,25 +1,39 @@
-# Phase 3: AI-Tool Flow And AI Decision Policy
+# Phase 3: Official Action Workflow And AI Decision Policy
 
 ## 1. Objective
 
-Implement the AI-Tool Flow as bounded, point-in-time assistance over the Human
-Flow. An agent uses focused operations and shared validation knowledge to help
-with AI decision policy, validation configuration, execution, triage, or audit
-without activating validation-engineering processes or creating AI-Engineering
-artifacts.
+Implement the official action workflow as bounded, point-in-time assistance
+over direct human operation. The workflow selects focused AI-Tool skill
+operations and shared validation knowledge to help with AI decision policy,
+validation configuration, execution, triage, or audit without activating the
+validation-engineering workflow or creating analytical artifacts.
 
 This phase also establishes the consumer-owned AI decision policy used by every
-AI operation. The policy limits both AI-Tool and AI-Engineering behavior. It
-never affects direct human use of the CLI or the validation execution graph.
+AI operation. The policy uses global values and optional exact-workflow
+overrides to limit every compatible workflow. It never affects direct human use
+of the CLI or the validation execution graph.
 
-The AI-Tool Flow is independently useful. It is also the operational foundation
-composed by the AI-Engineering Flow in later phases.
+The program-owned AI bootstrap contract is already established by A01 and
+exposed by B03. This phase does not create a host or copy that contract into a
+resource. It makes the official action workflow and AI-Tool declare and obey the
+same compatible bootstrap and policy contracts used by any third-party
+workflow.
 
-AI-Tool is a model-neutral operational interface for agents. A human may invoke
-it through a natural task prompt, an external compatible agent system may route
-to one of its operations, and AI-Engineering consumes the same operation
-contracts. It remains optional: humans and external agents may use the public
-CLI and documentation directly without claiming AI-Tool behavior.
+The action workflow is independently useful. Its AI-Tool skill is also an
+ordinary dependency reusable by the validation-engineering workflow and other
+compatible workflows.
+
+AI-Tool is a model-neutral operational skill for agents. A human may select the
+action workflow through a natural task prompt, an external compatible workflow
+may reference one of its operations, and validation engineering consumes the
+same operation contracts. Both resources remain optional: humans and external
+agents may use the public CLI and documentation directly without claiming their
+behavior.
+
+AI-Tool is the maintained official default for teaching agents how to apply the
+Liknon CLIs, but it is not mandatory platform code. A compatible workflow may
+select another operational skill or derivative under the same bootstrap,
+policy, capability, effect, and resource rules.
 
 ## 2. Dependencies
 
@@ -34,18 +48,23 @@ CLI and documentation directly without claiming AI-Tool behavior.
   `liknon-manager` / `likm`.
 - B03 provides offline, read-only access to installed resources through
   `liknon-tool` / `likt`.
+- A01 and B03 provide the program-owned AI bootstrap contract, its compatibility
+  types, and exact `likt bootstrap` projection.
 - B02 and B03 end-to-end distribution and interoperability are complete before
   this phase treats resource installation and retrieval as public contracts.
 
-## 3. Flow Contract
+## 3. Workflow Contract
 
 For `config`, `run`, `triage`, and `audit`, the supported flow is:
 
 ```text
 human requests one bounded task
-  -> agent selects the AI-Tool Flow
+  -> human directs the agent to the canonical Liknon AI bootstrap entry point
+  -> agent records the supported bootstrap version and digest
+  -> agent selects the official action workflow
+  -> workflow selects one declared AI-Tool operation
   -> agent loads the immutable policy boundary
-  -> agent verifies application and AI-Tool skill-resource compatibility
+  -> agent verifies workflow, application, and skill-resource compatibility
   -> agent runs read-only policy validation
   -> missing or invalid policy routes to policy guidance and stops the task
   -> agent loads one operational reference
@@ -61,6 +80,7 @@ The `policy` operation has a deliberately narrower bootstrap flow:
 
 ```text
 human asks for policy guidance
+  -> agent loads and verifies the Liknon AI bootstrap contract
   -> agent loads the immutable policy boundary
   -> agent may run read-only policy validation
   -> agent explains the contract and current diagnostics
@@ -71,9 +91,9 @@ human asks for policy guidance
 
 The policy operation may run when policy is missing or invalid because it cannot
 perform policy mutation or another governed workspace action. This exception
-does not authorize any other AI-Tool or AI-Engineering operation.
+does not authorize any other operation or workflow.
 
-The flow supports five operations:
+The referenced AI-Tool skill supports five operations:
 
 | Operation | Responsibility |
 | --- | --- |
@@ -94,14 +114,20 @@ an earlier conversation.
 
 `.liknon/ai/policy.json` is owned exclusively by the human operator. It defines
 when an agent may act automatically, must request a free-text human decision, or
-must stop. Its category levels govern both AI-Tool and AI-Engineering. Its
-`processContinuation` value is consumed only by the two declared
-AI-Engineering process transitions.
+must stop. Every category and `processContinuation` has a global value and an
+optional map keyed by canonical workflow ID. The official action workflow uses
+its exact override when present and otherwise the global value. It declares no
+continuation-eligible edge.
+
+When an AI host uses the AI-Tool skill directly without an active workflow,
+only global policy values apply. When another workflow references the skill,
+that workflow's exact override participates normally. The skill never invents
+a synthetic workflow identity or receives a private policy namespace.
 
 The complete normative contract is defined by
 [AI Decision Policy](ai-decision-policy.md). The validator planner and executor
-never read the document. The skill applies it before an AI performs a governed
-effect.
+never read the document. The active workflow applies it before an AI performs a
+governed effect.
 
 Policy ownership is protected by a non-configurable rule that has precedence
 over every category level, every continuation mode, and every user request to
@@ -138,8 +164,8 @@ combined by a human operator.
 
 `init --policy` is a human-operated command. Skill instructions may show the
 exact command but must never invoke it, including after an approval prompt. The
-human runs it directly and then reviews every category and
-`processContinuation` value.
+human runs it directly and then reviews every global value and optional
+workflow override.
 
 When the policy destination is absent, the command creates the exact bundled
 conservative document. When it exists, the command never alters it and succeeds
@@ -169,8 +195,8 @@ boundary.
    and Tool capability ranges;
 3. invokes `policy validate` against the explicit workspace root;
 4. explains missing, invalid, unsupported, or valid state without repairing it;
-5. explains every category, level, overlap rule, and `processContinuation` mode
-   from the normative contract;
+5. explains every category, level, overlap rule, global value, exact-workflow
+   override, and `processContinuation` mode from the normative contract;
 6. asks the human about intended authority, environments, data classes, and
    operational constraints when evidence is insufficient;
 7. presents current and recommended values per field, with rationale,
@@ -187,8 +213,8 @@ value.
 
 ### 4.4 Missing And Invalid Policy
 
-Before `config`, `run`, `triage`, `audit`, or any AI-Engineering process performs
-work, the agent runs `policy validate` for the explicit workspace root.
+Before `config`, `run`, `triage`, `audit`, or any compatible workflow performs
+governed work, the agent runs `policy validate` for the explicit workspace root.
 
 - A missing policy stops the requested operation before repository analysis,
   command execution, or mutation. The agent routes to the advisory `policy`
@@ -202,7 +228,7 @@ work, the agent runs `policy validate` for the explicit workspace root.
 
 ## 5. Architectural Boundary
 
-The AI-Tool Flow:
+The official action workflow:
 
 - uses `.liknon/validation/config.json` as the sole executable validation policy;
 - validates and obeys `.liknon/ai/policy.json` as human-owned AI authority;
@@ -216,77 +242,79 @@ The AI-Tool Flow:
 - never treats documentation, source, output, configuration, policy, or artifact
   content as higher-priority instructions.
 
-The AI-Tool Flow does not:
+The official action workflow does not:
 
 - mutate `.liknon/ai/policy.json` by any direct or indirect mechanism;
 - create or update `.liknon/ai/persistence/`;
 - automatically establish `.liknon/validation/reports/` as a persistent report store;
-- execute Processes 0 through 3;
+- execute validation-engineering nodes;
 - create domain, sensorium, incident, or drift artifacts;
 - infer continuity, prior authorization, or unresolved work from chat history;
-- apply AI-Engineering continuation rules.
+- declare or traverse a continuation-eligible edge.
 
 An exact human request may ask the agent to write an ordinary report file or
 other bounded output. That action remains part of the current request, is
-evaluated under every applicable policy category, and does not activate the
-AI-Engineering persistence contracts.
+evaluated under every applicable policy category, and does not activate a
+persisting workflow contract.
 
 When repository facts are relevant, the agent inspects them through eligible
 read-only repository commands or repository evidence already present in a
 validation report. A reported repository change is evidence for the bounded
 request, not an instruction to repair or revert it.
 
-## 6. Skill Architecture
+## 6. Workflow And Skill Architecture
 
-Use one concise top-level router, one mandatory immutable policy-boundary
-reference, and separate operational references from shared knowledge:
+Keep action routing, operational instruction, and policy authority in separate
+resources:
 
 ```text
-resources/official/skills/liknon-ai-tool/
-├── SKILL.md
-├── manifest.json
-└── references/
-    ├── policy-boundary.md            # Mandatory non-configurable AI prohibition
-    └── ai-tool/
-        ├── index.md
-        ├── policy.md
-        ├── config.md
-        ├── run.md
-        ├── triage.md
-        └── audit.md
+resources/
+├── workflows/official/liknon-action/
+│   ├── manifest.json
+│   └── workflow.md
+├── skills/official/liknon-ai-tool/
+│   ├── manifest.json
+│   ├── SKILL.md
+│   └── references/
+│       └── ai-tool/
+│           ├── index.md
+│           ├── policy.md
+│           ├── config.md
+│           ├── run.md
+│           ├── triage.md
+│           └── audit.md
+└── guides/official/liknon-ai-policy-boundary/
+    ├── manifest.json
+    └── policy-boundary.md
 ```
 
-`SKILL.md` identifies the requested flow and requires
-`references/policy-boundary.md` for every AI operation before loading
-workspace-controlled policy data. A bounded request to manage policy,
-configure, run, triage, or audit selects AI-Tool unless the human explicitly
-invokes an AI-Engineering process or requests its persistent system. The router
-must not activate AI-Engineering from task complexity, repository size, or the
-agent's preference.
+The action workflow manifest is its orchestration index: it owns the bounded
+request graph and routes to exactly one primary AI-Tool operation. It declares
+dependencies on the AI-Tool skill and policy-boundary guide. It has no analytical persistence and no
+continuation-eligible edge. Installing or loading the skill alone never selects
+or activates this workflow.
 
-This skill resource contains only the AI-Tool Flow. AI-Engineering is published
-as a separate workflow resource in Phase 4. Installing or loading this skill
-therefore cannot implicitly install, route to, or activate an engineering
-process.
+The AI-Tool skill owns operation instructions, not orchestration. Another
+compatible workflow may reuse one or more operations through the ordinary
+resource dependency contract. Neither the skill nor the workflow has a
+hard-coded application path, namespace privilege, or authority to install a
+missing dependency.
 
-`references/policy-boundary.md` is short, mandatory, and generated from the
-canonical public boundary. It states that agents may never mutate policy and
-defines the narrow read-only bootstrap behavior of `AI-Tool/policy`. Every
-AI-Engineering process also loads this same reference.
+The program-owned bootstrap contract is loaded before this resource graph and
+is never copied into AI-Tool. The initial official workflow declares AI-Tool as
+its default operational dependency. Another workflow may declare a compatible
+alternative; neither Tool nor Validation CLI branches on that choice.
 
-`references/ai-tool/index.md` defines the common bounded-request boundary and
-routes to exactly one primary operation. An operation may link to another
-AI-Tool reference when the current request genuinely requires both, but it must
-not eagerly load all operations.
+The generated policy-boundary guide states the non-configurable prohibition on
+agent mutation of policy and the narrow read-only bootstrap behavior. It is a
+shared dependency rather than a private file inside AI-Tool, so unrelated
+compatible workflows can adopt the same policy without depending on this skill.
 
-The skill manifest is the authoritative identity, version, payload, dependency,
-and application-compatibility record for this resource. The five operational
-references are authored skill instructions. Validation
-knowledge remains audience-neutral in separate knowledge resources and is never
-copied into the skill. `SKILL.md` and operation references use
-`likt catalog` and `likt show <DOCUMENT_ID>` for
-progressive disclosure. Human-only resources are not included in skill
-routing.
+The manifests are authoritative for identity, version, payload, dependencies,
+capabilities, effects, and application compatibility. Validation knowledge
+remains audience-neutral in separate resources and is never copied into the
+workflow or skill. Progressive disclosure uses Tool to retrieve only selected
+installed resources.
 
 If a required resource is absent, the agent reports the exact missing identity
 and stops that operation. It may suggest an explicit `likm` action subject to
@@ -306,8 +334,8 @@ or treats retrieval permission as installation permission.
   replacement document.
 - Require the human to initialize or edit the file manually.
 - Revalidate only after the human reports that the manual action is complete.
-- Never activate AI-Engineering or create persistence as a consequence of policy
-  guidance.
+- Never activate the validation-engineering workflow or create persistence as a
+  consequence of policy guidance.
 
 ### 7.2 `config`
 
@@ -363,7 +391,7 @@ or treats retrieval permission as installation permission.
   limitations.
 - Keep recommendations source-backed and contextual rather than producing a
   universal assurance ladder.
-- Do not persist an AI-Engineering domain or sensorium model.
+- Do not persist a validation-engineering domain or sensorium model.
 - Do not execute proposed validation merely because the audit recommends it.
 
 ## 8. Public Documentation
@@ -375,7 +403,7 @@ docs/validation/
 ├── reference/
 │   └── ai-decision-policy.md
 └── flows/
-    └── ai-tool/
+    └── action/
         ├── README.md
         ├── policy.md
         ├── config.md
@@ -384,15 +412,21 @@ docs/validation/
         └── audit.md
 ```
 
-The public documents explain the flow, its boundaries, and how a human invokes
+The public documents explain the workflow, its boundaries, and how a human invokes
 each operation. They are not a second copy of the skill instructions. Public
 documentation describes supported behavior; skill references define how an
 agent performs it.
 
 The normative policy reference defines the exact shape, category levels,
-continuation modes, restrictive combination, canonical persistence facts, and
-absolute policy-mutation prohibition. The skill projection is generated from
-that canonical source rather than maintained independently.
+continuation modes, restrictive combination, generic persistence-decision
+rules, fixed report-storage facts, and absolute policy-mutation prohibition.
+Workflow-specific artifact declarations remain in their locked workflow
+resources. The shared policy-boundary guide is
+generated from that canonical source rather than maintained independently.
+
+Public AI guidance links to the canonical bootstrap entry point rather than
+copying it. The tracked file and `likt bootstrap` are the only authoritative
+entry projections.
 
 Register every standard, primary research work, and official reference used by
 the policy contract in `docs/validation/knowledge/sources.json` before citing it.
@@ -401,8 +435,8 @@ Add only sources the contract actually uses; do not expand the corpus merely
 to summarize those sources. Rebuild and verify affected resource artifacts and
 their catalog metadata after updating the register.
 
-The root validation index clearly distinguishes AI-Tool from Human Flow and
-AI-Engineering. It states that both AI flows require a valid human-owned policy,
+The root validation index clearly distinguishes direct human operation, the
+official action workflow, and validation engineering. It states that governed workflows require a valid human-owned policy,
 while the read-only `policy` operation remains available to help the human
 initialize or correct it manually.
 
@@ -434,7 +468,10 @@ Test at minimum:
   partial results, and no-overwrite guarantees;
 - read-only `policy validate` for missing, valid, invalid, unsupported,
   symlinked, path-escaping, and concurrently changed documents;
-- policy category and continuation semantics from the normative contract;
+- policy category, global-value, exact-workflow override, composed-workflow,
+  and continuation semantics from the normative contract;
+- conservative initialization with every workflow-override map empty and no
+  official resource ID embedded in CLI defaults;
 - complete source-register entries and valid primary links for every policy
   design source actually cited;
 - exact `likt` retrieval of every selected knowledge resource after
@@ -447,7 +484,7 @@ Test at minimum:
   under a level-0 policy;
 - proof that the policy operation creates no candidate, patch, script,
   persistence, or hidden mutation;
-- blocking of `config`, `run`, `triage`, `audit`, and AI-Engineering routing when
+- blocking of `config`, `run`, `triage`, `audit`, and validation-engineering routing when
   policy is missing or invalid;
 - fresh policy validation and effect classification for every bounded operation;
 - current repository evidence inspected within one bounded request;
@@ -461,38 +498,44 @@ Test at minimum:
 - unauthorized installation, mutation, network, and scope expansion;
 - repeated requests without implied cross-request continuity or inherited
   authorization;
-- absence of AI-Engineering persistence, process artifacts, and automatic
-  report-store creation after every AI-Tool operation;
-- pre-existing AI-Engineering persistence that AI-Tool does not use as hidden
+- absence of validation-engineering persistence, process artifacts, and automatic
+  report-store creation after every action-workflow or standalone AI-Tool operation;
+- pre-existing validation-engineering persistence that the action workflow does not use as hidden
   task context;
 - stale or incompatible AI-Tool resource versions and declared application
   capability ranges;
+- an actionable workflow with an absent or incompatible decision-policy
+  contract that remains readable but stops before activation;
 - prompt-injection text in repository files, policy values, and report output;
-- no duplicate run or unchanged-failure retry loop.
+- no duplicate run or unchanged-failure retry loop;
+- an external action workflow that reuses one AI-Tool operation without an
+  official ID, official graph shape, or application-specific routing branch.
 
 Forward trials use fresh agents and task-like prompts without expected answers.
 They include successful operations, policy-blocked operations, and adversarial
 requests to mutate policy. Define scenarios and observable assertions here;
-Phase 7 executes the cross-model AI-Tool Interface evaluation, including human
-prompts and controlled AI-Engineering consumption, under the shared
+Phase 7 executes the cross-model action-workflow and AI-Tool evaluation,
+including human prompts and controlled validation-engineering consumption, under the shared
 [Agent Evaluation Program](agent-evaluation-program.md).
 
 ## 11. Deliverables
 
-- explicit AI-Tool Flow contract with five operations;
+- explicit action-workflow contract selecting five reusable AI-Tool operations;
+- bootstrap-compatibility declarations for the action workflow, AI-Tool skill,
+  and policy-boundary guide without copying the bootstrap contract;
 - policy schema, conservative default, read-only validation, and human-only
   deterministic initialization;
-- canonical AI decision-policy documentation and generated policy skill
-  projection;
+- canonical AI decision-policy documentation and generated policy-boundary
+  guide;
 - source-register entries for the policy contract's cited design foundations;
-- mandatory `policy-boundary.md` skill reference;
+- independently versioned policy-boundary guide dependency;
 - namespaced AI-Tool skill references, including advisory `policy.md`;
-- top-level flow routing;
+- top-level workflow routing;
 - dedicated public AI-Tool documentation;
 - progressive installed-resource routing through the read-only `likt`
   application;
 - bounded-request policy, safety, and authority tests;
-- representative forward-trial fixtures.
+- representative forward-trial fixtures;
 - versioned AI-Tool Interface scenarios and assertions consumable by the final
   agent-evaluation matrix.
 
@@ -500,22 +543,29 @@ prompts and controlled AI-Engineering consumption, under the shared
 
 - [ ] An agent can guide policy, configure, run, triage, or audit from one
       bounded request.
+- [ ] Every governed action-workflow and standalone AI-Tool trial begins from
+      the exact supported bootstrap contract and records its version and digest.
 - [ ] `policy.json` is owned and mutated only by the human operator.
 - [ ] No AI operation can create, alter, replace, remove, move, restore, or
       indirectly mutate policy, regardless of human approval or configured
       level.
 - [ ] The advisory policy operation works when policy is missing or invalid and
       performs no governed mutation.
-- [ ] Every other AI-Tool and AI-Engineering operation requires a valid policy
+- [ ] Every other governed operation or workflow requires a valid policy
       before work begins.
-- [ ] AI-Tool validates and obeys the same category-level meanings used by
-      AI-Engineering.
-- [ ] `processContinuation` is ignored by AI-Tool operations other than policy
-      explanation and is consumed only by the declared AI-Engineering process
-      transitions.
+- [ ] Every actionable workflow declares a compatible AI decision-policy
+      contract before a conforming host activates it.
+- [ ] Every actionable workflow and governed operational skill declares a
+      compatible AI bootstrap contract before a conforming host uses it.
+- [ ] The action workflow validates and obeys the same global, override, and
+      category meanings used by every compatible workflow.
+- [ ] `init --policy` emits only global defaults and empty override maps; a
+      human adds every workflow-specific rule manually.
+- [ ] The action workflow has no continuation-eligible transition; AI-Tool may
+      explain `processContinuation` without consuming it.
 - [ ] AI-Tool does not treat repository observations as cross-request
       continuity.
-- [ ] AI-Tool never invokes Processes 0 through 3 implicitly.
+- [ ] The action workflow never invokes validation-engineering nodes implicitly.
 - [ ] Separate requests do not inherit analytical context or authorization.
 - [ ] Every execution passes through the normal CLI configuration and report
       contracts.
@@ -523,18 +573,21 @@ prompts and controlled AI-Engineering consumption, under the shared
 - [ ] Shared knowledge is loaded progressively and never activates a flow.
 - [ ] The skill contains no copied shared-knowledge subtree and retrieves
       selected knowledge only through `likt`.
+- [ ] A fixture workflow can select a compatible non-official AI-Tool
+      alternative without changing application or bootstrap code.
 - [ ] A missing resource never causes implicit Manager use, network access, or
       installation.
 - [ ] Human-only documentation is not routed as an agent instruction.
 - [ ] Skill and public documentation preserve distinct responsibilities without
       semantic disagreement.
 - [ ] Human-prompt and downstream-agent scenarios expose enough observable
-      evidence to evaluate AI-Tool independently from AI-Engineering.
+      evidence to evaluate AI-Tool independently from validation engineering.
 - [ ] All operation, policy, safety, compatibility, and forward-trial tests pass.
 
 ## 13. Handoff To Phase 4
 
-Phase 4 composes these stable policy-governed AI-Tool operations into the
-AI-Engineering Flow. It adds immutable process artifacts and explicit
+Phase 4 composes these stable policy-governed AI-Tool operations and separate
+agent profiles into the official validation-engineering workflow. It adds
+immutable process artifacts and explicit
 cross-request continuity without duplicating policy guidance or weakening the
 human-only policy-mutation boundary.

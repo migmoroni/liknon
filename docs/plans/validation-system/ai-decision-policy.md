@@ -3,9 +3,16 @@
 ## 1. Status And Purpose
 
 This document specifies the consumer-facing AI decision policy that Phase 3
-implements and every AI-Tool operation and AI-Engineering process obeys. It is
-a cross-cutting contract, not an implementation phase or a validator execution
-contract.
+implements and every Liknon AI workflow or bounded AI operation that declares
+compatibility must obey. The official action and validation-engineering workflows are initial
+consumers, not privileged policy subjects. This is a cross-cutting contract,
+not an implementation phase or a validator execution contract.
+
+For governed use, an external AI host loads the program-owned
+[AI Bootstrap And Conformance Contract](ai-bootstrap-and-conformance-contract.md)
+before this policy or any installed resource. This document specializes
+decision authority; it is not an alternate AI entry point and does not select a
+workflow, skill, agent profile, or model.
 
 The canonical public document is authored at:
 
@@ -14,15 +21,17 @@ docs/validation/reference/ai-decision-policy.md
 ```
 
 The policy-boundary projection in
-`resources/official/skills/liknon-ai-tool/references/policy-boundary.md` is
-generated deterministically from that document and treats it as normative.
-`SKILL.md`, every AI-Tool operation, and the dependent AI-Engineering workflow
-require the agent to load the immutable policy boundary before reading
-policy-controlled workspace data. They load the full contract before
-classifying or performing a governed effect.
+`resources/guides/official/liknon-ai-policy-boundary/` is generated
+deterministically from that document and treats it as normative. Compatible
+skills and workflows declare that guide as an ordinary exact resource
+dependency and load it before reading policy-controlled workspace data. They
+load the full contract before classifying or performing a governed effect.
 
 The document must define every category and every level explicitly. An agent
-must not infer, rename, merge, or locally reinterpret their meanings.
+must not infer, rename, merge, or locally reinterpret their meanings. Every
+actionable workflow executed as part of the governed Liknon system declares a
+compatible policy-contract version; an incompatible or undeclared version may
+be inspected as content but stops before activation.
 
 ### 1.1 Design Foundations
 
@@ -57,14 +66,14 @@ The consumer workspace has two policies with different owners and effects:
 | File | Responsibility | Consumer |
 | --- | --- | --- |
 | `.liknon/validation/config.json` | Defines the programs, arguments, composition, and repository-mutation detection used for validation | Validation CLI and `liknon-core` |
-| `.liknon/ai/policy.json` | Defines when an AI agent acts automatically, requests a free-text human decision, or stops; also defines the two AI-Engineering continuation transitions | AI-Tool and AI-Engineering |
+| `.liknon/ai/policy.json` | Defines global and workflow-specific rules for when a compatible AI agent acts automatically, requests a free-text human decision, or stops | Compatible AI operations and workflows |
 
 `policy.json` never contributes commands, checks, suites, groups, arguments, or
 validation outcomes. The validation executor and planner do not discover, read,
-or interpret it. Both AI flows validate its schema and digest before applying
+or interpret it. Every compatible workflow validates its schema and digest before applying
 policy decisions. `config.json` remains the sole executable validation policy.
-When either AI flow proposes a `likm` operation, the proposal is governed by
-this policy like any other command, network, or workspace effect. Manager does
+When a governed AI operation proposes a `likm` operation, the proposal is
+governed by this policy like any other command, network, or workspace effect. Manager does
 not interpret `policy.json` itself, and permission to read through `likt` never
 implies permission to acquire or mutate resources through `likm`.
 
@@ -75,69 +84,128 @@ The initial contract is:
 ```json
 {
   "schemaVersion": 1,
-  "processContinuation": "human",
+  "processContinuation": {
+    "global": "human",
+    "workflows": {}
+  },
   "decisionLevels": {
-    "workspaceMutation": 4,
-    "scopeExpansion": 4,
-    "dependencyManagement": 4,
-    "commandExecution": 4,
-    "networkAccess": 4,
-    "externalStateMutation": 4,
-    "versionControlMutation": 4,
-    "dataMutation": 4,
-    "sensitiveDataAccess": 4,
-    "validationReportPersistence": 4,
-    "sensitiveDataPersistence": 4
+    "workspaceMutation": { "global": 4, "workflows": {} },
+    "scopeExpansion": { "global": 4, "workflows": {} },
+    "dependencyManagement": { "global": 4, "workflows": {} },
+    "commandExecution": { "global": 4, "workflows": {} },
+    "networkAccess": { "global": 4, "workflows": {} },
+    "externalStateMutation": { "global": 4, "workflows": {} },
+    "versionControlMutation": { "global": 4, "workflows": {} },
+    "dataMutation": { "global": 4, "workflows": {} },
+    "sensitiveDataAccess": { "global": 4, "workflows": {} },
+    "validationReportPersistence": { "global": 4, "workflows": {} },
+    "sensitiveDataPersistence": { "global": 4, "workflows": {} }
   }
 }
 ```
 
-The tool owns and distributes the JSON Schema. Consumer workspaces store the
-policy document, not a schema copy. Every listed category is required. Missing
-categories, unknown fields, and unsupported values are rejected rather than
-resolved through an implicit fallback.
+The conservative document generated by `init --policy` contains no workflow
+IDs. A human may later add an exact stable ID to any `workflows` map, for
+example:
 
-### 3.1 Canonical Persistence Profile
+```json
+{
+  "global": "human",
+  "workflows": {
+    "workflow:official/liknon-validation-engineering": "auto"
+  }
+}
+```
+
+This fragment illustrates one field only; it is not a complete policy and is
+never emitted as a built-in workflow exception.
+
+The shared workspace contract owns and distributes the JSON Schema. Consumer
+workspaces store the policy document, not a schema copy. Every listed category
+is required. Missing categories, unknown fields, and unsupported values are
+rejected rather than resolved through an implicit fallback.
+
+Each workflow key is a canonical stable resource ID containing kind, namespace,
+and name but no version. The resource lock fixes the exact version used by one
+execution. A syntactically valid ID need not already be installed, which lets a
+human prepare policy before acquisition; an unmatched ID is inert and should be
+reported as unresolved guidance rather than silently matched by title or path.
+
+Only the human may add, remove, or change an override. A workflow manifest may
+declare effects and policy compatibility, but it cannot supply an effective
+policy value, request its own exception, or lower a global setting.
+
+### 3.1 Generic Persistence Contract
 
 `policy.json` selects decision levels; it does not configure storage paths,
-retention, or transport. This normative document is the source of truth for the
-current persistence profile used by those decisions:
+retention, transport, or workflow-specific artifact kinds. The program-owned AI
+bootstrap contract defines universal persistence boundaries. Each exact locked
+workflow manifest owns its artifact declarations and may narrow, but never
+weaken, those boundaries.
 
-| Content | Canonical destination | Repository treatment |
+Every persistable workflow artifact declaration includes:
+
+- one stable declaration ID and artifact kind;
+- one exact payload schema and bounded common-envelope version;
+- one contained storage template rooted below
+  `.liknon/ai/persistence/<namespace>/<workflow-name>/`;
+- producing node and action IDs plus allowed parent and report relationships;
+- sensitivity, minimization, redaction, byte, and reference bounds;
+- one repository treatment: `local-ignored` or `consumer-selected`;
+- the fixed initial lifecycle of immutable creation and explicit governed
+  removal, with no automatic expiry, compaction, pruning, or replacement.
+
+Unknown treatments, paths outside the workflow's canonical storage root,
+undeclared executable content, lifecycle commands, and attempts to relax the
+bootstrap or policy contracts fail closed. A workflow cannot use its manifest to
+authorize persistence; the host still evaluates every applicable policy
+category for the concrete artifact and destination.
+
+Exact validation reports are a program contract rather than a workflow artifact
+declaration. They retain their exact bytes under
+`.liknon/validation/reports/<sha256>.json` and always use `local-ignored`
+treatment.
+
+The initial official validation-engineering workflow instantiates the generic
+contract as follows:
+
+| Artifact declaration | Canonical destination | Repository treatment |
 | --- | --- | --- |
-| Exact validation reports | `.liknon/validation/reports/<sha256>.json` | Local and ignored |
-| Domain process results | `.liknon/ai/persistence/domain/<uuidv7>.json` | Determined by effective Git treatment of the concrete file |
-| Sensorium process results | `.liknon/ai/persistence/sensorium/<uuidv7>.json` | Determined by effective Git treatment of the concrete file |
-| Incident process results | `.liknon/ai/persistence/incidents/<uuidv7>.json` | Local and ignored |
-| Drift process results | `.liknon/ai/persistence/drift/<uuidv7>.json` | Local and ignored |
+| Domain result | `.liknon/ai/persistence/official/liknon-validation-engineering/domain/<uuidv7>.json` | `consumer-selected` |
+| Sensorium result | `.liknon/ai/persistence/official/liknon-validation-engineering/sensorium/<uuidv7>.json` | `consumer-selected` |
+| Incident result | `.liknon/ai/persistence/official/liknon-validation-engineering/incidents/<uuidv7>.json` | `local-ignored` |
+| Drift result | `.liknon/ai/persistence/official/liknon-validation-engineering/drift/<uuidv7>.json` | `local-ignored` |
 
-The canonical local private store consists of the ignored destinations above.
-The AI-Engineering persistence system writes only these local destinations.
-Exporting or sharing content elsewhere is a separate proposed effect and must
-evaluate every category implicated by that exact boundary, including network
-or external-state categories where applicable; it does not create another
-configured persistence destination.
+This table describes one resource, not platform-wide process names or storage
+branches. An unrelated compatible workflow declares its own namespaced artifact
+kinds and receives the same validation without changing a CLI.
+
+The canonical local private store consists of reports and every declaration
+using `local-ignored`. Exporting or sharing content elsewhere is a separate
+proposed effect and must evaluate every category implicated by that exact
+boundary, including network or external-state categories where applicable; it
+does not create another implicit persistence destination.
 
 Artifacts contain explicit paths, digests, bounded decisions, and analytical
 results; they do not duplicate report bodies, raw diagnostic streams,
-credentials, tokens, private keys, or source patches. Exact reports retain their
-bytes after hashing. Derived artifacts minimize and redact protected content
-whenever that content is not required. Files use restrictive permissions where
-the platform supports them, paths remain within the workspace without symlink
-escape, and credentials are never persisted in analytical artifacts.
+credentials, tokens, private keys, or source patches. Derived artifacts minimize
+and redact protected content whenever it is not required. Files use restrictive
+permissions where the platform supports them, paths remain within the workspace
+without symlink escape, and credentials are never persisted in analytical
+artifacts.
 
-The current profile performs no automatic retention expiry, deletion, history
-compaction, or pruning. Content remains until an explicit governed removal.
-Removal of an artifact or report supplied to an active process is invalid until
-that process ends. These lifecycle facts are fixed operational inputs to the
-category tables below; they are not inferred from a numeric level.
+The initial generic lifecycle performs no automatic retention expiry, deletion,
+history compaction, or pruning. Content remains until an explicit governed
+removal. Removal of an artifact or report supplied to an active workflow node is
+invalid until that node ends. These lifecycle facts are fixed operational inputs
+to the category tables below; they are not inferred from a numeric level.
 
 ## 4. Human Ownership, Validation, And Change
 
 ### 4.1 Non-Configurable Mutation Boundary
 
 `.liknon/ai/policy.json` is created and changed only by the human operator. No
-agent in either AI flow may create, edit, format, replace, delete, move, rename,
+agent in any compatible flow may create, edit, format, replace, delete, move, rename,
 restore, or otherwise mutate it. The prohibition includes direct file APIs,
 patches, shell or structured commands, scripts, VCS operations, generated
 candidate files intended for replacement, and indirect delegation to another
@@ -155,19 +223,22 @@ no-overwrite initialization contract. When the file exists, it validates and
 reuses it without modification. An agent may display this command but must never
 invoke it or ask for permission to invoke it.
 
-### 4.2 Preflight For Both AI Flows
+### 4.2 Preflight For Compatible AI Workflows
 
-Every AI-Tool operation other than the narrowly read-only advisory `policy`
-operation, and every AI-Engineering process invocation, begins with
+Every official AI-Tool operation other than its narrowly read-only advisory
+`policy` operation, every official validation-engineering process, and every
+third-party workflow claiming this contract begins with
 `liknon policy validate` for the explicit active workspace root.
 This read-only operation is part of AI preflight. A valid result fixes the exact
 path, schema version, and digest used for subsequent decisions.
 
-The advisory `AI-Tool/policy` operation may invoke `policy validate` while the
-document is missing or invalid. It is the only pre-policy AI operation and is
-limited to validation, explanation, and recommendations. It performs no
+The official advisory policy operation may invoke `policy validate` while the
+document is missing or invalid. Other resources may provide an equivalent
+read-only operation only when they declare and satisfy the same contract. A
+pre-policy operation is limited to validation, explanation, and
+recommendations. It performs no
 workspace mutation, arbitrary command execution, persistent analytical write,
-or AI-Engineering process work.
+or workflow-node work.
 
 When `policy.json` is absent, every other AI operation stops before repository
 analysis, execution, mutation, or artifact creation. The agent routes to policy
@@ -187,32 +258,33 @@ added. A policy change invalidates every cached authorization decision. It does
 not by itself invalidate domain or sensorium evidence because it does not change
 validation coverage.
 
-AI-Engineering artifacts record the exact policy path, schema version, and
-SHA-256 digest used for their decisions. AI-Tool reports the current digest and
-applicable outcomes within its bounded response but creates no analytical
-persistence merely to record them.
+Persisted workflow artifacts record the exact policy path, schema version,
+SHA-256 digest, active workflow identities, and effective global or override
+source used for their decisions. Bounded non-persistent operations report those
+facts without creating analytical persistence merely to record them.
 
 ## 5. Process Continuation
 
-`processContinuation` is a three-mode policy, not part of the numeric decision
-scale:
+`processContinuation` is a three-mode policy applied only to transitions that
+the active workflow declares continuation-eligible. It is not part of the
+numeric decision scale:
 
 | Value | Required behavior |
 | --- | --- |
-| `auto` | After the preceding process completes successfully, persists its result, and satisfies every precondition of the next process, start `0 -> 1` or `2 -> 3` without another question. |
-| `human` | Present the completed result, suggest the valid next process, and wait for a free-text human decision. |
-| `stop` | Present the completed result and end the current process sequence without suggesting or asking to start the related next process. |
+| `auto` | After the source node completes successfully, persists every declared result, and satisfies every target-node precondition, traverse the declared continuation edge without another question. |
+| `human` | Present the completed result, suggest the declared eligible transition, and wait for a free-text human decision. |
+| `stop` | Present the completed result and end the current workflow sequence without suggesting or asking to traverse the edge. |
 
-The policy applies only to the defined `0 -> 1` and `2 -> 3` relationships. A
-failed, blocked, interrupted, stale, or incomplete process never continues
-automatically. `auto` does not bypass sensorium lifecycle, report, digest,
-configuration, or process-specific preconditions. `stop` does not prevent the
-human from invoking the next process explicitly later.
+The platform defines no process numbers, mandatory phases, or fixed edges. A
+failed, blocked, interrupted, stale, or incomplete node never continues
+automatically. `auto` does not bypass artifact, report, digest, configuration,
+policy, or target-node preconditions. `stop` does not prevent the human from
+invoking another valid entry point explicitly later.
 
 The policy uses three distinct concepts:
 
-- **continuation mode** is the direct `processContinuation` value and governs
-  only the two relationships above;
+- **continuation mode** is the effective global or workflow-specific
+  `processContinuation` value for one declared continuation edge;
 - **decision level** is the configured integer from `0` through `4` for one
   decision category;
 - **decision outcome** is the computed `auto`, `human`, or `stop` result for one
@@ -221,13 +293,35 @@ The policy uses three distinct concepts:
 Continuation mode is not derived from decision levels, and decision outcomes do
 not create additional process-continuation relationships.
 
+### 5.1 Workflow Override Resolution
+
+For each category and for `processContinuation`, resolve the effective value as
+follows:
+
+1. identify the exact active workflow stack from the locked resource graph;
+2. collect exact-ID overrides for those workflows;
+3. when no override matches, use `global`;
+4. when one override matches, use it instead of `global`;
+5. when composed parent and child workflows both match, use the most restrictive
+   matching value: numeric `4 > 3 > 2 > 1 > 0`, or continuation
+   `stop > human > auto`.
+
+A bounded compatible skill operation invoked without an active workflow has an
+empty workflow stack and therefore uses `global`. It cannot manufacture a
+workflow identity to obtain an override.
+
+Absolute prohibitions and superior instructions remain above both global and
+workflow-specific values. After resolving one level for every applicable
+category, compute each outcome and combine outcomes by
+`stop > human > auto`.
+
 ## 6. Decision Evaluation Model
 
-Before a governed effect in either AI flow, the agent constructs a bounded
+Before a governed effect in any compatible AI workflow, the agent constructs a bounded
 action preview that
 identifies:
 
-- current flow, operation or process, and objective;
+- active workflow stack, node, operation, and objective;
 - operation and exact target resources;
 - matching decision categories;
 - whether the action is explicitly in scope;
@@ -237,6 +331,12 @@ identifies:
 - affected data sensitivity and required privilege;
 - expected blast radius and rollback path;
 - rationale and material uncertainty.
+
+Workflow manifests use a canonical capability and effect vocabulary. The agent
+must also classify effects evident from the concrete proposed action rather than
+trusting declarations blindly. An unknown effect, an unsupported capability, or
+an observed material effect omitted from the manifest evaluates to `stop` until
+the contract is corrected; no workflow-specific override can make it eligible.
 
 This follows an attribute-based model: decisions depend on the actor, action,
 resource, and current environment rather than on the action name alone.
@@ -263,15 +363,16 @@ postpone, or report a manually completed action.
 
 A precise initiating request can provide the required human authority for an
 eligible exact action and scope it names. It never authorizes an agent to mutate
-policy. Invoking an AI process alone authorizes only that process's declared
+policy. Invoking a workflow node alone authorizes only that node's declared
 persistence outputs; it does not preauthorize config, source, dependency,
 command, network, external-state, VCS, data, or sensitive resource effects.
 
-Automatic and human-authorized decisions carry the policy digest, matched
-categories, action preview, result, and resulting evidence. AI-Tool reports this
-information for its bounded request without creating process persistence.
-AI-Engineering records it in the applicable immutable artifact. Secrets and
-sensitive values are redacted from previews and decision records.
+Automatic and human-authorized decisions carry the policy digest, active
+workflow IDs and locked versions, matched categories, effective-value source
+(`global` or workflow override), action preview, result, and resulting evidence.
+Bounded operations report this information without creating persistence;
+persisting workflows record it in the applicable immutable artifact. Secrets
+and sensitive values are redacted from previews and decision records.
 
 ## 7. Numeric Decision Scale
 
@@ -350,13 +451,13 @@ features, versions, lockfiles, runtimes, and toolchains.
 This category covers starting local programs and scripts outside the internal
 non-executing reasoning of the agent. Explicit validator selections remain
 commands and are classified here unless the current human request already
-authorizes that exact run. Selecting either AI flow preauthorizes only the
-bounded read-only compatibility and `policy validate` commands needed for its
-preflight. Selecting AI-Engineering additionally preauthorizes persistence
-verification commands required for explicitly supplied inputs. Neither flow
-preauthorizes `init --policy`. Invoking an AI-Engineering process also
-authorizes the deterministic store command for its declared process artifact
-once every applicable persistence condition is satisfied. A decision that
+authorizes that exact run. Selecting a compatible workflow preauthorizes only
+the bounded read-only compatibility and `policy validate` commands declared as
+its preflight. Invoking a workflow node additionally preauthorizes only the
+verification commands required for explicitly supplied inputs and the
+deterministic store command for that node's declared artifact once every
+applicable persistence condition is satisfied. No workflow preauthorizes
+`init --policy`. A decision that
 permits exact report persistence likewise authorizes the deterministic report
 store command. These narrow exceptions never extend to initialization,
 validation execution, repair, installation, or another command.
@@ -453,7 +554,7 @@ category.
 | `3` | Present one bounded report-persistence action set for a validation session, including selections, destination, lifecycle effects, and cleanup if requested, and obtain approval before applying any part of it. |
 | `2` | Persist reports automatically in the canonical local private report store; request approval for removal, another destination, export, or sharing. |
 | `1` | Persist reports automatically in the canonical local private report store and perform eligible cleanup of unreferenced reports when that cleanup is explicitly in scope; request approval for a new trust boundary, public exposure, or removal that has broader lifecycle effects. |
-| `0` | Perform every eligible report-persistence action within the canonical profile automatically and record the exact path, digest, and lifecycle outcome. |
+| `0` | Perform every eligible report-persistence action within the canonical local report contract automatically and record the exact path, digest, and lifecycle outcome. |
 
 This category does not inspect report meaning to decide whether a `Pass`,
 `Fail`, `Blocked`, or other status deserves persistence. Status never grants
@@ -475,7 +576,7 @@ stores. Reading the same material is evaluated separately under
 | `3` | Present one bounded persistence plan for one data class, purpose, destination, protection, and lifecycle, and obtain approval before writing any part of it. |
 | `2` | Persist internal non-secret sensitive material automatically only in the canonical local private store; request approval for personal, confidential, production, credential, secret, private-key, remote, or cross-boundary persistence. |
 | `1` | Persist explicitly scoped confidential, personal, and production data automatically in the canonical local private store; request approval for credentials, tokens, private keys, other authentication secrets, or a new trust boundary. |
-| `0` | Persist every explicitly eligible sensitive data class automatically only within the canonical persistence profile while preserving minimization, access control, non-disclosure, lifecycle rules, and auditable linkage. |
+| `0` | Persist every explicitly eligible sensitive data class automatically only within a contract-valid declared destination while preserving minimization, access control, non-disclosure, lifecycle rules, and auditable linkage. |
 
 This category governs authority, not storage security. An `auto` outcome never
 makes an unsuitable destination safe, bypasses path containment or access
@@ -549,8 +650,8 @@ downgraded by numeric levels.
 The canonical public document must contain:
 
 - the exact policy shape and defaults;
-- the canonical persistence destinations, repository treatment, protection,
-  and lifecycle facts used by the category tables;
+- universal persistence boundaries, the fixed report destination and
+  treatment, and the requirements imposed on workflow artifact declarations;
 - the distinction between validation and AI decision policy;
 - continuation mode, decision level, and decision outcome as separate concepts;
 - the three continuation modes;
@@ -561,17 +662,17 @@ The canonical public document must contain:
 - explicit-request, free-text approval, audit, redaction, human-only policy
   ownership, and manual policy-change behavior;
 - examples of one action matching multiple categories;
-- examples for Processes 0 through 3;
+- examples from both official workflows and one external workflow with a
+  different graph and agent profiles;
 - invalid-policy and missing-policy behavior;
 - the absolute boundaries above.
 
-The AI-Tool skill router loads `references/policy-boundary.md` before every
-AI-Tool operation. The boundary is an exact concise projection of the
-human-only policy-mutation rule and the read-only bootstrap exception. The
-router loads the full normative document whenever an effect must be classified.
-The dependent AI-Engineering workflow loads that same projection through its
-declared skill dependency. Neither resource restates level semantics
-independently.
+The official policy-boundary guide is an exact concise projection of the
+human-only policy-mutation rule and the read-only policy-guidance exception. Every
+official workflow or skill that performs governed work declares that shared
+resource, and the invoking agent loads it before work begins. Third-party resources claiming
+Liknon policy compatibility follow the same dependency contract. No resource
+restates or redefines level semantics independently.
 
 ## 10. Verification
 
@@ -581,12 +682,16 @@ Schema, decision-table, and forward-agent fixtures cover:
   human-facing initialization and review guidance, and direct human canonical
   level-4 initialization;
 - explicit workspace-root selection, nearest-ancestor `.liknon/` discovery for
-  existing state, current-directory bootstrap for initialization when no root
+  existing state, exact-current-directory initialization when no root
   exists, and absence of Git or configuration-based root discovery;
 - read-only `policy validate` and idempotent non-overwriting human-operated
   `init --policy`;
 - malformed, unsupported, unknown-field, and path-escaping policy;
-- all `processContinuation` modes for both valid transitions;
+- all `processContinuation` modes for unrelated continuation-eligible edges;
+- global fallback, one exact workflow override, unmatched workflow IDs, and
+  most-restrictive resolution across composed parent and child workflows;
+- stable workflow identity across version updates and exact locked-version
+  recording for each execution;
 - prevention of continuation after failed or incomplete prerequisites;
 - every level of every category at its boundary examples;
 - monotonic category behavior under `4 > 3 > 2 > 1 > 0`;
@@ -594,7 +699,8 @@ Schema, decision-table, and forward-agent fixtures cover:
   winning;
 - exact initiating authority, partial approval, rejection, postponement, and
   manually completed actions;
-- refusal by both AI flows to create, edit, format, replace, delete, move,
+- refusal by official and external compatible workflows to create, edit,
+  format, replace, delete, move,
   rename, restore, initialize, or indirectly mutate policy, including after an
   explicit user request and under level `0`;
 - advisory policy guidance with no candidate file, patch, mutation command,
@@ -611,7 +717,9 @@ Schema, decision-table, and forward-agent fixtures cover:
 - a level-4 policy that does not request duplicate approval for an exact action
   already authorized by the current human instruction;
 - Tool reads, missing-resource failures, and proposed Manager install, update,
-  and removal operations with no implicit escalation from `likt` to `likm`.
+  and removal operations with no implicit escalation from `likt` to `likm`;
+- unknown capabilities, unknown effects, and material undeclared effects that
+  fail closed before execution.
 
 Forward tests give agents only the policy when present, the current operation or
 process inputs, and raw workspace evidence. They do not disclose the expected
@@ -622,26 +730,37 @@ attempt to persuade the agent to perform a prohibited mutation.
 
 - [ ] `processContinuation` is ternary and never interpreted as a numeric
       decision level.
-- [ ] `processContinuation` applies only to `0 -> 1` and `2 -> 3`.
+- [ ] `processContinuation` applies only to continuation-eligible transitions
+      declared by the exact active workflow graph.
+- [ ] Every decision category and `processContinuation` has one required global
+      value and an optional exact-workflow override map.
+- [ ] An exact workflow override takes precedence over the global value; nested
+      matching overrides combine by the most restrictive value.
+- [ ] Workflow manifests cannot create, modify, or lower policy values.
 - [ ] Decision levels follow `4 > 3 > 2 > 1 > 0` within every category.
 - [ ] Every category-level combination has one documented normative meaning.
 - [ ] The same action and policy produce the same required decision regardless
       of process or chat context.
 - [ ] Overlapping categories use `stop > human > auto`.
-- [ ] Missing policy blocks every AI-Tool operation except read-only policy
-      guidance and blocks every AI-Engineering process until the human directly
-      initializes and reviews the decision settings.
+- [ ] Missing policy blocks every governed operation except a contract-valid
+      read-only policy-guidance operation until the human directly initializes
+      and reviews the decision settings.
+- [ ] Every governed policy evaluation occurs under a previously loaded and
+      recorded compatible AI bootstrap contract; this policy is never treated
+      as an alternate entry point.
 - [ ] Invalid policy fails closed without silent replacement.
 - [ ] No AI operation mutates policy directly or indirectly, even after explicit
       approval or under level `0`.
 - [ ] Policy guidance remains read-only and requires the human to apply every
       effective value manually.
-- [ ] Every AI-Tool decision reports, and every AI-Engineering decision records,
-      the exact policy digest and applicable categories without recording
-      secrets.
+- [ ] Every bounded decision reports, and every persisted workflow decision
+      records, the exact policy digest, active workflow identity and version,
+      effective global or override source, and applicable categories without
+      recording secrets.
 - [ ] Numeric levels select authority behavior without inventing storage fields
-      absent from `policy.json`; persistence facts come from the canonical
-      profile in this document.
+      absent from `policy.json`; universal boundaries come from the bootstrap
+      and policy contracts, while concrete artifact facts come from the exact
+      locked workflow declaration.
 - [ ] The validation executor and planner remain independent from AI decision
       policy; explicit artifact verification never affects execution planning or
       report semantics.

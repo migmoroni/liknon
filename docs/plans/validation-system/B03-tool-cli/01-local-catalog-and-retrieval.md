@@ -9,6 +9,10 @@ locked resource store.
 
 ## Store Loading
 
+`bootstrap` bypasses store loading and returns the program-owned entry contract
+from the Tool build. Every operation below requires the ordinary explicit or
+discovered store contract.
+
 Tool discovers or receives one workspace root, parses the resource manifest and
 lock, validates schema compatibility, and builds a local immutable index for
 the command invocation.
@@ -26,6 +30,8 @@ Catalog entries expose only bounded routing metadata by default:
 - trust, yanked, and revoked state;
 - compatibility facts;
 - declared capabilities;
+- for workflows, bounded graph summary, entry points, referenced resource
+  kinds, and declared effects;
 - dependency and collection counts;
 - available payload files and media types.
 
@@ -57,9 +63,15 @@ states are distinct typed outcomes.
 closure or a typed invalid-lock diagnostic. It performs no version solving and
 does not amend the lock.
 
+Workflow closure traversal treats skills, profiles, tools, knowledge, prompts,
+and subworkflows as ordinary typed dependencies. It neither chooses a profile
+nor executes a transition.
+
 ## Verification
 
 - Results are identical with network disabled.
+- Bootstrap bytes match `contracts/ai/ENTRYPOINT.md` exactly and remain
+  available with no workspace.
 - Catalog ordering survives filesystem and manifest key reordering.
 - Search has positive, negative, Unicode, case, and limit fixtures.
 - Exact Markdown bytes match canonical installed payloads.
@@ -69,5 +81,6 @@ does not amend the lock.
 
 ## Exit Criterion
 
-Tool can discover, search, retrieve, and resolve installed resources exactly
-and offline without loading unrelated content or changing state.
+Tool can return its exact bootstrap contract and discover, search, retrieve, and
+resolve installed resources exactly and offline without loading unrelated
+content or changing state.

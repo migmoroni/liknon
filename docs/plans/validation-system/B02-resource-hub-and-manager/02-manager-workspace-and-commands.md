@@ -31,6 +31,9 @@ destinations and never overwrites conflicting bytes.
 
 These operations report trust, compatibility, yanking, revocation, and
 integrity separately. No aggregate word hides a security-relevant state.
+For workflows they report graph and dependency metadata as data only; listing
+or inspecting a workflow never selects an entry point, binds an agent profile,
+or activates execution.
 
 ## Mutation Planning
 
@@ -66,6 +69,8 @@ resolution, integrity/security failure, and completed mutation.
 - Dry-run and commit use the same resolved plan.
 - Interrupted output does not leave a partial manifest, lock, or payload.
 - Command aliases remain equivalent.
+- Official and external workflow IDs follow identical command paths, and no
+  command assumes a process number, transition, or profile identity.
 
 ## Exit Criterion
 

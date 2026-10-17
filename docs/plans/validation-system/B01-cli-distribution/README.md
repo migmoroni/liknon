@@ -51,8 +51,8 @@ The application contains the generic validation engine, CLI presentation, core
 schemas, and generic `.liknon/validation/` bootstrap. It does not contain:
 
 - `liknon-manager`, `liknon-tool`, the resource Hub, or installed resources;
-- knowledge, skills, workflows, prompts, guides, templates, collections, or
-  agent profiles;
+- knowledge, skills, workflows, agent profiles, tool descriptors, prompts,
+  guides, templates, or collections;
 - npm, RubyGems, PyPI, or NuGet packages;
 - a programmatic validation binding or SDK;
 - binary assets attached to GitHub Releases;

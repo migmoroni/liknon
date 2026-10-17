@@ -30,8 +30,15 @@ Liknon has the following current product surfaces:
    agents without network access or resource mutation. Its commands are
    `liknon-tool` and `likt`.
 5. **Liknon Resource Hub** publishes metadata and immutable payloads for
-   knowledge, skills, workflows, agent profiles, prompts, guides, templates,
-   and collections. It is a distribution service, not a fourth CLI.
+   knowledge, skills, workflows, agent profiles, tool descriptors, prompts,
+   guides, templates, and collections. It is a distribution service, not a
+   fourth CLI.
+
+The applications also share one program-owned
+[AI bootstrap and conformance contract](../ai-bootstrap-and-conformance-contract.md).
+It is the canonical first instruction for governed external AI use, not another
+application or Hub resource. Tool exposes its exact bytes through a read-only
+command; no Liknon application hosts a model or conducts a workflow.
 
 Future language SDKs and in-process validation APIs are governed by
 [Plan B04](../B04-programmatic-api-and-language-bindings/README.md). They are
@@ -50,11 +57,12 @@ the future public `liknon` API governed by B04.
 | --- | --- |
 | Config, DAG, planning, execution, repository evidence, and structured validation reports | `crates/liknon-core` |
 | Shared `.liknon/` root discovery, resource identities, manifests, locks, provenance, and compatibility contracts | `crates/liknon-workspace` |
-| Validation arguments, help, themes, progress, signals, human rendering, schemas, policy validation, and explicit validation/AI bootstrap | `apps/liknon-cli` |
+| AI bootstrap source, identity, version, compatibility, and machine-result contract | `contracts/ai/ENTRYPOINT.md` and `crates/liknon-workspace` |
+| Validation arguments, help, themes, progress, signals, human rendering, schemas, policy validation, and explicit config/policy initialization | `apps/liknon-cli` |
 | Hub access, dependency resolution, downloads, verification, installation, update, removal, and explicit materialization | `apps/liknon-manager` |
 | Offline catalog, search, lookup, resolution, context assembly, and structured resource output | `apps/liknon-tool` |
 | Authored validation knowledge and editorial metadata | `docs/validation/knowledge` |
-| Authored official skills, workflows, profiles, prompts, guides, templates, and resource metadata | `resources/official` and their declared canonical source paths |
+| Authored official skills, workflows, profiles, tool descriptors, prompts, guides, templates, and resource metadata | Type-first paths under `resources/<kind>/official/` and their declared canonical source paths |
 | Plans, evaluations, fixtures, editorial checks, and maintainer procedures | Repository only |
 
 One authored source may be assembled into immutable Hub artifacts, but the
@@ -66,6 +74,9 @@ artifact is never a second editable source.
 liknon/
 ├── Cargo.toml
 ├── Cargo.lock
+├── contracts/
+│   └── ai/
+│       └── ENTRYPOINT.md
 ├── apps/
 │   ├── liknon-cli/
 │   ├── liknon-manager/
@@ -77,7 +88,22 @@ liknon/
 │   └── validation/
 │       └── knowledge/
 ├── resources/
-│   └── official/
+│   ├── skills/
+│   │   └── official/
+│   ├── workflows/
+│   │   └── official/
+│   ├── agent-profiles/
+│   │   └── official/
+│   ├── tools/
+│   │   └── official/
+│   ├── prompts/
+│   │   └── official/
+│   ├── guides/
+│   │   └── official/
+│   ├── templates/
+│   │   └── official/
+│   └── collections/
+│       └── official/
 ├── distribution/
 │   └── cli/
 │       ├── validation/
@@ -106,6 +132,7 @@ channels.
 │   ├── skills/
 │   ├── workflows/
 │   ├── agent-profiles/
+│   ├── tools/
 │   ├── prompts/
 │   ├── guides/
 │   ├── templates/
@@ -161,6 +188,21 @@ system cache and data directories rather than the consumer workspace.
 17. A crates.io application candidate declares both a local development path
     and an exact compatible registry version for each supporting crate; package
     verification proves that registry resolution needs no repository file.
+18. Resource identity is `kind`, `namespace`, `name`, and version. Source
+    origin, trust class, review state, and signatures are independent metadata;
+    the `official` namespace grants no runtime privilege.
+19. Workflows declare orchestration graphs, stable actions, and references to
+    skills, agent profiles, tool descriptors, knowledge, prompts, and other
+    workflows through ordinary resource dependencies. No application recognizes
+    a workflow by a built-in ID.
+20. Agent profiles describe roles and behavioral constraints. They do not own
+    transitions, policy semantics, executable commands, or application routing.
+21. `contracts/ai/ENTRYPOINT.md` is a program contract, not an installable Hub
+    resource, and every governed AI operation loads its exact supported version
+    and digest before resource instructions.
+22. AI-Tool is an ordinary official skill selected by workflow manifests. It is
+    the default of the initial official workflows but receives no built-in
+    application privilege and may be replaced by a compatible alternative.
 
 ## Replacement Boundary
 
@@ -177,7 +219,7 @@ The six command names approved above are current product identities.
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
 | A01.0 | [Product Boundary And Inventory](00-product-boundary-and-inventory.md) | Current repository | Complete ownership and replacement ledger |
-| A01.1 | [Cargo Workspace And Core Extraction](01-cargo-workspace-and-core-extraction.md) | A01.0 | Virtual workspace, validation core, workspace contracts, and three application packages |
+| A01.1 | [Cargo Workspace And Core Extraction](01-cargo-workspace-and-core-extraction.md) | A01.0 | Virtual workspace, validation core, shared AI bootstrap contract, workspace contracts, and three application packages |
 | A01.2 | [Knowledge And Resource Separation](02-knowledge-and-ai-resource-separation.md) | A01.1 | Modular publishable resources with one authored source |
 | A01.3 | [Application Composition And Workspace Resources](03-application-composition-and-workspace-resources.md) | A01.2 | Independent validation, Manager, and Tool CLIs over one `.liknon/` contract |
 | A01.4 | [Conformance And Documentation](04-conformance-and-documentation.md) | A01.3 | Proven boundaries and reconciled public documentation |
@@ -201,6 +243,8 @@ before A01.4.
       payload beyond required built-in trust metadata.
 - [ ] Tool artifacts contain no complete resource corpus and require no
       network access.
+- [ ] Tool embeds only the program-owned AI bootstrap contract, returns its
+      exact version and digest, and does not classify it as installed content.
 - [ ] A selected knowledge resource is installed by Manager and returned
       byte-for-byte by Tool.
 - [ ] Validation succeeds when Manager and Tool are absent.
@@ -210,6 +254,9 @@ before A01.4.
 - [ ] No installation or lookup executes resource-provided commands.
 - [ ] All maintained documentation uses the approved paths, command names,
       ownership boundaries, and publication-track numbers.
+- [ ] Every maintained pre-separation AI document is updated or removed by its
+      owning phase; no earlier official-workflow root or embedded-resource model
+      remains as a fallback.
 
 ## Resulting System
 

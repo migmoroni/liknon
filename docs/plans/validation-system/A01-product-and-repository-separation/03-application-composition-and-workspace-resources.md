@@ -17,11 +17,15 @@ contracts and establish one safe consumer-owned `.liknon/` root.
 - stdin, stdout, stderr, signal, and exit adaptation;
 - validation-owned schemas;
 - explicit provisioning and inspection of validation configuration;
-- deterministic validation of the human-owned AI policy and AI artifacts
-  required by the existing validation-system contract.
+- thin adapters over shared deterministic validation of the human-owned AI
+  policy, the generic artifact envelope, and caller-supplied locked workflow
+  artifact contracts.
 
 It reads `.liknon/validation/config.json` for execution. It neither contacts
-the Hub nor discovers or renders installed resources.
+the Hub nor browses, selects, or renders installed resources. Artifact
+verification may read only the exact workflow manifest path supplied by the
+caller and must verify it against the resource lock before using its declared
+schema or destination template.
 
 ## Manager CLI
 
@@ -43,6 +47,7 @@ or validation commands.
 `liknon-tool` and `likt` expose the same offline resource-consumption
 application. It owns:
 
+- exact read-only projection of the program-owned AI bootstrap entry point;
 - installed-resource catalog and search;
 - exact resource lookup and rendering;
 - dependency-aware local resolution;
@@ -51,6 +56,11 @@ application. It owns:
 
 Tool performs no network access and no resource, validation, policy, or
 persistence mutation.
+
+The bootstrap projection works without a workspace or resource store and is
+reported separately from installed content. It returns the exact canonical
+bytes, contract version, and digest but does not host a model, select a workflow,
+or perform orchestration.
 
 ## Workspace Boundary
 
@@ -75,7 +85,7 @@ Ownership is divided by subtree:
 | `.liknon/resources/lock.json` | Exact Manager resolution |
 | `.liknon/resources/<kind>/` | Manager-installed immutable payloads |
 | `.liknon/ai/policy.json` | Human operator exclusively |
-| `.liknon/ai/persistence/` | AI-Engineering persistence contract |
+| `.liknon/ai/persistence/` | Declared workflow persistence contracts |
 
 A command creates only explicitly requested paths. Existing conflicting bytes,
 unsafe links, or boundary escapes fail before mutation.
@@ -91,18 +101,33 @@ Tool can consume a manually populated store when its manifest, lock, payloads,
 and hashes satisfy the public contract. Manager is therefore convenient but
 not a runtime dependency of Tool.
 
+The shared workspace contract owns generic policy, resource identity, workflow
+graph, and artifact-envelope types. Application adapters may validate or expose
+those types, but they never branch on `liknon-action`,
+`liknon-validation-engineering`, `liknon-ai-tool`, an official namespace, a
+process number, or an agent-profile identity.
+
+The shared contract also owns the generic AI bootstrap identity and
+compatibility types. It contains no AI-Tool or official-workflow identity;
+official workflows declare AI-Tool through their ordinary locked dependencies.
+
 ## Verification
 
 - Both names for each application have equivalent version and command behavior.
 - Validation operates with Manager and Tool absent.
 - Manager operates without a validation config or Tool executable.
 - Tool operates offline against Manager-produced and fixture-produced stores.
+- Tool returns the same bootstrap bytes and digest with no workspace present.
 - JSON output contains no ANSI.
 - Workspace discovery chooses the nearest boundary deterministically.
 - Explicit roots, nested workspaces, missing roots, unsafe links, and boundary
   escapes have deterministic tests.
 - Installation and materialization are transactional and idempotent for
   identical bytes.
+- An external workflow fixture with different node IDs, transitions, and agent
+  profiles passes through Manager and Tool without application-specific code.
+- The same fixture may select a compatible non-official operational skill
+  without changing bootstrap semantics or application code.
 
 ## Exit Criterion
 

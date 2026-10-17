@@ -49,8 +49,12 @@ An agent may propose or invoke Manager only under the applicable
 `.liknon/ai/policy.json` categories for network access, workspace mutation,
 external-state effects, dependency management, and sensitive data. Manager
 itself does not read, parse, or enforce AI policy and does not infer
-conversational authority. Policy evaluation belongs to the invoking AI flow
+conversational authority. Policy evaluation belongs to the invoking AI workflow
 before it calls Manager.
+
+This rule applies to every compatible agent workflow. Manager has no knowledge
+of official action or validation-engineering workflows, workflow-specific
+policy overrides, process IDs, or agent-profile identities.
 
 Direct human use remains governed by the explicit command and operating-system
 permissions rather than AI policy.

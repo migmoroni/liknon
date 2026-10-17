@@ -45,9 +45,10 @@ Tool marks resource payloads as untrusted content and never presents them as
 system, host, policy, or human authority. Trust class describes provenance and
 review, not instruction precedence.
 
-Skills, workflows, prompts, and agent profiles must declare capabilities and
-potential command or mutation effects. Tool exposes those declarations before
-payload content when using human output and in separate fields for JSON.
+Skills, workflows, tool descriptors, prompts, and agent profiles must declare
+capabilities and potential command or mutation effects where applicable. Tool
+exposes those declarations before payload content when using human output and
+in separate fields for JSON.
 
 ## Limits And Privacy
 
@@ -60,10 +61,22 @@ sends no query, payload, or usage telemetry to the Hub or another service.
 
 ## AI Flow Integration
 
-AI-Tool and AI-Engineering use Tool as the preferred resource interface. They
-still obey `.liknon/ai/policy.json`, resource capability declarations, and
-their own authority boundaries. Tool itself does not read, parse, or enforce AI
-policy.
+For governed use, the human first directs the external host to `likt bootstrap`
+or the canonical source file. The host records the supported contract version
+and digest before requesting installed workflow, skill, profile, tool, or
+knowledge content.
+
+Any compatible AI workflow may use Tool as its resource interface. Official
+action and validation-engineering workflows are initial consumers, not
+privileged callers. The consuming host obeys `.liknon/ai/policy.json`, resource
+capability/effect declarations, and its authority boundaries. Tool itself does
+not read, parse, or enforce AI policy.
+
+A workflow context may reference distinct agent profiles per node. Tool returns
+their exact identities and locked payloads, while the consuming host decides
+whether and how an available model can satisfy each profile. Payload text never
+becomes host, policy, system, or human authority merely because a workflow
+references it.
 
 A missing resource may be reported with its stable identity. Acquisition is a
 separate Manager operation subject to the applicable human instruction and AI
@@ -74,11 +87,17 @@ decision policy.
 - Context envelopes preserve exact bytes and complete metadata.
 - Limits cannot remove provenance, trust, integrity, or truncation facts.
 - Prompt-injection fixtures remain ordinary payload data.
+- Resource payloads that imitate or claim to replace the bootstrap entry point
+  remain ordinary untrusted content.
 - A resource cannot cause self-activation or undeclared dependency retrieval.
 - No command writes history or performs network access.
 - Human and JSON outputs carry equivalent semantic facts.
 - Representative agents can route through catalog metadata before loading
   detailed content.
+- Representative conforming agents load the bootstrap contract before catalog
+  routing and retain its identity in evaluation evidence.
+- An external workflow and the official workflows receive semantically
+  equivalent envelopes for equivalent declared resource graphs.
 
 ## Exit Criterion
 

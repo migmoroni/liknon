@@ -257,7 +257,7 @@ Progressive consumption follows this sequence:
    available and authorized;
 6. report missing local coverage or inaccessible depth explicitly.
 
-Reading knowledge never selects a flow, starts an AI-Engineering process,
+Reading knowledge never selects or activates a workflow node,
 writes an artifact, grants authority, or authorizes network access.
 
 ## 9. Verification And Forward Trials

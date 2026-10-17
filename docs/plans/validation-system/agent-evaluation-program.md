@@ -9,12 +9,12 @@ families:
 1. the public CLI through only its executable and in-band output;
 2. the public CLI with public documentation but without bundled agent
    instructions;
-3. the AI-Tool operational interface;
-4. the complete AI-Engineering Flow.
+3. the official action workflow and its AI-Tool operational skill;
+4. the complete official validation-engineering workflow.
 
 These are evaluation families, not runtime modes, release phases, or additional
 workspace contracts. Phase 7 implements and executes the complete program after
-the Human, AI-Tool, and AI-Engineering contracts are available. Earlier phases
+the Human, action-workflow, and validation-engineering contracts are available. Earlier phases
 define representative scenarios and observable acceptance criteria for the
 surface they introduce.
 
@@ -47,8 +47,9 @@ Every evaluation run uses:
 
 Record at least the scenario version, fixture digest, prompt digest, permitted
 context, Validation, Manager, and Tool versions when present, resource lock and
-payload digests, exact skill and workflow resource identities, versions, and
-manifest digests when present, documentation revision, model provider, model
+payload digests, exact workflow, agent-profile, skill, and other resource
+identities, versions, and manifest digests when present, AI bootstrap-contract
+version and digest for governed trials, documentation revision, model provider, model
 identifier, relevant model settings, run timestamp, completion status,
 observed actions, deterministic assertion results, rubric scores, human
 interventions, and reviewer notes.
@@ -68,8 +69,8 @@ evals/
 ├── scenarios/
 │   ├── cli-only-discovery/
 │   ├── documentation-only-cli/
-│   ├── ai-tool/
-│   └── ai-engineering/
+│   ├── official-action-workflow/
+│   └── official-validation-engineering/
 ├── fixtures/
 ├── rubrics/
 └── runs/                         # Local or CI output; not source input
@@ -89,9 +90,41 @@ recorded manual trials while producing the same evidence envelope.
 
 The family order is analytical: Family A measures CLI self-discovery, Family B
 measures the incremental value of public documentation, Family C measures the
-incremental value of AI-Tool, and Family D evaluates the composed engineering
+incremental value of the action workflow and AI-Tool skill, and Family D evaluates the composed engineering
 system. It does not define runtime dependencies or require one family to
 execute another.
+
+Families A and B are deliberately direct, non-governed baselines. They do not
+receive the AI bootstrap contract, decision-policy instructions, or installed AI resources
+and make no claim of governed Liknon conformance. Families C and D are governed
+trials: the human directs the external host to the canonical bootstrap entry
+point first, and the harness verifies that the host records its exact supported
+version and digest before loading workflow or skill instructions.
+
+### 2.2 Generic Workflow Conformance Baseline
+
+Before interpreting model behavior, run a deterministic conformance suite with
+an external fixture workflow that deliberately differs from both official
+workflows. It uses non-numeric node IDs, branching and joining edges, its own
+continuation-eligible transition, independently versioned agent profiles, and
+no official resource IDs.
+
+The suite proves that Manager installs and locks its complete dependency graph,
+Tool returns the graph and profiles without executing them, and policy resolves
+global fallback, an exact workflow override, and nested most-restrictive
+composition. It also proves that installing, listing, or retrieving the fixture
+does not activate it, and that unknown or materially undeclared effects stop.
+Source assertions reject official workflow, node, transition, skill, or profile
+IDs in application control flow.
+
+The conforming external host loads the program-owned bootstrap contract before
+the fixture workflow, records its version and digest, and may use a compatible
+alternative operational skill instead of AI-Tool. The same host and application
+code must enforce compatibility and policy boundaries for both choices.
+
+This baseline is not a fifth agent-evaluation family. It isolates platform
+genericity from model quality so a hard-coded orchestration defect cannot be
+misreported as an agent failure.
 
 ## 3. Evaluation Family A: CLI-Only Discovery
 
@@ -160,26 +193,27 @@ the point at which CLI self-description no longer supplies enough context.
 
 ### 4.1 Objective
 
-Measure whether an agent with no AI-Tool or AI-Engineering instructions can use
+Measure whether an agent with no action-workflow, AI-Tool, or
+validation-engineering instructions can use
 the public executable correctly from public documentation. This evaluates CLI
 discoverability, reference quality, examples, diagnostics, and model-neutral
 usability.
 
 This family is not an additional governed AI flow. The evaluated agent receives
-no claim to AI-Tool policy enforcement, AI-Engineering persistence, or bundled
+no claim to AI-Tool policy enforcement, workflow persistence, or bundled
 agent routing. It operates as a direct CLI consumer under the evaluation
 harness's ordinary permissions and human controls.
 
 ### 4.2 Context Isolation
 
 Provide only the released CLI, `--help`, schemas, examples, and public
-documentation declared by the scenario. Withhold the distributed AI-Tool
-skill, AI-Engineering workflow, their operational references, internal
+documentation declared by the scenario. Withhold the distributed action
+workflow, AI-Tool skill, validation-engineering workflow, their operational references, internal
 implementation plans, expected answers, and traces from other evaluation runs.
 
 Use paired scenarios with Families A and C whenever the same task can be
 expressed across all three contexts. The comparisons separately measure the
-value added by public documentation over CLI-only discovery and by AI-Tool over
+value added by public documentation over CLI-only discovery and by the action workflow plus AI-Tool over
 public documentation without changing the workspace, prompt intent,
 permissions, or expected CLI outcome.
 
@@ -205,28 +239,34 @@ argument accuracy, number of corrective attempts, interpretation of reports and
 exit codes, unsupported assumptions, unnecessary workspace changes, and the
 point at which documentation or CLI feedback fails to supply enough context.
 
-## 5. Evaluation Family C: AI-Tool Interface
+## 5. Evaluation Family C: Official Action Workflow And AI-Tool Interface
 
 ### 5.1 Objective
 
-Measure whether AI-Tool is a clear, safe, and composable agent interface over
-the deterministic CLI. The evaluated surface is AI-Tool, not the underlying
-model's general ability to discover the CLI independently and not the complete
-AI-Engineering reasoning system.
+Measure whether the official action workflow routes bounded human tasks
+correctly and whether its AI-Tool dependency is a clear, safe, and composable
+agent interface over the deterministic CLI. The evaluated surface is the action
+route and operation boundary, not the underlying model's general ability to
+discover the CLI independently and not the complete validation-engineering
+reasoning system.
+
+Every Family C trial begins with the canonical AI bootstrap entry point. The
+official AI-Tool skill is the workflow's declared default dependency, not a
+program-privileged route.
 
 ### 5.2 Consumer Shapes
 
-Exercise AI-Tool through both supported consumer shapes:
+Exercise the action workflow and AI-Tool through both supported consumer shapes:
 
 - a human gives a natural task prompt to an agent, which routes to one or more
   bounded AI-Tool operations;
-- an AI-Engineering scenario invokes a required AI-Tool operation as a
+- a validation-engineering scenario invokes a required AI-Tool operation as a
   downstream consumer, while the evaluation scores only the operation boundary
   and returned evidence.
 
 The second shape is contract dogfooding. It proves that AI-Tool is useful to
 another agent workflow without conflating that result with the end-to-end
-quality of AI-Engineering.
+quality of validation engineering.
 
 ### 5.3 Required Scenarios
 
@@ -242,10 +282,10 @@ blocked, and adversarial prompts. Include at minimum:
 - returning evidence that another agent can consume without reconstructing the
   operation;
 - refusing policy mutation, unauthorized effects, hidden persistence, implicit
-  AI-Engineering activation, and unchanged retry loops;
+  validation-engineering activation, and unchanged retry loops;
 - recognizing a request that legitimately spans two AI-Tool operations without
   eagerly loading all references;
-- keeping separate requests independent.
+- keeping separate requests independent;
 - reporting a missing required resource by stable identity without silently
   invoking Manager, accessing the Hub, or mutating `.liknon/resources/`.
 
@@ -256,15 +296,18 @@ unnecessary commands, human interventions, context loaded, report
 interpretation, safety violations, unsupported claims, and usefulness of the
 bounded result to both human and agent consumers.
 
-## 6. Evaluation Family D: AI-Engineering End To End
+## 6. Evaluation Family D: Official Validation-Engineering End To End
 
 ### 6.1 Objective
 
-Measure the complete AI-Engineering product on representative projects and
-natural human prompts. AI-Tool is infrastructure in this family; the evaluated
+Measure the complete official validation-engineering workflow on representative
+projects and natural human prompts. AI-Tool is infrastructure in this family; the evaluated
 surface is the engineering orchestration, analytical quality, persistence,
 continuation, remediation discipline, and human collaboration of Processes 0
 through 3.
+
+Every Family D trial loads and records the canonical bootstrap contract before
+the workflow graph and its replaceable dependencies.
 
 ### 6.2 Required Scenarios
 
@@ -287,7 +330,7 @@ failure modes, and validation gaps. Include at minimum:
   responsibility;
 - direct CLI use only for a required capability with no applicable AI-Tool
   operation, using canonical reference documentation and recording why the
-  direct route was necessary.
+  direct route was necessary;
 - missing-resource behavior that stops safely and requests a distinct,
   policy-governed acquisition decision instead of invoking `likm` implicitly.
 
@@ -305,6 +348,8 @@ result.
 Use deterministic assertions for facts such as:
 
 - selected routes and loaded references;
+- bootstrap-contract version, digest, and first-instruction ordering in
+  governed trials;
 - selected knowledge document IDs, modular resource IDs, and exact application
   commands;
 - resource manifest, lock, payload digests, and absence of undeclared Hub or
@@ -318,7 +363,8 @@ Use deterministic assertions for facts such as:
 - use of AI-Tool when an applicable operation exists;
 - absence of external documentation, pre-supplied schemas, examples, skills,
   validator source code, and prior traces in CLI-only trials;
-- absence of AI-Tool and AI-Engineering context in documentation-only trials.
+- absence of action-workflow, AI-Tool, and validation-engineering context in
+  documentation-only trials.
 
 Use reviewed rubrics for qualities that cannot be reduced to exact equality,
 including diagnostic usefulness, clarity, proportionality, uncertainty,
@@ -337,8 +383,8 @@ Classify every observed failure before changing the product:
 - Family A primarily informs command naming, built-in help, introspection,
   diagnostics, and CLI self-description;
 - Family B primarily informs examples, schemas, and public documentation;
-- Family C primarily informs AI-Tool routing and operation references;
-- Family D primarily informs AI-Engineering process prompts, persistence,
+- Family C primarily informs action-workflow routing and AI-Tool operation references;
+- Family D primarily informs validation-engineering process prompts, persistence,
   handoffs, and orchestration;
 - a failure shared across all families may indicate a runtime, schema, report,
   or public-contract problem;
@@ -355,6 +401,10 @@ The evaluation program is complete when:
 
 - all four families have versioned scenarios, fixtures, deterministic
   assertions, and reviewed rubrics;
+- the generic external-workflow conformance baseline passes before model scores
+  are interpreted;
+- Families A and B remain explicitly non-governed baselines, while every Family
+  C and D trial loads and records the exact bootstrap contract first;
 - evaluation source assets are isolated from generated runs and from normal
   crate runtime dependencies;
 - the declared model matrix runs from fresh contexts with reproducible inputs;
@@ -363,13 +413,19 @@ The evaluation program is complete when:
 - direct documentation-only agents complete representative CLI workflows
   without hidden skill context and are compared with paired CLI-only baselines
   where applicable;
-- AI-Tool is evaluated through human prompts and AI-Engineering consumption and
+- the official action workflow and AI-Tool are evaluated through human prompts
+  and validation-engineering consumption and
   compared with paired documentation-only baselines where applicable;
-- AI-Engineering is evaluated independently as the end-to-end product;
+- the official validation-engineering workflow is evaluated independently as
+  the end-to-end product;
 - missing-resource scenarios prove that Tool access never implies Manager or
   network authority;
+- workflow and profile snapshots record exact resource versions, manifest
+  digests, node, transition, and action IDs, resource-lock digest, bootstrap
+  version and digest, and effective policy source;
 - results contain enough evidence to attribute failures to CLI
-  self-description, public documentation, AI-Tool, AI-Engineering, the runtime,
+  self-description, public documentation, action routing, AI-Tool,
+  validation engineering, the runtime,
   or a model capability;
 - release conclusions identify model coverage, repetitions, residual failures,
   and uncertainty instead of claiming universal agent correctness.

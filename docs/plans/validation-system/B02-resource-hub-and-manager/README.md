@@ -18,7 +18,8 @@ Provide one trustworthy path for discovering, selecting, obtaining, locking,
 verifying, updating, removing, and explicitly materializing Liknon resources.
 
 The initial resource kinds are knowledge, skills, workflows, agent profiles,
-prompts, guides, templates, and collections. Users select only what they need.
+tool descriptors, prompts, guides, templates, and collections. Users select only
+what they need.
 A complete knowledge collection may be offered, but it is optional and follows
 the same resolver and lock contract as every smaller selection.
 
@@ -69,6 +70,7 @@ duplicate these mutation-oriented semantics.
 ├── skills/
 ├── workflows/
 ├── agent-profiles/
+├── tools/
 ├── prompts/
 ├── guides/
 ├── templates/
@@ -82,6 +84,16 @@ payload paths, lengths, and digests.
 Installed payloads are immutable for one locked identity. Manager replaces
 state only through a complete preflight and atomic commit. Cache entries and
 partial downloads remain outside the workspace.
+
+Payload paths are type-first and namespace-aware:
+
+```text
+.liknon/resources/<kind>/<namespace>/<name>/<version>/
+```
+
+The lock, rather than the filesystem spelling alone, is authoritative. A
+namespace such as `official` identifies a publisher boundary and grants no
+special execution or policy authority.
 
 ## Hub And Trust Model
 
@@ -144,6 +156,18 @@ releases. Publishing or updating a resource never requires rebuilding Manager.
 - [ ] Installation, update, removal, and materialization are preflighted,
       path-safe, transactional, and recoverable.
 - [ ] Installing a resource never executes it or activates it implicitly.
+- [ ] Official and external workflows use the same graph, dependency,
+      capability, effect, and agent-profile reference contracts.
+- [ ] A workflow with absent or incompatible decision-policy compatibility may
+      be installed and inspected but is never reported as activatable.
+- [ ] A workflow with absent or incompatible AI bootstrap compatibility follows
+      the same installable-but-not-activatable behavior.
+- [ ] No catalog entry or installed resource can replace or shadow the
+      program-owned AI bootstrap contract.
+- [ ] Official AI-Tool and compatible alternative operational skills resolve
+      through the same dependency and trust contracts.
+- [ ] Manager contains no branch for an official resource ID, process name, or
+      workflow shape.
 - [ ] Tool can consume Manager-produced state without invoking Manager.
 - [ ] Resource publication does not rebuild any CLI.
 - [ ] The crates.io package resolves only published supporting crates.

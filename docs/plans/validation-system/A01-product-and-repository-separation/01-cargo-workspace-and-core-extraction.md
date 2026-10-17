@@ -17,7 +17,10 @@ contract used by Manager and Tool.
 - `crates/liknon-core` owns validation contracts and behavior.
 - `crates/liknon-workspace` owns `.liknon/` boundary discovery, path-safe
   resource locations, resource identities, manifests, locks, provenance, and
-  compatibility types.
+  compatibility types, including the program-owned AI bootstrap identity and
+  version contract.
+- `contracts/ai/ENTRYPOINT.md` is the canonical authored bootstrap source. It is
+  included exactly by Tool and is not represented as a Hub resource.
 - `apps/liknon-cli` owns binary targets `liknon` and `likx`.
 - `apps/liknon-manager` owns binary targets `liknon-manager` and `likm`.
 - `apps/liknon-tool` owns binary targets `liknon-tool` and `likt`.
@@ -62,6 +65,8 @@ authored content.
 - manifest and lock parsing;
 - exact path containment and symlink rejection;
 - version, compatibility, origin, length, and digest metadata.
+- AI bootstrap-contract identity, supported version, exact-byte digest, and
+  machine-result metadata without interpreting its instructions.
 
 It performs no network access, command execution, terminal rendering, resource
 selection policy, or validation execution.
@@ -84,6 +89,8 @@ projection. Neither application invokes another executable.
 - Dependency inspection proves both internal crates are terminal-independent.
 - Manager network tests require no validation engine.
 - Tool tests require no network or validation configuration.
+- Tool bootstrap tests require no workspace or resource store and prove exact
+  equality with `contracts/ai/ENTRYPOINT.md`.
 - `cargo test --workspace --all-targets --locked` exercises all members.
 - Isolated installation proves both command names of each application.
 - `cargo package` verification for every publishable member proves that each

@@ -24,8 +24,8 @@ CLI commands before Phase B04.0 is approved.
 
 The three applications and future libraries are separate products. A B04
 library does not install, embed, invoke, or impersonate any CLI. It also does
-not bundle knowledge, skills, workflows, prompts, guides, templates,
-collections, or agent profiles.
+not bundle knowledge, skills, workflows, agent profiles, tool descriptors,
+prompts, guides, templates, or collections.
 
 A01 may publish `liknon-core` and `liknon-workspace` as supporting Cargo
 dependencies so crates.io application packages can build without local paths.
@@ -72,7 +72,9 @@ Phase B04.0 evaluates and narrows capabilities such as:
 - discover and inspect an explicit `.liknon/` workspace through shared
   contracts;
 - read and verify installed resource metadata without acquiring or mutating
-  resources.
+  resources, including generic workflow graphs, agent-profile references, tool
+  descriptors, and policy-compatibility metadata when an approved consumer
+  requires them.
 
 This list is discovery input. Help rendering, ANSI presentation, process exit,
 implicit current-directory behavior, package-manager discovery, Hub access,
@@ -96,7 +98,10 @@ resource installation, and CLI argument parsing are not programmatic APIs.
 9. Native payloads, when required, are libraries or extension modules, never
    CLI executable copies.
 10. No authored resource payload is duplicated into a language package.
-11. A binding is published only with representative in-process behavior and
+11. A public resource API, when approved, exposes generic contracts and never
+    branches on official workflow, node, action, transition, skill, tool, or
+    profile IDs.
+12. A binding is published only with representative in-process behavior and
    host-language conformance tests.
 
 ## Decisions Required Before Implementation
@@ -156,6 +161,8 @@ Binding phases are optional and need not launch simultaneously.
 - [ ] Public APIs are designed independently from CLI syntax and presentation.
 - [ ] No package embeds or invokes a Liknon CLI.
 - [ ] No package embeds Hub content or authored resources.
+- [ ] Any exposed workflow, profile, tool, or policy type passes external
+      non-official resource fixtures without application-specific branches.
 - [ ] Every binding uses explicit workspace and side-effect boundaries.
 - [ ] Errors, cancellation, events, and reports preserve documented semantics.
 - [ ] Native packages contain only target-appropriate library artifacts.

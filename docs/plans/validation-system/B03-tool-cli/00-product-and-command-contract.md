@@ -11,8 +11,8 @@ failure classes, and safety boundaries before implementation.
 
 - Confirm Cargo package `liknon-tool` and commands `liknon-tool` and
   `likt`.
-- Define exact grammar for `catalog`, `search`, `show`, `resolve`, and
-  `context`.
+- Define exact grammar for `bootstrap`, `catalog`, `search`, `show`, `resolve`,
+  and `context`.
 - Define workspace discovery and explicit-root behavior.
 - Define human and versioned JSON output contracts.
 - Define stable ordering, text matching, output-size, file-count, and binary
@@ -28,6 +28,8 @@ failure classes, and safety boundaries before implementation.
 
 Tool:
 
+- returns the embedded program-owned bootstrap contract without workspace
+  discovery or resource-store access;
 - reads only the selected `.liknon/resources/` store;
 - verifies locked metadata and payload bytes before returning content;
 - treats every payload as untrusted data;
@@ -39,10 +41,21 @@ No option may turn a read operation into installation or execution.
 
 ## Command Semantics
 
+`bootstrap` returns the exact canonical `contracts/ai/ENTRYPOINT.md` bytes plus
+its supported contract version and SHA-256 digest. Human output is canonical
+Markdown; JSON wraps the same content in a versioned machine result. It works
+without `.liknon/`, performs no resource lookup, and never loads a workflow or
+skill.
+
 `catalog` and `search` are discovery operations. `show` retrieves an exact
 resource or declared file. `resolve` returns an exact locked closure.
 `context` packages an explicit selection with boundaries and metadata; it
 does not decide what an agent should believe or execute.
+
+When that selection contains a workflow, output preserves node, action,
+transition, entry, terminal, continuation-eligibility, declared-effect,
+dependency, tool-operation, and agent-profile references. These fields are data
+for the consuming AI host, not Tool control flow.
 
 If a resource is absent, Tool reports the stable ID and absence. It may provide
 a human-readable suggestion to use Manager, but it does not invoke Manager or
@@ -56,15 +69,20 @@ Prototype:
 - one knowledge document;
 - one multi-file skill;
 - one collection and transitive closure;
+- one official workflow and one external workflow with different graphs,
+  actions, profiles, tool-operation references, and continuation edges;
 - duplicate display titles with distinct IDs;
 - modified and missing payloads;
 - incompatible and revoked resources;
 - text and binary files;
 - output-limit truncation;
 - human, JSON, colored, plain, standard, and low-vision presentation.
+- bootstrap output with no workspace, a malformed workspace, and an unrelated
+  installed resource claiming to be an entry point.
 
 ## Exit Criterion
 
-Tool behavior is completely defined as local verified consumption, with no
-ambiguity between administrative Manager operations and content-oriented Tool
+Tool behavior is completely defined as exact program-bootstrap projection plus
+local verified resource consumption, with no ambiguity between program
+contracts, administrative Manager operations, and content-oriented Tool
 operations.

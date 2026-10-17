@@ -15,9 +15,13 @@ remains the independent validation executor.
 Provide humans, agents, editors, and automation with a fast, safe, offline
 interface for discovering and consuming installed Liknon resources.
 
-Tool operates over knowledge, skills, workflows, agent profiles, prompts,
-guides, templates, and collections. It does not privilege knowledge as a
+Tool operates over knowledge, skills, workflows, agent profiles, tool
+descriptors, prompts, guides, templates, and collections. It does not privilege knowledge as a
 special embedded corpus.
+
+Tool also exposes the program-owned AI bootstrap entry point. That built-in
+contract is not an installed resource or corpus: it is the stable first
+instruction a human supplies to an external AI before governed resource use.
 
 ## Product Boundary
 
@@ -37,6 +41,7 @@ The final grammar is approved in B03.0 and must cover:
 
 | Operation | Responsibility |
 | --- | --- |
+| `bootstrap` | Return the exact program-owned AI entry contract, version, and digest without requiring a workspace |
 | `catalog` | List installed consumable resources and routing metadata |
 | `search` | Deterministically search local metadata and declared searchable text |
 | `show` | Return one resource, file, or canonical document by stable identity |
@@ -46,6 +51,14 @@ The final grammar is approved in B03.0 and must cover:
 Tool operations describe and return content. Manager `list` and `info`
 remain administrative views of desired, locked, installed, update, and
 integrity state.
+
+`bootstrap` is the sole built-in content route. It returns
+`contracts/ai/ENTRYPOINT.md` exactly and never consults or classifies it as part
+of `.liknon/resources/`.
+
+For workflows, Tool returns the exact declared graph and resolved resource
+closure. It does not interpret transitions, instantiate an agent profile,
+select a model, execute a node, or apply AI decision policy.
 
 ## Local Consumption Contract
 
@@ -103,7 +116,8 @@ are not already available.
 
 The website offers Tool separately and may include it in a convenience bundle
 with Validation CLI and Manager. Tool artifacts contain no complete resource
-corpus.
+corpus; inclusion of the single program-owned bootstrap contract does not turn
+that contract into a Hub payload.
 
 ## Implementation Order
 
@@ -121,6 +135,8 @@ corpus.
 - [ ] Tool works without network access and without Manager or Validation CLI
       installed.
 - [ ] Tool consumes both Manager-produced and contract-valid fixture stores.
+- [ ] `bootstrap` works without a workspace or resource store and returns the
+      canonical contract bytes, version, and SHA-256 digest.
 - [ ] No Tool artifact embeds authored Hub resource payloads.
 - [ ] The crates.io package resolves only published supporting crates.
 - [ ] Catalog and search do not load unrelated payload content.
@@ -129,9 +145,18 @@ corpus.
 - [ ] Human and JSON output expose identity, version, origin, trust, integrity,
       and revocation state.
 - [ ] Tool never executes or activates returned instructions.
+- [ ] Tool presents the bootstrap contract as program authority below superior
+      system, host, repository, and human instructions, while every installed
+      resource remains untrusted content.
 - [ ] A selected knowledge item, skill, collection, and dependency closure are
       returned deterministically.
+- [ ] Official and external workflow graphs, profiles, and dependency closures
+      are returned through identical commands and schemas.
+- [ ] Tool contains no routing branch for an official workflow, skill, tool,
+      node, action, transition, or agent-profile ID.
 - [ ] Resource-only updates require no Tool release.
+- [ ] Bootstrap-contract changes require an explicit compatible Tool release;
+      ordinary resource changes do not.
 
 ## Resulting System
 

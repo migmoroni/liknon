@@ -16,14 +16,20 @@ one owner and one intended distribution surface per item.
   dependencies without representing them as the future B04 public API.
 - Classify each schema as a validation contract, workspace/resource contract,
   application contract, or repository-only contract.
-- Classify every knowledge, skill, workflow, agent profile, prompt, guide,
+- Classify every knowledge, skill, workflow, agent profile, tool descriptor, prompt, guide,
   template, and collection as one authored resource.
+- Inventory every current AI-facing root instruction, policy guide, workflow
+  entry document, and host assumption. Classify the new
+  `contracts/ai/ENTRYPOINT.md` as a program contract rather than a Hub resource.
 - Identify which files are compiled application assets, published Hub
   resources, public documentation, or maintainer-only material.
 - Assign every current `.validation/` path to its canonical destination below
   `.liknon/validation/` or `.liknon/ai/`.
 - Identify every embedded-corpus input and every resource copy that must be
   replaced by Hub publication and workspace installation.
+- Identify every maintained base document whose current official-workflow,
+  policy, persistence, or resource assumption must be replaced by the generic
+  bootstrap and resource contracts.
 - Separate structured report construction from human rendering and live
   progress.
 - Record every path whose command, installation path, package ownership,
@@ -50,6 +56,11 @@ The ledger explicitly covers removal of:
 - embedded complete-corpus behavior;
 - ecosystem-package resource distribution;
 - the standalone `.validation/` root.
+
+The ledger also identifies which implementation phase updates or removes each
+superseded base document. A temporary difference between current documentation
+and the approved target is not a compatibility requirement and must not produce
+a fallback reader or duplicate contract.
 
 ## Verification
 

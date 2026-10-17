@@ -32,10 +32,22 @@ The lock records:
 - source origin and trust class;
 - dependency and collection edges;
 - compatibility facts used by the resolver;
+- the AI bootstrap and decision-policy compatibility facts used for governed
+  workflow reporting;
 - resource manifest digest;
 - every payload path, length, and digest;
 - installation path;
 - explicit materializations.
+
+For workflows, the locked closure includes every exact skill, agent profile,
+tool descriptor, knowledge item, prompt, and subworkflow dependency required by
+the selected graph. Resolution does not activate the graph or bind profiles to
+models.
+
+The lock references the required bootstrap-contract range but never stores a
+resource copy of the program contract. Manager reports incompatibility against
+the installed application capability and leaves the workflow inspectable but
+not activatable.
 
 The same manifest, lock, authenticated objects, and supported Manager version
 produce the same installed bytes.
@@ -58,6 +70,10 @@ Installation never:
 - alters AI policy;
 - writes an undeclared destination;
 - activates an agent integration implicitly.
+
+Materialized agent integrations remain projections of locked resources. Their
+destination adapters are generic by declared integration format and never
+special-case an official workflow or profile identity.
 
 ## Update And Removal
 
@@ -85,6 +101,8 @@ It never modifies global agent configuration silently.
 - Lock and installed bytes survive process interruption at every boundary.
 - Identical installation is idempotent.
 - Update cannot change an unrelated locked resource.
+- A running workflow can retain its recorded lock snapshot while a later
+  Manager transaction installs a newer graph for future executions.
 - Removal and materialization preserve unowned files.
 - A modified cached or staged payload is rejected before commit.
 

@@ -33,6 +33,10 @@ until this phase has an approved exit record.
 - Define cancellation, timeout, progress-event, and output-capture behavior.
 - Define stable result and diagnostic types.
 - Define deterministic serialization where callers need persisted evidence.
+- If installed-resource inspection enters scope, expose workflow graphs,
+  actions, profiles, tool descriptors, artifact declarations, and
+  policy-compatibility facts as generic typed data without interpreting or
+  activating them.
 - Define thread-safety, reentrancy, callback, and resource-lifetime rules.
 
 ### Failure Boundaries
@@ -70,6 +74,8 @@ that executes a validation plan. Each candidate boundary must prove:
 - safe memory and resource ownership;
 - no CLI subprocess invocation;
 - no embedded authored-resource payload or implicit Hub access;
+- no official resource ID, process number, graph shape, or profile identity in
+  API control flow;
 - feasibility in at least two materially different host runtimes before a
   shared ABI is declared universal.
 
@@ -83,6 +89,8 @@ that executes a validation plan. Each candidate boundary must prove:
 - Invalid callbacks, cancellation, and host-language exceptions fail safely.
 - The design identifies every public compatibility surface and its owner.
 - Every proposed package has a named consumer or remains unimplemented.
+- Any selected resource-inspection API passes an external workflow fixture with
+  non-numeric nodes and independently versioned profiles.
 
 ## Exit Criterion
 

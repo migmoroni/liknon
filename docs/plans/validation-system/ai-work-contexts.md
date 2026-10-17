@@ -2,9 +2,10 @@
 
 ## 1. Status And Audience
 
-This is cross-cutting human-only operator guidance for the AI-Engineering Flow,
-not an implementation phase, AI process, runtime contract, skill-routing rule,
-or persistence schema. It is not part of the Human Flow or AI-Tool Flow.
+This is cross-cutting human-only operator guidance for the official
+validation-engineering workflow, not an implementation phase, workflow node,
+runtime contract, skill-routing rule, or persistence schema. It is not part of
+the Human Flow or official action workflow.
 
 It specifies the public guide to be authored at:
 
@@ -23,13 +24,16 @@ work. It may be one chat, a sequence of chats, or another agent session model.
 It is not a workspace directory, execution environment, persisted artifact
 type, or security boundary.
 
-Chat identity and chat history are not process inputs. Continuity comes from
+Chat identity and chat history are not workflow inputs. Continuity comes from
 the exact domain, sensorium, incident, drift, and report artifacts supplied to
 an invocation. Each artifact carries its own explicit references and digests.
 
 ## 3. Recommended Organization
 
-For sustained work, recommend two conversational contexts.
+For sustained work with the current official validation-engineering workflow,
+recommend two conversational contexts. The process names and relationships in
+this guide are read from that workflow resource; they are not generic Liknon
+requirements.
 
 ### 3.1 Setup Context
 
@@ -83,40 +87,48 @@ changes purpose, or accumulates irrelevant assumptions.
 
 ## 5. Invocation And Continuity
 
-The human invokes the required AI-Engineering process, states the immediate
-goal, and supplies the exact prerequisite artifact paths. A direct process
-handoff may pass paths returned by the preceding process without asking the
-human to transcribe them.
+The human first directs the external AI host to the canonical Liknon bootstrap
+entry point, then invokes the required official workflow node, states the
+immediate goal, and supplies the exact prerequisite artifact paths. The host
+records the supported bootstrap-contract version and digest for the invocation.
+A direct node handoff may pass paths returned by the preceding process without
+asking the human to transcribe them.
 
 The agent then:
 
-1. loads the requested process from the installed `liknon-ai-engineering`
-   workflow, its declared `liknon-ai-tool` skill dependency and immutable
-   policy boundary, and only the AI-Tool operations needed for it, then
+1. loads and verifies the program-owned AI bootstrap contract before any
+   replaceable workflow, profile, skill, tool, guide, knowledge, or artifact
+   instruction;
+2. loads the requested node from the installed
+   `workflow:official/liknon-validation-engineering` resource, its selected
+   agent profile, declared `liknon-ai-tool` skill dependency, shared policy
+   boundary, and only the skill operations needed for it, then
    retrieves selected knowledge documents through `likt`;
-2. verifies Validation and Tool capabilities plus the exact workflow and skill
-   resource compatibility;
-3. invokes `policy validate` for the explicit active workspace root and records
-   the exact path, schema version, and digest of the existing valid policy;
-4. verifies every explicitly supplied artifact and report through the
+3. verifies Validation and Tool capabilities plus the exact resource lock,
+   workflow, profile, skill, tool descriptor, guide, and knowledge-resource
+   compatibility;
+4. invokes `policy validate` for the explicit active workspace root and records
+   the exact path, schema version, digest, and effective global or workflow
+   override source of the existing valid policy;
+5. verifies every explicitly supplied artifact and report through the
    deterministic persistence commands;
-5. verifies the relationships and digests required by the requested process;
-6. performs only the invoked process and its authorized effects;
-7. validates and stores one new immutable UUIDv7 process artifact, applying
+6. verifies the relationships and digests required by the requested process;
+7. performs only the invoked process and its authorized effects;
+8. validates and stores one new immutable UUIDv7 process artifact, applying
    `sensitiveDataPersistence` when protected content remains;
-8. revalidates the current policy and the next process preconditions, then
-   applies `processContinuation` after Process 0 or after a passing verified
-   Process 2 result;
-9. classifies every other governed effect under all applicable decision
+9. revalidates the current policy and target-node preconditions, then applies
+   `processContinuation` to the `0 -> 1` and `2 -> 3` edges declared
+   continuation-eligible by this workflow;
+10. classifies every other governed effect under all applicable decision
    categories and requests a free-text human decision exactly when the
    restrictive result is `human`.
 
-If Step 1 cannot resolve a required installed resource, the process stops and
+If Step 2 cannot resolve a required installed resource, the process stops and
 reports its stable identity. Resource acquisition is a separate Manager action;
 the agent does not invoke `likm`, access the Hub, or mutate the resource store
 without a distinct policy evaluation and human authority.
 
-If Step 3 reports a missing policy, the process stops before Step 4. The agent
+If Step 4 reports a missing policy, the process stops before Step 5. The agent
 routes to the advisory AI-Tool `policy` operation, asks the human to run
 `liknon init --policy` personally, and explains that the human must
 review `processContinuation` and every decision level. An invalid policy also
@@ -138,7 +150,9 @@ an artifact from directory order or filename recency.
 The guide explains that the human:
 
 - chooses whether to separate or combine conversational contexts;
-- invokes the desired AI-Engineering process and supplies its immediate
+- directs the external AI host to the canonical Liknon bootstrap entry point
+  before governed work;
+- invokes the desired validation-engineering node and supplies its immediate
   objective;
 - supplies exact prerequisite artifact paths when starting outside a direct
   process handoff;
@@ -150,8 +164,8 @@ The guide explains that the human:
 - provides domain decisions that repository evidence cannot establish;
 - answers policy-required free-text decisions and may constrain or perform the
   proposed action manually;
-- decides `0 -> 1` and `2 -> 3` handoffs when
-  `processContinuation` is `human`.
+- decides the official workflow's `0 -> 1` and `2 -> 3` handoffs when its
+  effective `processContinuation` value is `human`.
 
 The human does not need to manage artifact IDs or digests manually during a
 direct handoff, select files by recency, or keep a conversation alive solely to
@@ -165,6 +179,8 @@ agent:
 
 - does not infer process semantics or authority from the conversation in which
   it runs;
+- loads and verifies the program-owned bootstrap contract before replaceable
+  resources and records its version and digest;
 - does not require access to previous chat history;
 - verifies every explicit prerequisite before loading its analytical content;
 - validates the existing decision policy through the deterministic read-only
@@ -203,10 +219,13 @@ The public guide must:
   free-text handoff decision;
 - link to the normative AI decision-policy document without duplicating or
   paraphrasing its category-level tables;
+- link to the canonical AI bootstrap entry point and explain that it precedes
+  workflow-resource loading;
 - avoid provider-specific chat features or assumptions;
 - avoid implying that the validation planner or executor reads AI persistence;
-- link to the AI-Engineering Flow, authorization model, Human Flow, and AI-Tool
-  Flow without duplicating their contracts;
+- link to the official validation-engineering workflow, authorization model,
+  Human Flow, official action workflow, and AI-Tool skill without duplicating
+  their contracts;
 - remain outside distributed skill and workflow routes so agent behavior never
   depends on human-only conversational guidance.
 
@@ -224,15 +243,17 @@ Documentation and forward trials verify that:
 - missing or mismatched prerequisite paths stop with a precise explanation;
 - a missing policy stops before process work and produces exact
   human-controlled initialization and review guidance;
-- a missing workflow, skill, or knowledge resource stops before process work
-  and never causes implicit Manager or network activity;
+- a missing workflow, profile, skill, tool descriptor, guide, or knowledge
+  resource stops before process work and never causes implicit Manager or
+  network activity;
 - no artifact or schema requires a chat or session identifier;
 - changing conversational organization does not change executable policy or
   validator results;
 - `auto`, `human`, and `stop` handoffs preserve the completed preceding process
   and behave consistently across conversational contexts;
-- every `0 -> 1` and `2 -> 3` handoff revalidates the current policy and the next
-  process preconditions before continuation;
+- every `0 -> 1` and `2 -> 3` handoff declared by the official workflow
+  revalidates the current policy and target-node preconditions before
+  continuation;
 - no conversational context, request, or approval permits an agent to create,
   edit, format, replace, delete, move, rename, restore, initialize, or indirectly
   mutate policy;

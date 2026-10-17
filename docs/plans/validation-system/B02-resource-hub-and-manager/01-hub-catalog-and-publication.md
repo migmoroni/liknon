@@ -62,6 +62,13 @@ A submission declares all payloads, capabilities, dependencies, compatibility,
 license, source, and executable-content indicators. Publication automation
 validates schemas and bytes but does not execute submitted instructions.
 
+Workflow publication validates graph structure, declared node and edge IDs,
+continuation eligibility, resource references, capability/effect vocabulary,
+artifact declarations, and declared AI bootstrap and decision-policy contract
+ranges. It does not evaluate the workflow's conclusions, instantiate an agent
+profile, grant the resource a policy override, or permit resource content to
+replace the program bootstrap entry point.
+
 The first implementation may use reviewed repository submissions and a static
 authenticated catalog. A dynamic service is not required until measured Hub
 needs justify it.
@@ -75,6 +82,8 @@ needs justify it.
 - Search never needs payload execution.
 - Removed, yanked, and revoked states have deterministic client behavior.
 - Namespace and trust transitions retain auditable evidence.
+- Official and third-party workflows with different graph shapes pass through
+  the same publication checks.
 - The production origin cannot overwrite immutable versioned objects through
   the normal publication identity.
 

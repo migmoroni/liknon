@@ -1,33 +1,45 @@
-# Phase 5: AI-Engineering Domain And Coverage Setup
+# Phase 5: Official Validation-Engineering Domain And Coverage Setup
 
 ## 1. Objective
 
-Implement the two setup processes of the AI-Engineering Flow:
+Implement the first two nodes of the official
+`workflow:official/liknon-validation-engineering` resource:
 
 1. domain understanding, which records what the workspace is and which failures
    matter;
 2. validation design, which maps required evidence to the executable
-   configuration used by all three flows.
+   configuration used by the validation CLI.
 
 These processes run at onboarding, after a domain-relevant change, when the
 human directs the agent to reassess them, or after a drift assessment recommends
 recalibration. They do not run before every normal validation.
 
-Every invocation loads the immutable policy boundary, verifies Validation and
-Tool capabilities plus workflow and AI-Tool resource compatibility, validates
-the current decision policy, and validates each explicitly supplied artifact
-before using its content. Missing or invalid policy routes to read-only
-`AI-Tool/policy` guidance and stops until the human performs the required
-creation or correction manually.
+Every invocation begins after the human directs the external host to the
+program-owned AI bootstrap entry point. The host verifies and records its
+version and digest before loading the workflow or any replaceable resource. It
+then loads the immutable policy boundary, verifies Validation and Tool
+capabilities plus the exact locked workflow, agent profile, and dependency
+closure, resolves global and workflow-specific policy values, and validates
+each explicitly supplied artifact before using its content. Missing or invalid
+policy routes to the declared read-only `liknon-ai-tool/policy` operation and
+stops until the human performs the required creation or correction manually.
+
+The process numbers, node order, profile bindings, and continuation from
+Process 0 to Process 1 are content of this official workflow. They impose no
+numbering or graph convention on other workflows and require no corresponding
+branches in Manager, Tool, or Validation.
 
 ## 2. Dependencies
 
 Phase 4 provides explicit-input artifact validation, single-file persistence,
-governed report storage, authorization boundaries, and AI-Engineering routing.
+governed report storage, authorization boundaries, and generic workflow
+routing.
 Phase 3 provides the human-owned decision policy, immutable policy boundary, and
 AI-Tool operations that these processes compose. Phases 2 and 2.1 provide the
 source-backed validation model and stable editorial profiles used to reason
-about evidence.
+about evidence. The cross-cutting AI bootstrap contract supplies the mandatory
+entry and loading order for the external host; this phase does not create an
+agent runtime or duplicate that contract in the workflow.
 
 ## 3. Process 0: Domain
 
@@ -83,9 +95,11 @@ When Process 0 completes:
 4. present its path and digest together with the product model,
    highest-consequence scenarios, invariants, unresolved questions, and weakly
    supported assumptions;
-5. apply `processContinuation`: pass that exact domain artifact to Process 1 for
-   `auto`, suggest Process 1 and wait for a free-text decision for `human`, or
-   end without a continuation prompt for `stop`.
+5. resolve `processContinuation` for
+   `workflow:official/liknon-validation-engineering`, applying an exact workflow
+   override before the global value: pass that exact domain artifact to Process
+   1 for `auto`, suggest Process 1 and wait for a free-text decision for `human`,
+   or end without a continuation prompt for `stop`.
 
 No separate authorization is required for the bounded redacted process result.
 Protected content that remains follows `sensitiveDataPersistence`. A human
@@ -152,9 +166,10 @@ The sensorium artifact records:
 - rejected alternatives and rationale when relevant;
 - prerequisites requiring human action;
 - residual risk and uncertainty;
-- exact producing workflow, operational skill dependency, and selected
-  guidance resource identities, versions, and manifest or payload digests used
-  for the analysis.
+- exact producing workflow, node, incoming transition, selected agent profile,
+  operational skill dependency, resource-lock digest, and selected guidance
+  resource identities, versions, and manifest or payload digests used for the
+  analysis.
 
 It does not contain shell expressions or an alternate executable command graph.
 Human-readable command examples may appear only as explanatory evidence and are
@@ -164,7 +179,7 @@ never executed from the artifact.
 
 When the sensorium identifies a coherent config change:
 
-1. load the existing `ai-tool/config.md` operation;
+1. load the declared `liknon-ai-tool/config` operation;
 2. produce the smallest complete config diff;
 3. preserve `tool -> check -> suite -> group` ownership;
 4. represent programs and arguments structurally without an implicit shell;
@@ -194,6 +209,7 @@ its domain and config digests match their explicit inputs.
 ### `processes/process-0-domain.md`
 
 - loads source policy, validation strategy, and only relevant domain guidance;
+- selects the locked `agent-profile:official/liknon-domain-analyst` resource;
 - gathers evidence before conclusions;
 - separates repository evidence, human declarations, and inference;
 - persists one immutable domain artifact;
@@ -204,12 +220,15 @@ its domain and config digests match their explicit inputs.
 ### `processes/process-1-sensorium.md`
 
 - requires and verifies one exact domain artifact;
+- selects the locked `agent-profile:official/liknon-validation-architect`
+  resource;
 - audits the current config without running checks;
 - loads only relevant foundations, patterns, language, framework, technology,
   concern, standard, tool, and recipe guides selected through the knowledge
   catalog and retrieved by stable document ID through `likt`;
 - constructs the evidence matrix and proposed config diff;
-- delegates configuration mechanics to `ai-tool/config.md`;
+- delegates configuration mechanics to the declared
+  `liknon-ai-tool/config` operation;
 - delegates every effect classification to the normative decision policy;
 - persists one immutable sensorium artifact bound to exact inputs;
 - requests a free-text decision exactly when the restrictive result is `human`.
@@ -254,14 +273,19 @@ Verify that the agent:
 - preserves a declined gap without silently weakening it;
 - persists each process result without a separate ordinary-result prompt;
 - implements `auto`, `human`, and `stop` continuation without bypassing Process
-  1 preconditions;
+  1 preconditions, using the official workflow override when present and the
+  global value otherwise;
 - resumes in a fresh conversation only from explicit artifact paths;
 - creates a new UUIDv7 artifact for every rerun or correction;
 - rejects operational use of a domain and sensorium whose declared relationship
-  or config digest does not match.
+  or config digest does not match;
+- records the exact workflow, node, transition, performed actions, selected profile, dependency
+  closure, resource lock, and effective policy source;
+- loads the process graph and profile bindings from the workflow resource rather
+  than from CLI constants.
 
 Version these fixtures, human-like prompts, observable assertions, and review
-rubrics for the AI-Engineering End-To-End family in the
+rubrics for the Validation-Engineering End-To-End family in the
 [Agent Evaluation Program](agent-evaluation-program.md). Controlled calls from
 these scenarios may also test AI-Tool as a downstream interface, but those runs
 score the AI-Tool boundary separately from setup-process quality.
@@ -286,9 +310,14 @@ score the AI-Tool boundary separately from setup-process quality.
 - [ ] Tool overlap is evaluated by evidence rather than prohibited by rule.
 - [ ] A fresh agent can resume setup from explicitly supplied validated
       artifacts without reading old chat logs.
+- [ ] Processes 0 and 1 select their independently versioned agent profiles from
+      the locked workflow manifest; profiles cannot alter routing or policy.
+- [ ] Process IDs and the `0 -> 1` transition remain official workflow content
+      and do not appear as special cases in any CLI implementation.
 
 ## 10. Handoff To Phase 6
 
-Phase 6 starts when the caller supplies one validated domain artifact, one
-validated sensorium bound to that domain and the current config, and any exact
-report required by the requested operational process.
+Phase 6 starts the next nodes of this same official workflow when the caller
+supplies one validated domain artifact, one validated sensorium bound to that
+domain and the current config, and any exact report required by the requested
+operational node.

@@ -17,6 +17,11 @@ The identity is independent from a URL, local path, registry implementation,
 CLI version, or display title. Case, normalization, reserved namespaces, and
 collision handling are explicit and tested.
 
+Namespace identifies the publisher identity. Source origin, trust class,
+review state, signatures, and catalog channel are separate fields. Neither the
+`official` namespace nor any trust class changes instruction precedence,
+activation, policy, or application behavior.
+
 ## Resource Manifest
 
 The versioned resource manifest defines:
@@ -25,10 +30,50 @@ The versioned resource manifest defines:
 - trust evidence and publication status;
 - minimum compatible resource-schema, Manager, Tool, and Validation CLI
   capabilities when applicable;
+- compatible program-owned AI bootstrap and decision-policy contract ranges
+  when the resource participates in governed AI operation;
 - required and optional resource dependencies;
 - declared capabilities and executable-content indicators;
 - every payload path, media type, length, and SHA-256 digest;
 - collection membership without copied payloads.
+
+Workflow manifests additionally act as generic orchestration indexes and define:
+
+- stable node, action, entry-point, terminal-node, transition, and edge IDs;
+- transition preconditions and explicit continuation eligibility;
+- referenced skill, agent-profile, tool, knowledge, prompt, and optional
+  subworkflow resource identities and constraints;
+- action inputs, outputs, referenced operations, potential effects, and required
+  capabilities per node;
+- declared artifact outputs with stable declaration IDs, exact payload schemas,
+  producing nodes and actions, allowed relationships, bounded namespaced storage
+  templates, sensitivity and size limits, and `local-ignored` or
+  `consumer-selected` repository treatment, without embedding executable
+  policy.
+
+An actionable workflow declares the supported Liknon AI decision-policy
+and AI bootstrap contract versions. A workflow without either compatibility may
+still be published, installed, and inspected as content, but it cannot be
+represented as a governed Liknon workflow or activated by a conforming AI host.
+
+The bootstrap contract is a program capability, not a resolvable resource. The
+Hub cannot publish a replacement for `contracts/ai/ENTRYPOINT.md`, and Manager
+cannot satisfy bootstrap compatibility by installing resource content.
+
+Agent-profile manifests define roles, posture, scope, and behavioral
+constraints independently from workflow control flow. They do not select
+models, own transitions, change policy, or grant execution authority.
+
+Tool-resource manifests describe stable application capabilities and operation
+contracts. They do not embed an executable, install a prerequisite, contain a
+credential, or authorize command execution. Workflows reference them as typed
+dependencies, and the invoking host verifies the corresponding application
+capability separately.
+
+Operational skill compatibility is resolved normally. The official AI-Tool
+skill is the default dependency of the initial official workflows, while an
+external workflow may declare another compatible skill without receiving a
+different application or policy path.
 
 Unknown required fields, unsupported schema versions, cycles, conflicting
 constraints, unsafe paths, and undeclared payloads fail closed.
@@ -79,8 +124,14 @@ Before approval, prototype:
 
 - one knowledge item;
 - one multi-file skill;
+- one tool descriptor;
 - one collection;
 - one transitive dependency graph;
+- one workflow with nonnumeric node IDs, multiple profiles, and a graph unlike
+  the official workflows;
+- one actionable workflow with an absent or incompatible policy-contract
+  version;
+- one composed workflow whose parent and child declare distinct effects;
 - one incompatible resource;
 - one yanked and one revoked version;
 - one local source;

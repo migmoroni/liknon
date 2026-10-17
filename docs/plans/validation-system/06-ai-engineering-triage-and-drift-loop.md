@@ -1,37 +1,48 @@
-# Phase 6: AI-Engineering Triage And Drift Loop
+# Phase 6: Official Validation-Engineering Triage And Drift Loop
 
 ## 1. Objective
 
-Implement the operational AI-Engineering processes over explicit validated
-evidence:
+Implement the final two nodes of the official
+`workflow:official/liknon-validation-engineering` resource over explicit
+validated evidence:
 
 - Process 2 diagnoses a concrete non-pass report, governs remediation, and
   verifies the result;
 - Process 3 compares one passing report and its declared setup context with
   current repository evidence and recommends recalibration when justified.
 
-The processes compose AI-Tool operations and use the same validation runner.
+The nodes compose declared `liknon-ai-tool` operations and use the same
+validation runner. Their numeric IDs, profile bindings, and `2 -> 3`
+continuation are content of this workflow only, not platform conventions.
 
 ## 2. Preconditions
 
 Every operational invocation requires:
 
+- the program-owned AI bootstrap contract loaded and verified by the external
+  host before the workflow or any replaceable resource, with its exact version
+  and digest recorded for the invocation;
 - one explicit validated domain artifact;
 - one explicit validated sensorium artifact that references that domain;
 - a current config whose digest matches the sensorium;
 - the decision policy revalidated through `policy validate` for the explicit
-  active workspace root, with its exact path and digest;
+  active workspace root, with its exact path, digest, and effective workflow
+  override or global source;
+- the exact locked workflow, selected node profile, and declared dependency
+  closure;
 - one explicit stored validation report when Process 2 or Process 3 begins from
   existing evidence.
 
 The process verifies every path, schema, digest, relationship, producing
-workflow identity, operational resource dependency, and configuration reference
-before loading analytical content. Missing, mismatched, stale, or ambiguous
-inputs stop the operation and identify the exact setup process or validation
-run required next.
+workflow identity, node identity, incoming transition, agent-profile identity,
+resource-lock digest, operational resource dependency, and configuration
+reference before loading analytical content. Missing, mismatched, stale, or
+ambiguous inputs stop the operation and identify the exact setup node or
+validation run required next.
 
 A missing or invalid decision policy stops before those inputs are consumed.
-The process routes to read-only `AI-Tool/policy` guidance. Missing-policy
+The node routes to the declared read-only `liknon-ai-tool/policy` guidance.
+Missing-policy
 guidance tells the human to run `liknon init --policy` personally;
 invalid-policy guidance explains diagnostics and suggested manual field changes.
 No AI operation may create, edit, format, replace, delete, move, restore, or
@@ -44,7 +55,8 @@ When the operational request starts with a new validation run:
 1. validate the supplied domain and sensorium artifacts;
 2. load the immutable policy boundary and verify their relationship and the
    current config digest;
-3. load `ai-tool/run.md` and resolve one explicit configured selection;
+3. load the declared `liknon-ai-tool/run` operation and resolve one explicit
+   configured selection;
 4. evaluate command execution and every other implicated decision category;
 5. execute the selection once through the normal validator;
 6. capture the exact versioned JSON report in bounded memory or temporary
@@ -86,7 +98,10 @@ supplying that report together with the exact domain and sensorium artifacts.
 
 ### 5.1 Evidence
 
-Use `ai-tool/triage.md` for report interpretation. Bind every conclusion to:
+Use the declared `liknon-ai-tool/triage` operation for report interpretation.
+Select the locked
+`agent-profile:official/liknon-incident-investigator` resource and bind every
+conclusion to:
 
 - exact report path and SHA-256 digest;
 - selected group, suite, or check;
@@ -140,7 +155,9 @@ must remain follows `sensitiveDataPersistence`.
 
 ### 5.4 Process 2 Handoff
 
-Process 2 applies `processContinuation` toward Process 3 only when:
+Process 2 resolves `processContinuation` for
+`workflow:official/liknon-validation-engineering` and follows its declared
+`2 -> 3` edge only when:
 
 - the final verification report is stored and has result `pass`;
 - the incident artifact is validated and stored;
@@ -154,9 +171,10 @@ explicit inputs.
 
 ## 6. Process 3: Drift
 
-Process 3 uses `ai-tool/audit.md` and runs only from one explicit stored passing
-report. A pass establishes the selected configured evidence, not complete
-correctness.
+Process 3 uses the declared `liknon-ai-tool/audit` operation, selects the locked
+`agent-profile:official/liknon-drift-reviewer` resource, and runs only from one
+explicit stored passing report. A pass establishes the selected configured
+evidence, not complete correctness.
 
 ### 6.1 Explicit Comparison Inputs
 
@@ -244,11 +262,16 @@ Cover:
 - drift with material change, no material change, missing Git history, and
   insufficient evidence;
 - immutable UUIDv7 incident and drift artifacts with exact parent references;
-- all continuation modes after a passing Process 2 result.
+- all continuation modes after a passing Process 2 result, including exact
+  workflow override precedence over the global value;
+- exact workflow, node, transition, action, agent-profile, dependency, resource-lock,
+  and effective policy-source records;
+- manifest-driven node and profile selection with no official process IDs in
+  CLI code.
 
 Forward tests use raw reports and repositories without disclosing the intended
 conclusion to the agent. Version their human-like prompts, observable
-assertions, and review rubrics for the AI-Engineering End-To-End family in the
+assertions, and review rubrics for the Validation-Engineering End-To-End family in the
 [Agent Evaluation Program](agent-evaluation-program.md). Controlled AI-Tool
 consumption is scored separately when the operation interface, rather than the
 complete incident or drift process, is under evaluation.
@@ -267,14 +290,21 @@ complete incident or drift process, is under evaluation.
 - [ ] Process 3 uses an explicit passing report and explicit comparison
       evidence.
 - [ ] Process 2 applies `processContinuation` only after a stored passing final
-      report and successful incident persistence.
+      report and successful incident persistence, using the active workflow's
+      effective policy value.
 - [ ] An initial passing run never creates Process 2 or consults continuation.
 - [ ] Operational processes use only explicitly supplied artifacts and reports.
 - [ ] Every operational process obeys the immutable policy boundary and never
       mutates policy directly or indirectly.
 - [ ] Passing evidence is never described as complete product correctness.
+- [ ] Processes 2 and 3 select independently versioned agent profiles from the
+      locked workflow manifest; profiles cannot alter routing or policy.
+- [ ] Process IDs and the `2 -> 3` transition remain official workflow content
+      and do not appear as special cases in any CLI implementation.
 
 ## 10. Handoff To Phase 7
 
-Phase 7 verifies all three flows, explicit artifact exchange, persistence
-boundaries, policy behavior, documentation, packaging, and release evidence.
+Phase 7 verifies direct human operation, the official action and
+validation-engineering workflows, one external workflow with a different graph,
+explicit artifact exchange, persistence boundaries, policy behavior,
+documentation, packaging, and release evidence.

@@ -15,13 +15,19 @@ From clean environments:
 2. install the crates.io candidate;
 3. install each authenticated native target;
 4. exercise both command names;
-5. consume a contract-valid fixture store without Manager installed;
-6. use Manager to install one knowledge item, skill, collection, and dependency
+5. run `bootstrap` with no workspace and verify exact source bytes, version, and
+   digest;
+6. consume a contract-valid fixture store without Manager installed;
+7. use Manager to install one knowledge item, skill, collection, and dependency
    graph, then remove Manager from `PATH`;
-7. run Tool catalog, search, show, resolve, and context offline;
-8. reject modified, unsupported, revoked, unsafe, partial, and oversized state;
-9. verify human, JSON, color, standard, and low-vision output;
-10. prove Validation CLI absence does not affect resource consumption.
+8. run Tool catalog, search, show, resolve, and context offline;
+9. reject modified, unsupported, revoked, unsafe, partial, and oversized state;
+10. verify human, JSON, color, standard, and low-vision output;
+11. prove Validation CLI absence does not affect resource consumption;
+12. resolve and assemble context for official and external workflows with
+    different node identifiers, transitions, and agent profiles;
+13. prove that Tool returns both without executing, activating, or applying
+    policy to either graph.
 
 ## Publication
 
@@ -51,7 +57,7 @@ The site:
 
 Retain versioned evidence for source commit, Tool version, target, installation
 channel, resource-store digest, commands exercised, semantic results, network
-isolation, and artifact inventory.
+isolation, bootstrap-contract version and digest, and artifact inventory.
 
 ## Exit Criterion
 
