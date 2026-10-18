@@ -2,6 +2,9 @@
 
 ## Status And Relationship To Other Tracks
 
+The [validation-system index](../README.md) owns cross-track order, milestone
+gates, and contract ownership. This plan owns only the Tool track.
+
 This plan defines the independent local resource-consumption application created
 by [Plan A01](../A01-product-and-repository-separation/README.md).
 
@@ -52,9 +55,10 @@ Tool operations describe and return content. Manager `list` and `info`
 remain administrative views of desired, locked, installed, update, and
 integrity state.
 
-`bootstrap` is the sole built-in content route. It returns
-`contracts/ai/ENTRYPOINT.md` exactly and never consults or classifies it as part
-of `.liknon/resources/`.
+`bootstrap` is the sole built-in content route. It verifies
+`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` against its adjacent
+`manifest.json`, returns the entry bytes exactly with their canonical metadata, and never consults or
+classifies either file as part of `.liknon/resources/`.
 
 For workflows, Tool returns the exact declared graph and resolved resource
 closure. It does not interpret transitions, instantiate an agent profile,
@@ -127,7 +131,14 @@ that contract into a Hub payload.
 | B03.1 | [Local Catalog And Retrieval](01-local-catalog-and-retrieval.md) | B03.0 | Deterministic offline discovery and exact payload retrieval |
 | B03.2 | [Context And Agent Safety](02-context-and-agent-safety.md) | B03.1 | Bounded progressive disclosure and safe machine consumption |
 | B03.3 | [Source And Native Distribution](03-source-and-native-distribution.md) | B03.2 | Independently installable Tool candidates |
-| B03.4 | [End-To-End Verification And Publication](04-end-to-end-verification-and-publication.md) | B02.5 and B03.3 | Public Tool distribution and Manager-to-Tool interoperability |
+| B03.4 | [End-To-End Verification And Publication](04-end-to-end-verification-and-publication.md) | B03.3 and the root M3 local interoperability gate | Public Tool distribution and clean-environment local-store interoperability |
+
+B03.0-B03.2 establish local implementation readiness. The root plan's M3 gate
+then combines repository-built B02.4 Manager and B03.2 Tool with neutral
+fixtures. B03.3-B03.4 are distribution work and are not prerequisites for Phase
+3. When B02.5 is also complete, B03.4 adds public-Manager-to-public-Tool
+interoperability evidence; that cross-channel claim does not gate independent
+Tool publication.
 
 ## Global Acceptance Criteria
 
@@ -150,8 +161,9 @@ that contract into a Hub payload.
       resource remains untrusted content.
 - [ ] A selected knowledge item, skill, collection, and dependency closure are
       returned deterministically.
-- [ ] Official and external workflow graphs, profiles, and dependency closures
-      are returned through identical commands and schemas.
+- [ ] Project-controlled conformance and external workflow graphs, profiles,
+      and dependency closures are returned through identical commands and
+      schemas; later official workflows require no Tool branch.
 - [ ] Tool contains no routing branch for an official workflow, skill, tool,
       node, action, transition, or agent-profile ID.
 - [ ] Resource-only updates require no Tool release.

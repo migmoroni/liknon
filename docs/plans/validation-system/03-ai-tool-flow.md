@@ -50,8 +50,9 @@ policy, capability, effect, and resource rules.
   `liknon-tool` / `likt`.
 - A01 and B03 provide the program-owned AI bootstrap contract, its compatibility
   types, and exact `likt bootstrap` projection.
-- B02 and B03 end-to-end distribution and interoperability are complete before
-  this phase treats resource installation and retrieval as public contracts.
+- The root plan's M3 local interoperability gate is complete with B02.4 Manager,
+  B03.2 Tool, and neutral resources. Public B02.5/B03.3-B03.4 distribution is
+  independent and is not a prerequisite for this phase.
 
 ## 3. Workflow Contract
 
@@ -62,13 +63,13 @@ human requests one bounded task
   -> human directs the agent to the canonical Liknon AI bootstrap entry point
   -> agent records the supported bootstrap version and digest
   -> agent selects the official action workflow
+  -> agent uses likt to resolve the exact graph and dependency-closure metadata
   -> workflow selects one declared AI-Tool operation
-  -> agent loads the immutable policy boundary
-  -> agent verifies workflow, application, and skill-resource compatibility
-  -> agent runs read-only policy validation
+  -> agent verifies workflow, application, and resource compatibility
+  -> agent loads the declared immutable policy-boundary guide
+  -> agent validates policy and evaluates the exact active workflow stack
   -> missing or invalid policy routes to policy guidance and stops the task
-  -> agent loads one operational reference
-  -> agent loads only relevant shared knowledge
+  -> agent uses likt to load one operational reference and relevant knowledge
   -> agent classifies every proposed effect under the valid policy
   -> agent inspects or acts within the resulting authority
   -> liknon remains the only validation executor
@@ -116,8 +117,9 @@ an earlier conversation.
 when an agent may act automatically, must request a free-text human decision, or
 must stop. Every category and `processContinuation` has a global value and an
 optional map keyed by canonical workflow ID. The official action workflow uses
-its exact override when present and otherwise the global value. It declares no
-continuation-eligible edge.
+the effective values returned for its exact active workflow stack: all matching
+overrides combine by the normative restrictive order, and the global value is
+used only when none match. It declares no continuation-eligible edge.
 
 When an AI host uses the AI-Tool skill directly without an active workflow,
 only global policy values apply. When another workflow references the skill,
@@ -147,12 +149,13 @@ directly.
 
 ### 4.2 Deterministic Human Initialization
 
-Phase 3 extends the Phase 1 `init` command with a policy capability and adds a
-read-only validation command:
+Phase 3 extends the Phase 1 `init` command with a policy capability and adds
+separate read-only validation and override-resolution commands:
 
 ```sh
 liknon init [--config <candidate-path>] [--policy] [--workspace <workspace-path>] --format=json
 liknon policy validate [--workspace <workspace-path>] --format=json
+liknon policy evaluate [--workspace <workspace-path>] [--workflow <RESOURCE_ID>]... --format=json
 ```
 
 `--policy` provisions only the canonical conservative
@@ -179,6 +182,17 @@ exact bytes, and returns one bounded versioned result containing normalized
 path, schema version, digest, and status. Missing policy is a typed non-success
 result. The command never creates, modifies, repairs, or replaces a file.
 
+`policy evaluate` first performs the same validation, then resolves every
+decision category and `processContinuation` against an explicit ordered
+root-to-leaf workflow stack supplied through repeated `--workflow` arguments.
+An empty stack means a standalone skill operation and therefore uses global
+values only. The result contains the validated policy identity, the exact input
+stack, every effective value, and whether each value came from `global` or one
+or more matching workflow overrides. The command applies the mandatory
+restrictiveness orders but does not discover a workflow, read the resource
+store, classify an action, activate a graph, or grant authority. The external
+host obtains and verifies the stack from Tool before supplying it.
+
 The internal core API always receives the workspace root explicitly. With
 `--workspace`, the CLI uses that exact boundary. Otherwise, commands requiring
 existing state discover the nearest ancestor containing `.liknon/` and fail if
@@ -190,10 +204,14 @@ boundary.
 
 `references/ai-tool/policy.md` defines a read-only advisory operation. It:
 
-1. loads the immutable policy boundary before inspecting policy data;
+1. uses only the fixed pre-policy allowlist defined by the bootstrap and
+   decision-policy contracts to load the immutable policy boundary before
+   inspecting policy data;
 2. verifies the installed AI-Tool skill resource and its declared Validation
    and Tool capability ranges;
-3. invokes `policy validate` against the explicit workspace root;
+3. invokes `policy validate` against the explicit workspace root and, when an
+   active workflow stack exists, invokes `policy evaluate` with the exact stack
+   returned by Tool;
 4. explains missing, invalid, unsupported, or valid state without repairing it;
 5. explains every category, level, overlap rule, global value, exact-workflow
    override, and `processContinuation` mode from the normative contract;
@@ -204,7 +222,8 @@ boundary.
 8. directs the human to run `liknon init --policy` when the file is
    missing or to open and edit the existing file manually;
 9. waits for the human to report completion;
-10. reruns `policy validate` and reports the effective settings and digest.
+10. reruns `policy validate`, evaluates the applicable explicit workflow stack,
+    and reports the effective settings, sources, and digest.
 
 The operation does not write a candidate policy, emit an applyable patch, run a
 mutation command, or treat a recommendation as a completed change. It may show
@@ -214,7 +233,9 @@ value.
 ### 4.4 Missing And Invalid Policy
 
 Before `config`, `run`, `triage`, `audit`, or any compatible workflow performs
-governed work, the agent runs `policy validate` for the explicit workspace root.
+governed work, the agent runs `policy validate` for the explicit workspace root
+and `policy evaluate` for the exact active workflow stack. A standalone skill
+operation supplies an empty stack.
 
 - A missing policy stops the requested operation before repository analysis,
   command execution, or mutation. The agent routes to the advisory `policy`
@@ -327,7 +348,9 @@ or treats retrieval permission as installation permission.
 
 - Remain read-only even when the human asks or authorizes the agent to mutate the
   file.
-- Use `policy validate` as the only CLI operation over policy content.
+- Before effective policy exists, use only the fixed pre-policy Tool and
+  Validation CLI operations defined by the bootstrap contract. Over policy
+  content itself, use only read-only `policy validate` and `policy evaluate`.
 - Explain the complete current policy and every recommendation without deciding
   human risk acceptance.
 - Present recommendations per category rather than silently constructing a
@@ -468,6 +491,9 @@ Test at minimum:
   partial results, and no-overwrite guarantees;
 - read-only `policy validate` for missing, valid, invalid, unsupported,
   symlinked, path-escaping, and concurrently changed documents;
+- deterministic `policy evaluate` for an empty stack, one override, unmatched
+  IDs, and composed root-to-leaf stacks, including exact effective-value source
+  metadata;
 - policy category, global-value, exact-workflow override, composed-workflow,
   and continuation semantics from the normative contract;
 - conservative initialization with every workflow-override map empty and no
@@ -523,8 +549,8 @@ including human prompts and controlled validation-engineering consumption, under
 - explicit action-workflow contract selecting five reusable AI-Tool operations;
 - bootstrap-compatibility declarations for the action workflow, AI-Tool skill,
   and policy-boundary guide without copying the bootstrap contract;
-- policy schema, conservative default, read-only validation, and human-only
-  deterministic initialization;
+- policy schema, conservative default, read-only validation and evaluation, and
+  human-only deterministic initialization;
 - canonical AI decision-policy documentation and generated policy-boundary
   guide;
 - source-register entries for the policy contract's cited design foundations;
@@ -559,6 +585,9 @@ including human prompts and controlled validation-engineering consumption, under
       compatible AI bootstrap contract before a conforming host uses it.
 - [ ] The action workflow validates and obeys the same global, override, and
       category meanings used by every compatible workflow.
+- [ ] `policy validate` reports document validity and identity without inventing
+      workflow context; `policy evaluate` resolves only the exact ordered stack
+      supplied by the caller and never discovers or activates a workflow.
 - [ ] `init --policy` emits only global defaults and empty override maps; a
       human adds every workflow-specific rule manually.
 - [ ] The action workflow has no continuation-eligible transition; AI-Tool may

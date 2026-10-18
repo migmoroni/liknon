@@ -45,10 +45,12 @@ From clean environments:
 9. restore exact state from manifest and lock;
 10. exercise explicit materialization and drift detection;
 11. perform offline verification after the network is removed;
-12. install one official workflow and one external workflow with unrelated node
-    IDs, graph shape, profile dependencies, and declared effects;
+12. install one project-controlled conformance workflow and one external
+    workflow with unrelated node IDs, graph shape, profile dependencies, and
+    declared effects;
 13. prove that neither installation activates a workflow or receives a
-    namespace-based privilege.
+    namespace-based privilege. When Phase 3 resources already exist, repeat the
+    same case with the official action workflow without changing Manager code.
 
 Repeat representative cases through both command names and all published
 Manager channels.

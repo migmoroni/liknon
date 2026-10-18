@@ -4,8 +4,12 @@
 
 ## Purpose
 
-Publish authenticated metadata and immutable payloads for official and approved
-third-party resources without making the Hub an execution service.
+Build and prove the deterministic catalog and publication pipeline against a
+local or non-production test origin. It produces authenticated metadata and
+immutable payload candidates for official and approved third-party resources
+without making the Hub an execution service. Production deployment, public
+credentials, public pointer mutation, and Internet readback belong exclusively
+to B02.5.
 
 ## Canonical Assembly
 
@@ -25,9 +29,10 @@ Assembly:
 
 ## Catalog
 
-The public catalog supports metadata discovery by ID, kind, namespace, title,
-summary, compatibility, trust class, and version. Search results are stable for
-one catalog snapshot and identify that snapshot exactly.
+The catalog contract supports metadata discovery by ID, kind, namespace, title,
+summary, compatibility, trust class, and version. B02.1 implements and tests it
+through local or non-production fixtures. Search results are stable for one
+catalog snapshot and identify that snapshot exactly.
 
 The Hub publishes:
 
@@ -39,6 +44,19 @@ The Hub publishes:
 
 Consumers authenticate the snapshot before trusting object locations or
 digests.
+
+## Public Deployment Boundary
+
+B02.1 may generate production-form catalog snapshots, immutable object layouts,
+and stable-pointer candidates, but it does not publish them to the production
+origin. Test signing identities and local object stores must be visibly
+non-production and must not require release credentials.
+
+B02.5 alone provisions or selects the production origin, supplies protected
+publication credentials, publishes immutable objects, advances the public
+pointer, exercises rollback, and reads every object back through the public
+domain. Passing B02.1 therefore proves implementation readiness, not public
+availability.
 
 ## Namespace And Trust Governance
 
@@ -84,10 +102,14 @@ needs justify it.
 - Namespace and trust transitions retain auditable evidence.
 - Official and third-party workflows with different graph shapes pass through
   the same publication checks.
-- The production origin cannot overwrite immutable versioned objects through
-  the normal publication identity.
+- The local/test origin and publication identity reject overwrite of immutable
+  versioned objects through the normal publication path.
+- No B02.1 test requires a production account, public DNS, production secret,
+  or Internet-visible object.
 
 ## Exit Criterion
 
-The Hub exposes authenticated, queryable metadata and immutable resource
-payloads with explicit ownership, trust, moderation, and recovery semantics.
+The repository can reproducibly assemble, sign, publish, query, and recover an
+authenticated catalog and immutable payloads through the approved local/test
+origin, with explicit ownership, trust, moderation, and recovery semantics.
+No public-Hub claim is made until B02.5 passes.

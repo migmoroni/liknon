@@ -33,7 +33,8 @@ and local retrieval belongs to [B03](B03-tool-cli/README.md).
 Phase 1 provides stable CLI and configuration behavior. Phase 2 establishes the
 accepted initial corpus and deterministic content checks. Phase 2.1 applies the
 full editorial profiles. A01 then separates authored resource sources from
-validation execution before Phase 3 adds further AI operations.
+validation execution. B02 and B03 subsequently establish the generic local
+resource substrate before Phase 3 adds governed AI operations.
 
 Accepted content work:
 
@@ -314,16 +315,22 @@ keeps prompts, deterministic assertions, and rubrics provider-neutral.
 - [x] Knowledge remains independent from validation planning and execution.
 - [x] Knowledge contains no flow activation, persistence, authority, or
       human-only conversational instruction.
-- [ ] A01 assigns every accepted document to the canonical corpus and removes
-      it from the validation CLI.
-- [ ] B02 proves deterministic publication, selection, and installation of
-      knowledge resources through the Hub and Manager.
-- [ ] B03 proves offline, exact-byte retrieval of installed resources.
+
+The following are downstream integration responsibilities, not incomplete
+Phase 2 acceptance criteria:
+
+- A01 assigns every accepted document to the canonical authored corpus and
+  removes it from the Validation CLI.
+- B02 proves deterministic resource selection, acquisition, and installation
+  through the Hub and Manager.
+- B03 proves offline, exact-byte retrieval of installed resources.
 
 ## 11. Handoff
 
 Phase 2.1 refounds the accepted corpus under standards-informed editorial
 profiles while preserving stable resource identities and source traceability.
-A01 then separates authored resources from the three applications. Phase 3
-consumes selected installed knowledge through `likt` and never copies it into
-an operational skill or `.liknon/validation/`.
+A01 then separates authored resources from the three applications. B02.0-B02.4
+and B03.0-B03.2 establish the local generic resource substrate and pass the root
+plan's M3 interoperability gate. Phase 3 then consumes selected installed
+knowledge through `likt` and never copies it into an operational skill or
+`.liknon/validation/`.

@@ -17,6 +17,25 @@ The identity is independent from a URL, local path, registry implementation,
 CLI version, or display title. Case, normalization, reserved namespaces, and
 collision handling are explicit and tested.
 
+Resource kind IDs and physical directory names are distinct fixed contract
+fields:
+
+| Kind ID | Kind directory |
+| --- | --- |
+| `knowledge` | `knowledge` |
+| `skill` | `skills` |
+| `workflow` | `workflows` |
+| `agent-profile` | `agent-profiles` |
+| `tool` | `tools` |
+| `prompt` | `prompts` |
+| `guide` | `guides` |
+| `template` | `templates` |
+| `collection` | `collections` |
+
+Schemas serialize only the singular kind ID. Shared path primitives derive the
+corresponding directory; callers and resource payloads cannot supply an
+alternative spelling.
+
 Namespace identifies the publisher identity. Source origin, trust class,
 review state, signatures, and catalog channel are separate fields. Neither the
 `official` namespace nor any trust class changes instruction precedence,
@@ -57,7 +76,8 @@ still be published, installed, and inspected as content, but it cannot be
 represented as a governed Liknon workflow or activated by a conforming AI host.
 
 The bootstrap contract is a program capability, not a resolvable resource. The
-Hub cannot publish a replacement for `contracts/ai/ENTRYPOINT.md`, and Manager
+Hub cannot publish a replacement for
+`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md`, and Manager
 cannot satisfy bootstrap compatibility by installing resource content.
 
 Agent-profile manifests define roles, posture, scope, and behavioral
@@ -70,10 +90,11 @@ credential, or authorize command execution. Workflows reference them as typed
 dependencies, and the invoking host verifies the corresponding application
 capability separately.
 
-Operational skill compatibility is resolved normally. The official AI-Tool
-skill is the default dependency of the initial official workflows, while an
-external workflow may declare another compatible skill without receiving a
-different application or policy path.
+Operational skill compatibility is resolved normally. Neutral fixtures prove
+that one workflow may select one skill while another selects a compatible
+alternative without receiving a different application or policy path. Phase 3
+later publishes AI-Tool and the official action workflow through this unchanged
+contract.
 
 Unknown required fields, unsupported schema versions, cycles, conflicting
 constraints, unsafe paths, and undeclared payloads fail closed.
@@ -127,8 +148,8 @@ Before approval, prototype:
 - one tool descriptor;
 - one collection;
 - one transitive dependency graph;
-- one workflow with nonnumeric node IDs, multiple profiles, and a graph unlike
-  the official workflows;
+- one neutral workflow with nonnumeric node IDs, multiple profiles, and an
+  intentionally irregular graph;
 - one actionable workflow with an absent or incompatible policy-contract
   version;
 - one composed workflow whose parent and child declare distinct effects;

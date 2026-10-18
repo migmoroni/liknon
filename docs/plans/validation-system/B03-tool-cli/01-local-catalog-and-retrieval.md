@@ -70,8 +70,9 @@ nor executes a transition.
 ## Verification
 
 - Results are identical with network disabled.
-- Bootstrap bytes match `contracts/ai/ENTRYPOINT.md` exactly and remain
-  available with no workspace.
+- Bootstrap bytes match
+  `crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` exactly, metadata matches
+  its adjacent `manifest.json`, and both remain usable with no workspace.
 - Catalog ordering survives filesystem and manifest key reordering.
 - Search has positive, negative, Unicode, case, and limit fixtures.
 - Exact Markdown bytes match canonical installed payloads.

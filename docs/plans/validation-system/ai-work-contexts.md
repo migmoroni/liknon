@@ -99,29 +99,34 @@ The agent then:
 1. loads and verifies the program-owned AI bootstrap contract before any
    replaceable workflow, profile, skill, tool, guide, knowledge, or artifact
    instruction;
-2. loads the requested node from the installed
-   `workflow:official/liknon-validation-engineering` resource, its selected
-   agent profile, declared `liknon-ai-tool` skill dependency, shared policy
-   boundary, and only the skill operations needed for it, then
-   retrieves selected knowledge documents through `likt`;
+2. uses `likt` to resolve the exact installed
+   `workflow:official/liknon-validation-engineering` graph,
+   dependency-closure metadata, active workflow stack, and declared shared
+   policy-boundary guide without activating resource instructions;
 3. verifies Validation and Tool capabilities plus the exact resource lock,
-   workflow, profile, skill, tool descriptor, guide, and knowledge-resource
-   compatibility;
-4. invokes `policy validate` for the explicit active workspace root and records
-   the exact path, schema version, digest, and effective global or workflow
-   override source of the existing valid policy;
-5. verifies every explicitly supplied artifact and report through the
+   workflow, policy contract, and declared resource compatibility, then loads
+   the policy-boundary guide;
+4. invokes `policy validate` for the explicit active workspace root, then
+   `policy evaluate` with the exact Tool-verified workflow stack, and records
+   path, schema version, digest, effective values, and global or matching
+   workflow-override sources;
+5. retrieves and loads only the requested node, selected agent profile,
+   declared `liknon-ai-tool` operations, tool descriptors, and knowledge
+   documents required by that node;
+6. verifies every explicitly supplied artifact and report through the
    deterministic persistence commands;
-6. verifies the relationships and digests required by the requested process;
-7. performs only the invoked process and its authorized effects;
-8. validates and stores one new immutable UUIDv7 process artifact, applying
+7. verifies the relationships and digests required by the requested process;
+8. classifies every proposed governed effect under all applicable categories
+   and obtains a free-text human decision exactly when the restrictive result is
+   `human`;
+9. performs only the invoked process and its authorized effects;
+10. validates and stores one new immutable UUIDv7 process artifact, applying
    `sensitiveDataPersistence` when protected content remains;
-9. revalidates the current policy and target-node preconditions, then applies
+11. revalidates and reevaluates the current policy and target-node
+   preconditions,
+   then applies
    `processContinuation` to the `0 -> 1` and `2 -> 3` edges declared
-   continuation-eligible by this workflow;
-10. classifies every other governed effect under all applicable decision
-   categories and requests a free-text human decision exactly when the
-   restrictive result is `human`.
+   continuation-eligible by this workflow.
 
 If Step 2 cannot resolve a required installed resource, the process stops and
 reports its stable identity. Resource acquisition is a separate Manager action;

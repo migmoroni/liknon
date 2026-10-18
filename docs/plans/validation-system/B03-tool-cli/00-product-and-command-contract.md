@@ -41,11 +41,14 @@ No option may turn a read operation into installation or execution.
 
 ## Command Semantics
 
-`bootstrap` returns the exact canonical `contracts/ai/ENTRYPOINT.md` bytes plus
-its supported contract version and SHA-256 digest. Human output is canonical
-Markdown; JSON wraps the same content in a versioned machine result. It works
-without `.liknon/`, performs no resource lookup, and never loads a workflow or
-skill.
+`bootstrap` verifies the exact canonical
+`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` bytes against its adjacent
+`manifest.json` and returns the content plus manifest
+schema version, supported contract version, media type, canonical source
+identity, SHA-256 digest, and Tool capability version. Human output is canonical
+Markdown; JSON wraps the same content in its independently versioned machine
+result. It works without `.liknon/`, performs no resource lookup, and never
+loads a workflow or skill.
 
 `catalog` and `search` are discovery operations. `show` retrieves an exact
 resource or declared file. `resolve` returns an exact locked closure.
@@ -69,8 +72,9 @@ Prototype:
 - one knowledge document;
 - one multi-file skill;
 - one collection and transitive closure;
-- one official workflow and one external workflow with different graphs,
-  actions, profiles, tool-operation references, and continuation edges;
+- one project-controlled neutral workflow and one external workflow with
+  different graphs, actions, profiles, tool-operation references, and
+  continuation edges;
 - duplicate display titles with distinct IDs;
 - modified and missing payloads;
 - incompatible and revoked resources;

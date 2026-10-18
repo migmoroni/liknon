@@ -101,10 +101,10 @@ every category implicated by the destination permit the write.
 
 ## 4. Policy Preflight And Persistence Operations
 
-Phase 3 provides human-operated `init --policy`, read-only `policy validate`,
-and the complete decision-policy contract. Phase 4 consumes those operations
-without adding another policy lifecycle. It adds these non-cognitive persistence
-operations:
+Phase 3 provides human-operated `init --policy`, read-only `policy validate` and
+`policy evaluate`, and the complete decision-policy contract. Phase 4 consumes
+those operations without adding another policy lifecycle. It adds these
+non-cognitive persistence operations:
 
 ```sh
 liknon persistence verify artifact <path> --contract <workflow-manifest-path> --artifact <declaration-id> [--workspace <workspace-path>] --format=json
@@ -120,7 +120,8 @@ not discover a workflow, interpret domain meaning, choose an artifact, evaluate
 AI policy, mutate policy, or execute configured validation commands.
 
 Before a policy-compatible AI workflow uses these operations, it loads the
-mandatory policy boundary and invokes Phase 3 `policy validate`. It never
+mandatory policy boundary and invokes Phase 3 `policy validate` followed by
+`policy evaluate` for the exact Tool-verified workflow stack. It never
 invokes `init --policy`, creates a policy candidate, edits policy, or delegates
 policy mutation. Missing or invalid policy routes to the read-only policy
 operation exposed by the installed `liknon-ai-tool` skill when that dependency
@@ -367,9 +368,12 @@ The complete policy contract is defined by
 [AI Decision Policy](ai-decision-policy.md). At the start of every node
 invocation in a policy-compatible AI workflow, the agent loads the immutable
 policy boundary and invokes `policy validate` with the explicit active workspace
-root. A valid result supplies the path, schema version, digest, active workflow
-IDs, and effective global or workflow-specific values used as the node's initial
-policy identity.
+root. The host obtains the exact ordered active workflow stack from the verified
+Tool closure and passes it to `policy evaluate`. Validation supplies path,
+schema version, digest, and status; evaluation supplies the unchanged input
+workflow IDs plus every effective global or workflow-specific value and source.
+Together they form the node's initial policy identity without making Validation
+CLI discover or activate a workflow.
 
 When the policy is missing, the node stops before loading analytical inputs or
 producing an artifact. If the workflow declares the official `liknon-ai-tool`
@@ -379,7 +383,7 @@ workflow requires a consumer-owned decision policy, and directs the human to run
 The human reviews every category and `processContinuation` value before invoking
 or resuming the process. The agent never runs initialization or writes policy.
 After the human reports completion, the resumed process runs `policy validate`
-again.
+and `policy evaluate` again.
 
 An existing malformed, unsupported, path-escaping, or internally inconsistent
 policy stops the node. An applicable advisory policy operation may explain
@@ -390,9 +394,10 @@ workflow content, or policy level.
 
 Each artifact records the exact policy schema version and SHA-256 digest used
 for its decisions. Before a later governed effect, a resumed or long-running
-node invokes `policy validate` with the same workspace root, reloads the current
-policy, resolves exact workflow overrides before global values, combines nested
-workflow matches by the documented most-restrictive rule, and records a
+node invokes `policy validate` with the same workspace root and then
+`policy evaluate` with the same freshly verified active workflow stack. The
+command resolves exact workflow overrides before global values, combines nested
+workflow matches by the documented most-restrictive rule, and returns a
 different digest when policy changed.
 
 ## 9. Trust Model
@@ -650,8 +655,9 @@ hidden answer.
 - [ ] Every workflow artifact destination is namespaced by workflow identity,
       and every declaration uses either `local-ignored` or
       `consumer-selected` repository treatment without artifact-name branches.
-- [ ] Phase 3 policy validation and human-only initialization remain the only
-      policy lifecycle operations consumed by this phase.
+- [ ] Phase 3 policy validation, explicit-stack evaluation, and human-only
+      initialization remain the only policy lifecycle operations consumed by
+      this phase.
 - [ ] Every policy and persistence operation uses one canonical selected
       workspace boundary; the CLI discovers the nearest `.liknon/` root, while
       the internal core API always requires the root.

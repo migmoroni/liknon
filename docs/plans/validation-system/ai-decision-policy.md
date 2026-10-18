@@ -225,20 +225,45 @@ invoke it or ask for permission to invoke it.
 
 ### 4.2 Preflight For Compatible AI Workflows
 
-Every official AI-Tool operation other than its narrowly read-only advisory
-`policy` operation, every official validation-engineering process, and every
-third-party workflow claiming this contract begins with
-`liknon policy validate` for the explicit active workspace root.
-This read-only operation is part of AI preflight. A valid result fixes the exact
-path, schema version, and digest used for subsequent decisions.
+Policy cannot authorize the commands required to locate and evaluate itself.
+The bootstrap contract therefore defines one fixed, non-configurable
+pre-policy allowlist. It permits only:
 
-The official advisory policy operation may invoke `policy validate` while the
-document is missing or invalid. Other resources may provide an equivalent
-read-only operation only when they declare and satisfy the same contract. A
-pre-policy operation is limited to validation, explanation, and
-recommendations. It performs no
-workspace mutation, arbitrary command execution, persistent analytical write,
+1. reading the package-owned bootstrap source directly or invoking the
+   read-only `likt bootstrap` projection;
+2. invoking metadata-only Tool lookup and resolution for the exact workflow or
+   standalone skill explicitly selected by the human, solely to obtain its
+   locked root-to-leaf identity, dependency closure, compatibility metadata,
+   and declared policy-boundary references;
+3. retrieving only the exact locked policy-boundary guide and advisory policy
+   operation declared by that verified closure;
+4. invoking `liknon policy validate` for the explicit active workspace root;
+   and
+5. only after validation succeeds, invoking
+   `liknon policy evaluate --workflow <RESOURCE_ID>...` with that exact ordered
+   root-to-leaf stack, or with no `--workflow` value for a human-selected
+   standalone skill.
+
+These operations are pre-authorized by the immutable bootstrap and policy
+contracts, not by a numeric policy level. They are exempt only from the
+`commandExecution` decision needed to establish the effective policy. Every
+path, workspace, identity, version, digest, output bound, and no-mutation
+condition still applies. The allowlist permits no Hub or other network access,
+Manager invocation, generic resource search, undeclared payload retrieval,
+validation execution, repository analysis, workspace mutation, persistence,
 or workflow-node work.
+
+A valid `policy validate` result fixes the exact path, schema version, and
+digest used for subsequent decisions. `policy evaluate` returns every effective
+category and continuation value and its global or matching-override source.
+Validation never invents workflow context, and evaluation never discovers or
+activates a workflow.
+
+The official advisory policy operation may use the same allowlist while the
+document is missing or invalid. Other resources may provide an equivalent
+read-only operation only when they declare and satisfy the same contract. In
+that state, the operation is limited to validation, explanation, and
+recommendations.
 
 When `policy.json` is absent, every other AI operation stops before repository
 analysis, execution, mutation, or artifact creation. The agent routes to policy
@@ -253,10 +278,10 @@ diagnostics and may recommend field values, but only the human edits the file.
 Defaults are never applied over an existing document.
 
 After the human reports a manual creation or change, the requested operation
-runs `policy validate` again before continuing. No persistent reviewed marker is
-added. A policy change invalidates every cached authorization decision. It does
-not by itself invalidate domain or sensorium evidence because it does not change
-validation coverage.
+runs `policy validate` and `policy evaluate` again before continuing. No
+persistent reviewed marker is added. A policy change invalidates every cached
+authorization decision. It does not by itself invalidate domain or sensorium
+evidence because it does not change validation coverage.
 
 Persisted workflow artifacts record the exact policy path, schema version,
 SHA-256 digest, active workflow identities, and effective global or override
@@ -295,10 +320,11 @@ not create additional process-continuation relationships.
 
 ### 5.1 Workflow Override Resolution
 
-For each category and for `processContinuation`, resolve the effective value as
-follows:
+The deterministic `policy evaluate` operation resolves each category and
+`processContinuation` as follows:
 
-1. identify the exact active workflow stack from the locked resource graph;
+1. accept the exact ordered active workflow stack supplied by the caller after
+   the host obtains it from the locked resource graph;
 2. collect exact-ID overrides for those workflows;
 3. when no override matches, use `global`;
 4. when one override matches, use it instead of `global`;
@@ -309,6 +335,12 @@ follows:
 A bounded compatible skill operation invoked without an active workflow has an
 empty workflow stack and therefore uses `global`. It cannot manufacture a
 workflow identity to obtain an override.
+
+The evaluation result echoes the exact input stack and policy digest and reports
+the source of every effective value. It does not verify graph membership,
+classify a proposed action, compute category outcomes for an undisclosed action,
+or authorize execution. Those responsibilities remain with the conforming host
+under the bootstrap contract.
 
 Absolute prohibitions and superior instructions remain above both global and
 workflow-specific values. After resolving one level for every applicable
@@ -452,8 +484,10 @@ This category covers starting local programs and scripts outside the internal
 non-executing reasoning of the agent. Explicit validator selections remain
 commands and are classified here unless the current human request already
 authorizes that exact run. Selecting a compatible workflow preauthorizes only
-the bounded read-only compatibility and `policy validate` commands declared as
-its preflight. Invoking a workflow node additionally preauthorizes only the
+the fixed pre-policy allowlist in Section 4.2: bootstrap projection, bounded
+metadata-only Tool resolution, exact policy-boundary retrieval,
+`policy validate`, and, after a valid result, `policy evaluate`. Invoking a
+workflow node additionally preauthorizes only the
 verification commands required for explicitly supplied inputs and the
 deterministic store command for that node's declared artifact once every
 applicable persistence condition is satisfied. No workflow preauthorizes
@@ -684,8 +718,12 @@ Schema, decision-table, and forward-agent fixtures cover:
 - explicit workspace-root selection, nearest-ancestor `.liknon/` discovery for
   existing state, exact-current-directory initialization when no root
   exists, and absence of Git or configuration-based root discovery;
-- read-only `policy validate` and idempotent non-overwriting human-operated
-  `init --policy`;
+- read-only `policy validate`, deterministic explicit-stack `policy evaluate`,
+  and idempotent non-overwriting human-operated `init --policy`;
+- the exact pre-policy allowlist succeeding without a prior
+  `commandExecution` result and rejecting generic search, undeclared payload
+  retrieval, Manager/network access, validation execution, mutation,
+  persistence, and workflow-node work;
 - malformed, unsupported, unknown-field, and path-escaping policy;
 - all `processContinuation` modes for unrelated continuation-eligible edges;
 - global fallback, one exact workflow override, unmatched workflow IDs, and
@@ -736,6 +774,9 @@ attempt to persuade the agent to perform a prohibited mutation.
       value and an optional exact-workflow override map.
 - [ ] An exact workflow override takes precedence over the global value; nested
       matching overrides combine by the most restrictive value.
+- [ ] Validation reports only document status and identity; evaluation accepts
+      only a caller-supplied ordered workflow stack and reports every effective
+      value and source without workflow discovery or activation.
 - [ ] Workflow manifests cannot create, modify, or lower policy values.
 - [ ] Decision levels follow `4 > 3 > 2 > 1 > 0` within every category.
 - [ ] Every category-level combination has one documented normative meaning.

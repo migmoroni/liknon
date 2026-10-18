@@ -66,8 +66,9 @@ or the canonical source file. The host records the supported contract version
 and digest before requesting installed workflow, skill, profile, tool, or
 knowledge content.
 
-Any compatible AI workflow may use Tool as its resource interface. Official
-action and validation-engineering workflows are initial consumers, not
+Any compatible AI workflow may use Tool as its resource interface. Neutral
+conformance workflows prove this boundary before Phase 3; official action and
+validation-engineering workflows later become ordinary consumers, not
 privileged callers. The consuming host obeys `.liknon/ai/policy.json`, resource
 capability/effect declarations, and its authority boundaries. Tool itself does
 not read, parse, or enforce AI policy.
@@ -96,8 +97,11 @@ decision policy.
   detailed content.
 - Representative conforming agents load the bootstrap contract before catalog
   routing and retain its identity in evaluation evidence.
-- An external workflow and the official workflows receive semantically
-  equivalent envelopes for equivalent declared resource graphs.
+- A project-controlled conformance workflow and an external workflow receive
+  semantically equivalent envelopes for equivalent declared resource graphs.
+- A repository-built Manager B02.4 installation is consumable after Manager is
+  removed from `PATH`, with network disabled and bytes unchanged. This is the
+  Tool half of the root M3 local interoperability gate.
 
 ## Exit Criterion
 

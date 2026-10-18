@@ -1,5 +1,31 @@
 # Unified Validation System Implementation Plan
 
+## 0. Plan Authority And Reading Order
+
+This README is the normative end-to-end index for the validation-system plans.
+It owns implementation order, cross-track dependencies, milestone exits, and
+the assignment of each public contract to one implementation unit. Subordinate
+phase and track documents own detailed work only inside those boundaries.
+
+When a subordinate document conflicts with this index, this index controls and
+the implementing change must reconcile the subordinate document before code is
+considered complete. Historical text in a completed phase records accepted
+behavior; it does not authorize an obsolete architecture, dependency, or
+publication requirement.
+
+The index distinguishes four facts that earlier drafts sometimes combined:
+
+1. **structural extraction** creates ownership boundaries and package shells;
+2. **contract approval** fixes public schemas and command semantics;
+3. **local implementation readiness** proves behavior from repository builds and
+   deterministic fixtures;
+4. **public distribution readiness** proves publication and public readback.
+
+Public publication is never a prerequisite for a later local implementation
+phase unless that phase explicitly tests a public channel. Generic substrate
+phases use neutral conformance fixtures and never require an official workflow,
+skill, profile, or prompt that belongs to a later phase.
+
 ## 1. Purpose
 
 This plan completes direct human operation and the first two official AI
@@ -31,8 +57,9 @@ workflow, or another compatible workflow.
 
 Every governed AI operation begins with the program-owned
 [AI Bootstrap And Conformance Contract](ai-bootstrap-and-conformance-contract.md).
-Its canonical `contracts/ai/ENTRYPOINT.md` is the first Liknon instruction the
-human supplies to an external AI host. It defines loading order, authority,
+Its canonical
+`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` is the first Liknon
+instruction the human supplies to an external AI host. It defines loading order, authority,
 policy, configuration, resource, application-binding, CLI-use, and evidence
 rules without executing a workflow or selecting a model. Tool exposes the exact
 contract through `likt bootstrap`; an AI that does not load and follow it may
@@ -83,21 +110,21 @@ human directs the agent to the Liknon AI bootstrap entry point
 agent loads and verifies the Liknon AI bootstrap contract
                   |
                   v
-agent loads the official action workflow
+agent uses likt to resolve the exact action-workflow graph and closure metadata
                   |
                   v
 workflow selects the liknon-ai-tool skill operation
                   |
                   v
-agent loads the immutable policy boundary and validates policy.json
+agent verifies compatibility and loads the declared policy-boundary guide
+                  |
+                  v
+agent validates policy.json and evaluates the exact active workflow stack
                   |
                   +-- missing or invalid --> policy guidance; human acts manually
                   |
                   v valid
-agent loads only the required AI-Tool operation
-                  |
-                  v
-agent uses likt to retrieve only the selected installed resources
+agent uses likt to retrieve only the required AI-Tool operation and knowledge
                   |
                   v
 agent guides policy, inspects, configures, runs, triages, or audits as requested
@@ -137,13 +164,13 @@ human directs the agent to the Liknon AI bootstrap entry point
 agent loads and verifies the Liknon AI bootstrap contract
                   |
                   v
-agent loads the liknon-validation-engineering workflow
+agent uses likt to resolve the exact validation-engineering graph and closure metadata
                   |
                   v
-workflow resolves the profile, skills, tools, and knowledge declared by its entry node
+agent verifies application, workflow, and resource compatibility
                   |
                   v
-agent verifies application and installed-resource compatibility
+agent loads the declared policy-boundary guide
                   |
                   v
 agent validates the existing human-owned .liknon/ai/policy.json through the CLI
@@ -152,16 +179,16 @@ agent validates the existing human-owned .liknon/ai/policy.json through the CLI
                   |                         human acts, reviews, and invokes again
                   |
                   v valid
-agent loads required AI-Tool operations
+agent evaluates the exact Tool-verified workflow stack through the CLI
                   |
                   v
-agent uses likt to retrieve only relevant installed resources
+agent uses likt to retrieve only the selected profile, operations, and knowledge
                   |
                   v
 agent validates every explicitly supplied artifact and report
                   |
                   v
-agent persists the completed immutable process result
+agent performs the selected node analysis and proposes any governed effects
                   |
                   v
 agent proposes a config.json change when the evidence requires one
@@ -182,7 +209,10 @@ agent evaluates whether the exact canonical JSON report may be persisted
 agent stores and explicitly passes permitted or human-authorized report bytes
                   |
                   v
-agent applies the same decision policy to remediation and recommendations
+agent validates and persists the completed immutable process result
+                  |
+                  v
+agent revalidates policy and applies declared continuation when eligible
 ```
 
 The validation-engineering workflow uses the corresponding AI-Tool operation whenever `policy`,
@@ -224,7 +254,7 @@ The system uses distinct runtime, governance, evidence, and content contracts:
 | --- | --- | --- |
 | `.liknon/validation/config.json` | Consumer workspace | Sole executable validation policy |
 | `.liknon/ai/policy.json` | Human operator in the consumer workspace | Governs compatible AI workflows through global values and optional exact-workflow overrides without affecting validator planning |
-| `contracts/ai/ENTRYPOINT.md` | This repository and the shared program contract | Canonical first instruction and conformance boundary for governed external AI use |
+| `crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` and its adjacent `manifest.json` | This repository and the shared program contract | Canonical first Liknon instruction, identity, and conformance boundary for governed external AI use |
 | `liknon-core` | This repository | Deterministic configuration, planning, execution, and structured outcomes |
 | `liknon` / `likx` | `apps/liknon-cli` | Validation terminal and process adapter over the core |
 | `liknon-manager` / `likm` | `apps/liknon-manager` | Hub access and explicit mutation of installed resource state |
@@ -326,13 +356,14 @@ Every completion creates a new immutable UUIDv7 artifact. A correction creates
 another artifact; it never overwrites an earlier result.
 This workflow declares `0 -> 1` and `2 -> 3` as continuation-eligible edges.
 They follow the workflow's effective ternary `processContinuation` value,
-resolved from its exact-ID override when present and otherwise from the global value:
-`auto` starts the valid related process, `human` suggests it and waits for a
-free-text decision, and `stop` ends without suggesting or asking. Every next
-process still validates its own prerequisites. Ending or postponing a handoff
-leaves the persisted preceding result valid. These edge IDs are resource
-content, not platform constants. Other workflows may declare unrelated graphs
-and continuation-eligible edges.
+returned by `policy evaluate` for the exact active workflow stack: matching
+overrides combine by `stop > human > auto`, and the global value is used only
+when none match. `auto` starts the valid related process, `human` suggests it
+and waits for a free-text decision, and `stop` ends without suggesting or
+asking. Every next process still validates its own prerequisites. Ending or
+postponing a handoff leaves the persisted preceding result valid. These edge IDs
+are resource content, not platform constants. Other workflows may declare
+unrelated graphs and continuation-eligible edges.
 
 The processes define analytical responsibilities, not chat boundaries. Human
 recommendations for organizing those processes across one or more conversations
@@ -345,7 +376,7 @@ supported.
 
 | Concern | Source of truth |
 | --- | --- |
-| Governed AI loading order, authority boundary, and conformance evidence | Program-owned `contracts/ai/ENTRYPOINT.md`, projected exactly by `likt bootstrap` |
+| Governed AI loading order, authority boundary, identity, and conformance evidence | Program-owned `crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` plus its adjacent `manifest.json`, projected exactly by `likt bootstrap` |
 | Executable programs, arguments, directories, dependencies, and composition | `.liknon/validation/config.json` |
 | Compatible AI authority and workflow continuation | Human-owned `.liknon/ai/policy.json`, using global values and optional exact-workflow overrides interpreted exclusively by the normative AI decision-policy contract |
 | Concrete validation outcome | Versioned JSON report emitted by the CLI and, when persistence is permitted for a compatible workflow run, stored byte-for-byte under `.liknon/validation/reports/` |
@@ -484,8 +515,12 @@ validation passed.
 4. Validation CLI does not depend on an AI provider, model, chat protocol, or
    persistence directory.
 5. Human operation remains complete when AI resources are absent.
-6. Every governed AI operation except contract-valid read-only policy guidance
-   requires a valid human-owned AI decision policy before workspace work begins.
+6. Every governed AI operation may perform only the fixed bootstrap,
+   metadata-resolution, policy-boundary, `policy validate`, and conditional
+   `policy evaluate` preflight before effective policy exists. After that
+   preflight, a valid human-owned AI decision policy is required before
+   workspace work begins; when policy is missing or invalid, only the bounded
+   read-only policy-guidance result may continue.
 7. Every compatible workflow loads the same immutable policy boundary,
    validates the current policy, and applies the same category and override
    meanings.
@@ -580,31 +615,84 @@ validation passed.
     not a privileged or mandatory platform implementation. Compatible workflows
     may declare alternatives without application changes.
 
-## 6. Implementation Order
+## 6. Normative End-To-End Implementation Index
 
-| Phase | Document | Depends on | Primary result |
-| ---: | --- | --- | --- |
-| 1 | [Human Flow Completion](01-human-flow-completion.md) | Current runtime | Independently complete human workflow and deterministic config initialization |
-| 2 | [Shared Validation Knowledge](02-shared-validation-knowledge.md) | Phase 1 | Cataloged minimum knowledge corpus with concise source-backed guidance, reusable patterns, and precise routes to authoritative depth |
-| 2.1 | [Knowledge Editorial Refoundation](02.1-knowledge-editorial-refoundation.md) | Phase 2 | Standards-informed editorial families, profiles, version policy, canonical paths, and mechanically verified content structure |
-| 3 | [Official Action Workflow And AI Decision Policy](03-ai-tool-flow.md) | Phases 1, 2, and 2.1; A01.4; B02.5; B03.4 | Generic human-owned policy foundation, official action workflow, and reusable AI-Tool operations without analytical continuity |
-| 4 | [Validation-Engineering Workflow Persistence And Safety](04-ai-engineering-persistence-and-safety-foundation.md) | Phases 1-3 | Generic workflow artifact envelope, process trust boundaries, official validation-engineering graph, and independently versioned profiles |
-| 5 | [Official Validation-Engineering Domain And Coverage Setup](05-ai-engineering-domain-and-coverage-setup.md) | Phase 4 | Automatically persisted domain and sensorium nodes of the official workflow |
-| 6 | [Official Validation-Engineering Triage And Drift Loop](06-ai-engineering-triage-and-drift-loop.md) | Phase 5 | Safe daily execution, remediation, and recalibration through the official workflow |
-| 7 | [End-To-End Verification And Release](07-end-to-end-verification-and-release.md) | Phases 1-6 | Proven isolation, composition, four-family agent evaluation, and distributable artifacts |
+### 6.1 Accepted Foundation
 
-Complete phases in order. After Phase 2.1, complete A01, B02, and B03 before
-Phase 3 so later AI operations retrieve installed resources through Tool rather
-than embedding knowledge or instructions in Validation CLI. A01 establishes
-the product boundary, B02 establishes the resource contract and Manager, and
-B03 completes offline Tool interoperability. Official resources may then evolve
-through Hub publication without rebuilding any CLI.
+| Unit | Status | Accepted result |
+| --- | --- | --- |
+| [Phase 1](01-human-flow-completion.md) | Complete | Independent Human Flow and deterministic config initialization |
+| [Phase 2](02-shared-validation-knowledge.md) | Complete | Initial source-backed validation knowledge corpus |
+| [Phase 2.1](02.1-knowledge-editorial-refoundation.md) | Complete | Editorial profiles, canonical paths, version policy, and content checks |
 
-A01 also establishes the shared AI bootstrap identity, compatibility types, and
-canonical entry source before B02 and B03 consume them. B02 resolves declared
-compatibility, and B03 exposes the exact built-in entry contract. Phase 3 then
-implements the complete decision-policy lifecycle and the first official
-workflow against those already established generic contracts.
+These phases are regression baselines. Later work may relocate their current
+implementation under the approved architecture but must preserve their accepted
+semantics unless a later phase explicitly replaces one.
+
+### 6.2 Executable Critical Path
+
+| Milestone | Units | Depends on | Exit condition |
+| --- | --- | --- | --- |
+| M1: Structural separation | [A01.0-A01.4](A01-product-and-repository-separation/README.md) | Accepted foundation | Validation behavior is extracted, three application packages have isolated ownership, canonical authored sources have one owner, and no Manager, Tool, AI-policy, workflow-persistence, or official-workflow feature is claimed complete |
+| M2: Resource contracts | [B02.0](B02-resource-hub-and-manager/00-resource-and-hub-contract.md), then [B03.0](B03-tool-cli/00-product-and-command-contract.md) | A01.4 | Resource, Hub, local-store, Manager, Tool, bootstrap-output, and command contracts are approved before feature implementation |
+| M3: Local resource substrate | B02.1-B02.4 and B03.1-B03.2 | M2 | Repository-built Manager installs neutral authenticated fixtures; repository-built Tool consumes the resulting store offline; `likt bootstrap` returns the exact program contract |
+| M4: Bounded governed assistance | [Phase 3](03-ai-tool-flow.md) | M3 local interoperability gate | Human-owned policy lifecycle, official action workflow, policy-boundary guide, and AI-Tool resource work through the generic substrate |
+| M5: Engineering foundation | [Phase 4](04-ai-engineering-persistence-and-safety-foundation.md) | Phase 3 | Generic artifact persistence and the official validation-engineering graph and profiles exist without application-specific routing |
+| M6: Engineering processes | [Phase 5](05-ai-engineering-domain-and-coverage-setup.md), then [Phase 6](06-ai-engineering-triage-and-drift-loop.md) | Phase 4 | The official workflow implements setup, execution, triage, and drift nodes through its declared resources |
+| M7: Integrated release gate | [Phase 7](07-end-to-end-verification-and-release.md) | Phases 1-6 and M3 | Product boundaries, security, all four evaluation families, package candidates, and release evidence pass end to end |
+
+M3 has one explicit local interoperability gate. It uses synthetic resources,
+including a workflow with nonnumeric nodes and a replaceable operational skill,
+through this path:
+
+```text
+local/test Hub -> repository-built Manager -> locked .liknon/resources store
+               -> Manager removed from PATH -> repository-built Tool offline
+```
+
+The gate verifies exact bytes, hashes, dependency closure, compatibility,
+provenance, bootstrap projection, and absence of activation. It does not require
+Phase 3 resources or any public package, download domain, or registry readback.
+
+### 6.3 Ownership By Unit
+
+| Concern | Owning unit |
+| --- | --- |
+| Repository inventory, package boundaries, core extraction, authored-source ownership | A01 |
+| AI bootstrap authored bytes, metadata identity, digest scope, and compatibility type | A01.0-A01.1 |
+| Resource identity, schemas, Hub protocol, Manager grammar | B02.0 |
+| Manager acquisition, locking, mutation, trust, and recovery | B02.1-B02.4 |
+| Tool grammar and bootstrap-output envelope | B03.0 |
+| Tool bootstrap projection and offline resource consumption | B03.1-B03.2 |
+| AI decision policy, deterministic policy evaluation, action workflow, and AI-Tool | Phase 3 |
+| Generic workflow artifacts and official validation-engineering root graph | Phase 4 |
+| Official validation-engineering node behavior | Phases 5-6 |
+| Cross-surface conformance and release readiness | Phase 7 |
+| Public channel publication and readback | The applicable B01, B02.5, or B03.3-B03.4 distribution track |
+
+An owning unit may use an earlier neutral fixture but cannot require a later
+official resource as its acceptance evidence. No CLI recognizes an official
+resource ID, and no resource can grant itself application behavior or policy
+authority.
+
+### 6.4 Distribution Lanes
+
+Distribution is independent from the local implementation critical path:
+
+| Track | Earliest start | Relationship to the critical path |
+| --- | --- | --- |
+| [B01 Validation CLI](B01-cli-distribution/README.md) | A01.4 plus a release-ready Validation CLI commit | May publish any approved CLI version; it does not gate Phases 3-6 |
+| [B02.5 Manager](B02-resource-hub-and-manager/05-distribution-and-end-to-end-verification.md) | B02.4 plus a release-ready Manager commit | Public distribution is not required by M3 or Phase 3 |
+| [B03.3 Source And Native Distribution](B03-tool-cli/03-source-and-native-distribution.md) and [B03.4 Public Verification](B03-tool-cli/04-end-to-end-verification-and-publication.md) | B03.2 and M3; only a public-Manager-to-public-Tool claim additionally requires B02.5 | Public Tool distribution is independent and is not required by M3 or Phase 3 |
+| [B04 Programmatic APIs](B04-programmatic-api-and-language-bindings/README.md) | A01.4 and an approved demonstrated in-process consumer | Future API work outside the current CLI/resource critical path |
+
+Publication never proves the unified system complete by itself. Conversely, a
+local implementation phase never claims a public channel until that channel's
+publication and clean-environment readback phase passes. A release claiming the
+complete validation system requires M7 plus the public-channel evidence for
+every channel included in that release.
+
+### 6.5 Cross-Cutting Contracts
 
 [AI Work Contexts](ai-work-contexts.md) is cross-cutting human-only operator
 guidance for the official validation-engineering workflow rather than an implementation phase. Its
@@ -620,9 +708,11 @@ generic persistence decisions and absolute boundaries every compatible AI
 operation obeys. Workflow-specific artifact layouts remain resource contracts.
 
 [AI Bootstrap And Conformance Contract](ai-bootstrap-and-conformance-contract.md)
-is the cross-cutting root contract implemented across A01 and B03. It defines
-how an external host enters the governed system, while policy, workflows,
-skills, profiles, tools, and knowledge retain their narrower contracts.
+is the cross-cutting root contract. A01 owns its canonical bytes, metadata, and
+compatibility primitives; B03.0 owns its public Tool result contract; B03.1 owns
+the exact `likt bootstrap` projection. It defines how an external host enters
+the governed system, while policy, workflows, skills, profiles, tools, and
+knowledge retain their narrower contracts.
 
 [Agent Evaluation Program](agent-evaluation-program.md) is the cross-cutting
 evaluation contract executed in Phase 7. It first measures CLI-only discovery,
@@ -631,7 +721,7 @@ of the official action workflow and AI-Tool skill, and finally the complete
 validation-engineering workflow so failures can be attributed to the correct
 evaluation layer.
 
-### Replacement Semantics
+### 6.6 Replacement Semantics
 
 The current code and maintained contracts remain authoritative until their
 owning implementation phase changes them. Within this plan, the unified target
@@ -646,33 +736,16 @@ No compatibility layer, fallback path, duplicated policy model, or stale
 official-workflow assumption survives merely because it appeared in the
 pre-implementation state.
 
-### Architecture And Distribution Tracks
-
-Repository separation and distribution are planned separately from the
-numbered validation-system phases:
-
-| Track | Document | Relationship | Primary result |
-| --- | --- | --- | --- |
-| A01 | [Product And Repository Separation](A01-product-and-repository-separation/README.md) | Runs after Phase 2.1 and before Phase 3 or publication implementation | Virtual workspace, terminal-independent contracts, three independent CLIs, and modular resource sources |
-| B01 | [Liknon Validation CLI Distribution](B01-cli-distribution/README.md) | Requires A01.4; does not imply Phase 7 completion | `liknon-cli` package with `liknon` and `likx` through GitHub source, crates.io source, and Cloudflare native artifacts |
-| B02 | [Liknon Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | Requires A01.4 and approved resource sources | Authenticated Hub plus `liknon-manager` and `likm` |
-| B03 | [Liknon Tool CLI](B03-tool-cli/README.md) | Requires A01.4 and B02.0; final interoperability requires B02.5 | Offline `liknon-tool` and `likt` |
-| B04 | [Liknon Programmatic API And Language Bindings](B04-programmatic-api-and-language-bindings/README.md) | Future API track; requires A01 and approved B04.0 | Justified SDKs and in-process APIs without copied CLIs or resource payloads |
-
-B01, Manager, and Tool have independent releases. Hub resources release
-without rebuilding any CLI. B04 remains a future API track until a real
-programmatic contract and consumer are approved. Defining a track does not
-itself change configuration, report, policy, or AI-flow contracts.
-
 ## 7. Planned Documentation, Knowledge, And AI Resource Layout
 
 CLI references and maintainer contracts remain repository documentation.
 Knowledge and AI instructions have separate canonical owners:
 
 ```text
-contracts/
-└── ai/
-    └── ENTRYPOINT.md                  # Program-owned governed-AI root contract
+crates/liknon-workspace/
+└── contracts/ai/
+    ├── ENTRYPOINT.md                # Program-owned governed-AI root contract
+    └── manifest.json                # Version, media type, path, and exact-byte digest
 docs/validation/
 ├── README.md
 ├── authoring/                       # Maintainer-only editorial contracts
@@ -680,6 +753,7 @@ docs/validation/
 │   ├── editorial-standard.md
 │   ├── editorial-bases.md
 │   ├── editorial-profiles.json
+│   ├── schemas/                    # Catalog, sources, and editorial-profile contracts
 │   └── profiles/
 ├── reference/                       # CLI, config, report, schema, and AI policy contracts
 ├── knowledge/                       # Canonical authored knowledge resources
@@ -759,9 +833,11 @@ use `consumer-selected` repository treatment. Other workflows declare their own
 artifact kinds and one supported treatment for each kind; neither name nor
 treatment is inferred by a CLI.
 
-Configuration, report, runtime, and generic artifact-envelope schemas belong to
-core or Validation CLI. Workflow-specific artifact payload schemas and storage
-declarations belong to their locked workflow resources.
+Configuration and report schemas belong to `liknon-core`; application-specific
+command-result schemas belong to the application that emits them. Phase 4 adds
+the generic workflow artifact envelope to `liknon-workspace`.
+Workflow-specific artifact payload schemas and storage declarations belong to
+their locked workflow resources.
 Resource manifests, locks, and Hub contracts belong to B02 and the shared
 workspace contract. Tool owns only local consumption semantics. Consumer
 workspaces store configuration, policy, reports, explicitly selected resources,
@@ -806,9 +882,11 @@ The unified plan is complete only when:
   without process-specific reinterpretation;
 - the shared `init` command provisions config and human-owned AI policy only
   through explicit capability flags and never overwrites conflicting resources;
-- `policy validate` is read-only, missing or invalid policy blocks every AI
-  operation except advisory policy guidance, and the human directly performs
-  every policy initialization and change;
+- `policy validate` is read-only and reports only document validity and
+  identity; `policy evaluate` deterministically resolves an explicit
+  caller-supplied workflow stack without discovery or activation; missing or
+  invalid policy blocks every AI operation except advisory policy guidance, and
+  the human directly performs every policy initialization and change;
 - no compatible AI workflow can create, edit, format, replace, delete, move, restore,
   initialize, or indirectly mutate policy under any approval or configured
   level;

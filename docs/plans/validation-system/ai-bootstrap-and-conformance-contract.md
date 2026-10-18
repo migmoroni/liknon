@@ -32,15 +32,27 @@ or conforming Liknon AI operation.
 
 ## 3. Canonical Entry Point
 
-The repository owns one canonical source file:
+The repository owns one canonical content file and one adjacent identity file:
 
 ```text
-contracts/ai/ENTRYPOINT.md
+crates/liknon-workspace/contracts/ai/ENTRYPOINT.md
+crates/liknon-workspace/contracts/ai/manifest.json
 ```
 
-It is a program contract, not a Hub resource, skill, workflow, prompt, agent
+Together they are a program contract, not a Hub resource, skill, workflow, prompt, agent
 profile, or replaceable instruction package. Resource publication cannot replace
 or override it.
+
+Both files live below the owning Cargo package so local and published
+`liknon-workspace` builds can expose the exact canonical bytes without copying
+from outside the package boundary. `manifest.json` contains only the bootstrap metadata needed to identify and
+verify the content: manifest schema version, SemVer contract version, media
+type, canonical entry path relative to its `contracts/ai/` directory, and
+lowercase SHA-256 digest. The digest is
+computed over the exact `ENTRYPOINT.md` UTF-8 bytes as stored, including its
+final-newline state, with no newline, Unicode, or whitespace normalization. The
+manifest never hashes itself. Its schema and the Tool JSON envelope are
+independently versioned.
 
 The source checkout exposes the file directly. The Tool application embeds the
 same exact bytes and exposes them without requiring a workspace or installed
@@ -51,9 +63,10 @@ likt bootstrap [--format=human|json]
 ```
 
 Human output returns the canonical Markdown. JSON output returns a versioned
-envelope containing the bootstrap-contract version, SHA-256 digest, Tool
-capability version, media type, and exact content. No command silently writes a
-copy into a consumer workspace. A later explicit materialization feature may
+envelope containing the manifest schema version, bootstrap-contract version,
+SHA-256 digest, Tool capability version, media type, canonical source identity,
+and exact content. No command silently writes a copy into a consumer workspace.
+A later explicit materialization feature may
 project the exact bytes only if it records the source version and digest and
 never creates a second editable source.
 
@@ -63,31 +76,49 @@ loaded before claiming policy or workflow conformance.
 
 ## 4. Mandatory Loading Order
 
-For a governed AI operation, the entry point requires this order:
+Superior system, host, workspace, repository, and current human instructions
+already govern the external host before it reads Liknon content. Within that
+pre-existing authority, the entry point requires this order:
 
-1. load and verify the supported AI bootstrap contract;
-2. preserve superior system, host, workspace, repository, and current human
-   instructions;
+1. acknowledge and preserve those superior instructions;
+2. as the first Liknon instruction, load `ENTRYPOINT.md` and verify it against
+   `manifest.json`, the Tool envelope, or both;
 3. select one explicit `.liknon/` workspace boundary;
-4. validate the existing human-owned `.liknon/ai/policy.json` through the
-   program contract, except for the narrowly read-only policy-guidance route;
-5. identify the human-selected workflow and entry node, or identify the bounded
+4. identify the human-selected workflow and entry node, or identify the bounded
    standalone skill operation when no workflow is active;
-6. resolve the exact locked graph and dependency closure through Tool;
-7. verify bootstrap, policy, application, workflow, profile, skill, tool,
-   knowledge, and artifact-contract compatibility;
-8. bind declared tool operations to separately installed application
+5. resolve the exact locked graph and dependency-closure metadata through Tool
+   without activating or obeying resource instructions;
+6. verify bootstrap, policy-contract, application, workflow, profile, skill,
+   tool, knowledge, and artifact-contract compatibility;
+7. retrieve and load the exact declared policy-boundary guide;
+8. validate the existing human-owned `.liknon/ai/policy.json` through the
+   program contract, except for the narrowly read-only policy-guidance route;
+9. evaluate the exact Tool-verified root-to-leaf workflow stack, or the empty
+   stack for a standalone skill operation;
+10. bind declared tool operations to separately installed application
    capabilities through the external host;
-9. load only the resources required by the selected node or bounded operation;
-10. classify every proposed effect under the effective policy before acting;
-11. invoke only eligible capabilities, preserving `config.json` as the sole
+11. load only the remaining resources required by the selected node or bounded
+   operation;
+12. classify every proposed effect under the effective policy before acting;
+13. invoke only eligible capabilities, preserving `config.json` as the sole
     executable validation policy;
-12. validate outputs and record the exact contracts, resources, decisions, and
+14. validate outputs and record the exact contracts, resources, decisions, and
     evidence used.
 
 Missing, unsupported, modified, or incompatible mandatory input fails closed.
 Installation, lookup, or retrieval never implies workflow activation. Only an
 explicit human selection establishes an active workflow and entry node.
+
+The commands needed to establish effective policy cannot depend on policy that
+has not yet been evaluated. Before Step 9 completes, this contract therefore
+pre-authorizes only the fixed read-only preflight defined by
+[AI Decision Policy Section 4.2](ai-decision-policy.md): bootstrap projection,
+metadata-only Tool resolution of the exact human-selected workflow or skill,
+retrieval of its exact policy-boundary material, `policy validate`, and, after
+validity is established, `policy evaluate`. It does not pre-authorize generic
+search or context retrieval, Manager or network access, validation execution,
+repository analysis, mutation, persistence, or workflow-node work. Every other
+command and effect waits for the effective policy result.
 
 ## 5. Authority And Configuration
 
@@ -150,7 +181,9 @@ same conformance scenarios against each adapter.
 
 ## 8. Implementation Ownership
 
-- `contracts/ai/ENTRYPOINT.md` is the canonical authored source.
+- `crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` is the canonical authored
+  instruction source and its adjacent `manifest.json` is the canonical identity
+  and digest source.
 - `liknon-workspace` owns typed bootstrap identity, version, compatibility, and
   machine-result contracts.
 - Tool owns the read-only `bootstrap` projection and exact-byte verification.
@@ -180,7 +213,10 @@ retained as a fallback.
 ## 10. Acceptance Criteria
 
 - [ ] One canonical entry file is the first Liknon instruction for every
-      governed AI operation.
+      governed AI operation, under authority that already exists before Liknon
+      content is loaded.
+- [ ] One adjacent metadata manifest defines its schema version, SemVer contract
+      version, media type, path, and digest over exact raw entry bytes.
 - [ ] `likt bootstrap` returns its exact bytes, version, and digest without a
       workspace, network access, or installed resource.
 - [ ] No Hub resource can replace, shadow, or raise its authority above the

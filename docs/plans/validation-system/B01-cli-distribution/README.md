@@ -2,6 +2,9 @@
 
 ## Status And Relationship To The Validation System
 
+The [validation-system index](../README.md) owns cross-track order, milestone
+gates, and contract ownership. This plan owns only Validation CLI distribution.
+
 This directory defines distribution for the validation command-line
 application after [A01](../A01-product-and-repository-separation/README.md)
 separates it from the core, resource management, and local resource tooling. It
@@ -48,7 +51,7 @@ B01 includes:
 - public verification, publication recovery, and documentation.
 
 The application contains the generic validation engine, CLI presentation, core
-schemas, and generic `.liknon/validation/` bootstrap. It does not contain:
+schemas, and generic `.liknon/validation/` initialization. It does not contain:
 
 - `liknon-manager`, `liknon-tool`, the resource Hub, or installed resources;
 - knowledge, skills, workflows, agent profiles, tool descriptors, prompts,

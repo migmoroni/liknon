@@ -2,6 +2,10 @@
 
 ## Status
 
+The [validation-system index](../README.md) owns cross-track order, milestone
+gates, and contract ownership. This plan owns only future programmatic APIs and
+language bindings.
+
 This is a future design track, not an implementation-ready commitment. It may
 start only after [A01](../A01-product-and-repository-separation/README.md) has
 established stable core and workspace boundaries and a concrete in-process use

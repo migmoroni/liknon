@@ -34,9 +34,12 @@ Package inspection proves absence of:
 - Manager mutation logic;
 - plans, evaluations, and maintainer fixtures.
 
-The package source inventory includes the exact canonical
-`contracts/ai/ENTRYPOINT.md` bytes required to implement `likt bootstrap` and no
-other authored AI resource payload.
+The inspected source-package closure includes the exact canonical
+`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` bytes and its adjacent
+`manifest.json` in the published `liknon-workspace` dependency. The
+`liknon-tool` package consumes that contract through the supporting crate and
+does not duplicate it in its own inventory. No package in the closure contains
+another authored AI resource payload.
 
 ## Native Candidates
 

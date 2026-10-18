@@ -26,8 +26,9 @@ Every operational invocation requires:
 - one explicit validated sensorium artifact that references that domain;
 - a current config whose digest matches the sensorium;
 - the decision policy revalidated through `policy validate` for the explicit
-  active workspace root, with its exact path, digest, and effective workflow
-  override or global source;
+  active workspace root and reevaluated through `policy evaluate` for the exact
+  Tool-verified workflow stack, with its path, digest, effective values, and
+  global or matching-override sources;
 - the exact locked workflow, selected node profile, and declared dependency
   closure;
 - one explicit stored validation report when Process 2 or Process 3 begins from
@@ -52,9 +53,10 @@ otherwise mutate policy, even after explicit approval.
 
 When the operational request starts with a new validation run:
 
-1. validate the supplied domain and sensorium artifacts;
-2. load the immutable policy boundary and verify their relationship and the
-   current config digest;
+1. load the declared immutable policy boundary, run `policy validate`, and run
+   `policy evaluate` for the exact Tool-verified workflow stack;
+2. validate the supplied domain and sensorium artifacts, their relationship,
+   and the current config digest;
 3. load the declared `liknon-ai-tool/run` operation and resolve one explicit
    configured selection;
 4. evaluate command execution and every other implicated decision category;
@@ -262,8 +264,9 @@ Cover:
 - drift with material change, no material change, missing Git history, and
   insufficient evidence;
 - immutable UUIDv7 incident and drift artifacts with exact parent references;
-- all continuation modes after a passing Process 2 result, including exact
-  workflow override precedence over the global value;
+- all continuation modes after a passing Process 2 result, including global
+  fallback, one matching workflow override, and most-restrictive resolution
+  across matching composed-workflow overrides;
 - exact workflow, node, transition, action, agent-profile, dependency, resource-lock,
   and effective policy-source records;
 - manifest-driven node and profile selection with no official process IDs in

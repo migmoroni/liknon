@@ -4,13 +4,17 @@
 
 ## Purpose
 
-Turn knowledge and AI-facing material into independently selectable,
-versioned resources while preserving one canonical authored source for every
-file.
+Complete the separation of canonical knowledge and maintainer-owned editorial
+material from application source, then prepare neutral deterministic assembly
+inputs while preserving one editable owner for every file. A01.1 has already
+removed runtime embedding, the knowledge command, and the superseded skill that
+depended on it. B02.0 later codifies the publishable resource manifest, kind
+mapping, and Hub contracts.
 
-## Resource Kinds
+## Reserved Resource Kinds
 
-The initial resource contract supports:
+The target architecture reserves the following kinds for B02.0 to codify in a
+public contract:
 
 - `knowledge`;
 - `skill`;
@@ -22,8 +26,10 @@ The initial resource contract supports:
 - `template`;
 - `collection`.
 
-`knowledge` is the canonical singular kind name. Collections reference
-resources; they do not duplicate payloads.
+`knowledge` is the intended singular kind name. Collections are intended to
+reference resources rather than duplicate payloads. These terms organize
+authored sources and neutral fixtures in A01; they are not yet a public schema,
+wire contract, directory mapping, or accepted Manager/Tool input.
 
 ## Knowledge Sources
 
@@ -36,21 +42,38 @@ with stable IDs and versions. Documents can be installed individually or
 through collections. A complete collection may exist, but no CLI embeds or
 requires it.
 
-## Other Official Resources
+Move catalog, source, and editorial-profile schemas from the former root
+`schemas/` grab bag to `docs/validation/authoring/schemas/`. Move routing,
+forward-trial, and rubric schemas to `evals/schemas/`. Update canonical
+metadata, fixtures, the maintainer package, evaluation harnesses, and
+documentation to reference their one owning location. These schemas remain
+repository-only until B02.0 deliberately adopts any part of them into a public
+resource contract.
 
-Official skills, workflows, agent profiles, tool descriptors, prompts, guides, templates, and
-their publication metadata have one canonical type-first source under
-`resources/<kind>/official/` or an explicitly recorded existing source path.
-`official` is the Liknon-controlled namespace for these authored resources; it
-does not substitute for source-origin, review, signature, or trust metadata.
+## Other AI Resource Sources
 
-`contracts/ai/ENTRYPOINT.md` is deliberately outside this tree. It is the
-program-owned root contract loaded before any replaceable resource and cannot be
-published, shadowed, or selected as a Hub payload. Resource manifests declare a
-compatible bootstrap-contract range instead.
+Any existing skill, workflow, agent profile, tool descriptor, prompt, guide,
+template, collection, or source metadata that survives the A01.0 ledger moves
+to one canonical type-first source under a recorded path. At the current
+baseline, the only skill tree is the superseded `skills/liknon` integration;
+A01.1 removes it because its contract depends on the deleted runtime knowledge
+command. It is not renamed or promoted into the future official AI-Tool.
 
-The initial governed AI assistance uses independently selectable official
-resources:
+Kind IDs and their exact `resources/<kind-directory>/<namespace>/` mapping are
+codified in B02.0. `official` is reserved for content that actually exists and
+has completed its owning phase; it does not substitute for source origin,
+review, signature, or trust metadata. A01.2 therefore creates no empty
+`resources/` directories.
+
+`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` and its adjacent
+`manifest.json` are deliberately outside this future resource tree. They form
+the package-contained program root contract loaded before any replaceable
+resource and cannot be published, shadowed, or selected as a Hub payload.
+Future actionable resource manifests declare a compatible bootstrap contract
+range instead.
+
+The target governed AI assistance uses independently selectable official
+resources, but A01 does not author these later products:
 
 - `resources/skills/official/liknon-ai-tool/` owns the bounded operational
   instructions used by action-oriented assistance;
@@ -64,6 +87,11 @@ resources:
   and capabilities to separately installed applications without embedding
   executables or credentials.
 
+Phase 3 authors the final official action workflow, AI-Tool resource, and policy
+boundary guide. Phase 4 authors the validation-engineering root workflow and
+profiles. Phases 5 and 6 complete its node behavior. A01 must not create those
+later resources, mark drafts publishable, or use their absence as a failed gate.
+
 AI-Tool is the official default operational skill selected by the initial
 official workflows. That status supplies provenance and a maintained reference
 implementation, not implicit activation or runtime privilege. External
@@ -75,9 +103,10 @@ agent profiles, tools, knowledge, prompts, and optional subworkflows through the
 ordinary dependency contract. Installing any dependency by itself never
 activates or implies execution of a workflow.
 
-### Generic Workflow Contract
+### Generic Workflow Requirements For B02.0
 
-A workflow manifest is the generic orchestration index. It declares stable node,
+A future workflow manifest is the generic orchestration index. B02.0 turns the
+following requirements into a public schema. It declares stable node,
 action, and transition IDs, entry and terminal nodes, preconditions,
 continuation-eligible edges, referenced
 resources, action inputs and outputs, potential capabilities and effects, and
@@ -96,7 +125,7 @@ action, or grant command authority. A workflow action references tool and skill
 operations by stable identity; the AI host evaluates policy and performs the
 eligible action through the separately installed application.
 
-Every publishable resource declares:
+The B02.0 public contract must require every publishable resource to declare:
 
 - stable namespace, name, kind, and version;
 - title, summary, authorship, license, and source origin;
@@ -114,14 +143,19 @@ Every publishable resource declares:
 Resource metadata never grants an instruction authority over a human, agent,
 policy, or host.
 
-## Assembly Contract
+## Assembly Boundary
 
-- Hub artifacts are assembled deterministically from canonical sources.
+- Neutral fixture artifacts are assembled deterministically from canonical
+  sources to prove the source boundary without defining the final Hub format.
+- Their fixture-only inventory and digest representation is explicitly marked
+  non-public and may be replaced by the B02.0 contract without migration or
+  compatibility support.
 - An artifact contains only declared files.
 - Publication does not modify authored sources.
 - Resource updates do not rebuild a CLI.
-- Manager installs exact immutable artifacts selected by the resolver.
-- Tool returns installed bytes and metadata without reinterpretation.
+- B02 later makes Manager install exact immutable artifacts selected by its
+  resolver; B03 later makes Tool return installed bytes and metadata without
+  reinterpretation.
 - No language registry package becomes a second resource distribution channel.
 - No resource package contains or overrides the program-owned AI bootstrap
   entry point.
@@ -129,23 +163,28 @@ policy, or host.
 ## Verification
 
 - Every authored resource has exactly one source owner.
-- Every artifact maps back to source commit, resource version, and exact files.
+- Every neutral assembly fixture maps back to source commit, fixture identity,
+  and exact files.
 - Knowledge editorial checks run independently from all CLIs.
-- The catalog resolves every stable resource ID exactly once per version.
+- Stable source identities have no duplicates within the repository.
 - Selection of one resource does not install an unrelated language or tool
   collection.
-- Official and non-official workflows resolve through the same manifest,
-  dependency, compatibility, and policy-declaration contracts.
-- A workflow selecting a non-official AI-Tool alternative validates without an
-  application branch or bootstrap-contract change.
-- A workflow with nonnumeric node IDs and a graph unlike either official
-  workflow validates and resolves without application changes.
-- A complete knowledge collection and a minimal selection resolve through the
-  same contract.
+- Neutral workflow fixtures include unrelated graph shapes, nonnumeric nodes,
+  and replaceable operational-skill references for B02.0/B03.0 design, without
+  representing either fixture as an official product workflow.
+- A complete knowledge source selection and a minimal selection assemble from
+  the same canonical corpus without embedding it in a CLI.
 - No assembly executes resource content or mutates a consumer workspace.
+- Every editorial check runs through `liknon-knowledge-maintenance`; no check
+  imports an application package or depends on an embedded generated catalog.
+- Package inventories for all three CLIs and both support crates contain no
+  knowledge document, editorial schema, neutral resource fixture, or stale
+  skill source.
 
 ## Exit Criterion
 
-Knowledge and AI-facing material are modular resource sources with deterministic
-artifacts, explicit metadata, and no embedded-corpus or ecosystem-package
-ownership.
+Knowledge and maintainer material have one modular authored source,
+deterministic neutral assembly evidence, and no embedded-corpus,
+ecosystem-package, stale-skill, or premature official-resource ownership.
+B02.0 can now approve public artifacts and schemas without moving source
+ownership again.

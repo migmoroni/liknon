@@ -17,12 +17,14 @@ recalibration. They do not run before every normal validation.
 Every invocation begins after the human directs the external host to the
 program-owned AI bootstrap entry point. The host verifies and records its
 version and digest before loading the workflow or any replaceable resource. It
-then loads the immutable policy boundary, verifies Validation and Tool
-capabilities plus the exact locked workflow, agent profile, and dependency
-closure, resolves global and workflow-specific policy values, and validates
-each explicitly supplied artifact before using its content. Missing or invalid
-policy routes to the declared read-only `liknon-ai-tool/policy` operation and
-stops until the human performs the required creation or correction manually.
+then uses Tool to resolve the exact locked graph and dependency metadata,
+verifies Validation and Tool capabilities, loads the declared immutable policy
+boundary, validates policy, and resolves global and workflow-specific values
+for the exact active stack. Only after that preflight does it load the selected
+agent profile and remaining node resources or validate supplied artifact
+content. Missing or invalid policy routes to the declared read-only
+`liknon-ai-tool/policy` operation and stops until the human performs the
+required creation or correction manually.
 
 The process numbers, node order, profile bindings, and continuation from
 Process 0 to Process 1 are content of this official workflow. They impose no
@@ -51,7 +53,9 @@ The agent begins with:
 - repository manifests and lockfiles;
 - a bounded directory inventory;
 - the existing `.liknon/ai/policy.json` path and digest returned by
-  `policy validate` for the explicit active workspace root;
+  `policy validate` for the explicit active workspace root, plus effective
+  values and sources returned by `policy evaluate` for the exact Tool-verified
+  workflow stack;
 - the current `.liknon/validation/config.json`, when present;
 - build, packaging, persistence, deployment, and release documentation relevant
   to the product;
@@ -95,10 +99,9 @@ When Process 0 completes:
 4. present its path and digest together with the product model,
    highest-consequence scenarios, invariants, unresolved questions, and weakly
    supported assumptions;
-5. resolve `processContinuation` for
-   `workflow:official/liknon-validation-engineering`, applying an exact workflow
-   override before the global value: pass that exact domain artifact to Process
-   1 for `auto`, suggest Process 1 and wait for a free-text decision for `human`,
+5. use the effective `processContinuation` returned by `policy evaluate` for
+   the exact active workflow stack: pass that exact domain artifact to Process 1
+   for `auto`, suggest Process 1 and wait for a free-text decision for `human`,
    or end without a continuation prompt for `stop`.
 
 No separate authorization is required for the bounded redacted process result.
@@ -123,8 +126,9 @@ commands consumed by the CLI.
 ### 4.1 Inputs
 
 - one explicit validated domain artifact;
-- AI decision policy revalidated through `policy validate` for the same
-  workspace root, with its exact path and digest;
+- AI decision policy revalidated through `policy validate` and reevaluated
+  through `policy evaluate` for the same workspace root and exact active
+  workflow stack, with its path, digest, effective values, and sources;
 - current config and its digest;
 - non-executing config inspection from `config validate`, `list --tree`, and
   `explain`;
@@ -272,9 +276,9 @@ Verify that the agent:
 - never installs or changes a recommended tool without authority;
 - preserves a declined gap without silently weakening it;
 - persists each process result without a separate ordinary-result prompt;
-- implements `auto`, `human`, and `stop` continuation without bypassing Process
-  1 preconditions, using the official workflow override when present and the
-  global value otherwise;
+- implements `auto`, `human`, and `stop` continuation without bypassing
+  Process 1 preconditions, using the effective value for the exact active
+  workflow stack;
 - resumes in a fresh conversation only from explicit artifact paths;
 - creates a new UUIDv7 artifact for every rerun or correction;
 - rejects operational use of a domain and sensorium whose declared relationship

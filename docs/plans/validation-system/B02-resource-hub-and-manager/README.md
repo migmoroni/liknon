@@ -2,6 +2,10 @@
 
 ## Status And Relationship To Other Tracks
 
+The [validation-system index](../README.md) owns cross-track order, milestone
+gates, and contract ownership. This plan owns only the Hub, resource protocol,
+and Manager track.
+
 This plan defines the public resource protocol, the online Liknon Resource Hub,
 and the independent Manager application created by
 [Plan A01](../A01-product-and-repository-separation/README.md).
@@ -17,9 +21,10 @@ canonical networked resource-state mutator.
 Provide one trustworthy path for discovering, selecting, obtaining, locking,
 verifying, updating, removing, and explicitly materializing Liknon resources.
 
-The initial resource kinds are knowledge, skills, workflows, agent profiles,
-tool descriptors, prompts, guides, templates, and collections. Users select only
-what they need.
+The initial singular resource-kind IDs are `knowledge`, `skill`, `workflow`,
+`agent-profile`, `tool`, `prompt`, `guide`, `template`, and
+`collection`. B02.0 owns their exact pluralized physical-directory mapping.
+Users select only what they need.
 A complete knowledge collection may be offered, but it is optional and follows
 the same resolver and lock contract as every smaller selection.
 
@@ -88,12 +93,13 @@ partial downloads remain outside the workspace.
 Payload paths are type-first and namespace-aware:
 
 ```text
-.liknon/resources/<kind>/<namespace>/<name>/<version>/
+.liknon/resources/<kind-directory>/<namespace>/<name>/<version>/
 ```
 
-The lock, rather than the filesystem spelling alone, is authoritative. A
-namespace such as `official` identifies a publisher boundary and grants no
-special execution or policy authority.
+The resource manifest records the singular kind ID; B02.0 maps it to exactly one
+directory name. The lock, rather than the filesystem spelling alone, is
+authoritative. A namespace such as `official` identifies a publisher boundary
+and grants no special execution or policy authority.
 
 ## Hub And Trust Model
 
@@ -136,11 +142,16 @@ releases. Publishing or updating a resource never requires rebuilding Manager.
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
 | B02.0 | [Resource And Hub Contract](00-resource-and-hub-contract.md) | A01.4 | Approved identities, schemas, trust, compatibility, and command grammar |
-| B02.1 | [Hub Catalog And Publication](01-hub-catalog-and-publication.md) | B02.0 | Authenticated catalog, immutable payloads, namespaces, and publication workflow |
+| B02.1 | [Hub Catalog And Publication Pipeline](01-hub-catalog-and-publication.md) | B02.0 | Authenticated catalog, immutable payloads, namespaces, and publication workflow proven against a local/test origin |
 | B02.2 | [Manager Workspace And Commands](02-manager-workspace-and-commands.md) | B02.0 | Local state, discovery, inspection, and stable human/JSON interfaces |
 | B02.3 | [Resolution, Locking, And Installation](03-resolution-locking-and-installation.md) | B02.1-B02.2 | Deterministic dependency resolution and transactional resource lifecycle |
 | B02.4 | [Security, Trust, And Recovery](04-security-trust-and-recovery.md) | B02.3 | Fail-closed verification, rollback, and adversarial coverage |
 | B02.5 | [Distribution And End-To-End Verification](05-distribution-and-end-to-end-verification.md) | B02.4 | Published Manager channels and verified Hub-to-workspace behavior |
+
+B02.0-B02.4 establish local implementation readiness. Together with B03.2 they
+participate in the root plan's M3 local interoperability gate using neutral
+conformance resources. B02.5 is a separate public-distribution milestone and is
+not a prerequisite for Phase 3.
 
 ## Global Acceptance Criteria
 
@@ -156,16 +167,17 @@ releases. Publishing or updating a resource never requires rebuilding Manager.
 - [ ] Installation, update, removal, and materialization are preflighted,
       path-safe, transactional, and recoverable.
 - [ ] Installing a resource never executes it or activates it implicitly.
-- [ ] Official and external workflows use the same graph, dependency,
-      capability, effect, and agent-profile reference contracts.
+- [ ] Project-controlled conformance workflows and external workflows use the
+      same graph, dependency, capability, effect, and agent-profile reference
+      contracts; later official workflows require no application branch.
 - [ ] A workflow with absent or incompatible decision-policy compatibility may
       be installed and inspected but is never reported as activatable.
 - [ ] A workflow with absent or incompatible AI bootstrap compatibility follows
       the same installable-but-not-activatable behavior.
 - [ ] No catalog entry or installed resource can replace or shadow the
       program-owned AI bootstrap contract.
-- [ ] Official AI-Tool and compatible alternative operational skills resolve
-      through the same dependency and trust contracts.
+- [ ] Neutral operational-skill fixtures and compatible alternatives resolve
+      through the same dependency and trust contracts used later by AI-Tool.
 - [ ] Manager contains no branch for an official resource ID, process name, or
       workflow shape.
 - [ ] Tool can consume Manager-produced state without invoking Manager.

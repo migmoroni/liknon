@@ -14,8 +14,11 @@ without bundled workflow or skill instructions.
 
 ## 2. Dependency
 
-Phases 1 through 6 are implemented. Acceptance tests in this phase verify their
-composition; they do not replace an incomplete earlier contract.
+Phases 1 through 6 and the root plan's M3 local resource interoperability gate
+are implemented. Acceptance tests in this phase verify their composition; they
+do not replace an incomplete earlier contract. Public distribution may proceed
+on its independent tracks, but no public channel is credited here without its
+own clean-environment readback evidence.
 
 ## 3. End-To-End Scenario Matrix
 
@@ -469,10 +472,10 @@ paired cross-family regressions that share the changed contract.
       initialization or correction and review.
 - [ ] No compatible AI workflow mutates policy directly or indirectly under any approval,
       configured level, continuation mode, or process state.
-- [ ] `init`, `policy validate`, and every persistence operation use the declared
-      nearest-ancestor or explicit workspace boundary without config or Git
-      discovery; initialization alone may bootstrap the exact current directory
-      when no root exists.
+- [ ] `init`, `policy validate`, `policy evaluate`, and every persistence
+      operation use the declared nearest-ancestor or explicit workspace boundary
+      without config or Git discovery; initialization alone may bootstrap the
+      exact current directory when no root exists.
 - [ ] Trust, approval, redaction, containment, and atomic-write boundaries
       survive adversarial fixtures.
 - [ ] Every documented report and exit outcome has a tested route.
