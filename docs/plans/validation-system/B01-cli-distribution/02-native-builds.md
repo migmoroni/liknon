@@ -1,5 +1,9 @@
 # Phase B01.2: Build Native CLI Artifacts Once
 
+## Status
+
+`Provisional`. Blocked by B01.1.
+
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose

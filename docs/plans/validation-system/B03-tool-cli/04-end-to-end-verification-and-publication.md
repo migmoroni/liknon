@@ -1,5 +1,13 @@
 # Phase B03.4: Verify And Publish Tool End To End
 
+## Status
+
+`Provisional`. Blocked by B03.3, local B02/B03 interoperability evidence, and
+explicit human release approval.
+
+Operation labels in this document are placeholders for the exact grammar
+selected by B03.0.
+
 [Back to the Tool CLI plan](README.md)
 
 ## Purpose
@@ -17,8 +25,8 @@ From clean environments:
 2. install the crates.io candidate;
 3. install each authenticated native target;
 4. exercise both command names;
-5. run `bootstrap` with no workspace and verify exact source bytes, version, and
-   digest;
+5. run the approved bootstrap projection with no workspace and verify exact
+   source bytes, version, and digest;
 6. consume a contract-valid fixture store without Manager installed;
 7. use the repository-built B02.4 Manager to install one knowledge item, skill,
    collection, and dependency graph, then remove Manager from `PATH`;
@@ -35,7 +43,7 @@ From clean environments:
 When B02.5 has already published Manager, repeat Step 7 from a clean environment
 with that exact public Manager channel and retain a separate cross-channel
 interoperability result. Absence of a public Manager delays only that additional
-claim; the M3 repository-built interoperability evidence remains the Tool
+claim; the repository-built interoperability evidence remains the Tool
 publication prerequisite.
 
 ## Publication

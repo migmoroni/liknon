@@ -1,13 +1,16 @@
 # Phase B04.0: Define The Programmatic API Contract
 
+## Status
+
+`Future`. This becomes the decision gate only after a demonstrated in-process
+consumer and a stable A01 boundary.
+
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
 
 Determine which Liknon behavior is reusable in process and define a stable core
 contract before exposing any language package or ABI.
-
-## Status
 
 Discovery only. Do not implement bindings or configure registry publication
 until this phase has an approved exit record.

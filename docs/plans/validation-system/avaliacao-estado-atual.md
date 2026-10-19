@@ -1,5 +1,9 @@
 # Avaliacao Do Estado Atual Do Liknon
 
+## Status
+
+`Current-state record`.
+
 ## 1. Finalidade
 
 Este documento registra o que o repositorio implementa hoje. Ele existe para

@@ -1,5 +1,10 @@
 # B02 Hub And Manager Accounts, Permissions, And Authority
 
+## Status
+
+`Provisional`. Blocked by B02.0 and completed just in time for each delivery
+phase.
+
 [Back to the Resource Hub and Manager plan](README.md)
 
 ## Purpose
@@ -11,7 +16,8 @@ needed by the B02 phase currently being implemented.
 
 The human release owner controls:
 
-- the `liknon-manager` and `liknon-workspace` crates.io packages;
+- the `liknon-manager` package and every supporting crates.io package selected
+  by the approved A01 ledger;
 - Manager release tags and approval;
 - the Hub domain, object storage, namespace policy, and trust roots;
 - official resource publication and trust-class governance;
@@ -51,7 +57,7 @@ jobs.
 ### Manager Candidate
 
 Before B02.5 candidate builds, confirm the `liknon-manager` and
-`liknon-workspace` package identities, native target matrix, protected
+supporting-package identities selected by A01, native target matrix, protected
 environments, and artifact retention.
 
 ### Publication

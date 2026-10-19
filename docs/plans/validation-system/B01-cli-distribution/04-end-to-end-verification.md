@@ -1,5 +1,9 @@
 # Phase B01.4: Verify CLI Distribution End To End
 
+## Status
+
+`Provisional`. Blocked by B01.3.
+
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose

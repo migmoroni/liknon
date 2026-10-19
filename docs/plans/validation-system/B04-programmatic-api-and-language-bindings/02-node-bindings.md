@@ -1,5 +1,9 @@
 # Phase B04.2: Publish Node.js Bindings
 
+## Status
+
+`Future`. Blocked by an approved B04.0 Node.js scope.
+
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose

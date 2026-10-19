@@ -4,7 +4,7 @@
 
 ## Status
 
-Deferred until Phase B04.0 approves the public API and at least one language
+`Future`. Deferred until Phase B04.0 approves the public API and at least one language
 binding has a release candidate. Do not create placeholder packages or
 long-lived publication credentials merely to satisfy this document.
 

@@ -2,6 +2,11 @@
 
 ## Status And Relationship To Other Tracks
 
+`Decision gate` at B02.0. The product role and distribution-channel categories
+are approved. Command grammar, public resource schemas, Hub behavior, trust,
+and recovery are not approved until B02.0 exits. B02.1-B02.5 are
+`Provisional`.
+
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only the Hub, resource protocol,
 and Manager track.
@@ -15,6 +20,14 @@ and the independent Manager application created by
 [B04](../B04-programmatic-api-and-language-bindings/README.md) may later expose
 justified programmatic APIs. None of those tracks replaces Manager as the
 canonical networked resource-state mutator.
+
+## Dependencies
+
+B02 depends on A01 product boundaries and on C01 generic resource, workflow,
+capability, effect, and policy-compatibility requirements needed by B02.0. Its
+distribution phases additionally depend on the
+[B02 external-readiness runbook](accounts-and-permissions.md). C02 and C03 are
+consumers, not prerequisites for B02.0.
 
 ## Objective
 
@@ -44,10 +57,17 @@ executable.
 The Hub owns public metadata and immutable payload distribution. It is not a
 CLI and does not mutate consumer workspaces.
 
-## Command Families
+## Exclusions
 
-The final command grammar is approved in B02.0. It must cover these semantic
-operations:
+B02 does not execute validation, interpret or activate installed instructions,
+host AI models, conduct workflows, answer knowledge queries, or define Tool's
+read-only command surface. It does not publish Validation CLI or Tool artifacts.
+
+## Candidate Command Families
+
+B02.0 must approve the final grammar. The following operations are design
+inputs to evaluate, merge, rename, split, or reject rather than an approved
+command list:
 
 | Operation | Responsibility |
 | --- | --- |
@@ -64,6 +84,9 @@ operations:
 Administrative `list` and `info` describe state, versions, origin,
 integrity, and updates. B03 Tool commands consume resource content and do not
 duplicate these mutation-oriented semantics.
+
+No downstream phase may implement this table before B02.0 records the selected
+grammar, outputs, effects, and confirmation points.
 
 ## Workspace Contract
 
@@ -137,11 +160,11 @@ dependencies among them.
 Resource versions and Hub publication proceed independently from Manager
 releases. Publishing or updating a resource never requires rebuilding Manager.
 
-## Implementation Order
+## Deliverables And Implementation Order
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
-| B02.0 | [Resource And Hub Contract](00-resource-and-hub-contract.md) | A01.4 | Approved identities, schemas, trust, compatibility, and command grammar |
+| B02.0 | [Resource And Hub Contract](00-resource-and-hub-contract.md) | A01.4 and the C01 generic governance baseline | Approved identities, schemas, trust, compatibility, and command grammar |
 | B02.1 | [Hub Catalog And Publication Pipeline](01-hub-catalog-and-publication.md) | B02.0 | Authenticated catalog, immutable payloads, namespaces, and publication workflow proven against a local/test origin |
 | B02.2 | [Manager Workspace And Commands](02-manager-workspace-and-commands.md) | B02.0 | Local state, discovery, inspection, and stable human/JSON interfaces |
 | B02.3 | [Resolution, Locking, And Installation](03-resolution-locking-and-installation.md) | B02.1-B02.2 | Deterministic dependency resolution and transactional resource lifecycle |
@@ -149,9 +172,9 @@ releases. Publishing or updating a resource never requires rebuilding Manager.
 | B02.5 | [Distribution And End-To-End Verification](05-distribution-and-end-to-end-verification.md) | B02.4 | Published Manager channels and verified Hub-to-workspace behavior |
 
 B02.0-B02.4 establish local implementation readiness. Together with B03.2 they
-participate in the root plan's M3 local interoperability gate using neutral
-conformance resources. B02.5 is a separate public-distribution milestone and is
-not a prerequisite for Phase 3.
+provide the neutral interoperability evidence required before C02 or C03
+official resources are implemented. B02.5 is a separate public-distribution
+milestone and is not a prerequisite for authoring those resources.
 
 ## Global Acceptance Criteria
 

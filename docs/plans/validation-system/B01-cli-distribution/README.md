@@ -2,6 +2,10 @@
 
 ## Status And Relationship To The Validation System
 
+`Provisional`. The distribution model is approved, but implementation is
+blocked until A01 establishes the actual Validation CLI package and supporting
+crate closure.
+
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only Validation CLI distribution.
 
@@ -14,6 +18,13 @@ does not change validation behavior, configuration, report, or exit contracts.
 `liknon-manager`. [B03](../B03-tool-cli/README.md) distributes the independent,
 offline `liknon-tool`. [B04](../B04-programmatic-api-and-language-bindings/README.md)
 governs future in-process APIs that have real language consumers.
+
+## Dependencies
+
+B01 depends on the approved A01 ledger, a stable Validation CLI package
+boundary, release-ready source, and the destination accounts and permissions
+listed in the [B01 external-readiness runbook](accounts-and-permissions.md). It
+does not depend on C02, C03, or D01.
 
 ## Objective
 
@@ -62,6 +73,12 @@ schemas, and generic `.liknon/validation/` initialization. It does not contain:
 - a second validation implementation;
 - a knowledge command namespace or content-activation behavior.
 
+## Exclusions
+
+B01 does not distribute Manager, Tool, Hub resources, official workflows,
+programmatic bindings, or integrated agent-evaluation results. Those products
+and evidence remain with B02, B03, B04, and D01.
+
 ## Installation Contract
 
 ### GitHub Source
@@ -75,8 +92,8 @@ lockfile and supported Rust toolchain.
 Install exact published source for package `liknon-cli` with locked
 dependencies. The package contains both binary targets and builds from its
 published contents without repository-only files or unpublished path
-dependencies. Required `liknon-core` and `liknon-workspace` versions are
-published first when that exact supporting version is not already available.
+dependencies. Any supporting crates selected by the approved A01 ledger are
+published first when their exact versions are not already available.
 
 ### Cloudflare Direct
 
@@ -151,7 +168,7 @@ target/distribution/validation/      # Generated and ignored
 Every row is a distinct artifact. A target becomes public only after native
 execution, archive, installer, alias-equivalence, and public-readback checks.
 
-## Implementation Order
+## Deliverables And Implementation Order
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |

@@ -1,5 +1,9 @@
 # Phase B01.5: Publish With Resumable State
 
+## Status
+
+`Provisional`. Blocked by B01.4 and explicit human release approval.
+
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose

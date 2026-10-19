@@ -1,5 +1,10 @@
 # Phase B02.0: Define The Resource And Hub Contract
 
+## Status
+
+`Decision gate`. The structures and command names below are candidate design
+material. They become normative only through an explicit approved exit record.
+
 [Back to the Resource Hub and Manager plan](README.md)
 
 ## Purpose
@@ -17,8 +22,8 @@ The identity is independent from a URL, local path, registry implementation,
 CLI version, or display title. Case, normalization, reserved namespaces, and
 collision handling are explicit and tested.
 
-Resource kind IDs and physical directory names are distinct fixed contract
-fields:
+Candidate resource kind IDs and physical directory names are shown below for
+evaluation as distinct contract fields:
 
 | Kind ID | Kind directory |
 | --- | --- |
@@ -32,18 +37,18 @@ fields:
 | `template` | `templates` |
 | `collection` | `collections` |
 
-Schemas serialize only the singular kind ID. Shared path primitives derive the
-corresponding directory; callers and resource payloads cannot supply an
-alternative spelling.
+If approved, schemas serialize only the singular kind ID and shared path
+primitives derive the corresponding directory. B02.0 may revise the mapping
+before implementation; downstream plans may not assume it in advance.
 
 Namespace identifies the publisher identity. Source origin, trust class,
 review state, signatures, and catalog channel are separate fields. Neither the
 `official` namespace nor any trust class changes instruction precedence,
 activation, policy, or application behavior.
 
-## Resource Manifest
+## Candidate Resource Manifest
 
-The versioned resource manifest defines:
+Evaluate a versioned resource manifest that could define:
 
 - identity, title, summary, authorship, license, and source;
 - trust evidence and publication status;
@@ -75,10 +80,10 @@ and AI bootstrap contract versions. A workflow without either compatibility may
 still be published, installed, and inspected as content, but it cannot be
 represented as a governed Liknon workflow or activated by a conforming AI host.
 
-The bootstrap contract is a program capability, not a resolvable resource. The
-Hub cannot publish a replacement for
-`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md`, and Manager
-cannot satisfy bootstrap compatibility by installing resource content.
+The C01 bootstrap contract is a program capability, not a resolvable resource.
+The Hub cannot publish a replacement for the canonical source selected by
+A01/C01, and Manager cannot satisfy bootstrap compatibility by installing
+resource content.
 
 Agent-profile manifests define roles, posture, scope, and behavioral
 constraints independently from workflow control flow. They do not select
@@ -92,9 +97,9 @@ capability separately.
 
 Operational skill compatibility is resolved normally. Neutral fixtures prove
 that one workflow may select one skill while another selects a compatible
-alternative without receiving a different application or policy path. Phase 3
-later publishes AI-Tool and the official action workflow through this unchanged
-contract.
+alternative without receiving a different application or policy path. C02 may
+later publish the official operational skill and action workflow through the
+same approved contract.
 
 Unknown required fields, unsupported schema versions, cycles, conflicting
 constraints, unsafe paths, and undeclared payloads fail closed.
@@ -130,10 +135,10 @@ verify.
 
 ## Command Contract
 
-Specify the complete grammar, output schemas, exit statuses, confirmation
-points, and non-interactive behavior for `init`, `search`, `info`,
-`install`, `update`, `remove`, `list`, `verify`, and
-`materialize`.
+Select and specify the complete grammar, output schemas, exit statuses,
+confirmation points, and non-interactive behavior. Candidate operations include
+`init`, `search`, `info`, `install`, `update`, `remove`, `list`, `verify`, and
+`materialize`; none is final merely because it appears in this design input.
 
 Every mutating command supports a complete dry-run or plan result before commit.
 Human output may be themed; machine output contains no ANSI and exposes exact

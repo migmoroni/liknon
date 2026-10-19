@@ -1,5 +1,9 @@
 # Phase B04.1: Publish The Rust Library Crate
 
+## Status
+
+`Future`. Blocked by an approved B04.0 Rust scope.
+
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose

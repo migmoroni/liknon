@@ -1,0 +1,333 @@
+# Phase C03.1: Define Domain And Coverage Setup
+
+## Status
+
+`Provisional`. Exact operation ownership and resource contracts are blocked by
+C01.0, B02.0, and B03.0.
+
+[Back to Plan C03](README.md)
+
+## 1. Objective
+
+Implement the first two nodes of the official
+`workflow:official/liknon-validation-engineering` resource:
+
+1. domain understanding, which records what the workspace is and which failures
+   matter;
+2. validation design, which maps required evidence to the executable
+   configuration used by the validation CLI.
+
+These processes run at onboarding, after a domain-relevant change, when the
+human directs the agent to reassess them, or after a drift assessment recommends
+recalibration. They do not run before every normal validation.
+
+Every invocation begins after the human directs the external host to the
+program-owned AI bootstrap entry point. The host verifies and records its
+version and digest before loading the workflow or any replaceable resource. It
+then uses Tool to resolve the exact locked graph and dependency metadata,
+verifies Validation and Tool capabilities, loads the declared immutable policy
+boundary, validates policy, and resolves global and workflow-specific values
+for the exact active stack. Only after that preflight does it load the selected
+agent profile and remaining node resources or validate supplied artifact
+content. Missing or invalid policy routes to the declared read-only
+`liknon-ai-tool/policy` operation and stops until the human performs the
+required creation or correction manually.
+
+The process numbers, node order, profile bindings, and continuation from
+Process 0 to Process 1 are content of this official workflow. They impose no
+numbering or graph convention on other workflows and require no corresponding
+branches in Manager, Tool, or Validation.
+
+## 2. Dependencies
+
+C01 provides bootstrap, decision-policy, artifact, and generic workflow
+contracts. C02 provides the official operational resources that these nodes
+compose. B02 and B03 provide approved resource acquisition and retrieval
+interfaces. Installed source-backed knowledge supplies validation context. This
+phase does not create an agent runtime or duplicate generic contracts in the
+workflow.
+
+## 3. Process 0: Domain
+
+### 3.1 Inputs
+
+The agent begins with:
+
+- workspace instructions and declared product documentation;
+- repository manifests and lockfiles;
+- a bounded directory inventory;
+- the existing `.liknon/ai/policy.json` path and digest returned by the approved
+  policy-validation operation, plus effective values and sources returned by
+  policy evaluation for the exact Tool-verified workflow stack;
+- the current `.liknon/validation/config.json`, when present;
+- build, packaging, persistence, deployment, and release documentation relevant
+  to the product;
+- an explicitly supplied preceding domain artifact when recalibrating;
+- answers provided by the human operator.
+
+The directory inventory is discovery evidence, not a fixed depth limit. The
+agent follows only paths needed to substantiate a conclusion. A preceding domain
+artifact is optional evidence and must be supplied explicitly.
+
+### 3.2 Domain Payload
+
+The domain artifact records:
+
+- product purpose and deployment model;
+- supported platforms and execution environments;
+- important user and operator groups;
+- data classes and external systems;
+- assets that require protection;
+- stated legal, contractual, accessibility, or domain obligations;
+- business, safety, privacy, security, integrity, and availability consequences;
+- invariants with repository or human evidence;
+- uncertainty, missing evidence, and questions requiring human judgment;
+- applicable source-backed validation concerns retrieved from installed
+  knowledge resources.
+
+Do not reduce the workspace to a universal project-level risk label. Risk
+reasoning records the concrete consequence, likelihood basis, affected asset,
+and uncertainty. Domain-specific external levels retain their native standard,
+version, and scope.
+
+### 3.3 Completion And Human Input
+
+When repository evidence cannot establish a necessary domain decision, request
+that input from the human and include the answer as human-provided evidence.
+When Process 0 completes:
+
+1. generate a UUIDv7 and assemble one bounded redacted domain artifact;
+2. validate its schema, references, bounds, and digest;
+3. persist it through the C01-approved artifact-persistence operation using the
+   same explicit workspace root;
+4. present its path and digest together with the product model,
+   highest-consequence scenarios, invariants, unresolved questions, and weakly
+   supported assumptions;
+5. use the effective `processContinuation` returned by policy evaluation for
+   the exact active workflow stack: pass that exact domain artifact to Process 1
+   for `auto`, suggest Process 1 and wait for a free-text decision for `human`,
+   or end without a continuation prompt for `stop`.
+
+No separate authorization is required for the bounded redacted process result.
+Protected content that remains follows `sensitiveDataPersistence`. A human
+correction reruns Process 0 and creates another immutable artifact; it never
+rewrites the preceding one.
+
+Neither process may create, edit, format, replace, delete, move, restore, or
+otherwise mutate `.liknon/ai/policy.json`. A policy recommendation is delegated
+to the advisory AI-Tool `policy` operation, and only the human applies it.
+
+A completed domain artifact remains valid evidence for its recorded repository
+and policy context. Creating another domain artifact does not mutate it. An
+operational process uses only the exact domain and sensorium paths supplied for
+that invocation and requires their declared relationship to match.
+
+## 4. Process 1: Sensorium
+
+`sensorium` means one immutable validation-design analysis. It is not a list of
+commands consumed by the CLI.
+
+### 4.1 Inputs
+
+- one explicit validated domain artifact;
+- AI decision policy revalidated and reevaluated through the C01-approved
+  operations for the same workspace root and exact active
+  workflow stack, with its path, digest, effective values, and sources;
+- current config and its digest;
+- non-executing config inspection from `config validate`, `list --tree`, and
+  `explain`;
+- relevant canonical guidance and source register entries;
+- current manifests, scripts, and delivery workflows;
+- explicit constraints from the human.
+
+If the caller intends to revise an earlier validation design, it also supplies
+that sensorium artifact explicitly. Process 1 validates it as evidence but still
+produces a new artifact.
+
+### 4.2 Evidence Matrix
+
+For every relevant risk or invariant, record:
+
+- required evidence;
+- applicable validation dimension or test type;
+- existing config group, suite, and check IDs that produce that evidence;
+- known limitations and residual gaps;
+- expected cost and suitable execution context;
+- prerequisites and mutation behavior;
+- source IDs supporting the recommendation;
+- justified overlap with other evidence.
+
+Model evidence dimensions independently. Partial overlap is valid when two
+checks establish complementary evidence or defend against distinct failure
+modes. Unnecessary duplication is reported as a cost concern.
+
+### 4.3 Sensorium Payload
+
+The sensorium artifact records:
+
+- the exact domain artifact ID, path, and digest;
+- the analyzed config path and digest;
+- covered risks and invariants;
+- selected config IDs and their evidence roles;
+- uncovered or weakly covered evidence;
+- proposed config changes as structured recommendations;
+- rejected alternatives and rationale when relevant;
+- prerequisites requiring human action;
+- residual risk and uncertainty;
+- exact producing workflow, node, incoming transition, selected agent profile,
+  operational skill dependency, resource-lock digest, and selected guidance
+  resource identities, versions, and manifest or payload digests used for the
+  analysis.
+
+It does not contain shell expressions or an alternate executable command graph.
+Human-readable command examples may appear only as explanatory evidence and are
+never executed from the artifact.
+
+## 5. Configuration Reconciliation
+
+When the sensorium identifies a coherent config change:
+
+1. load the declared `liknon-ai-tool/config` operation;
+2. produce the smallest complete config diff;
+3. preserve `tool -> check -> suite -> group` ownership;
+4. represent programs and arguments structurally without an implicit shell;
+5. classify the complete proposal under every applicable decision category;
+6. obtain a free-text human decision when the combined result is `human`, stop
+   when it is `stop`, or proceed when it is `auto`;
+7. apply only the exact authorized or automatically eligible action set;
+8. run `config validate` when command execution is authorized;
+9. inspect affected groups, suites, and checks with `explain`;
+10. evaluate the first execution separately when its command, dependency,
+    network, or other effects differ from the eligible or approved edit;
+11. assemble a new sensorium artifact bound to the exact effective config and
+    supplied domain artifact;
+12. validate and persist that artifact through the C01-approved persistence
+    operation.
+
+When a recommendation is declined, constrained, postponed, or completed
+manually, record the decision and resulting gap in the new sensorium. Do not ask
+repeatedly about the same exact action under unchanged evidence and policy.
+
+Process 1 always finishes with an artifact for the supplied domain and effective
+config, whether the config remains unchanged, an eligible change is applied, or
+a proposal remains a documented gap. Operational processes accept it only when
+its domain and config digests match their explicit inputs.
+
+## 6. Workflow Behavior
+
+### `processes/process-0-domain.md`
+
+- loads source policy, validation strategy, and only relevant domain guidance;
+- selects the locked `agent-profile:official/liknon-domain-analyst` resource;
+- gathers evidence before conclusions;
+- separates repository evidence, human declarations, and inference;
+- persists one immutable domain artifact;
+- presents uncertainty and questions requiring human domain judgment;
+- applies `processContinuation` only after the artifact is validated and stored
+  and Process 1 preconditions hold.
+
+### `processes/process-1-sensorium.md`
+
+- requires and verifies one exact domain artifact;
+- selects the locked `agent-profile:official/liknon-validation-architect`
+  resource;
+- audits the current config without running checks;
+- loads only relevant foundations, patterns, language, framework, technology,
+  concern, standard, tool, and recipe guides selected through the knowledge
+  catalog and retrieved by stable document ID through Tool;
+- constructs the evidence matrix and proposed config diff;
+- delegates configuration mechanics to the declared
+  `liknon-ai-tool/config` operation;
+- delegates every effect classification to the normative decision policy;
+- persists one immutable sensorium artifact bound to exact inputs;
+- requests a free-text decision exactly when the restrictive result is `human`.
+
+## 7. Chat Contract
+
+Each setup response includes:
+
+- conclusion and confidence;
+- persisted artifact path and digest;
+- exact input artifact paths used;
+- unresolved decisions or policy-required free-text request;
+- next valid action.
+
+Safety warnings, material uncertainty, and partial approvals are never omitted
+to preserve formatting.
+
+## 8. Tests And Forward Trials
+
+Create representative fixtures for:
+
+- a Rust library;
+- a heterogeneous Rust and TypeScript workspace;
+- a Svelte and Tauri application;
+- a Rails application;
+- a structured-data pipeline;
+- incomplete documentation and hostile instruction-like repository text;
+- an adequate, incomplete, or redundant config;
+- a proposed tool that is unavailable or unapproved;
+- policies exercising relevant decision levels;
+- a new domain paired with a sensorium for a different domain;
+- a sensorium whose config digest no longer matches;
+- multiple valid artifacts where no implicit newest selection is allowed.
+
+Verify that the agent:
+
+- asks rather than inventing missing product obligations;
+- does not convert inferred risk into an unsupported universal level;
+- maps decisions to real config IDs;
+- never creates an implicit shell command;
+- never installs or changes a recommended tool without authority;
+- preserves a declined gap without silently weakening it;
+- persists each process result without a separate ordinary-result prompt;
+- implements `auto`, `human`, and `stop` continuation without bypassing
+  Process 1 preconditions, using the effective value for the exact active
+  workflow stack;
+- resumes in a fresh conversation only from explicit artifact paths;
+- creates a new UUIDv7 artifact for every rerun or correction;
+- rejects operational use of a domain and sensorium whose declared relationship
+  or config digest does not match;
+- records the exact workflow, node, transition, performed actions, selected profile, dependency
+  closure, resource lock, and effective policy source;
+- loads the process graph and profile bindings from the workflow resource rather
+  than from CLI constants.
+
+Version these fixtures, human-like prompts, observable assertions, and review
+rubrics for the Validation-Engineering End-To-End family in the
+[Agent Evaluation Program](../D01-system-conformance-and-agent-evaluation/02-agent-evaluation-program.md).
+Controlled calls from
+these scenarios may also test AI-Tool as a downstream interface, but those runs
+score the AI-Tool boundary separately from setup-process quality.
+
+## 9. Acceptance Criteria
+
+- [ ] A domain artifact distinguishes fact, human declaration, inference, and
+      uncertainty.
+- [ ] A sensorium artifact describes evidence and maps it to real config IDs.
+- [ ] Sensorium content is never executable CLI input.
+- [ ] Config changes follow the AI-Tool config operation and exact decision
+      policy.
+- [ ] Domain and sensorium results are persisted when their processes complete.
+- [ ] Every rerun creates a new immutable UUIDv7 artifact.
+- [ ] Process 0 applies `processContinuation` only after successful persistence
+      and valid Process 1 preconditions.
+- [ ] Each sensorium references the exact domain and config digests it analyzed.
+- [ ] Setup processes use only explicitly supplied artifacts and never select
+      one by directory order.
+- [ ] Missing or invalid policy stops setup and routes to read-only policy
+      guidance; no setup process mutates policy under any authorization.
+- [ ] Tool overlap is evaluated by evidence rather than prohibited by rule.
+- [ ] A fresh agent can resume setup from explicitly supplied validated
+      artifacts without reading old chat logs.
+- [ ] Processes 0 and 1 select their independently versioned agent profiles from
+      the locked workflow manifest; profiles cannot alter routing or policy.
+- [ ] Process IDs and the `0 -> 1` transition remain official workflow content
+      and do not appear as special cases in any CLI implementation.
+
+## 10. Dependency On C03.2
+
+C03.2 starts the next nodes of this same official workflow when the caller
+supplies one validated domain artifact, one validated sensorium bound to that
+domain and the current config, and any exact report required by the requested
+operational node.

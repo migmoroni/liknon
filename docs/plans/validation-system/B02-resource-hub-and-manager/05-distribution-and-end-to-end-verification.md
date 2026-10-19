@@ -1,5 +1,12 @@
 # Phase B02.5: Distribute Manager And Verify Hub-To-Workspace Behavior
 
+## Status
+
+`Provisional`. Blocked by B02.4 and explicit human release approval.
+
+Operation labels in this document are placeholders for the exact grammar
+selected by B02.0.
+
 [Back to the Resource Hub and Manager plan](README.md)
 
 ## Purpose
@@ -49,7 +56,7 @@ From clean environments:
     workflow with unrelated node IDs, graph shape, profile dependencies, and
     declared effects;
 13. prove that neither installation activates a workflow or receives a
-    namespace-based privilege. When Phase 3 resources already exist, repeat the
+    namespace-based privilege. When C02 resources already exist, repeat the
     same case with the official action workflow without changing Manager code.
 
 Repeat representative cases through both command names and all published

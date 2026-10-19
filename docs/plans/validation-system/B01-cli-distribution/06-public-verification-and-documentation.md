@@ -1,5 +1,9 @@
 # Phase B01.6: Verify Public Installation And Documentation
 
+## Status
+
+`Provisional`. Blocked by B01.5.
+
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose

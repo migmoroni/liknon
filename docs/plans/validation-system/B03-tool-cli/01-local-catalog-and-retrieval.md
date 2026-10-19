@@ -1,5 +1,12 @@
 # Phase B03.1: Implement Local Catalog And Retrieval
 
+## Status
+
+`Provisional`. Blocked by the approved B03.0 exit record.
+
+Operation labels in this document are placeholders for the exact grammar
+selected by B03.0; they are not independently approved commands.
+
 [Back to the Tool CLI plan](README.md)
 
 ## Purpose
@@ -9,8 +16,9 @@ locked resource store.
 
 ## Store Loading
 
-`bootstrap` bypasses store loading and returns the program-owned entry contract
-from the Tool build. Every operation below requires the ordinary explicit or
+The bootstrap projection operation selected by B03.0 bypasses store loading
+and returns the program-owned entry contract through the approved source
+boundary. Every ordinary resource operation requires the explicit or
 discovered store contract.
 
 Tool discovers or receives one workspace root, parses the resource manifest and
@@ -70,9 +78,8 @@ nor executes a transition.
 ## Verification
 
 - Results are identical with network disabled.
-- Bootstrap bytes match
-  `crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` exactly, metadata matches
-  its adjacent `manifest.json`, and both remain usable with no workspace.
+- Bootstrap bytes, when that operation is approved, match the canonical C01
+  source and metadata exactly and remain usable with no workspace.
 - Catalog ordering survives filesystem and manifest key reordering.
 - Search has positive, negative, Unicode, case, and limit fixtures.
 - Exact Markdown bytes match canonical installed payloads.

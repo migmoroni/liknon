@@ -1,5 +1,9 @@
 # Phase B02.4: Establish Security, Trust, And Recovery
 
+## Status
+
+`Provisional`. Blocked by B02.3.
+
 [Back to the Resource Hub and Manager plan](README.md)
 
 ## Purpose

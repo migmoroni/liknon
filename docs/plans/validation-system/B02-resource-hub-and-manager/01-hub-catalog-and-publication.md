@@ -1,5 +1,9 @@
 # Phase B02.1: Build The Hub Catalog And Publication Pipeline
 
+## Status
+
+`Provisional`. Blocked by the approved B02.0 exit record.
+
 [Back to the Resource Hub and Manager plan](README.md)
 
 ## Purpose

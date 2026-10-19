@@ -1,5 +1,12 @@
 # Phase B03.3: Build Source And Native Tool Distributions
 
+## Status
+
+`Provisional`. Blocked by B03.2.
+
+Any operation labels used by distribution fixtures remain placeholders for the
+exact grammar selected by B03.0.
+
 [Back to the Tool CLI plan](README.md)
 
 ## Purpose
@@ -34,12 +41,10 @@ Package inspection proves absence of:
 - Manager mutation logic;
 - plans, evaluations, and maintainer fixtures.
 
-The inspected source-package closure includes the exact canonical
-`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` bytes and its adjacent
-`manifest.json` in the published `liknon-workspace` dependency. The
-`liknon-tool` package consumes that contract through the supporting crate and
-does not duplicate it in its own inventory. No package in the closure contains
-another authored AI resource payload.
+The inspected source-package closure includes the exact canonical C01 contract
+through the supporting package chosen by A01. Tool consumes that contract
+through one owner and does not duplicate it in its own inventory. No package
+in the closure contains another authored AI resource payload.
 
 ## Native Candidates
 

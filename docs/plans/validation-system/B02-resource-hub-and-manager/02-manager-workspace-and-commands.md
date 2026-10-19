@@ -1,5 +1,12 @@
 # Phase B02.2: Implement Manager Workspace And Command Semantics
 
+## Status
+
+`Provisional`. Blocked by the approved B02.0 command and state contracts.
+
+Operation labels in this document are placeholders for the exact grammar
+selected by B02.0; they are not independently approved commands.
+
 [Back to the Resource Hub and Manager plan](README.md)
 
 ## Purpose

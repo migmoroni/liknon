@@ -1,5 +1,12 @@
 # Phase B02.3: Implement Resolution, Locking, And Installation
 
+## Status
+
+`Provisional`. Blocked by B02.0-B02.2.
+
+Operation labels in this document are placeholders for the exact grammar
+selected by B02.0; they are not independently approved commands.
+
 [Back to the Resource Hub and Manager plan](README.md)
 
 ## Purpose

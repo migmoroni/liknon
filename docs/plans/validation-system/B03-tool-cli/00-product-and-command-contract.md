@@ -1,5 +1,10 @@
 # Phase B03.0: Define The Tool Product And Command Contract
 
+## Status
+
+`Decision gate`. The command names and semantics below are candidate design
+material. They become normative only through an explicit approved exit record.
+
 [Back to the Tool CLI plan](README.md)
 
 ## Purpose
@@ -11,8 +16,8 @@ failure classes, and safety boundaries before implementation.
 
 - Confirm Cargo package `liknon-tool` and commands `liknon-tool` and
   `likt`.
-- Define exact grammar for `bootstrap`, `catalog`, `search`, `show`, `resolve`,
-  and `context`.
+- Evaluate `bootstrap`, `catalog`, `search`, `show`, `resolve`, and `context`
+  as candidate operations, then approve the exact grammar actually needed.
 - Define workspace discovery and explicit-root behavior.
 - Define human and versioned JSON output contracts.
 - Define stable ordering, text matching, output-size, file-count, and binary
@@ -26,7 +31,8 @@ failure classes, and safety boundaries before implementation.
 
 ## Hard Boundaries
 
-Tool:
+The approved Tool contract must preserve these boundaries regardless of the
+selected command names. Tool:
 
 - returns the embedded program-owned bootstrap contract without workspace
   discovery or resource-store access;
@@ -41,14 +47,11 @@ No option may turn a read operation into installation or execution.
 
 ## Command Semantics
 
-`bootstrap` verifies the exact canonical
-`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` bytes against its adjacent
-`manifest.json` and returns the content plus manifest
-schema version, supported contract version, media type, canonical source
-identity, SHA-256 digest, and Tool capability version. Human output is canonical
-Markdown; JSON wraps the same content in its independently versioned machine
-result. It works without `.liknon/`, performs no resource lookup, and never
-loads a workflow or skill.
+If B03.0 retains the candidate label `bootstrap`, that operation verifies the
+exact canonical program contract selected by A01/C01 and returns its content
+and approved metadata. It must work without `.liknon/`, perform no resource
+lookup, and never load a workflow or skill. The exact result envelope is a
+B03.0 decision.
 
 `catalog` and `search` are discovery operations. `show` retrieves an exact
 resource or declared file. `resolve` returns an exact locked closure.

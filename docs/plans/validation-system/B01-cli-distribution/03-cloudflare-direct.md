@@ -1,5 +1,9 @@
 # Phase B01.3: Assemble Cloudflare Direct Distribution
 
+## Status
+
+`Provisional`. Blocked by B01.2.
+
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose

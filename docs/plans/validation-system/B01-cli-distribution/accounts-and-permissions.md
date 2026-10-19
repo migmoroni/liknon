@@ -1,5 +1,9 @@
 # B01 External Accounts, Permissions, And Publication Authority
 
+## Status
+
+`Provisional`. Complete each checkpoint only when its owning B01 phase is ready.
+
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose
@@ -66,8 +70,8 @@ credential. No secret may enter workflow artifacts or generated metadata.
 **Ownership inventory. Complete before B01.0.**
 
 - [ ] Confirm the canonical GitHub repository owner.
-- [ ] Confirm ownership of crates.io packages `liknon-cli`, `liknon-core`, and
-      `liknon-workspace`.
+- [ ] Confirm ownership of `liknon-cli` and every supporting crates.io package
+      selected by the approved A01 ledger.
 - [ ] Confirm access to the Cloudflare account, DNS zone, and domain owner.
 - [ ] Record accountable and recovery owners.
 - [ ] Enable strong multi-factor authentication.

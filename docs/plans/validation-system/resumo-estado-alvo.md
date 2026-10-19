@@ -1,5 +1,9 @@
 # Resumo Do Estado-Alvo Do Liknon
 
+## Status
+
+`Approved target`, com decisoes abertas explicitamente identificadas.
+
 ## 1. Finalidade E Status
 
 Este documento resume o que se pretende construir a partir do estado atual do
@@ -299,11 +303,20 @@ pertencem ao plano B01.
 
 ### 9.2 Manager E Tool
 
-As responsabilidades e identidades de Manager e Tool estao definidas, mas seus
-canais finais de publicacao ainda nao foram aprovados com o mesmo nivel de
-detalhe da Validation CLI. Os planos nao devem presumir crates.io, Cloudflare,
-site, bundle ou um calendario de releases para essas aplicacoes antes dessa
-decisao.
+Manager e Tool usam as mesmas categorias de canal aprovadas para a Validation
+CLI:
+
+- codigo fonte versionado no GitHub para clone e compilacao local;
+- pacotes fonte independentes no crates.io;
+- binarios nativos independentes publicados no dominio do projeto com
+  armazenamento no Cloudflare;
+- instalacao direta por script ou download pelo site.
+
+Essa decisao compartilha o modelo de distribuicao, nao os artefatos ou o ciclo
+de prontidao. Cada CLI possui identidade de pacote, tags, builds, metadados,
+evidencias, credenciais e autorizacao de publicacao proprios. Os contratos
+detalhados de release pertencem respectivamente aos planos B02 e B03 e somente
+podem ser finalizados depois dos contratos de produto dessas aplicacoes.
 
 ### 9.3 APIs Programaticas Futuras
 
@@ -331,18 +344,23 @@ cada ecossistema. Nao sao copias da CLI nem pacotes genericos de conteudo.
     uso concretos.
 14. Como ainda nao houve lancamento publico, a mudanca estrutural nao precisa
     preservar aliases, caminhos ou contratos substituidos por compatibilidade.
+15. Validation CLI, Manager e Tool usam GitHub como canal de fonte, crates.io
+    como canal de pacote fonte e Cloudflare/site como canal de binarios
+    nativos, com releases e artefatos independentes.
 
 ## 11. Questoes Ainda Abertas
 
 Antes de transformar todo o estado-alvo em tarefas de implementacao, ainda e
 necessario decidir:
 
-1. os canais e o processo de publicacao de Manager e Tool;
-2. a gramatica publica completa dos comandos de Manager e Tool;
-3. o contrato exato do Hub, catalogo, assinaturas, revogacao e hospedagem;
-4. os schemas finais de recursos, manifest, lock, workflows e agent profiles;
-5. quais crates internas precisam ser publicas apenas para sustentar builds e
+1. a gramatica publica completa dos comandos de Manager e Tool;
+2. o contrato exato do Hub, catalogo, assinaturas, revogacao e hospedagem;
+3. os schemas finais de recursos, manifest, lock, workflows e agent profiles;
+4. quais crates internas precisam ser publicas apenas para sustentar builds e
    quais permanecem privadas ao workspace;
+5. qual produto valida ou inicializa policy e qual produto fornece operacoes
+   deterministicas de persistencia, sem retirar do humano a propriedade de
+   `policy.json` nem transferir cognicao de workflow para uma CLI;
 6. o limite inicial entre persistencia fornecida pelas CLIs e persistencia
    conduzida pelo host de IA;
 7. o primeiro conjunto publicavel de recursos oficiais e seus testes de

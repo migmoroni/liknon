@@ -1,5 +1,12 @@
 # Phase B03.2: Establish Context Assembly And Agent Safety
 
+## Status
+
+`Provisional`. Blocked by B03.1 and the relevant C01 authority contract.
+
+Operation labels in this document are placeholders for the exact grammar
+selected by B03.0; they are not independently approved commands.
+
 [Back to the Tool CLI plan](README.md)
 
 ## Purpose
@@ -61,13 +68,13 @@ sends no query, payload, or usage telemetry to the Hub or another service.
 
 ## AI Flow Integration
 
-For governed use, the human first directs the external host to `likt bootstrap`
-or the canonical source file. The host records the supported contract version
-and digest before requesting installed workflow, skill, profile, tool, or
-knowledge content.
+For governed use, the human first directs the external host to the
+B03.0-approved bootstrap projection operation or the canonical source file.
+The host records the supported contract version and digest before requesting
+installed workflow, skill, profile, tool, or knowledge content.
 
 Any compatible AI workflow may use Tool as its resource interface. Neutral
-conformance workflows prove this boundary before Phase 3; official action and
+conformance workflows prove this boundary before C02; official action and
 validation-engineering workflows later become ordinary consumers, not
 privileged callers. The consuming host obeys `.liknon/ai/policy.json`, resource
 capability/effect declarations, and its authority boundaries. Tool itself does
@@ -101,7 +108,7 @@ decision policy.
   semantically equivalent envelopes for equivalent declared resource graphs.
 - A repository-built Manager B02.4 installation is consumable after Manager is
   removed from `PATH`, with network disabled and bytes unchanged. This is the
-  Tool half of the root M3 local interoperability gate.
+  Tool half of the local B02/B03 interoperability gate.
 
 ## Exit Criterion
 

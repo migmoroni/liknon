@@ -1,5 +1,9 @@
 # Phase B01.1: Centralize Version And Provenance
 
+## Status
+
+`Provisional`. Blocked by B01.0.
+
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose

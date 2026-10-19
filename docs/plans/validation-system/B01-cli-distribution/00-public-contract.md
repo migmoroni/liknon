@@ -1,5 +1,10 @@
 # Phase B01.0: Confirm The CLI Distribution Contract
 
+## Status
+
+`Decision gate`. Run only after A01 has established the actual
+package boundary and release candidate.
+
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose
@@ -11,8 +16,9 @@ publishes nothing.
 ## Dependencies
 
 - [Plan A01](../A01-product-and-repository-separation/README.md) is complete.
-- The current validation behavior, package name `liknon-cli`, and command names
-  `liknon` and `likx` are approved.
+- Current validation behavior is preserved by A01. Package name `liknon-cli`
+  and command names `liknon` and `likx` are approved target identities and must
+  exist before this distribution contract exits.
 - The repository is otherwise eligible to enter release preparation.
 - External readiness checkpoint [AP-0](accounts-and-permissions.md#ap-0) is
   complete.
@@ -39,9 +45,9 @@ The default branch is never presented as a reproducible released version.
 The crates.io channel publishes source package `liknon-cli` with both approved
 binary targets. The package builds from its own accepted contents, the locked
 dependency graph selected by the installer, and no unpublished path
-dependency. Exact required versions of the supporting `liknon-core` and
-`liknon-workspace` crates are published and read back first. Those supporting
-packages are implementation dependencies, not the future public API from B04.
+dependency. Exact required versions of every supporting crate selected by the
+A01 ledger are published and read back first. Those supporting packages are
+implementation dependencies, not the future public API from B04.
 Every accepted package version is immutable.
 
 ### Cloudflare Direct

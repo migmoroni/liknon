@@ -1,177 +1,111 @@
 # Phase A01.3: Compose Applications And Establish The Workspace Boundary
 
-[Back to the product and repository separation plan](README.md)
+## Status
+
+`Provisional`. Blocked by the approved A01.0 ledger and completed A01.1-A01.2
+handoffs.
+
+[Back to Plan A01](README.md)
 
 ## Purpose
 
-Complete the Validation CLI composition, establish isolated package boundaries
-for all three command-line applications, and establish one safe consumer-owned
-`.liknon/` root. Complete Manager and Tool command behavior belongs to B02 and
-B03 after A01.
+Complete the approved application-package boundaries and replace the current
+validation workspace path with the approved `.liknon/validation/` location.
 
 ## Validation CLI
 
-`liknon` and `likx` expose the same validation application. It owns:
+The Validation CLI package provides the approved `liknon` and `likx` entry
+points over one implementation. It owns command parsing, terminal adaptation,
+human presentation, JSON stream selection, signals, exit codes, and explicit
+validation initialization.
 
-- validation arguments and complete help;
-- color and presentation profiles;
-- human progress and report rendering;
-- stdin, stdout, stderr, signal, and exit adaptation;
-- projection of the config and report schemas owned by `liknon-core`;
-- explicit provisioning and inspection of validation configuration.
+It reads only:
 
-The Validation CLI package is also the reserved future owner of thin command
-adapters over deterministic AI-policy and generic workflow-persistence
-contracts. Phase 3 implements policy initialization, validation, and evaluation;
-Phase 4 implements persistence adapters over caller-supplied locked workflow
-contracts. A01 does not implement or accept either feature.
+```text
+.liknon/validation/config.json
+```
 
-It reads `.liknon/validation/config.json` for execution. It neither contacts
-the Hub nor browses, selects, or renders installed resources. A01 implements no
-workflow-artifact verification. When Phase 4 later adds that capability, it may
-read only the exact caller-supplied workflow manifest and must verify it against
-the resource lock before using a declared schema or destination template.
+It does not contact the Hub, browse installed resources, host an AI model, or
+gain policy/persistence behavior merely because those files share `.liknon/`.
 
-### Atomic Validation-Path Replacement
+## Manager And Tool Structural Boundaries
 
-A01.3 replaces the old root in one complete change:
+Create the Manager and Tool application packages and approved binary identities
+only if the A01.0 ledger selected package-shell creation as part of the
+structural cutover.
 
-1. workspace discovery targets the nearest ancestor containing `.liknon/`;
-2. validation config selection targets only
-   `.liknon/validation/config.json`;
-3. `init` preflights and creates only the new directory and file path;
-4. core, CLI, integration, symlink, containment, and initialization tests use
-   the new root;
-5. outcome fixtures and their explicit commands use the new path;
-6. examples, help, `CONFIG_DESIGN.md`, public validation references, README
-   snippets, and comments use the new path; and
-7. repository search proves that no executable source, active fixture, test, or
-   maintained public documentation still names `.validation/`.
+Before B02.0/B03.0, a shell may expose only identity, version, concise help, and
+equivalent dispatch for its long and compact names. It must not:
 
-There is no fallback discovery, dual read, dual write, migration command, or
-compatibility alias for `.validation/`.
+- advertise candidate feature commands as implemented;
+- create resource, policy, or persistence state;
+- contact a Hub;
+- inspect or execute validation;
+- embed authored resource payloads.
 
-## Manager Package Boundary
+If the ledger defers package creation until B02/B03, A01 records the destination
+and dependency boundary without manufacturing empty applications.
 
-`liknon-manager` and `likm` are two binary names for the same isolated
-application package. The package is reserved to own:
+## Atomic Validation-Path Replacement
 
-- local resource-state initialization;
-- Hub catalog access and authenticated downloads;
-- dependency and collection resolution;
-- manifest and lock updates;
-- transactional installation, update, removal, and verification;
-- explicit materialization to a caller-selected integration destination.
+Replace `.validation/config.json` with `.liknon/validation/config.json` in one
+behavioral unit:
 
-These capabilities are implemented and accepted in B02. A01 proves only that
-the package contains no validation engine or Tool implementation and that both
-names dispatch the same package. Manager will treat every payload as data and
-never execute installed instructions or validation commands.
+1. workspace discovery and explicit-root handling use the approved boundary;
+2. initialization preflights and creates only the requested validation path;
+3. configuration discovery and validation use only the new location;
+4. unit, integration, symlink, containment, and initialization tests use it;
+5. fixtures and examples use it;
+6. help, README, config design, and maintained references use it;
+7. repository search proves no active implementation or maintained public
+   documentation still presents `.validation/` as current.
 
-During A01 the package exposes only identity, version, and help. It does not
-create `.liknon/resources/`, advertise final subcommands, or imply that a
-Manager operation is available before B02.0 approves its grammar.
+No fallback discovery, dual read, dual write, migration utility, or deprecated
+alias is introduced.
 
-## Tool Package Boundary
+## Shared Workspace Boundary
 
-`liknon-tool` and `likt` are two binary names for the same isolated application
-package. The package is reserved to own:
+Shared primitives may define:
 
-- exact read-only projection of the program-owned AI bootstrap entry point;
-- installed-resource catalog and search;
-- exact resource lookup and rendering;
-- dependency-aware local resolution;
-- bounded context assembly in human and machine-readable formats;
-- provenance, trust, compatibility, and integrity visibility.
+- nearest `.liknon/` ancestor discovery;
+- explicit workspace selection;
+- canonical child paths;
+- containment and unsafe-symlink rejection;
+- no-overwrite and atomic-placement operations required by implemented
+  validation initialization.
 
-These capabilities are implemented and accepted in B03. Tool performs no
-network access and no resource, validation, policy, or persistence mutation.
+A command creates only explicitly requested paths. A01 does not create
+`.liknon/resources/`, `.liknon/ai/policy.json`, reports, or persistence
+directories merely to match the target tree.
 
-B03.0 defines the bootstrap output envelope and B03.1 implements the projection.
-It must work without a workspace or resource store and remain separate from
-installed content. A01 provides only the canonical bytes, metadata, package
-boundary, and shared primitives required by that later implementation.
+## Ownership Deferred To Later Plans
 
-During A01 the package exposes only identity, version, and help. It does not
-implement `bootstrap`, inspect `.liknon/resources/`, or advertise the final
-Tool grammar before B03.0.
-
-## Workspace Boundary
-
-The canonical consumer root is `.liknon/`. Default discovery walks from the
-process current directory to the nearest ancestor containing that directory.
-An explicit `--workspace` path selects a boundary directly and must pass the
-same containment rules.
-
-Commands that require existing state fail when discovery finds no `.liknon/`
-root. An explicit initialization operation instead uses the selected
-`--workspace`, or the nearest existing root, and falls back to the exact process
-current directory only when it is creating a new `.liknon/` root. Initialization
-never guesses a Git, package-manager, or language-project root.
-
-The completed system's ownership is divided by subtree as follows. A01 creates
-only `.liknon/validation/config.json` when the human explicitly requests
-validation initialization; later owning phases create the other entries:
-
-| Path | Owner |
+| Concern | Owning gate |
 | --- | --- |
-| `.liknon/validation/config.json` | Human and Validation CLI initialization contract |
-| `.liknon/validation/reports/` | Validation/AI evidence contract |
-| `.liknon/resources/manifest.json` | Human intent, updated only by explicit Manager operations |
-| `.liknon/resources/lock.json` | Exact Manager resolution |
-| `.liknon/resources/<kind-directory>/` | Manager-installed immutable payloads |
-| `.liknon/ai/policy.json` | Human operator exclusively |
-| `.liknon/ai/persistence/` | Declared workflow persistence contracts |
+| Resource manifest, lock, payload layout, and Manager mutation | B02.0 |
+| Tool discovery, retrieval, and machine output | B03.0 |
+| Bootstrap, policy, authority, and persistence contracts | C01 |
+| Official action workflow | C02 |
+| Official validation-engineering workflow | C03 |
 
-A command creates only explicitly requested paths. Existing conflicting bytes,
-unsafe links, or boundary escapes fail before mutation.
-
-## Integration Boundary
-
-Agent-native materialization, when requested, is separate from installation.
-Manager records the exact source resource, destination, bytes, and digest. It
-does not silently edit `.agents/`, `.codex/`, editor settings, or global
-agent configuration.
-
-Tool can consume a manually populated store when its manifest, lock, payloads,
-and hashes satisfy the public contract. Manager is therefore convenient but
-not a runtime dependency of Tool.
-
-At A01 exit, `liknon-workspace` owns only workspace discovery, canonical path
-and containment primitives, plus generic AI-bootstrap identity and
-compatibility types. B02 adds resource identity, manifest, lock, and provenance
-contracts. Phase 3 adds policy contracts. Phase 4 adds generic workflow and
-artifact-envelope contracts. Application adapters may later validate or expose
-those types, but they never branch on `liknon-action`,
-`liknon-validation-engineering`, `liknon-ai-tool`, an official namespace, a
-process number, or an agent-profile identity.
-
-The bootstrap contract contains no AI-Tool or official-workflow identity;
-official workflows declare AI-Tool through their ordinary locked dependencies.
+No application branches on an official workflow, skill, process, node, action,
+profile, or namespace identity.
 
 ## Verification
 
-- Both names for each application have equivalent version and command behavior.
-- Manager and Tool equivalence in A01 covers only identity, version, help,
-  stream, and exit behavior; B02 and B03 own feature-command equivalence.
-- Validation operates with Manager and Tool absent.
-- Manager and Tool package shells build without a validation config or another
-  Liknon executable.
-- B02/B03 conformance fixtures are structurally available without being treated
-  as completed application behavior.
-- JSON output contains no ANSI.
-- Workspace discovery chooses the nearest boundary deterministically.
-- Explicit roots, nested workspaces, missing roots, unsafe links, and boundary
+- Validation works when Manager and Tool are absent.
+- Approved application names dispatch one implementation per product.
+- Structural shells, when created, expose no unapproved feature grammar.
+- Workspace discovery, explicit roots, nested roots, unsafe links, and boundary
   escapes have deterministic tests.
-- Neutral resource fixtures include different workflow node IDs, transitions,
-  profiles, and operational-skill references for later B02/B03 tests.
-- No application source branches on those fixture identities.
-- A repository-wide stale-path check permits `.validation/` only in the A01
-  replacement ledger or deliberately retained historical Git data, never in a
-  maintained runtime, test, fixture, example, or public reference.
+- JSON output remains ANSI-free and human themes retain current behavior.
+- The old validation path appears only in historical records or the reviewed
+  replacement ledger.
+- No command creates future resource or AI state.
+- Full workspace and relevant outcome-fixture gates pass.
 
 ## Exit Criterion
 
-Validation remains complete, three application packages have isolated
-responsibilities, and one workspace boundary is ready for B02 and B03 public
-contracts without hidden executable dependencies or premature feature claims.
+Validation uses the sole target workspace path, product packages have the
+approved structural boundaries, and B02/B03/C01 can define their behavior
+without A01 having preassigned it.

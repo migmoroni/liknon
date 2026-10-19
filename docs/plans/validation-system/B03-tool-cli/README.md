@@ -2,6 +2,11 @@
 
 ## Status And Relationship To Other Tracks
 
+`Decision gate` at B03.0. The product role, offline/non-mutating boundary,
+bootstrap-projection capability, and distribution-channel categories are
+approved. Command grammar, projection envelope, and policy/persistence
+inspection are not approved until B03.0 exits. B03.1-B03.4 are `Provisional`.
+
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only the Tool track.
 
@@ -13,6 +18,13 @@ resource protocol, and canonical Manager. Tool consumes valid local resource
 state but does not depend on the Manager executable. [B01](../B01-cli-distribution/README.md)
 remains the independent validation executor.
 
+## Dependencies
+
+B03 depends on A01 product boundaries, the B02.0 local resource-state contract,
+and the C01 governance baseline for any bootstrap, policy, or persistence
+inspection selected by B03.0. Distribution phases additionally depend on the
+[B03 external-readiness runbook](accounts-and-permissions.md).
+
 ## Objective
 
 Provide humans, agents, editors, and automation with a fast, safe, offline
@@ -22,9 +34,9 @@ Tool operates over knowledge, skills, workflows, agent profiles, tool
 descriptors, prompts, guides, templates, and collections. It does not privilege knowledge as a
 special embedded corpus.
 
-Tool also exposes the program-owned AI bootstrap entry point. That built-in
-contract is not an installed resource or corpus: it is the stable first
-instruction a human supplies to an external AI before governed resource use.
+Tool exposes the program-owned AI bootstrap entry point. Its exact operation
+name and envelope are decided jointly by C01 and B03.0, and the contract
+remains separate from the installed resource corpus.
 
 ## Product Boundary
 
@@ -38,9 +50,17 @@ workspace. It performs no Hub request, download, installation, update, removal,
 materialization, validation execution, AI-policy mutation, or resource-provided
 command execution.
 
-## Command Families
+## Exclusions
 
-The final grammar is approved in B03.0 and must cover:
+B03 does not contact the Hub, mutate resource state, execute validation, conduct
+workflows, select models, grant instruction authority, or publish another
+Liknon product.
+
+## Candidate Command Families
+
+B03.0 must approve the final grammar. The following operations are design
+inputs to evaluate, merge, rename, split, or reject rather than an approved
+command list:
 
 | Operation | Responsibility |
 | --- | --- |
@@ -55,10 +75,11 @@ Tool operations describe and return content. Manager `list` and `info`
 remain administrative views of desired, locked, installed, update, and
 integrity state.
 
-`bootstrap` is the sole built-in content route. It verifies
-`crates/liknon-workspace/contracts/ai/ENTRYPOINT.md` against its adjacent
-`manifest.json`, returns the entry bytes exactly with their canonical metadata, and never consults or
-classifies either file as part of `.liknon/resources/`.
+The operation selected by C01 and B03.0 returns the program-owned contract and
+canonical metadata without consulting or classifying either as part of
+`.liknon/resources/`. Its source path is selected by A01/C01 rather than fixed
+by this plan in advance. `bootstrap` is the candidate label used below until
+that gate selects the final grammar.
 
 For workflows, Tool returns the exact declared graph and resolved resource
 closure. It does not interpret transitions, instantiate an agent profile,
@@ -123,20 +144,20 @@ with Validation CLI and Manager. Tool artifacts contain no complete resource
 corpus; inclusion of the single program-owned bootstrap contract does not turn
 that contract into a Hub payload.
 
-## Implementation Order
+## Deliverables And Implementation Order
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
-| B03.0 | [Product And Command Contract](00-product-and-command-contract.md) | A01.4 and B02.0 | Approved identity, commands, outputs, and non-mutation boundary |
+| B03.0 | [Product And Command Contract](00-product-and-command-contract.md) | A01.4, B02.0, and the C01 generic governance baseline | Approved identity, commands, outputs, and non-mutation boundary |
 | B03.1 | [Local Catalog And Retrieval](01-local-catalog-and-retrieval.md) | B03.0 | Deterministic offline discovery and exact payload retrieval |
 | B03.2 | [Context And Agent Safety](02-context-and-agent-safety.md) | B03.1 | Bounded progressive disclosure and safe machine consumption |
 | B03.3 | [Source And Native Distribution](03-source-and-native-distribution.md) | B03.2 | Independently installable Tool candidates |
-| B03.4 | [End-To-End Verification And Publication](04-end-to-end-verification-and-publication.md) | B03.3 and the root M3 local interoperability gate | Public Tool distribution and clean-environment local-store interoperability |
+| B03.4 | [End-To-End Verification And Publication](04-end-to-end-verification-and-publication.md) | B03.3 and local B02/B03 interoperability evidence | Public Tool distribution and clean-environment local-store interoperability |
 
-B03.0-B03.2 establish local implementation readiness. The root plan's M3 gate
-then combines repository-built B02.4 Manager and B03.2 Tool with neutral
-fixtures. B03.3-B03.4 are distribution work and are not prerequisites for Phase
-3. When B02.5 is also complete, B03.4 adds public-Manager-to-public-Tool
+B03.0-B03.2 establish local implementation readiness. Their interoperability
+gate combines repository-built B02.4 Manager and B03.2 Tool with neutral
+fixtures. B03.3-B03.4 are distribution work and are not prerequisites for C02
+or C03. When B02.5 is also complete, B03.4 adds public-Manager-to-public-Tool
 interoperability evidence; that cross-channel claim does not gate independent
 Tool publication.
 

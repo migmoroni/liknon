@@ -1,5 +1,10 @@
 # B03 Tool Accounts, Permissions, And Publication Authority
 
+## Status
+
+`Provisional`. Blocked by B03.0 and completed just in time for each delivery
+phase.
+
 [Back to the Tool CLI plan](README.md)
 
 ## Purpose
@@ -11,7 +16,7 @@ the Tool release phase currently being implemented.
 
 | Purpose | Identity |
 | --- | --- |
-| Cargo packages | `liknon-tool` and `liknon-workspace` |
+| Cargo packages | `liknon-tool` and supporting packages selected by A01 |
 | Signed tag | `liknon-tool-v<VERSION>` |
 | GitHub metadata release | Exact signed tag |
 | Native download channel | Tool-specific immutable Cloudflare prefix |
@@ -32,7 +37,7 @@ Tool publication uses no Hub resource-publication or namespace credential.
 
 ## Checkpoints
 
-1. Confirm `liknon-tool` and `liknon-workspace` package ownership plus tag
+1. Confirm `liknon-tool` and supporting-package ownership plus tag
    ownership before B03.0.
 2. Create credential-free release candidates during B03.3.
 3. Configure protected publication environments only when candidates pass.

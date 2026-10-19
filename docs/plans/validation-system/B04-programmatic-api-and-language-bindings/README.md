@@ -2,6 +2,8 @@
 
 ## Status
 
+`Future`.
+
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only future programmatic APIs and
 language bindings.
@@ -14,6 +16,13 @@ case exists in at least one language ecosystem.
 Do not publish placeholder packages, reserve public package identities through
 empty releases, choose bridge technology, or derive an API mechanically from
 CLI commands before Phase B04.0 is approved.
+
+## Dependencies
+
+B04 depends on stable A01 boundaries and at least one demonstrated in-process
+consumer. Each language phase additionally depends on an approved B04.0 API,
+runtime support matrix, bridge strategy, and the
+[B04 registry-readiness runbook](accounts-and-permissions.md).
 
 ## Relationship To Current Products
 
@@ -31,16 +40,16 @@ library does not install, embed, invoke, or impersonate any CLI. It also does
 not bundle knowledge, skills, workflows, agent profiles, tool descriptors,
 prompts, guides, templates, or collections.
 
-A01 may publish `liknon-core` and `liknon-workspace` as supporting Cargo
+A01 may identify and later distribution tracks may publish supporting Cargo
 dependencies so crates.io application packages can build without local paths.
-That technical availability does not make either crate the supported B04 Rust
-API. B04 begins only when the deliberate `liknon` library contract and a real
-in-process consumer are approved.
+That technical availability does not make any supporting crate the supported
+B04 Rust API. B04 begins only when the deliberate `liknon` library contract and
+a real in-process consumer are approved.
 
 ```text
 liknon repository
-├── crates/liknon-core              # Validation semantics
-├── crates/liknon-workspace         # Shared .liknon contracts and discovery
+├── crates/<validation-core>        # Name selected by A01 when justified
+├── crates/<workspace-contracts>    # Name selected by A01 when justified
 ├── apps/liknon-cli                 # Validation CLI; B01
 ├── apps/liknon-manager             # Hub and resource management CLI; B02
 ├── apps/liknon-tool                # Local resource-consumption CLI; B03
@@ -86,9 +95,10 @@ resource installation, and CLI argument parsing are not programmatic APIs.
 
 ## Architectural Boundaries
 
-1. `liknon-core` remains the sole validation implementation.
-2. `liknon-workspace` remains the shared owner of `.liknon/` discovery and
-   storage contracts.
+1. The A01-selected validation owner remains the sole validation
+   implementation.
+2. The A01-selected workspace owner remains responsible for the shared
+   `.liknon/` discovery and storage contracts it actually implements.
 3. Internal Rust APIs, public Rust APIs, stable ABI surfaces, and host-language
    wrappers are reviewed separately.
 4. Every operation receives an explicit workspace and explicit capabilities
@@ -107,6 +117,12 @@ resource installation, and CLI argument parsing are not programmatic APIs.
     profile IDs.
 12. A binding is published only with representative in-process behavior and
    host-language conformance tests.
+
+## Exclusions
+
+B04 does not package CLIs, reserve registries speculatively, expose internal
+Rust modules by default, duplicate Hub resources, or begin from a desire for
+symmetry across language ecosystems.
 
 ## Decisions Required Before Implementation
 
@@ -128,10 +144,10 @@ Names remain provisional until B04.0 approves them.
 
 ```text
 crates/
-├── liknon-core/
-├── liknon-workspace/
-├── liknon-api/                     # Only if a public Rust layer is justified
-└── liknon-ffi/                     # Only if approved bindings require it
+├── <validation-core>/              # Selected by A01
+├── <workspace-contracts>/          # Selected by A01 when justified
+├── <public-api>/                   # Only if a public Rust layer is justified
+└── <ffi-layer>/                    # Only if approved bindings require it
 
 packages/
 ├── rust/                           # Only when distinct packaging is needed
@@ -144,7 +160,7 @@ packages/
 Do not create an adapter directory, native bridge, or public package before its
 consumer and contract are approved.
 
-## Implementation Order
+## Deliverables And Implementation Order
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |

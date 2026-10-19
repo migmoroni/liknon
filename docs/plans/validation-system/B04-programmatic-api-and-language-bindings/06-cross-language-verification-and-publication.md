@@ -1,5 +1,10 @@
 # Phase B04.6: Verify And Publish Language Libraries
 
+## Status
+
+`Future`. Blocked until at least one binding phase has an approved release
+candidate.
+
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
