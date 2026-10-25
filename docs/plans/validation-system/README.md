@@ -21,10 +21,17 @@ Read these documents in order before using an implementation plan:
    explicit open decisions
 3. [Plan Coherence And Reorganization](A00-plan-coherence-and-reorganization/README.md)
    - `Historical` completed documentation meta-plan
+4. [Unified Launcher, CLI Suite, And Command Plan Realignment](A00.1-unified-launcher-plan-realignment/README.md)
+   - `Implementation-ready` documentation meta-plan that precedes A01
 
 The current-state assessment answers what exists. The target summary answers
 what has been approved and what remains undecided. A subordinate plan may add
 detail, but it may not silently contradict either document.
+
+Until A00.1 is completed, its approved command identities, aggregate-package
+model, and launcher boundary take precedence over conflicting target
+identities still present in the target summary or subordinate active plans.
+All other ownership and target decisions retain their existing precedence.
 
 ## Plan Tracks
 
@@ -147,12 +154,15 @@ design evidence.
 
 ## Execution Order
 
-1. Approve A01.0, then perform the A01 structural cutover in buildable units.
-2. Begin B01 delivery work and C01 contract work from the stable A01 boundary.
-3. Resolve B02.0 and B03.0; only then implement their provisional phases.
-4. Implement C02 and C03 as resources over approved generic contracts.
-5. Execute D01 integrated conformance and agent evaluation.
-6. Activate B04 only through its independent consumer-driven gate.
+1. Execute A00.1 to realign the active plans with the approved launcher and
+   command identities.
+2. Approve A01.0, then perform the A01 structural cutover in buildable units.
+3. Begin B01 delivery work and C01 contract work from the stable A01 boundary.
+4. Resolve B02.0 and B03.0; only then implement their provisional phases.
+5. Implement C02 and C03 as resources over approved generic contracts.
+6. Execute D01 integrated conformance and agent evaluation.
+7. Activate the future programmatic-API plan only through its independent
+   consumer-driven gate.
 
 Each plan owns its own detailed handoff and acceptance criteria. Completion of
 one plan never implicitly marks another plan complete.
