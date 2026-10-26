@@ -5,7 +5,6 @@ members = [
   "apps/liknon-manager",
   "apps/liknon-tool",
   "apps/liknon-validate",
-  "crates/liknon-validation",
   "tools/knowledge",
 ]
 exclude = ["fixtures/outcomes", "fixtures/process-tool"]
@@ -42,4 +41,3 @@ windows-sys = { version = "0.61.2", features = [
 liknon-manager = { version = "=0.5.0", path = "apps/liknon-manager" }
 liknon-tool = { version = "=0.5.0", path = "apps/liknon-tool" }
 liknon-validate = { version = "=0.5.0", path = "apps/liknon-validate" }
-liknon-validation = { version = "=0.5.0", path = "crates/liknon-validation" }

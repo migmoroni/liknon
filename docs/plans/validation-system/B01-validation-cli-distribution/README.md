@@ -2,16 +2,17 @@
 
 ## Status And Relationship To The Validation System
 
-`Provisional`. A01 established the Validation CLI package and supporting crate
-closure. B01 is ready to begin at its public-contract gate, B01.0.
+`Provisional`; blocked only by the final hosted A01.5 verification. A01 has
+consolidated the validation engine, schemas, CLI adaptation, and binary targets
+into the single `liknon-validate` package.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only Validation CLI distribution.
 
 This directory defines distribution for the validation command-line
 application after [A01](../A01-product-and-repository-separation/README.md)
-separates it from the core, resource management, and local resource tooling. It
-does not change validation behavior, configuration, report, or exit contracts.
+separates it from resource management and local resource tooling. It does not
+change validation behavior, configuration, report, or exit contracts.
 
 [B02](../B02-resource-hub-and-manager/README.md) defines the resource Hub and
 `liknon-manager`. [B03](../B03-tool-cli/README.md) distributes the independent,
@@ -52,8 +53,8 @@ Every channel installs two command names backed by one implementation:
 B01 includes:
 
 - one version and provenance contract for source and native artifacts;
-- one inspected `liknon-validate` source package and its exact supporting-crate
-  closure;
+- one inspected, self-contained `liknon-validate` source package and its locked
+  registry dependency closure;
 - one final native executable payload per supported target;
 - two equivalent installed command names;
 - platform-specific sealing and verification where applicable;
@@ -94,8 +95,7 @@ lockfile and supported Rust toolchain.
 Install exact published source for package `liknon-validate` with locked
 dependencies. The package contains both binary targets and builds from its
 published contents without repository-only files or unpublished path
-dependencies. Any supporting crates selected by the approved A01 ledger are
-published first when their exact versions are not already available.
+dependencies.
 
 ### Cloudflare Direct
 
@@ -131,8 +131,8 @@ presentation surface, not another artifact source.
 14. Partial publication resumes only from exact retained candidates.
 15. Application artifacts exclude knowledge, AI resources, plans, fixtures,
     evaluations, and editorial tooling.
-16. crates.io supporting packages are published in dependency order and
-    verified by public readback before `liknon-validate` publication.
+16. The crates.io candidate is built and installed from its extracted package
+    with registry dependencies and no unpublished workspace package.
 
 ## Proposed Repository Layout
 
@@ -174,7 +174,7 @@ execution, archive, installer, alias-equivalence, and public-readback checks.
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
-| B01.0 | [Public Contract](00-public-contract.md) | A01.4 and release-ready source | Approved source, crates, native, platform, trust, and ownership contracts |
+| B01.0 | [Public Contract](00-public-contract.md) | A01.5 and release-ready source | Approved source, crates, native, platform, trust, and ownership contracts |
 | B01.1 | [Version And Provenance](01-version-and-provenance.md) | B01.0 | Package-derived version authority and deterministic evidence |
 | B01.2 | [Native Builds](02-native-builds.md) | B01.1 | One tested final native payload per target |
 | B01.3 | [Cloudflare Direct](03-cloudflare-direct.md) | B01.2 | Verified native archives, metadata, and installers |
@@ -188,7 +188,7 @@ execution, archive, installer, alias-equivalence, and public-readback checks.
 - [ ] The signed tag and metadata-only GitHub Release contain no native binary
       assets.
 - [ ] GitHub and crates.io source installations pass in isolated environments.
-- [ ] The crates.io candidate resolves exact published supporting crates and no
+- [ ] The crates.io candidate has no unpublished workspace package or
       repository-local path dependency.
 - [ ] Both command names are equivalent through every channel.
 - [ ] Exactly one final native payload is retained per target.

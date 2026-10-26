@@ -13,9 +13,9 @@ checked-in copy. Configuration schema version 6 and report schema version 4 are
 independent of the crate version. Unsupported versions are rejected; the tool
 does not infer, convert, or maintain compatibility with replaced contracts.
 
-The validation core contains canonical copies at
-`crates/liknon-validation/schemas/config.schema.json` and
-`crates/liknon-validation/schemas/report.schema.json`, verified against the
+The validation package contains canonical copies at
+`apps/liknon-validate/schemas/config.schema.json` and
+`apps/liknon-validate/schemas/report.schema.json`, verified against the
 Rust contract types.
 
 The repository additionally owns Draft 2020-12 schemas for the shared

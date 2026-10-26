@@ -31,7 +31,7 @@ impl CompiledSchemas {
             )?,
             config: compile_schema(
                 repository,
-                "crates/liknon-validation/schemas/config.schema.json",
+                "apps/liknon-validate/schemas/config.schema.json",
             )?,
         })
     }

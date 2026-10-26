@@ -14,11 +14,18 @@ clap.workspace = true
 console.workspace = true
 ctrlc.workspace = true
 indicatif.workspace = true
-liknon-validation.workspace = true
 schemars.workspace = true
+semver.workspace = true
+serde.workspace = true
 serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys.workspace = true
 
 [dev-dependencies]
+jsonschema.workspace = true
 tempfile.workspace = true
 
 [[bin]]

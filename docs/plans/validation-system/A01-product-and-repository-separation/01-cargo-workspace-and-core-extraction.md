@@ -1,18 +1,18 @@
-# Phase A01.1: Create The Cargo Workspace And Extract Shared Boundaries
+# Phase A01.1: Create The Cargo Workspace And Validation Boundary
 
 ## Status
 
-`Complete`. The virtual Cargo workspace, `liknon-validation` engine, Validation
-CLI package, owner-local tests, dependency graph, and root lockfile implement
-the approved A01.0 ledger.
+`Complete`. The virtual Cargo workspace, consolidated `liknon-validate` package,
+owner-local tests, dependency graph, and root lockfile implement the approved
+A01 ledger.
 
 [Back to Plan A01](README.md)
 
 ## Purpose
 
-Create the approved Cargo workspace and separate terminal-independent
-validation behavior from the Validation CLI while preserving all current
-behavior during this unit.
+Create the approved Cargo workspace and keep terminal-independent validation
+behavior separate from terminal adaptation through modules inside one
+`liknon-validate` package while preserving current behavior.
 
 ## Inputs
 
@@ -28,11 +28,11 @@ names approved in the ledger. This phase does not independently choose them.
 
 Perform the workspace conversion in a buildable sequence:
 
-1. create the virtual workspace and approved initial members;
-2. move validation semantics and structured contracts to the approved internal
-   validation crate;
+1. create the virtual workspace and approved members;
+2. move validation semantics and structured contracts into the Validation CLI
+   library modules;
 3. move CLI arguments, terminal presentation, streams, signals, and exit-code
-   adaptation to the Validation CLI package;
+   adaptation into their own modules in the same package;
 4. move shared workspace-discovery or path-containment behavior only when the
    ledger proves more than one product needs it;
 5. move tests with the behavior they protect;
@@ -45,8 +45,8 @@ or generated files that still assume the former package root.
 
 ## Validation Boundary
 
-The terminal-independent validation owner receives only responsibilities
-approved by the ledger, expected to include:
+The terminal-independent modules own only responsibilities approved by the
+ledger:
 
 - explicit-path configuration parsing and semantic validation;
 - parameter resolution, DAG construction, and planning;
@@ -64,8 +64,8 @@ The Validation CLI retains:
 - selection of human or JSON output;
 - user-facing initialization interaction.
 
-No shared crate may depend on an application crate. A dependency declared at
-workspace level is used by a member only when its code requires it.
+No separate validation crate exists. A dependency declared at workspace level
+is used by a member only when its code requires it.
 
 ## Transitional Knowledge Handling
 
@@ -85,14 +85,14 @@ This phase does not:
 - author official resources;
 - publish a package;
 - implement B04 launcher routing or aggregate distribution;
-- declare an internal crate to be the future B05 public API.
+- declare the Validation CLI library modules to be the future B05 public API.
 
 ## Verification
 
 - `cargo metadata` matches the approved member and dependency graph.
 - The root lockfile remains committed.
-- Validation semantics pass through the internal owner without CLI argument
-  construction or terminal rendering.
+- Validation semantics remain separated from CLI argument construction and
+  terminal rendering through module boundaries.
 - CLI tests retain current help, output, accessibility, stream, signal, and
   exit behavior.
 - Current knowledge behavior remains intact until A01.2, if it was explicitly
@@ -104,6 +104,7 @@ This phase does not:
 
 ## Exit Criterion
 
-The repository is a buildable Cargo workspace with one validation
-implementation and explicit CLI adaptation. Every transitional current feature
-has a named owner and next unit; no later product contract has been invented.
+The repository is a buildable Cargo workspace with one validation package, one
+implementation, and explicit internal CLI adaptation. Every transitional
+current feature has a named owner and next unit; no later product contract has
+been invented.

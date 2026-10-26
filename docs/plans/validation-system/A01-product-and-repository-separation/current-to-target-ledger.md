@@ -2,7 +2,7 @@
 
 ## Status
 
-`Implemented`. The user approved this ledger on 2026-10-26, and A01.1-A01.4
+`Implemented`. The user approved this ledger on 2026-10-26, and A01.1-A01.5
 implemented its package boundaries, ownership decisions, operations, and move
 order.
 
@@ -45,7 +45,6 @@ apps/liknon-cli
 apps/liknon-validate
 apps/liknon-manager
 apps/liknon-tool
-crates/liknon-validation
 tools/knowledge
 ```
 
@@ -54,21 +53,23 @@ workspaces and are explicitly excluded from root membership. The root owns the
 single committed `Cargo.lock`, shared package metadata, MSRV 1.87, dependency
 versions, CI, deny policy, license, and repository documentation.
 
-### D2. Minimum Internal Crate Boundary
+### D2. Single Validation Package Boundary
 
-Create one terminal-independent engine package named `liknon-validation` at
-`crates/liknon-validation`. It owns configuration, structured contracts,
+Create one validation package named `liknon-validate` at
+`apps/liknon-validate`. Its library owns configuration, structured contracts,
 planning, shell-free execution, process-tree termination, repository evidence,
-initialization semantics, and structured outcomes.
+initialization semantics, structured outcomes, CLI composition, and terminal
+presentation. Its two binary targets are thin entry points over that library.
 
 Do not create `liknon-workspace` in A01. Current code proves only one
 implemented consumer of workspace discovery and containment. The approved
-`.liknon/` root is represented by narrowly scoped engine primitives; a shared
+`.liknon/` root is represented by narrowly scoped validation primitives; a shared
 workspace crate is extracted later only when an implemented second product
 requires the same behavior.
 
-`liknon-validation` is an implementation dependency, not the B05 package
-`liknon` and not a declaration that its Rust API is the future public
+The library target is an implementation boundary for the binaries, aggregate
+launcher package, and private repository checks. It is not the B05 package
+`liknon` and does not declare its Rust modules to be a supported public
 programmatic API.
 
 ### D3. Application Packages And Targets
@@ -77,7 +78,7 @@ The application packages are:
 
 | Package | Library responsibility | Binary targets at A01 exit |
 | --- | --- | --- |
-| `liknon-validate` | Validation CLI composition | `liknon-validate`, `likv` |
+| `liknon-validate` | Validation implementation and CLI composition | `liknon-validate`, `likv` |
 | `liknon-manager` | Identity-only structural shell | `liknon-manager`, `likm` |
 | `liknon-tool` | Identity-only structural shell | `liknon-tool`, `likt` |
 | `liknon-cli` | Aggregate wrappers and capability-free launcher shell | `liknon`, `likx`, plus the six capability targets |
@@ -89,10 +90,10 @@ approved namespaces in A01; executable discovery and process forwarding remain
 blocked by B04.0. Manager and Tool shells expose no feature commands before
 B02.0 and B03.0.
 
-All six workspace packages are `publish = false` at A01 exit. Later publication
+All five workspace packages are `publish = false` at A01 exit. Later publication
 owners deliberately enable only their packages:
 
-- B01: `liknon-validation` and `liknon-validate`;
+- B01: `liknon-validate`;
 - B02: `liknon-manager` and any dependency its approved contract proves;
 - B03: `liknon-tool` and any dependency its approved contract proves;
 - B04: `liknon-cli` after all component contracts are stable;
@@ -103,16 +104,13 @@ The package identity `liknon` is absent after A01 and remains reserved for B05.
 ### D4. Dependency Direction
 
 ```text
-liknon-validation
-        ^
-        |
 liknon-validate          liknon-manager          liknon-tool
         ^                       ^                     ^
         +-----------------------+---------------------+
                                 |
                            liknon-cli
 
-liknon-knowledge-maintenance --> liknon-validation
+liknon-knowledge-maintenance --> liknon-validate
 ```
 
 Capability application crates never depend on `liknon-cli` or on one another.
@@ -127,22 +125,22 @@ Its exports receive these explicit dispositions:
 
 | Current export | Decision |
 | --- | --- |
-| `run_cli` | Move to the small `liknon-validate` application-library entry point used by both binary packages. |
-| `ValidatorError` | Move to `liknon-validation`; retain as an engine implementation contract. |
-| `config::{load, ValidatedConfig}` | Move to `liknon-validation`; retain for application and repository-tool consumers. |
-| `contracts::config::*` | Move with schema version 6 to `liknon-validation`. |
-| `contracts::init::*` | Move with init-result version 1 to `liknon-validation`. |
-| `contracts::report::*` | Move with report schema version 4 to `liknon-validation`. |
-| `planning::*` | Move to `liknon-validation`; retain only the surface required by application composition and engine tests. |
-| `execution::{run, run_with_progress, RunOutcome}` and `execution::progress::*` | Move to `liknon-validation`; retain the reporter trait as the CLI adaptation boundary. |
-| `initialization::{provision_config, resolve_workspace}` | Move to `liknon-validation`; change only the canonical destination in A01.3. |
+| `run_cli` | Move to the small `liknon-validate` application-library entry point used by both binary targets. |
+| `ValidatorError` | Move to `liknon-validate`; retain as an engine implementation contract. |
+| `config::{load, ValidatedConfig}` | Move to `liknon-validate`; retain for application and private maintenance consumers. |
+| `contracts::config::*` | Move with schema version 6 to `liknon-validate`. |
+| `contracts::init::*` | Move with init-result version 1 to `liknon-validate`. |
+| `contracts::report::*` | Move with report schema version 4 to `liknon-validate`. |
+| `planning::*` | Move to `liknon-validate`; retain only the surface required by application composition and engine tests. |
+| `execution::{run, run_with_progress, RunOutcome}` and `execution::progress::*` | Move to `liknon-validate`; retain the reporter trait as the CLI adaptation boundary. |
+| `initialization::{provision_config, resolve_workspace}` | Move to `liknon-validate`; change only the canonical destination in A01.3. |
 | `reporting::result::{human, json}` | Move into `liknon-validate` and internalize; these are presentation adapters, not engine API. |
 | `theme::{PaletteProfile, PresentationProfile, Theme}` | Move into `liknon-validate` and internalize. |
 
 Public items currently hidden behind private modules (`dag`, `process`, and
-`repository`) remain private implementation. Cross-crate extraction may expose
-the narrow accessors required by `liknon-validate`, but A01 must not re-export
-them as a consumer-facing `liknon` API.
+`repository`) remain private implementation. The library exposes only the
+narrow modules required by current workspace consumers; A01 does not present
+them as the consumer-facing `liknon` API.
 
 ### D6. Current Command Surface
 
@@ -179,8 +177,8 @@ into a future official resource or define a Hub artifact.
 
 | Current schema | Canonical owner after A01 |
 | --- | --- |
-| `schemas/config.schema.json` | `crates/liknon-validation/schemas/config.schema.json` |
-| `schemas/report.schema.json` | `crates/liknon-validation/schemas/report.schema.json` |
+| `schemas/config.schema.json` | `apps/liknon-validate/schemas/config.schema.json` |
+| `schemas/report.schema.json` | `apps/liknon-validate/schemas/report.schema.json` |
 | `knowledge-catalog`, `knowledge-sources`, `knowledge-editorial-profiles` | `docs/validation/authoring/schemas/`; repository editorial contracts only |
 | `knowledge-forward-trials`, `knowledge-routing`, `knowledge-rubric` | `evals/schemas/`; evaluation-only contracts |
 
@@ -212,11 +210,11 @@ through its own approved contract; A01 does not duplicate either asset.
 
 | Current test surface | Target owner |
 | --- | --- |
-| `tests/config.rs`, `tests/execution.rs`, semantic portions of `tests/repository.rs`, `tests/schemas.rs` | `liknon-validation` integration tests |
+| `tests/config.rs`, `tests/execution.rs`, semantic portions of `tests/repository.rs`, `tests/schemas.rs` | `liknon-validate` integration tests |
 | `tests/cli.rs`, human-rendering portions of `tests/repository.rs`, `tests/outcome_fixtures.rs` | `liknon-validate` integration tests |
 | `tests/knowledge.rs` and `tools/knowledge/tests.rs` | `liknon-knowledge-maintenance` tests |
 | `tests/skills.rs` | repository conformance test for the non-active C02 handoff, outside application packages |
-| `tests/common/mod.rs` | split into owner-local test support; process fixture remains repository-level |
+| `tests/common/mod.rs` | `liknon-validate` integration-test support; process fixture remains repository-level |
 | `fixtures/outcomes` and `fixtures/process-tool` | isolated repository fixtures, never root workspace members |
 
 Tests that use `CARGO_BIN_EXE_liknon` switch to the directly owned validation
@@ -265,8 +263,7 @@ field required by A01.0.
 ### Target Owners
 
 - `T0`: virtual workspace root and repository governance;
-- `T1`: `crates/liknon-validation`;
-- `T2`: `apps/liknon-validate`;
+- `T1`: `apps/liknon-validate`;
 - `T3`: `apps/liknon-manager` structural shell;
 - `T4`: `apps/liknon-tool` structural shell;
 - `T5`: `apps/liknon-cli` aggregate/launcher shell;
@@ -297,7 +294,7 @@ named explicitly.
 | `LICENSE` | R1 | E1 | T0: repository governance | Preserve / structural | A01.1-A01.4 | none |
 | `README.md` | R9 | E7 | T10: maintained repository documentation | Change to A01 exit contracts | A01.3-A01.4 | none |
 | `SECURITY.md` | R9 | E7 | T10: maintained repository documentation | Change to A01 exit contracts | A01.3-A01.4 | none |
-| `assets/branding/liknon-ascii.txt` | R3 | E4 | T2: `apps/liknon-validate/assets/branding/liknon-ascii.txt` | Move / structural | A01.1 | none |
+| `assets/branding/liknon-ascii.txt` | R3 | E4 | T1: `apps/liknon-validate/assets/branding/liknon-ascii.txt` | Move / structural | A01.1 | none |
 | `assets/branding/liknon.svg` | R9 | E7 | T0: repository-level brand source | Preserve / structural | A01.4 | B04 decides any launcher use |
 | `build.rs` | R4 | E1, E5 | No application owner | Remove after source preservation / structural | A01.2 | none |
 | `deny.toml` | R1 | E1 | T0: workspace dependency policy | Preserve and reconcile graph / structural | A01.1, A01.4 | none |
@@ -464,7 +461,7 @@ named explicitly.
 | `evals/scenarios/shared-knowledge/prompts/precise-source-location.md` | R7 | E8 | T8: preserve at `evals/scenarios/shared-knowledge/prompts/precise-source-location.md` | Preserve; update moved schema/source links where required / structural | A01.2, A01.4 | D01 owns future integrated evaluation |
 | `evals/scenarios/shared-knowledge/prompts/synthesis-boundary.md` | R7 | E8 | T8: preserve at `evals/scenarios/shared-knowledge/prompts/synthesis-boundary.md` | Preserve; update moved schema/source links where required / structural | A01.2, A01.4 | D01 owns future integrated evaluation |
 | `evals/scenarios/shared-knowledge/scenarios.json` | R7 | E8 | T8: preserve at `evals/scenarios/shared-knowledge/scenarios.json` | Preserve; update moved schema/source links where required / structural | A01.2, A01.4 | D01 owns future integrated evaluation |
-| `examples/inspect.rs` | R8 | E2, E7 | T1: `crates/liknon-validation/examples/inspect.rs` | Move; document as internal engine example / structural | A01.1 | B05 before consumer-facing API claim |
+| `examples/inspect.rs` | R8 | E2, E7 | T1: `apps/liknon-validate/examples/inspect.rs` | Move; document as internal engine example / structural | A01.1 | B05 before consumer-facing API claim |
 | `fixtures/knowledge/routing.json` | R7 | E8 | T8: `evals/fixtures/knowledge/routing.json` | Move to evaluation ownership / structural | A01.2 | none |
 | `fixtures/outcomes/.gitignore` | R8 | E3, E4 | T9: preserve isolated fixture at `fixtures/outcomes/.gitignore` | Preserve / structural | A01.1-A01.4 | Excluded from root workspace |
 | `fixtures/outcomes/.validation/config.json` | R8 | E3, E4 | T9: `fixtures/outcomes/.liknon/validation/config.json` | Move atomically with canonical path / contract | A01.3 | none |
@@ -479,80 +476,80 @@ named explicitly.
 | `fixtures/process-tool/Cargo.lock` | R8 | E3, E4 | T9: preserve isolated fixture at `fixtures/process-tool/Cargo.lock` | Preserve / structural | A01.1-A01.4 | Excluded from root workspace |
 | `fixtures/process-tool/Cargo.toml` | R8 | E3, E4 | T9: preserve isolated fixture at `fixtures/process-tool/Cargo.toml` | Preserve / structural | A01.1-A01.4 | Excluded from root workspace |
 | `fixtures/process-tool/src/main.rs` | R8 | E3, E4 | T9: preserve isolated fixture at `fixtures/process-tool/src/main.rs` | Preserve / structural | A01.1-A01.4 | Excluded from root workspace |
-| `schemas/config.schema.json` | R2 | E2 | T1: `crates/liknon-validation/schemas/config.schema.json` | Move canonical checked-in schema / structural | A01.1 | none |
+| `schemas/config.schema.json` | R2 | E2 | T1: `apps/liknon-validate/schemas/config.schema.json` | Move canonical checked-in schema / structural | A01.1 | none |
 | `schemas/knowledge-catalog.schema.json` | R5, R7 | E5 | T7: `docs/validation/authoring/schemas/knowledge-catalog.schema.json` | Move as repository editorial contract / structural | A01.2 | B02.0 before any resource-schema promotion |
 | `schemas/knowledge-editorial-profiles.schema.json` | R5, R7 | E5 | T7: `docs/validation/authoring/schemas/knowledge-editorial-profiles.schema.json` | Move as repository editorial contract / structural | A01.2 | B02.0 before any resource-schema promotion |
 | `schemas/knowledge-forward-trials.schema.json` | R7 | E8 | T8: `evals/schemas/knowledge-forward-trials.schema.json` | Move as evaluation-only contract / structural | A01.2 | none |
 | `schemas/knowledge-routing.schema.json` | R7 | E8 | T8: `evals/schemas/knowledge-routing.schema.json` | Move as evaluation-only contract / structural | A01.2 | none |
 | `schemas/knowledge-rubric.schema.json` | R7 | E8 | T8: `evals/schemas/knowledge-rubric.schema.json` | Move as evaluation-only contract / structural | A01.2 | none |
 | `schemas/knowledge-sources.schema.json` | R5, R7 | E5 | T7: `docs/validation/authoring/schemas/knowledge-sources.schema.json` | Move as repository editorial contract / structural | A01.2 | B02.0 before any resource-schema promotion |
-| `schemas/report.schema.json` | R2 | E2 | T1: `crates/liknon-validation/schemas/report.schema.json` | Move canonical checked-in schema / structural | A01.1 | none |
+| `schemas/report.schema.json` | R2 | E2 | T1: `apps/liknon-validate/schemas/report.schema.json` | Move canonical checked-in schema / structural | A01.1 | none |
 | `skills/liknon/SKILL.md` | R6 | E6, E7 | T11: preserve at `skills/liknon/SKILL.md` as non-active C02 input | Preserve bytes; remove package/distribution claim / contract | A01.2 | C02 defines any future official resource |
 | `skills/liknon/manifest.json` | R6 | E6, E7 | T11: preserve at `skills/liknon/manifest.json` as non-active C02 input | Preserve bytes; remove package/distribution claim / contract | A01.2 | C02 defines any future official resource |
 | `skills/liknon/references/audit.md` | R6 | E6, E7 | T11: preserve at `skills/liknon/references/audit.md` as non-active C02 input | Preserve bytes; remove package/distribution claim / contract | A01.2 | C02 defines any future official resource |
 | `skills/liknon/references/config.md` | R6 | E6, E7 | T11: preserve at `skills/liknon/references/config.md` as non-active C02 input | Preserve bytes; remove package/distribution claim / contract | A01.2 | C02 defines any future official resource |
 | `skills/liknon/references/run.md` | R6 | E6, E7 | T11: preserve at `skills/liknon/references/run.md` as non-active C02 input | Preserve bytes; remove package/distribution claim / contract | A01.2 | C02 defines any future official resource |
 | `skills/liknon/references/triage.md` | R6 | E6, E7 | T11: preserve at `skills/liknon/references/triage.md` as non-active C02 input | Preserve bytes; remove package/distribution claim / contract | A01.2 | C02 defines any future official resource |
-| `src/cli/arguments.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/arguments.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
-| `src/cli/help/execution.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/help/execution.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
-| `src/cli/help/initialization.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/help/initialization.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
-| `src/cli/help/inspection.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/help/inspection.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/cli/arguments.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/arguments.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/cli/help/execution.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/help/execution.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/cli/help/initialization.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/help/initialization.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/cli/help/inspection.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/help/inspection.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
 | `src/cli/help/knowledge.rs` | R4 | E4, E5 | No Validation CLI owner; authored bytes remain T7 | Remove runtime surface / contract | A01.2 | B03.0 owns future installed-resource retrieval |
-| `src/cli/help/mod.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/help/mod.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
-| `src/cli/help/root.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/help/root.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
-| `src/cli/help/values.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/help/values.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
-| `src/cli/inspection.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/inspection.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/cli/help/mod.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/help/mod.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/cli/help/root.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/help/root.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/cli/help/values.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/help/values.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/cli/inspection.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/inspection.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
 | `src/cli/knowledge.rs` | R4 | E4, E5 | No Validation CLI owner; authored bytes remain T7 | Remove runtime surface / contract | A01.2 | B03.0 owns future installed-resource retrieval |
-| `src/cli/mod.rs` | R3 | E4 | T2: `apps/liknon-validate/src/cli/mod.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
-| `src/config/directories.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/config/directories.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/config/loader.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/config/loader.rs` | Move; expose only required application boundary / structural | A01.1 | A01.3 changes canonical path |
-| `src/config/mod.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/config/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/config/parameters.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/config/parameters.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/config/validation.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/config/validation.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/contracts/config.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/contracts/config.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/contracts/init.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/contracts/init.rs` | Move; expose only required application boundary / structural | A01.1 | A01.3 changes canonical path |
-| `src/contracts/mod.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/contracts/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/contracts/report.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/contracts/report.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/dag.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/dag.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/error.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/error.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/execution/checks.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/execution/checks.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/execution/groups.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/execution/groups.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/execution/mod.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/execution/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/execution/prerequisites.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/execution/prerequisites.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/execution/progress.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/execution/progress.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/execution/suites.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/execution/suites.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/initialization.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/initialization.rs` | Move; expose only required application boundary / structural | A01.1 | A01.3 changes canonical path |
+| `src/cli/mod.rs` | R3 | E4 | T1: `apps/liknon-validate/src/cli/mod.rs` | Move and adapt executable name / structural | A01.1, A01.3 | none |
+| `src/config/directories.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/config/directories.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/config/loader.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/config/loader.rs` | Move; expose only required application boundary / structural | A01.1 | A01.3 changes canonical path |
+| `src/config/mod.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/config/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/config/parameters.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/config/parameters.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/config/validation.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/config/validation.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/contracts/config.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/contracts/config.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/contracts/init.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/contracts/init.rs` | Move; expose only required application boundary / structural | A01.1 | A01.3 changes canonical path |
+| `src/contracts/mod.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/contracts/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/contracts/report.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/contracts/report.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/dag.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/dag.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/error.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/error.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/execution/checks.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/execution/checks.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/execution/groups.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/execution/groups.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/execution/mod.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/execution/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/execution/prerequisites.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/execution/prerequisites.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/execution/progress.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/execution/progress.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/execution/suites.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/execution/suites.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/initialization.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/initialization.rs` | Move; expose only required application boundary / structural | A01.1 | A01.3 changes canonical path |
 | `src/knowledge/mod.rs` | R4 | E4, E5 | No Validation CLI owner; authored bytes remain T7 | Remove runtime surface / contract | A01.2 | B03.0 owns future installed-resource retrieval |
-| `src/lib.rs` | R2 | E2, E3 | T1: engine crate root and validation exports | Split and move; retire package `liknon` / structural | A01.1-A01.3 | B05 reserves package `liknon` |
-| `src/lib.rs` surface `cli`, `reporting`, `theme`, and `run_cli` | R3, R4 | E4, E5 | T2: Validation CLI application-library root | Split, move, and remove knowledge composition / contract | A01.1-A01.3 | none |
-| `src/main.rs` | R3 | E4 | T2: direct Validation CLI binary wrappers | Move and replace binary identity / contract | A01.1, A01.3 | none |
-| `src/planning/mod.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/planning/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/process.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/process.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/reporting/execution.rs` | R3 | E3, E4 | T2: `apps/liknon-validate/src/reporting/execution.rs` | Move and internalize / structural | A01.1 | none |
-| `src/reporting/format.rs` | R3 | E3, E4 | T2: `apps/liknon-validate/src/reporting/format.rs` | Move and internalize / structural | A01.1 | none |
-| `src/reporting/mod.rs` | R3 | E3, E4 | T2: `apps/liknon-validate/src/reporting/mod.rs` | Move and internalize / structural | A01.1 | none |
-| `src/reporting/result/human.rs` | R3 | E3, E4 | T2: `apps/liknon-validate/src/reporting/result/human.rs` | Move and internalize / structural | A01.1 | none |
-| `src/reporting/result/json.rs` | R3 | E3, E4 | T2: `apps/liknon-validate/src/reporting/result/json.rs` | Move and internalize / structural | A01.1 | none |
-| `src/reporting/result/mod.rs` | R3 | E3, E4 | T2: `apps/liknon-validate/src/reporting/result/mod.rs` | Move and internalize / structural | A01.1 | none |
-| `src/reporting/tree.rs` | R3 | E3, E4 | T2: `apps/liknon-validate/src/reporting/tree.rs` | Move and internalize / structural | A01.1 | none |
-| `src/repository/fingerprint.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/repository/fingerprint.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/repository/mod.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/repository/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/repository/status.rs` | R2 | E2, E3 | T1: `crates/liknon-validation/src/repository/status.rs` | Move; expose only required application boundary / structural | A01.1 | none |
-| `src/theme/clap.rs` | R3 | E4 | T2: `apps/liknon-validate/src/theme/clap.rs` | Move and internalize / structural | A01.1 | none |
-| `src/theme/mod.rs` | R3 | E4 | T2: `apps/liknon-validate/src/theme/mod.rs` | Move and internalize / structural | A01.1 | none |
-| `src/theme/palette.rs` | R3 | E4 | T2: `apps/liknon-validate/src/theme/palette.rs` | Move and internalize / structural | A01.1 | none |
-| `src/theme/presentation.rs` | R3 | E4 | T2: `apps/liknon-validate/src/theme/presentation.rs` | Move and internalize / structural | A01.1 | none |
-| `src/theme/style.rs` | R3 | E4 | T2: `apps/liknon-validate/src/theme/style.rs` | Move and internalize / structural | A01.1 | none |
-| `tests/cli.rs` | R8 | E4, E5 | T2: `apps/liknon-validate/tests/cli.rs` | Move; remove embedded-knowledge cases; rename binary / contract | A01.1-A01.3 | none |
-| `tests/common/mod.rs` | R8 | E2, E3 | T1: engine integration-test support | Split and move / structural | A01.1 | none |
-| `tests/common/mod.rs` CLI-consumed helpers | R8 | E4 | T2: Validation CLI integration-test support | Split and move / structural | A01.1 | none |
-| `tests/config.rs` | R8 | E2, E3 | T1: `crates/liknon-validation/tests/config.rs` | Move and update canonical paths / structural | A01.1, A01.3 | none |
-| `tests/execution.rs` | R8 | E2, E3 | T1: `crates/liknon-validation/tests/execution.rs` | Move and update canonical paths / structural | A01.1, A01.3 | none |
+| `src/lib.rs` | R2 | E2, E3 | T1: validation semantics and exports in the Validation CLI library root | Move and consolidate; retire package `liknon` / structural | A01.1-A01.5 | B05 reserves package `liknon` |
+| `src/lib.rs` surface `cli`, `reporting`, `theme`, and `run_cli` | R3, R4 | E4, E5 | T1: same Validation CLI library root | Move, consolidate, and remove knowledge composition / contract | A01.1-A01.5 | none |
+| `src/main.rs` | R3 | E4 | T1: direct Validation CLI binary wrappers | Move and replace binary identity / contract | A01.1, A01.3 | none |
+| `src/planning/mod.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/planning/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/process.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/process.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/reporting/execution.rs` | R3 | E3, E4 | T1: `apps/liknon-validate/src/reporting/execution.rs` | Move and internalize / structural | A01.1 | none |
+| `src/reporting/format.rs` | R3 | E3, E4 | T1: `apps/liknon-validate/src/reporting/format.rs` | Move and internalize / structural | A01.1 | none |
+| `src/reporting/mod.rs` | R3 | E3, E4 | T1: `apps/liknon-validate/src/reporting/mod.rs` | Move and internalize / structural | A01.1 | none |
+| `src/reporting/result/human.rs` | R3 | E3, E4 | T1: `apps/liknon-validate/src/reporting/result/human.rs` | Move and internalize / structural | A01.1 | none |
+| `src/reporting/result/json.rs` | R3 | E3, E4 | T1: `apps/liknon-validate/src/reporting/result/json.rs` | Move and internalize / structural | A01.1 | none |
+| `src/reporting/result/mod.rs` | R3 | E3, E4 | T1: `apps/liknon-validate/src/reporting/result/mod.rs` | Move and internalize / structural | A01.1 | none |
+| `src/reporting/tree.rs` | R3 | E3, E4 | T1: `apps/liknon-validate/src/reporting/tree.rs` | Move and internalize / structural | A01.1 | none |
+| `src/repository/fingerprint.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/repository/fingerprint.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/repository/mod.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/repository/mod.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/repository/status.rs` | R2 | E2, E3 | T1: `apps/liknon-validate/src/repository/status.rs` | Move; expose only required application boundary / structural | A01.1 | none |
+| `src/theme/clap.rs` | R3 | E4 | T1: `apps/liknon-validate/src/theme/clap.rs` | Move and internalize / structural | A01.1 | none |
+| `src/theme/mod.rs` | R3 | E4 | T1: `apps/liknon-validate/src/theme/mod.rs` | Move and internalize / structural | A01.1 | none |
+| `src/theme/palette.rs` | R3 | E4 | T1: `apps/liknon-validate/src/theme/palette.rs` | Move and internalize / structural | A01.1 | none |
+| `src/theme/presentation.rs` | R3 | E4 | T1: `apps/liknon-validate/src/theme/presentation.rs` | Move and internalize / structural | A01.1 | none |
+| `src/theme/style.rs` | R3 | E4 | T1: `apps/liknon-validate/src/theme/style.rs` | Move and internalize / structural | A01.1 | none |
+| `tests/cli.rs` | R8 | E4, E5 | T1: `apps/liknon-validate/tests/cli.rs` | Move; remove embedded-knowledge cases; rename binary / contract | A01.1-A01.3 | none |
+| `tests/common/mod.rs` | R8 | E2, E3 | T1: shared Validation CLI integration-test support | Move and consolidate / structural | A01.1, A01.5 | none |
+| `tests/common/mod.rs` CLI-consumed helpers | R8 | E4 | T1: same Validation CLI integration-test support | Move and consolidate / structural | A01.1, A01.5 | none |
+| `tests/config.rs` | R8 | E2, E3 | T1: `apps/liknon-validate/tests/config.rs` | Move and update canonical paths / structural | A01.1, A01.3 | none |
+| `tests/execution.rs` | R8 | E2, E3 | T1: `apps/liknon-validate/tests/execution.rs` | Move and update canonical paths / structural | A01.1, A01.3 | none |
 | `tests/knowledge.rs` | R8 | E5 | T6: `tools/knowledge/tests/repository.rs` | Move; replace package-embedding assertions / structural | A01.2 | none |
-| `tests/outcome_fixtures.rs` | R8 | E3, E4 | T2: `apps/liknon-validate/tests/outcome_fixtures.rs` | Move; rename binary and fixture config path / contract | A01.1, A01.3 | none |
+| `tests/outcome_fixtures.rs` | R8 | E3, E4 | T1: `apps/liknon-validate/tests/outcome_fixtures.rs` | Move; rename binary and fixture config path / contract | A01.1, A01.3 | none |
 | `tests/repository.rs` | R8 | E3 | T1: engine repository-evidence integration tests | Split and move semantic assertions / structural | A01.1 | none |
-| `tests/repository.rs` human-rendering assertions | R8 | E4 | T2: Validation CLI rendering integration tests | Split and move / structural | A01.1 | none |
-| `tests/schemas.rs` | R8 | E2, E3 | T1: `crates/liknon-validation/tests/schemas.rs` | Move and update canonical paths / structural | A01.1, A01.3 | none |
+| `tests/repository.rs` human-rendering assertions | R8 | E4 | T1: Validation CLI rendering integration tests | Split and move / structural | A01.1 | none |
+| `tests/schemas.rs` | R8 | E2, E3 | T1: `apps/liknon-validate/tests/schemas.rs` | Move and update canonical paths / structural | A01.1, A01.3 | none |
 | `tests/skills.rs` | R8 | E6 | T6 repository conformance for T11 handoff | Move and narrow to source safety/inventory / structural | A01.2 | C02 defines active skill |
 | `tools/knowledge/contracts.rs` | R7 | E5 | T6: `tools/knowledge/src/contracts.rs` | Move into private package; resolve repository root explicitly / structural | A01.2 | none |
 | `tools/knowledge/integrity.rs` | R7 | E5 | T6: `tools/knowledge/src/integrity.rs` | Move into private package; resolve repository root explicitly / structural | A01.2 | none |
@@ -577,8 +574,7 @@ as removals of current files.
 | New surface | Responsibility | Owner | Unit | Later gate |
 | --- | --- | --- | --- | --- |
 | virtual root `Cargo.toml` workspace tables | Shared build and package metadata | T0 | A01.1 | none |
-| `crates/liknon-validation/Cargo.toml` and `src/lib.rs` | Validation engine package | T1 | A01.1 | B01 enables publication |
-| application-library and two binary wrappers in `apps/liknon-validate` | Direct Validation CLI | T2 | A01.1/A01.3 | B01 distribution |
+| `apps/liknon-validate/Cargo.toml`, library, schemas, and two binary wrappers | Complete Validation CLI package | T1 | A01.1-A01.5 | B01 distribution |
 | `tools/knowledge/Cargo.toml` and package layout | Private editorial maintenance package | T6 | A01.2 | none |
 | C02 handoff record for `skills/liknon` | Preserve useful source without presenting it as active | T7; it records T11 source status | A01.2 | C02 defines future resource |
 | Manager long/compact identity shells | No feature grammar | T3 | A01.3 | B02.0 |
@@ -587,28 +583,25 @@ as removals of current files.
 
 ## Buildable Move Order
 
-1. **A01.1a:** create the virtual workspace, move the existing package into
-   `apps/liknon-validate` without changing its current package/binary behavior,
-   and extract `liknon-validation`. Keep current knowledge embedding as an
-   explicitly temporary input. Move semantic tests with the engine and keep the
-   complete workspace green.
-2. **A01.1b:** narrow the application/core interface, split cross-boundary
-   tests, update schema ownership and CI/package inspection, then rerun all
-   current gates. The temporary package still preserves current command names
-   at this handoff.
-3. **A01.2:** turn `tools/knowledge` into a private workspace package; preserve
+1. **A01.1:** create the virtual workspace, move the existing validation
+   behavior under explicit modules and package boundaries, and keep the complete
+   workspace green.
+2. **A01.2:** turn `tools/knowledge` into a private workspace package; preserve
    authored sources; remove build-time embedding, knowledge commands, and
    application package payloads; record the skill handoff. End with no
    application depending on authored content.
-4. **A01.3a:** rename the direct application package and binaries to
+3. **A01.3:** rename the direct application package and binaries to
    `liknon-validate`/`likv`, create the approved Manager, Tool, and aggregate
    structural packages, and remove package `liknon`. No legacy validation route
-   remains under `liknon`.
-5. **A01.3b:** atomically replace the validation path throughout active code,
-   tests, fixtures, recipes, examples, help, and maintained documentation.
-6. **A01.4:** reconcile all maintained documentation and CI, inspect package
+   remains under `liknon`. Atomically replace the validation path throughout
+   active code, tests, fixtures, recipes, examples, help, and maintained
+   documentation.
+4. **A01.4:** reconcile all maintained documentation and CI, inspect package
    contents/dependency direction, run local installation smoke tests for the
    applications present, and execute every required gate.
+5. **A01.5:** consolidate validation semantics, schemas, tests, CLI adaptation,
+   and both binaries in the single `liknon-validate` package; remove the
+   unnecessary supporting package and re-run every gate.
 
 Every numbered handoff is independently buildable and testable. A later step
 does not repair an intentionally broken earlier tree.
@@ -625,5 +618,5 @@ does not repair an intentionally broken earlier tree.
 
 ## Approval Record
 
-Approved by the user on 2026-10-26. A01.1-A01.4 may implement the exact package
+Approved by the user on 2026-10-26. A01.1-A01.5 implement the exact package
 names, ownership, operations, and move order above.

@@ -34,13 +34,13 @@ detail, but it may not silently contradict either document.
 
 | Plan | Status | Owns |
 | --- | --- | --- |
-| [A01 Product And Repository Separation](A01-product-and-repository-separation/README.md) | `Complete` | Current-to-target inventory, package boundaries, source ownership, repository layout, and structural cutover |
+| [A01 Product And Repository Separation](A01-product-and-repository-separation/README.md) | `Implementation complete`; hosted verification pending | Current-to-target inventory, package boundaries, source ownership, repository layout, and structural cutover |
 
 ### B: Product Implementation And Distribution
 
 | Plan | Status | Owns |
 | --- | --- | --- |
-| [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | `Provisional`; ready for B01.0 | Source-package and native distribution of `liknon-validate` / `likv` |
+| [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | `Provisional`; blocked by final A01.5 hosted verification | Source-package and native distribution of `liknon-validate` / `likv` |
 | [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | `Decision gate` at B02.0 | Resource protocol, Hub, Manager behavior, and Manager distribution |
 | [B03 Tool CLI](B03-tool-cli/README.md) | `Decision gate` at B03.0 | Offline resource consumption, agent-facing retrieval, and Tool distribution |
 | [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, launcher commands `liknon` / `likx`, aggregate Cargo installation, and complete native suites |
@@ -165,8 +165,9 @@ design evidence.
 
 ## Execution Order
 
-1. Approve A01.0, then perform the A01 structural cutover in buildable units.
-2. Begin B01 delivery work and C01 contract work from the stable A01 boundary.
+1. A01 has implemented the structural cutover in buildable units; complete its
+   final hosted verification.
+2. Begin B01 delivery work and C01 contract work from the verified A01 boundary.
 3. Resolve B02.0 and B03.0; only then implement their provisional phases.
 4. Resolve B04.0 after A01 boundaries and component command contracts are
    stable; implement integrated routing and distribution only from verified

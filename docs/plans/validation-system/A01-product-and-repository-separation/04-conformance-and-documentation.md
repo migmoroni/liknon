@@ -5,7 +5,7 @@
 `Complete`. Workspace tests, doctests, strict Rustdoc, Clippy, MSRV and Windows
 cross-checks, outcome fixtures, package inventories, local installations,
 editorial checks, dependency policy, stale-reference searches, and maintained
-documentation verify the A01 exit.
+documentation verify the consolidated A01 exit.
 
 [Back to Plan A01](README.md)
 
@@ -23,7 +23,7 @@ Verify independently:
   evidence, and structured report semantics;
 - Validation CLI arguments, help, streams, progress, themes, signals, aliases,
   initialization, and exit statuses;
-- package and dependency direction selected by A01.0;
+- package and dependency direction finalized by A01.5;
 - application isolation and absence of undeclared payloads;
 - schema ownership and generation;
 - repository-only knowledge maintenance and editorial checks;

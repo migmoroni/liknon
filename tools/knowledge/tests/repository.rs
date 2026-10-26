@@ -1,5 +1,5 @@
 use liknon_knowledge_maintenance as knowledge;
-use liknon_validation::contracts::config::Config;
+use liknon_validate::contracts::config::Config;
 use std::{
     fs,
     path::{Path, PathBuf},

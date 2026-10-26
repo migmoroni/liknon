@@ -20,7 +20,7 @@ doc = false
 
 [dependencies]
 jsonschema.workspace = true
-liknon-validation.workspace = true
+liknon-validate.workspace = true
 pulldown-cmark.workspace = true
 serde.workspace = true
 serde_json.workspace = true

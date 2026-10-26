@@ -1,5 +1,5 @@
 mod common;
-use liknon_validation::{config, contracts::report::Status, execution, planning};
+use liknon_validate::{config, contracts::report::Status, execution, planning};
 use serde_json::json;
 use std::{
     fs,

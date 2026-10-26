@@ -2,9 +2,11 @@
 
 ## Status
 
-`Complete`. The approved
-[current-to-target ledger](current-to-target-ledger.md) was implemented and
-verified on 2026-10-26.
+`Implementation complete; hosted verification pending`. A01.0 through A01.5
+were implemented and locally verified on 2026-10-26. The validation engine,
+schemas, CLI adaptation, and both binaries now belong to one
+`liknon-validate` package. The consolidated commit still requires the hosted
+macOS and Windows jobs before the B01 handoff.
 
 The [validation-system roadmap](../README.md) owns cross-track order. This plan
 owns only product boundaries, repository structure, source ownership, and the
@@ -37,9 +39,10 @@ capability-free launcher application:
 | Tool | Read and return installed resources offline without mutation |
 | Unified launcher | Select one explicit capability namespace and forward the invocation without implementing it |
 
-Candidate internal crates may separate validation semantics from shared
-workspace primitives. Their exact names, public visibility, and dependency
-graph are A01.0 decisions, not prerequisites invented by later A01 documents.
+Validation semantics and CLI adaptation remain separate Rust modules within the
+single `liknon-validate` package. A shared crate is introduced only when more
+than one implemented product demonstrates that boundary; the current validation
+product does not require one.
 
 ## Boundary Rules
 
@@ -84,9 +87,6 @@ liknon/
 |   |-- liknon-validate/
 |   |-- liknon-manager/
 |   `-- liknon-tool/
-|-- crates/
-|   |-- <validation-core>/
-|   `-- <workspace-contracts>/
 |-- docs/
 |-- assets/
 |-- evals/
@@ -122,10 +122,12 @@ advance.
 | A01.2 | [Knowledge And AI Resource Separation](02-knowledge-and-ai-resource-separation.md) | `Complete` | Authored content separated from application runtime ownership |
 | A01.3 | [Application Composition And Workspace Boundary](03-application-composition-and-workspace-resources.md) | `Complete` | Three capability packages, one launcher/aggregate package, and current workspace-path cutover |
 | A01.4 | [Conformance And Documentation](04-conformance-and-documentation.md) | `Complete` | Proven boundaries and reconciled documentation |
+| A01.5 | [Validation Package Consolidation](05-validation-package-consolidation.md) | `Implemented; hosted verification pending` | One `liknon-validate` package owning engine modules, schemas, CLI adaptation, and binaries |
 
 ## Cross-Track Handoff
 
-- B01 begins only after the Validation CLI package boundary is stable.
+- B01 may begin after hosted CI verifies the consolidated Validation CLI
+  package boundary implemented by A01.5.
 - C01 begins from the stable A01 workspace/product boundary.
 - B02.0 and B03.0 consume structural shells and shared primitives without
   inheriting speculative command grammars from A01.
@@ -145,6 +147,9 @@ advance.
       that never existed.
 - [x] The final Cargo graph has no circular application dependency.
 - [x] Validation retains one semantic implementation and its current behavior.
+- [x] `liknon-validate` owns that implementation, its schemas, CLI adaptation,
+      and both validation binaries without a separate `liknon-validation`
+      package.
 - [x] `liknon-validate` and `likv` expose that validation implementation
       directly, while `liknon` and `likx` are launcher-only entry points.
 - [x] Package `liknon-cli` owns the approved aggregate targets without relying
@@ -160,15 +165,14 @@ advance.
 - [x] Package identity `liknon` remains reserved for B05 and owns no CLI target.
 - [x] Maintained documentation describes only behavior available at the A01
       exit and labels later behavior as planned.
-- [x] Full repository formatting, lint, tests, doctests, MSRV, package-boundary,
-      and relevant fixture gates pass after every implementation unit.
+- [ ] Full repository formatting, lint, tests, doctests, MSRV, package-boundary,
+      relevant fixture, and hosted platform gates pass after every
+      implementation unit. Local gates pass; the final hosted run is pending.
 
-## Result
+## Pending Verification
 
-A01 exits with validated current behavior behind explicit product and source
-boundaries. The virtual workspace, application shells, validation engine,
+The virtual workspace, application shells, consolidated Validation package,
 private knowledge maintenance, canonical workspace path, schemas, tests, and
-documentation now have the owners approved by the ledger. Later plans can
-define Manager, Tool, AI governance, official workflows, distribution, and
-APIs without moving ownership again or treating a proposal as historical
-implementation.
+documentation have their final A01 owners. A01 exits after the next hosted CI
+run confirms the consolidated commit on macOS and Windows. Later plans can then
+consume these boundaries without first repairing the validation package.

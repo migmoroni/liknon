@@ -2,20 +2,20 @@
 
 ## Status
 
-`Current-state record`.
+`Current-state record`, atualizado apos a conclusao estrutural do A01.
 
 ## 1. Finalidade
 
-Este documento registra o que o repositorio implementa hoje. Ele existe para
-separar fatos observaveis do codigo de arquiteturas propostas nos planos.
+Este documento registra o que o repositorio implementa hoje. Ele separa fatos
+observaveis do codigo de arquiteturas propostas nos planos.
 
 A avaliacao considera como fontes de verdade:
 
-- o manifesto Cargo e a arvore de fontes atuais;
+- o workspace Cargo e a arvore de fontes atuais;
 - os contratos Rust e os schemas versionados;
-- o comportamento documentado da CLI;
-- os testes, fixtures e workflows de CI existentes;
-- a documentacao que descreve funcionalidades ja implementadas.
+- o comportamento documentado das aplicacoes existentes;
+- os testes, fixtures e workflows de CI;
+- a documentacao que descreve funcionalidades implementadas.
 
 Os demais arquivos em `docs/plans/validation-system/` descrevem trabalho
 planejado. Mesmo quando usam linguagem normativa, eles nao provam que uma
@@ -23,245 +23,208 @@ funcionalidade ja existe.
 
 ## 2. Resumo Executivo
 
-O Liknon atual e um unico pacote Cargo chamado `liknon`, na versao `0.5.0`, com
-MSRV Rust 1.87. Esse pacote produz simultaneamente:
+O Liknon atual e um workspace Cargo virtual na versao `0.5.0`, com MSRV Rust
+1.87. Ele possui quatro pacotes de aplicacao e uma ferramenta privada de
+manutencao:
 
-- uma biblioteca Rust;
-- um executavel de linha de comando chamado `liknon`;
-- schemas, documentacao, uma skill e uma base de conhecimento incluidas no
-  pacote fonte.
+| Pacote | Estado atual |
+| --- | --- |
+| `liknon-validate` | Aplicacao de validacao completa, biblioteca interna e binarios `liknon-validate` / `likv` |
+| `liknon-manager` | Shell de identidade para o futuro Manager, sem comandos de recursos |
+| `liknon-tool` | Shell de identidade para o futuro Tool, sem comandos de consulta |
+| `liknon-cli` | Pacote agregado e shell do launcher `liknon` / `likx`; ainda nao despacha capacidades |
+| `liknon-knowledge-maintenance` | Ferramenta privada que verifica o conteudo autorado no repositorio |
 
-O produto implementado ja e um validador declarativo funcional. Ele carrega
-uma configuracao completa, valida seus contratos antes da execucao, resolve
-grupos, suites e checks, verifica ferramentas, executa processos sem shell
+O produto funcional implementado e o Validation CLI. Ele valida a
+configuracao completa antes de executar processos, resolve grupos, suites e
+checks, verifica ferramentas, executa vetores de argumentos sem shell
 implicito, controla timeout e cancelamento, detecta mutacoes visiveis ao Git e
 produz relatorios humanos ou JSON.
 
-A arquitetura futura de tres CLIs, recursos instalaveis, Hub, policy de IA e
-raiz `.liknon/` ainda nao esta implementada. Hoje, conhecimento, skill,
-validacao e API Rust pertencem ao mesmo pacote.
+Manager, Tool e launcher possuem somente seus limites de pacote, binarios,
+ajuda e versao. Hub, aquisicao e consulta de recursos, policy, persistencia,
+workflows instalaveis e despacho agregado continuam planejados.
 
-## 3. Produto Implementado
+## 3. Produto De Validacao Implementado
 
-| Superficie | Estado atual |
-| --- | --- |
-| Motor de validacao | Implementado em Rust no pacote raiz |
-| CLI de validacao | Implementada como executavel `liknon` |
-| Biblioteca Rust | Exposta pelo mesmo pacote `liknon` |
-| Conhecimento de validacao | Embutido no binario por `build.rs` |
-| Skill oficial | Versionada em `skills/liknon/` e copiada manualmente pelo usuario |
-| Ferramenta de manutencao do conhecimento | Exposta como exemplo Cargo `knowledge_release` |
-| Manager de recursos | Nao implementado |
-| Tool de consulta a recursos instalados | Nao implementada como produto independente |
-| Hub de recursos | Nao implementado |
-| Policy de decisao para IA | Nao implementada |
-| Workflows e perfis instalaveis | Nao implementados como sistema generico de recursos |
-
-Nao existem hoje os executaveis `liknon-manager`, `likm`, `liknon-tool`,
-`likt` ou `likx`. Eles pertencem ao estado-alvo discutido, nao ao inventario
-atual.
-
-## 4. Arquitetura De Execucao Atual
-
-O fluxo principal e:
-
-```text
-.validation/config.json
-          |
-          v
-carregamento e validacao integral
-          |
-          v
-planejamento imutavel do alvo
-          |
-          v
-preflight de ferramentas e execucao
-          |
-          v
-relatorio estruturado
-          |
-          +--> apresentacao humana
-          `--> JSON versionado
-```
-
-As responsabilidades estao distribuidas principalmente assim:
+O pacote `apps/liknon-validate` possui uma unica implementacao de validacao. A
+separacao entre semantica e terminal ocorre por modulos internos, nao por um
+segundo pacote:
 
 | Area | Implementacao atual |
 | --- | --- |
-| Configuracao | `src/config/` e `src/contracts/config.rs` |
-| Planejamento | `src/planning/` e `src/dag.rs` |
-| Execucao | `src/execution/` e `src/process.rs` |
-| Evidencia de repositorio | `src/repository/` |
-| Relatorios | `src/reporting/` e `src/contracts/report.rs` |
-| CLI | `src/cli/` e `src/main.rs` |
-| Temas acessiveis | `src/theme/` |
-| Inicializacao | `src/initialization.rs` e `src/contracts/init.rs` |
-| Conhecimento embarcado | `build.rs`, `src/knowledge/` e comandos em `src/cli/` |
+| Configuracao | `apps/liknon-validate/src/config/` |
+| Contratos estruturados | `apps/liknon-validate/src/contracts/` |
+| Planejamento e DAG | `apps/liknon-validate/src/planning/` e `dag.rs` |
+| Execucao de processos | `apps/liknon-validate/src/execution/` e `process.rs` |
+| Evidencia de repositorio | `apps/liknon-validate/src/repository/` |
+| Relatorios e apresentacao | `apps/liknon-validate/src/reporting/` |
+| CLI e ajuda | `apps/liknon-validate/src/cli/` |
+| Temas acessiveis | `apps/liknon-validate/src/theme/` |
+| Inicializacao | `apps/liknon-validate/src/initialization.rs` |
+| Schemas | `apps/liknon-validate/schemas/` |
 
-Apesar dessa divisao interna, tudo ainda compoe uma unica unidade Cargo e um
-unico ciclo de empacotamento.
+O crate expoe internamente os modulos exigidos pelos consumidores atuais do
+workspace, mas essa superficie Rust ainda nao e uma API programatica publica
+prometida. O desenho de APIs e bindings pertence ao B05.
 
-## 5. Contratos Publicos Atuais
+## 4. Fluxo De Execucao Atual
+
+```text
+.liknon/validation/config.json
+             |
+             v
+carregamento e validacao integral
+             |
+             v
+planejamento imutavel do alvo
+             |
+             v
+preflight de ferramentas e execucao
+             |
+             v
+relatorio estruturado
+             |
+             +--> apresentacao humana
+             `--> JSON versionado
+```
+
+O caminho canonico e `.liknon/validation/config.json`. A descoberta caminha
+para cima a partir do diretorio atual e escolhe a configuracao mais proxima.
+`init` nao faz descoberta: ele valida os bytes indicados e os instala no
+destino canonico dentro do workspace explicitamente selecionado.
+
+## 5. Contratos Atuais
 
 ### 5.1 Configuracao E Relatorio
 
-- caminho canonico descoberto: `.validation/config.json`;
 - schema de configuracao: versao 6;
 - schema de relatorio JSON: versao 4;
 - resultado JSON de inicializacao: versao 1;
 - composicao declarativa: `tool -> check -> suite -> group`;
 - somente suites possuem `workingDirectory`;
-- argumentos sao vetores estruturados e nao passam por um shell implicito;
-- placeholders sao resolvidos pelos parametros da invocacao da suite.
+- argumentos sao vetores estruturados e nao passam por shell implicito;
+- placeholders sao resolvidos pelos parametros da invocacao da suite;
+- caminhos de execucao permanecem abaixo de `workspaceRoot`;
+- grupos formam um DAG e membros compartilhados executam uma vez por rodada.
 
-### 5.2 Comandos
-
-A CLI atual oferece:
+### 5.2 Comandos Funcionais
 
 ```text
-liknon init
-liknon config validate
-liknon validate
-liknon check
-liknon list
-liknon explain group
-liknon explain suite
-liknon explain check
-liknon schema config
-liknon schema report
-liknon knowledge catalog
-liknon knowledge show
+liknon-validate init
+liknon-validate config validate
+liknon-validate validate
+liknon-validate check
+liknon-validate list
+liknon-validate explain group
+liknon-validate explain suite
+liknon-validate explain check
+liknon-validate schema config
+liknon-validate schema report
 ```
 
-Os comandos de conhecimento funcionam sem configuracao e leem bytes embutidos
-no executavel. Nao existe descoberta de recursos externos ou instalados.
+`likv` oferece o mesmo comportamento. Nao existe namespace de conhecimento no
+Validation CLI.
 
 ### 5.3 Saida Humana E Automacao
 
 - `--format=human` e o formato padrao;
 - `--format=json` produz o relatorio estruturado;
-- as paletas de cor incluem modo padrao, alto contraste e variacoes para
-  diferentes percepcoes de cor;
 - a apresentacao possui os modos `standard` e `low-vision`;
-- `NO_COLOR` e respeitado;
-- cor, texto, hierarquia e estados nao dependem exclusivamente de matiz;
+- cor explicita, paletas acessiveis e `NO_COLOR` sao suportados;
+- status, tipo de no, hierarquia e erro nao dependem apenas de matiz;
 - os codigos de saida distinguem sucesso, falha, bloqueio, erro de uso, erro
   interno e interrupcao.
 
-## 6. Conhecimento E Apoio A IA Hoje
+## 6. Demais Aplicacoes Implementadas
 
-A fonte canonica de conhecimento esta em `docs/validation/knowledge/`. O
-`build.rs` incorpora esse conteudo ao executavel, e a CLI o oferece por meio de
-`liknon knowledge catalog` e `liknon knowledge show`.
+`liknon-manager` / `likm` e `liknon-tool` / `likt` aceitam somente as
+superficies de identidade, ajuda e versao. Eles nao fingem possuir operacoes
+futuras.
 
-O repositorio tambem possui:
+O pacote `liknon-cli` instala:
 
-- schemas editoriais e de catalogo em `schemas/`;
-- documentacao de autoria em `docs/validation/authoring/`;
-- verificacao editorial em `tools/knowledge/`;
-- uma skill em `skills/liknon/`, com operacoes de execucao, triagem,
-  configuracao e auditoria;
-- fixtures e testes de conhecimento.
+- os launchers `liknon` e `likx`;
+- os seis binarios das tres capacidades.
 
-Essa skill e um conjunto estatico distribuido junto ao pacote fonte. O
-executavel nao instala a skill, nao administra outras skills, nao resolve
-workflows genericos e nao aplica uma policy de decisao para agentes.
+Os launchers reconhecem os namespaces `validate`, `manager` e `tool`, mas
+encerram com diagnostico explicito porque o despacho ainda nao foi
+implementado. A validacao deve ser chamada diretamente por
+`liknon-validate` ou `likv`.
 
-## 7. Estrutura, Empacotamento E Distribuicao
+## 7. Conhecimento E Apoio A IA
 
-O manifesto raiz e um pacote Cargo, nao um workspace virtual. Ele declara uma
-biblioteca e um binario com o mesmo nome `liknon`. Tambem inclui no pacote:
+A fonte canonica de conhecimento de validacao esta em
+`docs/validation/knowledge/`. Ela e conteudo autorado do repositorio, nao e
+embutida no Validation CLI e nao possui comando de leitura em runtime.
 
-- schemas;
-- skill;
-- branding;
-- documentacao e corpus de conhecimento;
-- fixtures editoriais;
-- codigo da ferramenta de manutencao de conhecimento.
+O pacote privado `liknon-knowledge-maintenance` valida catalogo, fontes,
+integridade, receitas, indice gerado e o handoff da skill. Ele depende da
+biblioteca de `liknon-validate` apenas para verificar exemplos de configuracao
+com o carregador real. Nenhum produto distribuido depende dessa ferramenta.
 
-O README documenta instalacao por `cargo install liknon --locked` e por clone
-seguido de `cargo install --path . --locked --force`.
+O conteudo em `skills/liknon/` permanece como entrada nao ativa para planos
+posteriores. O sistema atual nao instala skills, nao resolve workflows, nao
+aplica policy de decisao e nao administra recursos de IA.
 
-O workflow de CI atual:
+## 8. Empacotamento E Distribuicao
 
-- testa Linux, macOS e Windows;
-- verifica Rust estavel e Rust 1.87;
-- executa formatacao, Clippy, Rustdoc e testes;
-- audita dependencias e politicas de licenca e origem;
-- cria e testa o pacote Cargo em isolamento.
+O workspace ainda nao anuncia uma versao publica. Os quatro pacotes de
+aplicacao possuem `publish = false`; a ferramenta de manutencao tambem e
+privada.
 
-A CI declara explicitamente que nao publica pacotes. Nao ha hoje pipeline de
-publicacao no crates.io, Cloudflare, Hub de recursos ou outro canal.
+O caminho funcional documentado instala o Validation CLI a partir do clone:
 
-## 8. Evidencia De Qualidade Existente
+```sh
+cargo install --path apps/liknon-validate --locked --force
+```
 
-O repositorio possui testes dedicados a:
+O pacote `liknon-validate` inclui motor, adaptacao CLI, schemas, branding,
+exemplo e testes. Ele nao inclui o corpus de conhecimento, skills, planos,
+avaliacoes, fixtures externas ou ferramentas editoriais. Seu build nao depende
+de outro pacote Liknon.
 
-- parsing e validacao da configuracao;
-- planejamento e execucao;
-- CLI, ajuda e apresentacao;
+Publicacao em crates.io, binarios nativos em Cloudflare, distribuicao das
+outras aplicacoes e suite agregada pertencem aos planos B01-B04.
+
+## 9. Evidencia De Qualidade Existente
+
+O repositorio possui cobertura para:
+
+- parsing, descoberta e validacao da configuracao;
+- planejamento, DAG e execucao;
+- CLI, ajuda, temas e apresentacao;
+- schemas e contratos JSON;
 - repositorio e integridade Git;
-- schemas;
-- conhecimento incorporado e contratos editoriais;
-- skill distribuida;
+- timeout, cancelamento e arvore de processos;
+- inicializacao atomica em `.liknon/validation/`;
+- shells e limites dos quatro pacotes de aplicacao;
+- manutencao do conhecimento autorado;
 - cenarios opt-in de sucesso, falha e skip em fixtures reais.
 
-Tambem ha fixtures auxiliares para processos descendentes e resultados de
-execucao. A matriz de CI cobre os tres sistemas operacionais declarados.
-
-Esta avaliacao descreve a cobertura existente; ela nao substitui a execucao do
-gate completo antes de uma alteracao de codigo ou publicacao.
-
-## 9. Pontos Fortes Do Estado Atual
-
-1. O nucleo de validacao ja possui fronteiras conceituais claras entre
-   configuracao, planejamento, execucao e relatorio.
-2. Os contratos JSON sao versionados e testados.
-3. A execucao e agnostica de linguagem e evita shell implicito.
-4. Ha suporte explicito a workspaces heterogeneos, dependencias entre checks,
-   timeout, cancelamento e integridade Git.
-5. A saida humana considera acessibilidade de cor e baixa visao.
-6. A documentacao, os testes multiplataforma e o gate de dependencias ja
-   fornecem uma base solida para extracao estrutural.
+A CI cobre Linux, macOS e Windows, Rust estavel e Rust 1.87, formatacao,
+Clippy, Rustdoc, testes, auditoria de dependencias, politicas de licenca e
+origem, inventario de pacote e instalacao isolada. Ela nao publica artefatos.
 
 ## 10. Limites Em Relacao Ao Estado-Alvo
 
 | Limite atual | Consequencia |
 | --- | --- |
-| Um unico pacote possui motor, CLI, conhecimento e skill | Mudancas de conteudo podem exigir novo build e nova versao do executavel |
-| Conhecimento completo e embutido | O corpus nao pode evoluir independentemente da CLI |
-| Skill estatica e copiada manualmente | Nao ha descoberta, resolucao, lock, atualizacao ou proveniencia de recursos |
-| Somente `.validation/` existe como raiz de configuracao | Nao ha namespace comum para validacao, recursos e governanca de IA |
-| Nao existe policy de IA | O programa nao modela limites globais ou por workflow para agentes |
-| Nao existem workflows ou perfis genericos | Os arquivos atuais apoiam uma skill especifica, nao um ecossistema extensivel |
-| Nao existem Manager e Tool independentes | Aquisicao e consumo estruturado de recursos ainda nao possuem produtos proprios |
-| Biblioteca e CLI compartilham o pacote publico | A API Rust atual ainda nao representa uma API programatica deliberadamente projetada para varias linguagens |
-| Nao ha publicacao automatizada | Build, assinatura, distribuicao e recuperacao ainda precisam de implementacao |
+| Manager e Tool sao shells | Aquisicao e consulta de recursos ainda nao existem |
+| O launcher nao despacha | A suite agregada ainda nao oferece a ergonomia final |
+| Conhecimento permanece no repositorio | Nao ha instalacao, catalogo local ou consulta por Tool |
+| A skill nao esta ativa | Nao ha um contrato operacional de IA distribuido |
+| Policy, persistencia e workflows nao existem | A governanca e a engenharia assistida continuam planejadas |
+| Pacotes nao sao publicos | Instalacao atual depende do clone e do toolchain Rust |
+| API Rust interna nao e deliberadamente publica | Integracoes e bindings aguardam consumidores e contrato B05 |
 
-## 11. Regras Para Refinar Os Planos
+## 11. Regras Para Os Planos Seguintes
 
-Os planos posteriores devem partir deste inventario e classificar cada item de
-trabalho como uma destas operacoes:
-
-- **preservar** comportamento ja implementado;
-- **mover** uma responsabilidade existente para novo dono;
-- **dividir** uma responsabilidade existente entre unidades;
-- **alterar** um contrato atual;
-- **retirar** algo que comprovadamente existe;
-- **criar** uma capacidade que ainda nao existe.
-
-Uma proposta antiga que nunca foi implementada deve apenas desaparecer do
-texto do plano. Ela nao deve virar tarefa de remocao, migracao ou
+Os planos posteriores devem classificar trabalho como preservar, mover,
+dividir, alterar, retirar ou criar. Uma proposta nunca implementada deve apenas
+deixar de aparecer no estado atual; ela nao deve virar migracao ou camada de
 compatibilidade.
 
-Como o produto ainda nao teve lancamento publico, a reorganizacao pode realizar
-uma substituicao direta do estado atual pelo estado aprovado. Isso nao autoriza
-quebrar handoffs intermediarios nem manter duas fontes de verdade.
-
-## 12. Conclusao
-
-O Liknon atual nao e um prototipo vazio: ele ja entrega uma CLI de validacao
-agnostica, testada e documentada. A proxima etapa nao deve redesenhar esse
-motor sem necessidade. Ela deve separar responsabilidades que hoje estao
-acopladas ao mesmo pacote, preservando o comportamento comprovado e criando de
-forma explicita apenas os produtos e contratos aprovados para o estado-alvo.
+Como o produto ainda nao teve lancamento publico, substituicoes podem adotar
+diretamente o contrato aprovado. Isso nao autoriza manter duas fontes de
+verdade nem quebrar os handoffs intermediarios entre planos.

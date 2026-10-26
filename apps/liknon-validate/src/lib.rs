@@ -1,15 +1,27 @@
-//! Terminal adaptation and human presentation for the Liknon validation CLI.
+//! Declarative, shell-free validation for heterogeneous workspaces.
+//!
+//! This crate owns configuration loading, semantic validation, planning,
+//! execution, repository evidence, structured reports, and terminal adaptation
+//! for the `liknon-validate` and `likv` binaries.
 
 #![warn(missing_docs)]
 #![deny(rustdoc::bare_urls)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
+mod dag;
+mod error;
+mod process;
+mod repository;
+
 mod cli;
 mod reporting;
 mod theme;
 
-pub(crate) use liknon_validation::{
-    config, contracts, execution, initialization, planning, ValidatorError,
-};
+pub mod config;
+pub mod contracts;
+pub mod execution;
+pub mod initialization;
+pub mod planning;
 
 pub use cli::run_cli;
+pub use error::ValidatorError;

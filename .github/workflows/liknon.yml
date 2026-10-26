@@ -117,9 +117,8 @@ jobs:
         run: rustup toolchain install stable --profile minimal --no-self-update
       - name: Select stable Rust
         run: rustup default stable
-      - name: List application and core package contents
+      - name: List application package contents
         run: |
-          cargo package --list --locked -p liknon-validation
           cargo package --list --locked -p liknon-validate
           cargo package --list --locked -p liknon-manager
           cargo package --list --locked -p liknon-tool

@@ -42,13 +42,11 @@ The default branch is never presented as a reproducible released version.
 
 ### crates.io Source Package
 
-The crates.io channel publishes source package `liknon-validate` with both approved
-binary targets. The package builds from its own accepted contents, the locked
-dependency graph selected by the installer, and no unpublished path
-dependency. Exact required versions of every supporting crate selected by the
-A01 ledger are published and read back first. Those supporting packages are
-implementation dependencies, not the future public API from B05.
-Every accepted package version is immutable.
+The crates.io channel publishes source package `liknon-validate` with both
+approved binary targets. The package builds from its own accepted contents,
+the locked registry dependency graph selected by the installer, and no
+unpublished workspace or path dependency. It does not require another Liknon
+package. Every accepted package version is immutable.
 
 ### Cloudflare Direct
 
@@ -139,8 +137,8 @@ must never be described more strongly than its real trust mode.
 - immutable-path, cache, budget, and monitoring policies;
 - exact CLI package and archive inventory proving that no knowledge corpus or
   AI resource enters the executable distribution.
-- exact supporting-crate inventories and topological crates.io publication
-  order.
+- exact package inventory and registry dependency evidence for the
+  self-contained `liknon-validate` candidate.
 
 ## Implementation Tasks
 
@@ -148,8 +146,9 @@ must never be described more strongly than its real trust mode.
    equivalent version-neutral configuration.
 2. Prototype source installation from an exact local signed-tag fixture without
    access to repository-external files.
-3. Package and verify the complete supporting-crate closure, then package and
-   install `liknon-validate` from an isolated crates.io candidate.
+3. Package and install `liknon-validate` from an isolated crates.io candidate,
+   proving that its extracted contents require no unpublished workspace file
+   or package.
 4. Build and execute each proposed native target through its real runtime path.
 5. Prototype Linux selector probes for GNU-only, MUSL-only, dual-libc, explicit,
    and unknown environments.

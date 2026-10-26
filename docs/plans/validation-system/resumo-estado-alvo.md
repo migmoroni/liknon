@@ -129,13 +129,9 @@ fronteiras semelhantes a:
 ```text
 apps/
 ├── liknon-cli/          # launcher e pacote agregado
-├── liknon-validate/
+├── liknon-validate/     # engine, schemas, adaptacao CLI e binarios
 ├── liknon-manager/
 └── liknon-tool/
-
-crates/
-├── liknon-core/
-└── liknon-workspace/
 
 resources/
 ├── knowledge/
@@ -162,16 +158,15 @@ O tipo do recurso vem antes da origem. `official` identifica uma origem e nao
 concede privilegio de execucao. Outras origens devem poder usar os mesmos
 contratos.
 
-`liknon-core` concentra semantica de configuracao, planejamento, execucao e
-relatorios estruturados. `liknon-workspace` concentra contratos compartilhados
-de workspace, descoberta e caminhos. As tres CLIs de capacidade usam crates
-comuns, mas nao invocam umas as outras como subprocessos ocultos. Somente o
-launcher pode invocar a CLI selecionada, sem importar sua API para executar a
-capacidade.
+`liknon-validate` concentra sua semantica de configuracao, planejamento,
+execucao, relatorios estruturados, schemas e adaptacao de terminal em modulos
+internos de um unico pacote. As tres CLIs de capacidade nao invocam umas as
+outras como subprocessos ocultos. Somente o launcher pode invocar a CLI
+selecionada, sem importar sua API para executar a capacidade.
 
-Os nomes exatos das crates internas e a divisao final de APIs devem ser
-confirmados durante a extracao. A fronteira de responsabilidade e mais
-importante que preservar uma decomposicao especulativa.
+Uma crate compartilhada so deve surgir quando mais de um produto implementado
+demonstrar essa necessidade. A fronteira de responsabilidade e mais importante
+que criar uma decomposicao especulativa.
 
 ## 5. Workspace Do Consumidor
 
@@ -410,8 +405,8 @@ necessario decidir:
 1. a gramatica publica completa dos comandos de Manager e Tool;
 2. o contrato exato do Hub, catalogo, assinaturas, revogacao e hospedagem;
 3. os schemas finais de recursos, manifest, lock, workflows e agent profiles;
-4. quais crates internas precisam ser publicas apenas para sustentar builds e
-   quais permanecem privadas ao workspace;
+4. se uma API compartilhada futura justificara extrair algum modulo para um
+   crate proprio, sem antecipar essa separacao na arquitetura atual;
 5. qual produto valida ou inicializa policy e qual produto fornece operacoes
    deterministicas de persistencia, sem retirar do humano a propriedade de
    `policy.json` nem transferir cognicao de workflow para uma CLI;

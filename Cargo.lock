@@ -659,7 +659,7 @@ name = "liknon-knowledge-maintenance"
 version = "0.5.0"
 dependencies = [
  "jsonschema",
- "liknon-validation",
+ "liknon-validate",
  "pulldown-cmark",
  "semver",
  "serde",
@@ -690,16 +690,6 @@ dependencies = [
  "console",
  "ctrlc",
  "indicatif",
- "liknon-validation",
- "schemars",
- "serde_json",
- "tempfile",
-]
-
-[[package]]
-name = "liknon-validation"
-version = "0.5.0"
-dependencies = [
  "jsonschema",
  "schemars",
  "semver",

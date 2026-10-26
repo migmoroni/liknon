@@ -3,7 +3,7 @@
 This document defines the design contract for
 `.liknon/validation/config.json`. It complements the usage-oriented
 [`README.md`](README.md) and the machine-readable
-[`config.schema.json`](crates/liknon-validation/schemas/config.schema.json).
+[`config.schema.json`](apps/liknon-validate/schemas/config.schema.json).
 
 The configuration is a declarative domain-specific language for validation
 graphs. It is configuration as data: the document describes available
