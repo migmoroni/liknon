@@ -2,7 +2,10 @@
 
 ## Status
 
-`Provisional`. Runs only after A01.1-A01.3 are complete.
+`Complete`. Workspace tests, doctests, strict Rustdoc, Clippy, MSRV and Windows
+cross-checks, outcome fixtures, package inventories, local installations,
+editorial checks, dependency policy, stale-reference searches, and maintained
+documentation verify the A01 exit.
 
 [Back to Plan A01](README.md)
 

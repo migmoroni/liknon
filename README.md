@@ -4,58 +4,64 @@
 
 # Liknon
 
-`liknon` runs declarative validation graphs for heterogeneous
-workspaces. It validates the complete configuration before starting a process,
-checks tool versions, executes argument vectors without an implicit shell,
-applies timeouts, preserves deterministic ordering, detects Git-visible
-mutations, and emits accessible human output or a versioned JSON report.
+Liknon is a developing suite for declarative validation of heterogeneous
+workspaces. Its implemented validation application checks the complete
+configuration before starting a process, verifies tool versions, executes
+argument vectors without an implicit shell, applies timeouts, preserves
+deterministic ordering, detects Git-visible mutations, and emits accessible
+human output or a versioned JSON report.
 
 The name comes from the ancient liknon, a winnowing basket used to separate
-grain from chaff, reflecting the tool's role in separating accepted validation
-evidence from failures and blockers.
+grain from chaff.
 
-The same pipeline is available as a CLI and as a Rust library.
+## Current Products
 
-## Installation
+The repository is a Cargo workspace with explicit application boundaries:
 
-### From crates.io
+| Package | Executables | Current responsibility |
+| --- | --- | --- |
+| `liknon-validate` | `liknon-validate`, `likv` | Complete validation CLI |
+| `liknon-manager` | `liknon-manager`, `likm` | Identity-only shell; resource commands are planned |
+| `liknon-tool` | `liknon-tool`, `likt` | Identity-only shell; offline resource commands are planned |
+| `liknon-cli` | `liknon`, `likx`, and the six capability executables | Aggregate package and launcher shell |
 
-Install the published binary with Cargo:
+The `liknon` and `likx` launcher targets currently expose their identity and
+capability namespaces, but do not dispatch them yet. Invoke `liknon-validate`
+or `likv` for validation. Manager, Tool, Hub, resource, policy, persistence,
+and workflow behavior belongs to later plans and is not advertised as
+available.
 
-```sh
-cargo install liknon --locked
-```
+`liknon-validation` owns the terminal-independent validation engine. It is an
+internal package boundary, not a promised public integration API.
 
-Rust 1.87 or newer is required.
+## Install From Source
 
-### From a source checkout
-
-Install the exact code from a cloned repository without waiting for a crates.io
-release:
+No public package release is advertised at this stage. Clone the repository
+and install the functional validation application directly:
 
 ```sh
 git clone https://github.com/migmoroni/liknon.git
 cd liknon
-cargo install --path . --locked --force
-liknon --version
+cargo install --path apps/liknon-validate --locked --force
+liknon-validate --version
 ```
 
-`--force` replaces an existing installed copy even when it has the same crate
-version. Cargo copies the compiled binary into its installation root, normally
-`~/.cargo/bin`; it does not keep the command linked to the checkout. Run the
-`cargo install --path . --locked --force` command again after updating or
-modifying the cloned source. Ensure Cargo's binary directory is present in
-`PATH` before invoking `liknon` directly.
+Rust 1.87 or newer is required. Cargo normally writes the executables to
+`~/.cargo/bin`; ensure that directory is in `PATH`. The installed executable is
+a compiled copy, not a link to the checkout, so reinstall it after updating or
+modifying the source.
 
 ## Quick Start
 
 Author a complete candidate such as `validation.config.json` at the workspace
-boundary:
+root. Because initialization validates it at its canonical destination under
+`.liknon/validation/`, `workspaceRoot` uses `../..` to select the consumer
+workspace root:
 
 ```json
 {
   "schemaVersion": 6,
-  "workspaceRoot": "..",
+  "workspaceRoot": "../..",
   "defaultGroup": "all",
   "outputLimitBytes": 1048576,
   "tools": [
@@ -109,76 +115,21 @@ boundary:
 }
 ```
 
-Validate and install that exact candidate, inspect it, and run the default
-group:
+Validate and install those exact bytes, inspect the resulting configuration,
+and run its default group:
 
 ```sh
-liknon init --config validation.config.json
-liknon config validate
-liknon list --tree
-liknon validate
+liknon-validate init --config validation.config.json
+liknon-validate config validate
+liknon-validate list --tree
+liknon-validate validate
 ```
 
-Use `--format=json` when a machine-readable report is required:
+Use `--format=json` for a machine-readable report:
 
 ```sh
-liknon validate --format=json
+liknon-validate validate --format=json
 ```
-
-## Embedded Validation Knowledge
-
-The binary includes a read-only, source-backed knowledge base for selecting and
-interpreting validation evidence. Inspect its compact catalog, then retrieve
-only the documents relevant to the current question:
-
-```sh
-liknon knowledge catalog --format=json
-liknon knowledge show <document-id>
-```
-
-These commands work without configuration or workspace initialization and
-never execute a configured program. Catalog entries marked `draft` may contain
-only stable identity, kind, path, and status while their routing metadata is
-being authored. Entries marked `reviewed` contain the complete catalog
-metadata required by the knowledge schema. The status describes editorial
-readiness; it does not make guidance universal project policy.
-
-## Agent Skill
-
-The source distribution includes one versioned, agent-neutral skill at
-[`skills/liknon`](skills/liknon). Its `SKILL.md` is a
-small router that checks CLI compatibility and loads only the requested
-workflow reference: execution, triage, configuration, or coverage auditing.
-When a task needs source-backed reasoning about evidence, the router uses
-`liknon knowledge catalog --format=json` and then
-`liknon knowledge show <document-id>` for only the exact matching
-guides. It does not infer metadata omitted from a draft entry. The canonical
-human-readable source remains available at
-[`docs/validation/knowledge`](docs/validation/knowledge/README.md); the skill
-contains no copied knowledge tree.
-
-Copy the complete directory from the source release that matches the installed
-CLI into the skill directory recognized by the consumer workspace. For an
-agent that discovers workspace skills under `.agents/skills`, run this from a
-checkout of `liknon`:
-
-```sh
-workspace_root=/path/to/workspace
-mkdir -p "$workspace_root/.agents/skills"
-cp -R skills/liknon "$workspace_root/.agents/skills/"
-```
-
-The source path is not tied to a specific model or agent. Use a different
-destination when the consumer uses another skill discovery convention.
-Installing the Cargo binary does not register the skill automatically.
-
-Copy the whole directory so `manifest.json` and the `references` remain on the
-same version. `manifest.json` is the only source for the bundle version, source
-crate version, and compatible CLI range. The router warns about a stale but
-compatible copy and stops workflows outside its declared compatibility range.
-Replace the copied directory from the matching release to update it;
-keep project-specific commands and approval rules in a separate local skill or
-agent policy.
 
 ## Configuration Model
 
@@ -207,38 +158,34 @@ groups or suites execute once per validation run.
 The normative ownership and extension rules are documented in
 [`CONFIG_DESIGN.md`](CONFIG_DESIGN.md).
 
-## Commands
+## Validation Commands
 
 ```text
-liknon init --config <candidate-path> [--workspace <path>] [--format=human|json]
-liknon config validate [--config <path>]
-liknon validate [group-or-suite] [--config <path>] [--format=human|json]
-liknon check <check-id> [--config <path>] [--format=human|json]
-liknon list [--tree] [--config <path>]
-liknon explain group <group-id> [--config <path>]
-liknon explain suite <suite-id> [--config <path>]
-liknon explain check <check-id> [--config <path>]
-liknon schema config
-liknon schema report
-liknon knowledge catalog [--format=human|json]
-liknon knowledge show <document-id>
+liknon-validate init --config <candidate-path> [--workspace <path>] [--format=human|json]
+liknon-validate config validate [--config <path>]
+liknon-validate validate [group-or-suite] [--config <path>] [--format=human|json]
+liknon-validate check <check-id> [--config <path>] [--format=human|json]
+liknon-validate list [--tree] [--config <path>]
+liknon-validate explain group <group-id> [--config <path>]
+liknon-validate explain suite <suite-id> [--config <path>]
+liknon-validate explain check <check-id> [--config <path>]
+liknon-validate schema config
+liknon-validate schema report
 ```
 
 Without `--config`, the CLI discovers the nearest
-`.validation/config.json` by walking from the current directory upward.
+`.liknon/validation/config.json` by walking from the current directory upward.
 `validate` without a target selects `defaultGroup`. `config validate`, `list`,
-and `explain` inspect configuration without running preflight or checks.
-`init` performs no discovery and installs only explicitly requested resources;
+and `explain` inspect configuration without running preflight or checks. `init`
+performs no discovery and installs only the explicitly requested configuration;
 an omitted `--workspace` means exactly the process current directory.
-Knowledge commands read only assets embedded in the binary and do not discover
-configuration or require an initialized workspace.
 
-The focused [Human Flow](docs/validation/flows/human/README.md) walks through
-authoring, deterministic initialization, inspection, execution, interpretation,
-and narrow revalidation. Stable command and contract details live under
-[the validation reference](docs/validation/reference/README.md).
+The focused [Human Flow](docs/validation/flows/human/README.md) covers
+authoring, deterministic initialization, inspection, execution,
+interpretation, and narrow revalidation. Stable command and contract details
+live under [the validation reference](docs/validation/reference/README.md).
 
-Exit codes are stable CLI behavior:
+Exit codes are stable validation-CLI behavior:
 
 | Code | Meaning |
 | ---: | --- |
@@ -249,149 +196,94 @@ Exit codes are stable CLI behavior:
 | `4` | An internal execution, provisioning, or reporting operation failed |
 | `130` | An interrupt was observed during validation, regardless of the report aggregate |
 
-The [exit-status reference](docs/validation/reference/exit-status.md) defines
-these process-composition outcomes precisely.
-
 ## Human And JSON Output
 
-Human CLI output is plain by default, including short help, long help, parser
-diagnostics, and validation reports. This default follows `NO_COLOR` without
-requiring terminal detection. An explicit global `--color` overrides
-`NO_COLOR` and selects the standard palette; `--color=<palette>` selects
-`high-contrast`, `protanopia`, `deuteranopia`, `tritanopia`, or
-`achromatopsia`. Layout and emphasis are independently selected through
-`--presentation=<mode>`; `low-vision` expands spacing, removes dim styling, and
-may use ANSI typographic emphasis without adding hue. Color never carries the
-only indication of status, node type, hierarchy, or errors.
+Human output is plain by default, including help, parser diagnostics, and
+validation reports. An explicit global `--color` overrides `NO_COLOR` and
+selects the standard palette; `--color=<palette>` also supports
+`high-contrast`, `protanopia`, `deuteranopia`, `tritanopia`, and
+`achromatopsia`. Layout and emphasis are selected independently through
+`--presentation=standard|low-vision`. Color never carries the only indication
+of status, node type, hierarchy, or errors.
 
-With `-h` or `--help`, visual options style the requested help. The root help
-documents these renderer controls in full. Focused `validate` and `check` help
-only indicates that they are available because they also style normal human
-execution. Each focused help documents its own `-h, --help`; the consolidated
-root reference documents that option once instead of repeating it in every
-embedded command section. Other commands accept visual options only when
-rendering help, preventing successful command output from silently ignoring
-them.
+With `-h` or `--help`, visual options style the requested help. During command
+execution they apply only to human `validate` and `check` output. JSON mode
+rejects visual options and emits only the version 4 `ValidationReport`.
 
 ```sh
-liknon --color -h
-liknon --color=high-contrast --help
-liknon config --presentation=low-vision --help
-liknon validate --color=deuteranopia --help
-liknon validate --color=high-contrast
-liknon validate --color=deuteranopia --presentation=low-vision
-liknon validate --presentation=low-vision
+liknon-validate --color=high-contrast --help
+liknon-validate config --presentation=low-vision --help
+liknon-validate validate --color=deuteranopia --presentation=low-vision
+liknon-validate validate --format=json
 ```
 
-`--format=json` emits only the version 4 `ValidationReport`; visual options are
-therefore rejected in JSON mode. Visual options without help are also rejected
-for commands other than `validate` and `check`. Reports keep tools, groups,
-suites, concrete checks, and the optional repository gate structurally
-distinct. Captured output is bounded by `outputLimitBytes` for each stream.
+## Knowledge And AI Material
 
-## Library Usage
+The canonical validation guidance remains under
+[`docs/validation/knowledge`](docs/validation/knowledge/README.md). It is
+authored repository content and is not embedded in `liknon-validate` or exposed
+through a validation command at the A01 boundary.
 
-Loading and planning establish invariants before execution. Their resulting
-types expose read-only inspection rather than public constructors or mutable
-fields.
+The source under [`skills/liknon`](skills/liknon) is preserved only as
+non-active design input for C02. Its explicit handoff is recorded in
+[`docs/validation/authoring/skill-handoff.md`](docs/validation/authoring/skill-handoff.md).
+Do not distribute it as current CLI guidance before that plan reconciles and
+activates it.
 
-```rust,no_run
-use std::{
-    path::Path,
-    sync::{atomic::AtomicBool, Arc},
-};
-use liknon::{config, execution, planning, reporting};
+Repository maintainers validate the knowledge contracts, references, recipes,
+generated source index, and deterministic tree digest with:
 
-# fn main() -> Result<(), Box<dyn std::error::Error>> {
-let current = std::env::current_dir()?;
-let validated = config::load(Some(Path::new(".validation/config.json")), &current)?;
-let plan = planning::target(&validated, None)?;
-let outcome = execution::run(&validated, &plan, Arc::new(AtomicBool::new(false)));
-let json = reporting::result::json::render(&outcome.report)?;
-println!("{json}");
-# Ok(())
-# }
+```sh
+cargo run -p liknon-knowledge-maintenance --locked -- --check
 ```
 
-`execution::run_with_progress` accepts an implementation of
-`execution::progress::ProgressReporter` for typed lifecycle events. The
-checked-in [`examples/inspect.rs`](examples/inspect.rs) demonstrates
-non-destructive configuration and plan inspection. Human renderers consume
-`theme::Theme`; palette and presentation profiles remain composable and usable
-independently from the CLI.
+Use `--write` only after changing `sources.json` when `SOURCES.md` must be
+regenerated. Editorial quality remains a human review responsibility.
 
-The Rust API, CLI commands and exit codes, schema shapes, JSON report, execution
-semantics, palette names, and presentation names are observable contracts.
-While the crate is `0.x`, incompatible public API changes raise the minor
-version and compatible fixes raise the patch version. Cargo versions and JSON
-schema versions evolve independently.
+## Security And Trust
 
-## Security And Trust Model
+`.liknon/validation/config.json` is trusted executable input. It selects
+programs and arguments that run with the caller's operating-system
+permissions. Execution without an implicit shell prevents accidental shell
+interpretation; it does not make an untrusted configuration safe.
 
-Configuration is trusted executable input. It selects programs and arguments
-that run with the permissions of the process invoking `liknon`.
-Execution without an implicit shell prevents accidental shell interpretation;
-it does not make an untrusted configuration safe.
-
-Review `.validation/config.json` before validating a third-party repository.
 The validator does not install dependencies, modify source intentionally, or
 apply fixes. Optional Git-integrity detection reports Git-visible mutations,
 but it is not an operating-system sandbox and cannot observe every external
-side effect.
+side effect. Review third-party configuration before execution.
 
 Private vulnerability reports follow [`SECURITY.md`](SECURITY.md).
 
-## Compatibility And Platforms
+## Compatibility And Schemas
 
-The supported platforms are Linux, macOS, and Windows. Functional behavior
-includes executable resolution, suite working directories, bounded stream
-capture, exit codes, timeout, cancellation, descendant-process termination,
-human reports, JSON reports, and Git repository integrity.
+The supported platforms are Linux, macOS, and Windows. The minimum supported
+Rust version is 1.87. Configuration schema version 6 and report schema version
+4 are exact contracts; unsupported versions are rejected rather than inferred
+or converted.
 
-The minimum supported Rust version is 1.87. Configuration schema version 6 and
-report schema version 4 are exact contracts; unsupported schema versions are
-rejected rather than inferred or converted.
+The validation-owned schemas live with their owner at
+[`crates/liknon-validation/schemas`](crates/liknon-validation/schemas). Inspect
+the contract generated by the running executable with:
 
-## Schemas, Design, And License
+```sh
+liknon-validate schema config
+liknon-validate schema report
+```
 
-Published package contents include:
-
-- the canonical project logo under
-  [`assets/branding`](assets/branding/liknon.svg);
-- the configuration, report, and knowledge contracts under the
-  [`schemas` directory](schemas/);
-- the human flow, stable reference, embedded knowledge source, and maintainer
-  guidance under [`docs/validation`](docs/validation/README.md);
-- the agent-neutral workflow bundle under
-  [`skills/liknon`](skills/liknon/SKILL.md);
-- [`CONFIG_DESIGN.md`](CONFIG_DESIGN.md);
-- [`CHANGELOG.md`](CHANGELOG.md);
-- [`SECURITY.md`](SECURITY.md);
-- [`LICENSE`](LICENSE).
-
-The crate is distributed under the MIT License.
+Knowledge authoring schemas live under
+[`docs/validation/authoring/schemas`](docs/validation/authoring/schemas), while
+evaluation-only schemas live under [`evals/schemas`](evals/schemas).
 
 ## Repository Development
 
-From the source repository, replace the installed binary in examples with:
+Run the validation CLI directly from the workspace with:
 
 ```sh
-cargo run --locked -- <command>
+cargo run -p liknon-validate --bin liknon-validate --locked -- <command>
 ```
 
-CI treats the committed `Cargo.lock` as the reproducible dependency graph for
-the CLI. `cargo audit` rejects known RustSec advisories, while `cargo deny`
-applies the license, source, and duplicate-dependency policy in
-[`deny.toml`](deny.toml). The package job verifies the isolated crate archive
-and smoke-tests the packaged binary. The CI workflow never publishes a package.
+The committed root `Cargo.lock` is the reproducible dependency graph. The root
+workspace owns formatting, lint, tests, doctests, and package-boundary checks;
+nested fixtures remain excluded workspace inputs.
 
-Knowledge maintainers verify the machine-readable contracts, declared assets,
-references, recipe configurations, generated source index, and deterministic
-tree digest with:
-
-```sh
-cargo run --locked --example knowledge_release -- --check
-```
-
-Use `--write` only when `sources.json` changed and `SOURCES.md` must be
-regenerated. Editorial quality remains a human review responsibility.
+Liknon is licensed under the [MIT License](LICENSE).

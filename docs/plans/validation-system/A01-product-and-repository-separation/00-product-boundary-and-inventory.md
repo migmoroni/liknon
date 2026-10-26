@@ -2,8 +2,9 @@
 
 ## Status
 
-`Decision gate`. This phase changes no product code or runtime path. Its only
-exit artifact is a reviewed current-to-target ledger.
+`Complete`. The user approved the
+[current-to-target ledger](current-to-target-ledger.md) on 2026-10-26. A01.1
+through A01.4 consumed its exact decisions.
 
 [Back to Plan A01](README.md)
 

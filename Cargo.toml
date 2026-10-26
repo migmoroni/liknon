@@ -1,48 +1,37 @@
-[package]
-name = "liknon"
+[workspace]
+resolver = "2"
+members = [
+  "apps/liknon-cli",
+  "apps/liknon-manager",
+  "apps/liknon-tool",
+  "apps/liknon-validate",
+  "crates/liknon-validation",
+  "tools/knowledge",
+]
+exclude = ["fixtures/outcomes", "fixtures/process-tool"]
+
+[workspace.package]
 version = "0.5.0"
 edition = "2021"
 rust-version = "1.87"
 authors = ["Miguel Eduardo Senna Moroni"]
 license = "MIT"
-description = "Declarative, shell-free validation graphs for heterogeneous workspaces"
-documentation = "https://docs.rs/liknon"
-readme = "README.md"
 repository = "https://github.com/migmoroni/liknon"
-keywords = ["validation", "workspace", "monorepo", "cli", "automation"]
-categories = ["command-line-utilities", "development-tools", "development-tools::testing"]
-include = [
-  "/build.rs",
-  "/src/**",
-  "/examples/**",
-  "/schemas/**",
-  "/skills/**",
-  "/assets/branding/liknon.svg",
-  "/assets/branding/liknon-ascii.txt",
-  "/docs/validation/**",
-  "/evals/**",
-  "/fixtures/knowledge/**",
-  "/tools/knowledge/**",
-  "/README.md",
-  "/CONFIG_DESIGN.md",
-  "/CHANGELOG.md",
-  "/SECURITY.md",
-  "/LICENSE",
-]
 
-[dependencies]
+[workspace.dependencies]
 clap = { version = "4.5", features = ["derive"] }
 console = "0.16"
 ctrlc = "3.5"
 indicatif = "0.18"
+jsonschema = { version = "0.26.2", default-features = false }
+pulldown-cmark = { version = "0.13.4", default-features = false }
 schemars = { version = "1.2", features = ["derive"] }
 semver = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10.9"
+tempfile = "3.27"
 thiserror = "2.0"
-
-[target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61.2", features = [
   "Win32_Foundation",
   "Win32_Security",
@@ -50,11 +39,7 @@ windows-sys = { version = "0.61.2", features = [
   "Win32_System_Threading",
 ] }
 
-[dev-dependencies]
-jsonschema = { version = "0.26.2", default-features = false }
-pulldown-cmark = { version = "0.13.4", default-features = false }
-tempfile = "3.27"
-
-[[example]]
-name = "knowledge_release"
-path = "tools/knowledge/main.rs"
+liknon-manager = { version = "=0.5.0", path = "apps/liknon-manager" }
+liknon-tool = { version = "=0.5.0", path = "apps/liknon-tool" }
+liknon-validate = { version = "=0.5.0", path = "apps/liknon-validate" }
+liknon-validation = { version = "=0.5.0", path = "crates/liknon-validation" }

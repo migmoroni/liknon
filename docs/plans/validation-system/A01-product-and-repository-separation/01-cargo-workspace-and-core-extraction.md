@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Blocked until A01.0 approves the inventory, package names,
-dependency graph, and move ledger.
+`Complete`. The virtual Cargo workspace, `liknon-validation` engine, Validation
+CLI package, owner-local tests, dependency graph, and root lockfile implement
+the approved A01.0 ledger.
 
 [Back to Plan A01](README.md)
 

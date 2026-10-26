@@ -27,16 +27,9 @@ A `reviewed` entry contains every catalog metadata field. Neither status
 replaces contextual judgment about whether a document applies to a workspace.
 
 `sources.json` is the canonical source register; `SOURCES.md` is generated.
-In a source checkout, read this tree directly. Installed binaries embed the
-same versioned assets and expose them without a repository checkout:
+At the A01 boundary this repository tree is the only active knowledge surface;
+the Validation CLI neither embeds it nor provides knowledge commands. Future
+resource acquisition and offline retrieval contracts belong to B02 and B03.
 
-```sh
-liknon knowledge catalog --format=json
-liknon knowledge show <document-id>
-```
-
-The distributed operational skill uses these commands and contains no copied
-knowledge tree.
-
-Maintainer contracts live outside this embedded tree in
+Maintainer contracts live outside this canonical tree in
 `docs/validation/authoring/`; ordinary knowledge consumers do not need them.

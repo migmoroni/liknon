@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schemas/knowledge-catalog.schema.json",
+  "$schema": "../authoring/schemas/knowledge-catalog.schema.json",
   "schemaVersion": 2,
   "vocabularies": {
     "applicabilityTags": [

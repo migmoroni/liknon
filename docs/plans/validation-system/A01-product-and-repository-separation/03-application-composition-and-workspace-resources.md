@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Blocked by the approved A01.0 ledger and completed A01.1-A01.2
-handoffs.
+`Complete`. The approved application packages and targets exist, structural
+shells expose no future grammar, and validation uses only
+`.liknon/validation/config.json`.
 
 [Back to Plan A01](README.md)
 

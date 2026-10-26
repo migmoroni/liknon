@@ -1,0 +1,32 @@
+[package]
+name = "liknon-validate"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Declarative, shell-free validation CLI for heterogeneous workspaces"
+
+[dependencies]
+clap.workspace = true
+console.workspace = true
+ctrlc.workspace = true
+indicatif.workspace = true
+liknon-validation.workspace = true
+schemars.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[[bin]]
+name = "liknon-validate"
+path = "src/bin/liknon-validate.rs"
+doc = false
+
+[[bin]]
+name = "likv"
+path = "src/bin/likv.rs"
+doc = false

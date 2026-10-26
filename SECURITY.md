@@ -25,7 +25,7 @@ agreed mitigation is available.
 
 ## Trust Boundary
 
-`.validation/config.json` is trusted executable input. It chooses programs and
+`.liknon/validation/config.json` is trusted executable input. It chooses programs and
 arguments that run with the caller's operating-system permissions. The absence
 of an implicit shell reduces command-interpretation risk but does not make an
 untrusted configuration safe.

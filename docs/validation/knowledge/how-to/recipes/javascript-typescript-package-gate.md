@@ -42,8 +42,9 @@ build script produces the deliverable. `pnpm run` executes repository-owned
 script content, so inspect that content before authorizing the gate.
 [Source: pnpm.cli-11#run-scripts](https://pnpm.io/11.x/cli/run)
 
-The example assumes the configuration file lives in `.validation/config.json`,
-so `workspaceRoot: ".."` resolves to the package root. Replace the declared
+The example assumes the configuration file lives in
+`.liknon/validation/config.json`, so `workspaceRoot: "../.."` resolves to the
+package root. Replace the declared
 major ranges, config path, script name, timeouts, and working directory when the
 consumer's maintained workspace differs.
 
@@ -53,9 +54,9 @@ consumer's maintained workspace differs.
    Vitest configuration, and the build output contract.
 2. Confirm the active Node.js and pnpm major lines and authorize dependency and
    lifecycle mutations.
-3. Save the adapted configuration below and run `liknon config
+3. Save the adapted configuration below and run `liknon-validate config
    validate`.
-4. Inspect the resolved suite, then run `liknon validate
+4. Inspect the resolved suite, then run `liknon-validate validate
    package-gate --format=json`.
 5. Interpret each failed dependency, type, test, build, or repository result
    separately; do not retry toward a pass.
@@ -65,7 +66,7 @@ consumer's maintained workspace differs.
 ```json
 {
   "schemaVersion": 6,
-  "workspaceRoot": "..",
+  "workspaceRoot": "../..",
   "defaultGroup": "package-gate",
   "outputLimitBytes": 1048576,
   "repository": {

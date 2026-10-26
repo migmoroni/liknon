@@ -4,8 +4,8 @@ Configuration and report schemas are owned and distributed by the tool. Inspect
 the schema that matches the running binary without keeping copied files:
 
 ```sh
-liknon schema config
-liknon schema report
+liknon-validate schema config
+liknon-validate schema report
 ```
 
 Redirect these commands only when an editor or repository explicitly needs a
@@ -13,19 +13,22 @@ checked-in copy. Configuration schema version 6 and report schema version 4 are
 independent of the crate version. Unsupported versions are rejected; the tool
 does not infer, convert, or maintain compatibility with replaced contracts.
 
-The source package also contains canonical copies at `schemas/config.schema.json`
-and `schemas/report.schema.json`, verified against the Rust contract types.
+The validation core contains canonical copies at
+`crates/liknon-validation/schemas/config.schema.json` and
+`crates/liknon-validation/schemas/report.schema.json`, verified against the
+Rust contract types.
 
 The repository additionally owns Draft 2020-12 schemas for the shared
 validation-knowledge catalog, source register, and maintainer-only editorial
 profile registry at
-`schemas/knowledge-catalog.schema.json` and
-`schemas/knowledge-sources.schema.json`, and
-`schemas/knowledge-editorial-profiles.schema.json`. The routing fixture,
+`docs/validation/authoring/schemas/knowledge-catalog.schema.json`,
+`docs/validation/authoring/schemas/knowledge-sources.schema.json`, and
+`docs/validation/authoring/schemas/knowledge-editorial-profiles.schema.json`.
+The routing fixture,
 forward-trial registry, and evaluation rubric are separately described by
-`schemas/knowledge-routing.schema.json`,
-`schemas/knowledge-forward-trials.schema.json`, and
-`schemas/knowledge-rubric.schema.json`.
+`evals/schemas/knowledge-routing.schema.json`,
+`evals/schemas/knowledge-forward-trials.schema.json`, and
+`evals/schemas/knowledge-rubric.schema.json`.
 
 The knowledge release task compiles the catalog and source-register schemas
 with format assertions, then validates recipe examples through the ordinary

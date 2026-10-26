@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schemas/knowledge-editorial-profiles.schema.json",
+  "$schema": "schemas/knowledge-editorial-profiles.schema.json",
   "schemaVersion": 1,
   "families": [
     { "id": "explanation", "readerIntent": "Understand a concept, risk, pattern, or validation context." },

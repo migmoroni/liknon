@@ -13,8 +13,8 @@ checks, suites, or groups. Representative candidates are available for a
 [shared suites](../../examples/shared-suites.json).
 
 ```sh
-liknon init --config validation.config.json
-liknon config validate
+liknon-validate init --config validation.config.json
+liknon-validate config validate
 ```
 
 `init` only installs validated bytes. For an existing canonical configuration,
@@ -23,10 +23,10 @@ start at `config validate`; `init` is not an edit or replacement command.
 ## Inspect Before Running
 
 ```sh
-liknon list --tree
-liknon explain group <group-id>
-liknon explain suite <suite-id>
-liknon explain check <check-id>
+liknon-validate list --tree
+liknon-validate explain group <group-id>
+liknon-validate explain suite <suite-id>
+liknon-validate explain check <check-id>
 ```
 
 These commands start no configured process. Confirm ownership, reuse,
@@ -35,9 +35,9 @@ directories, parameters, dependencies, program names, and argument vectors.
 ## Execute And Interpret
 
 ```sh
-liknon validate <group-or-suite>
-liknon check <check-id>
-liknon validate <group-or-suite> --format=json
+liknon-validate validate <group-or-suite>
+liknon-validate check <check-id>
+liknon-validate validate <group-or-suite> --format=json
 ```
 
 Use the smallest intended selection. Read failed results first, then blocked,

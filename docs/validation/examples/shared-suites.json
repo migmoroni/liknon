@@ -1,6 +1,6 @@
 {
   "schemaVersion": 6,
-  "workspaceRoot": "..",
+  "workspaceRoot": "../..",
   "defaultGroup": "release",
   "outputLimitBytes": 1048576,
   "tools": [

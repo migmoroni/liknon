@@ -1,8 +1,7 @@
 # Validation Knowledge Authoring
 
-This directory contains maintainer contracts. It is packaged for contributors
-but is not embedded as shared validation knowledge and cannot be selected with
-`liknon knowledge show`.
+This directory contains maintainer contracts. It is not embedded in the
+Validation CLI or part of its runtime package.
 
 ## Authoring Workflow
 
@@ -16,10 +15,10 @@ but is not embedded as shared validation knowledge and cannot be selected with
    version scope, and authoritative sources as they become established.
 4. Update `knowledge/sources.json` and navigation indexes when the document
    requires them.
-5. Run `cargo run --locked --example knowledge_release -- --write` when the
+5. Run `cargo run -p liknon-knowledge-maintenance --locked -- --write` when the
    generated source index needs regeneration, then run it with `--check` to
-   verify contracts, references, declared files, recipes, embedded assets, and
-   the deterministic tree digest.
+   verify contracts, references, declared files, recipes, source inventory,
+   and the deterministic tree digest.
 6. Review the rendered guide, stable-ID routing, operational effects, source
    support, and duplication with the [review rubric](review-rubric.md). Complete
    every catalog metadata field before changing its status to `reviewed`.
@@ -41,6 +40,9 @@ The [corpus refoundation review](corpus-review.md) records the completed
 classification and substantive review. Future changes use the same
 [review rubric](review-rubric.md) without treating that artifact as a runtime
 catalog.
+
+The preserved skill's non-active C02 boundary is recorded in the
+[skill handoff](skill-handoff.md).
 
 Do not create a new family or profile just to classify a subject. Languages,
 tools, frameworks, technologies, evidence dimensions, and workspace facts are

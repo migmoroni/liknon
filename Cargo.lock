@@ -645,15 +645,62 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
-name = "liknon"
+name = "liknon-cli"
+version = "0.5.0"
+dependencies = [
+ "clap",
+ "liknon-manager",
+ "liknon-tool",
+ "liknon-validate",
+]
+
+[[package]]
+name = "liknon-knowledge-maintenance"
+version = "0.5.0"
+dependencies = [
+ "jsonschema",
+ "liknon-validation",
+ "pulldown-cmark",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
+name = "liknon-manager"
+version = "0.5.0"
+dependencies = [
+ "clap",
+]
+
+[[package]]
+name = "liknon-tool"
+version = "0.5.0"
+dependencies = [
+ "clap",
+]
+
+[[package]]
+name = "liknon-validate"
 version = "0.5.0"
 dependencies = [
  "clap",
  "console",
  "ctrlc",
  "indicatif",
+ "liknon-validation",
+ "schemars",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "liknon-validation"
+version = "0.5.0"
+dependencies = [
  "jsonschema",
- "pulldown-cmark",
  "schemars",
  "semver",
  "serde",

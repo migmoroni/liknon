@@ -2,9 +2,9 @@
 
 ## Status
 
-`Decision gate` until A01.0 produces and the user approves the complete
-current-to-target inventory. A01.1 through A01.4 are `Provisional` and must not
-be implemented from candidate destinations that the ledger has not accepted.
+`Complete`. The approved
+[current-to-target ledger](current-to-target-ledger.md) was implemented and
+verified on 2026-10-26.
 
 The [validation-system roadmap](../README.md) owns cross-track order. This plan
 owns only product boundaries, repository structure, source ownership, and the
@@ -117,11 +117,11 @@ advance.
 
 | Unit | Document | Status | Primary result |
 | --- | --- | --- | --- |
-| A01.0 | [Product Boundary And Inventory](00-product-boundary-and-inventory.md) | `Decision gate` | Reviewed evidence-based ledger |
-| A01.1 | [Cargo Workspace And Core Extraction](01-cargo-workspace-and-core-extraction.md) | `Provisional` | Buildable workspace and approved shared boundaries |
-| A01.2 | [Knowledge And AI Resource Separation](02-knowledge-and-ai-resource-separation.md) | `Provisional` | Authored content separated from application runtime ownership |
-| A01.3 | [Application Composition And Workspace Boundary](03-application-composition-and-workspace-resources.md) | `Provisional` | Three capability packages, one launcher/aggregate package, and current workspace-path cutover |
-| A01.4 | [Conformance And Documentation](04-conformance-and-documentation.md) | `Provisional` | Proven boundaries and reconciled documentation |
+| A01.0 | [Product Boundary And Inventory](00-product-boundary-and-inventory.md) and [approved ledger](current-to-target-ledger.md) | `Complete` | Reviewed evidence-based ledger |
+| A01.1 | [Cargo Workspace And Core Extraction](01-cargo-workspace-and-core-extraction.md) | `Complete` | Buildable workspace and approved shared boundaries |
+| A01.2 | [Knowledge And AI Resource Separation](02-knowledge-and-ai-resource-separation.md) | `Complete` | Authored content separated from application runtime ownership |
+| A01.3 | [Application Composition And Workspace Boundary](03-application-composition-and-workspace-resources.md) | `Complete` | Three capability packages, one launcher/aggregate package, and current workspace-path cutover |
+| A01.4 | [Conformance And Documentation](04-conformance-and-documentation.md) | `Complete` | Proven boundaries and reconciled documentation |
 
 ## Cross-Track Handoff
 
@@ -137,35 +137,38 @@ advance.
 
 ## Global Acceptance Criteria
 
-- [ ] A01.0 accounts for every current package input, module, export, command,
+- [x] A01.0 accounts for every current package input, module, export, command,
       schema, test, fixture, asset, tool, build input, and maintained document.
-- [ ] Every ledger action is supported by current evidence and approved target
+- [x] Every ledger action is supported by current evidence and approved target
       direction.
-- [ ] No task removes a product, alias, route, directory, or distribution model
+- [x] No task removes a product, alias, route, directory, or distribution model
       that never existed.
-- [ ] The final Cargo graph has no circular application dependency.
-- [ ] Validation retains one semantic implementation and its current behavior.
-- [ ] `liknon-validate` and `likv` expose that validation implementation
+- [x] The final Cargo graph has no circular application dependency.
+- [x] Validation retains one semantic implementation and its current behavior.
+- [x] `liknon-validate` and `likv` expose that validation implementation
       directly, while `liknon` and `likx` are launcher-only entry points.
-- [ ] Package `liknon-cli` owns the approved aggregate targets without relying
+- [x] Package `liknon-cli` owns the approved aggregate targets without relying
       on dependency-owned executables.
-- [ ] Validation packaging contains no authored resource corpus unless a later
+- [x] Validation packaging contains no authored resource corpus unless a later
       approved contract explicitly requires one.
-- [ ] Manager and Tool packages make no feature claim before B02/B03.
-- [ ] `.liknon/validation/config.json` is the sole target validation path after
+- [x] Manager and Tool packages make no feature claim before B02/B03.
+- [x] `.liknon/validation/config.json` is the sole target validation path after
       cutover, with no compatibility reader for `.validation/`.
-- [ ] Policy and persistence ownership is not assigned by A01.
-- [ ] Official workflow identities and process numbers do not appear in
+- [x] Policy and persistence ownership is not assigned by A01.
+- [x] Official workflow identities and process numbers do not appear in
       application control flow.
-- [ ] Package identity `liknon` remains reserved for B05 and owns no CLI target.
-- [ ] Maintained documentation describes only behavior available at the A01
+- [x] Package identity `liknon` remains reserved for B05 and owns no CLI target.
+- [x] Maintained documentation describes only behavior available at the A01
       exit and labels later behavior as planned.
-- [ ] Full repository formatting, lint, tests, doctests, MSRV, package-boundary,
+- [x] Full repository formatting, lint, tests, doctests, MSRV, package-boundary,
       and relevant fixture gates pass after every implementation unit.
 
 ## Result
 
 A01 exits with validated current behavior behind explicit product and source
-boundaries. Later plans can define Manager, Tool, AI governance, official
-workflows, distribution, and APIs without moving ownership again or treating a
-proposal as historical implementation.
+boundaries. The virtual workspace, application shells, validation engine,
+private knowledge maintenance, canonical workspace path, schemas, tests, and
+documentation now have the owners approved by the ledger. Later plans can
+define Manager, Tool, AI governance, official workflows, distribution, and
+APIs without moving ownership again or treating a proposal as historical
+implementation.

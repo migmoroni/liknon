@@ -1,4 +1,3 @@
 A Cargo workspace wants a CI formatting check that cannot rewrite source. Use
-`liknon knowledge catalog --format=json`, then retrieve only the
-smallest relevant document set with `liknon knowledge show
-<document-id>`. Give the bounded recommendation.
+`docs/validation/knowledge/catalog.json`, then read only the smallest relevant
+document set from its registered paths. Give the bounded recommendation.

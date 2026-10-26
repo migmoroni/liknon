@@ -1,0 +1,56 @@
+[package]
+name = "liknon-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Aggregate package and unified launcher shell for the Liknon CLI suite"
+
+[dependencies]
+clap.workspace = true
+liknon-manager.workspace = true
+liknon-tool.workspace = true
+liknon-validate.workspace = true
+
+[[bin]]
+name = "liknon"
+path = "src/bin/liknon.rs"
+doc = false
+
+[[bin]]
+name = "likx"
+path = "src/bin/likx.rs"
+doc = false
+
+[[bin]]
+name = "liknon-validate"
+path = "src/bin/liknon-validate.rs"
+doc = false
+
+[[bin]]
+name = "likv"
+path = "src/bin/likv.rs"
+doc = false
+
+[[bin]]
+name = "liknon-manager"
+path = "src/bin/liknon-manager.rs"
+doc = false
+
+[[bin]]
+name = "likm"
+path = "src/bin/likm.rs"
+doc = false
+
+[[bin]]
+name = "liknon-tool"
+path = "src/bin/liknon-tool.rs"
+doc = false
+
+[[bin]]
+name = "likt"
+path = "src/bin/likt.rs"
+doc = false

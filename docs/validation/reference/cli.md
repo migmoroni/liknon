@@ -4,45 +4,26 @@ Inspection commands parse and semantically validate the complete configuration
 but do not start configured programs:
 
 ```text
-liknon config validate [--config <path>]
-liknon list [--tree] [--config <path>]
-liknon explain group <group-id> [--config <path>]
-liknon explain suite <suite-id> [--config <path>]
-liknon explain check <check-id> [--config <path>]
-liknon schema config
-liknon schema report
-```
-
-Embedded knowledge commands are read-only and operate before configuration
-discovery. They work outside an initialized workspace, do not inspect or create
-`.validation/`, and do not execute configured programs:
-
-```text
-liknon knowledge catalog [--format=human|json]
-liknon knowledge show <document-id>
-```
-
-The JSON catalog is the complete embedded canonical `catalog.json`.
-`knowledge show` accepts only a stable catalog document ID and writes the exact
-canonical Markdown bytes. Malformed or unknown selectors return exit code `3`;
-embedded-asset or output failures return exit code `4`.
-
-JSON consumers must inspect each entry's `status`. Draft entries guarantee
-`id`, `kind`, `path`, and `status` and may omit the remaining routing metadata;
-reviewed entries provide every metadata field required by the catalog schema.
+liknon-validate config validate [--config <path>]
+liknon-validate list [--tree] [--config <path>]
+liknon-validate explain group <group-id> [--config <path>]
+liknon-validate explain suite <suite-id> [--config <path>]
+liknon-validate explain check <check-id> [--config <path>]
+liknon-validate schema config
+liknon-validate schema report
 
 Execution commands run configured programs after full validation and tool
 preflight:
 
 ```text
-liknon validate [group-or-suite] [--config <path>] [--format=human|json]
-liknon check <check-id> [--config <path>] [--format=human|json]
+liknon-validate validate [group-or-suite] [--config <path>] [--format=human|json]
+liknon-validate check <check-id> [--config <path>] [--format=human|json]
 ```
 
 Provisioning is separate from both categories:
 
 ```text
-liknon init --config <candidate-path> [--workspace <path>] [--format=human|json]
+liknon-validate init --config <candidate-path> [--workspace <path>] [--format=human|json]
 ```
 
 Human CLI output is plain by default. The global `--color[=<palette>]` and

@@ -34,9 +34,9 @@ jobs:
       - name: Select stable Rust
         run: rustup default stable
       - name: Test all targets
-        run: cargo test --all-targets --locked
+        run: cargo test --workspace --all-targets --locked
       - name: Test Rustdoc examples
-        run: cargo test --doc --locked
+        run: cargo test --workspace --doc --locked
 
   quality:
     name: Formatting, Clippy, and Rustdoc
@@ -53,11 +53,15 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
       - name: Run Clippy
-        run: cargo clippy --all-targets --locked -- -D warnings
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Build warning-free Rustdoc
         env:
           RUSTDOCFLAGS: -D warnings -D missing-docs
-        run: cargo doc --no-deps --locked
+        run: cargo doc --workspace --no-deps --locked
+      - name: Check authored knowledge
+        run: cargo run -p liknon-knowledge-maintenance --locked -- --check
+      - name: Test intentional outcome fixtures
+        run: cargo test -p liknon-validate --test outcome_fixtures --locked -- --ignored
 
   msrv:
     name: Rust 1.87
@@ -72,13 +76,13 @@ jobs:
       - name: Install Windows target for Rust 1.87
         run: rustup target add --toolchain 1.87.0 x86_64-pc-windows-gnu
       - name: Check all targets
-        run: cargo +1.87.0 check --all-targets --locked
+        run: cargo +1.87.0 check --workspace --all-targets --locked
       - name: Check Windows target with Rust 1.87
-        run: cargo +1.87.0 check --all-targets --locked --target x86_64-pc-windows-gnu
+        run: cargo +1.87.0 check --workspace --all-targets --locked --target x86_64-pc-windows-gnu
       - name: Test all targets
-        run: cargo +1.87.0 test --all-targets --locked
+        run: cargo +1.87.0 test --workspace --all-targets --locked
       - name: Test Rustdoc examples
-        run: cargo +1.87.0 test --doc --locked
+        run: cargo +1.87.0 test --workspace --doc --locked
 
   security:
     name: Dependencies
@@ -102,7 +106,7 @@ jobs:
         run: cargo deny --config deny.toml check bans licenses sources
 
   package:
-    name: Package
+    name: Package boundaries and local installs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -113,22 +117,42 @@ jobs:
         run: rustup toolchain install stable --profile minimal --no-self-update
       - name: Select stable Rust
         run: rustup default stable
-      - name: List package contents
-        run: cargo package --list --locked
-      - name: Build isolated package
-        run: cargo package --locked
-      - name: Install and smoke-test packaged CLI
+      - name: List application and core package contents
+        run: |
+          cargo package --list --locked -p liknon-validation
+          cargo package --list --locked -p liknon-validate
+          cargo package --list --locked -p liknon-manager
+          cargo package --list --locked -p liknon-tool
+          cargo package --list --locked -p liknon-cli
+      - name: Install and smoke-test local applications
         shell: bash
         run: |
-          package_dir="$GITHUB_WORKSPACE/target/package/liknon-0.5.0"
-          install_root="$RUNNER_TEMP/liknon-install"
+          validate_root="$RUNNER_TEMP/liknon-validate-install"
+          manager_root="$RUNNER_TEMP/liknon-manager-install"
+          tool_root="$RUNNER_TEMP/liknon-tool-install"
+          aggregate_root="$RUNNER_TEMP/liknon-cli-install"
           smoke_dir="$RUNNER_TEMP/liknon-smoke"
-          knowledge_dir="$(mktemp -d "$RUNNER_TEMP/liknon-knowledge.XXXXXX")"
-          catalog_output="$RUNNER_TEMP/liknon-catalog.json"
-          document_output="$RUNNER_TEMP/liknon-foundation.md"
-          binary="$install_root/bin/liknon"
 
-          cargo install --path "$package_dir" --root "$install_root" --locked
+          cargo install --path apps/liknon-validate --root "$validate_root" --locked
+          cargo install --path apps/liknon-manager --root "$manager_root" --locked
+          cargo install --path apps/liknon-tool --root "$tool_root" --locked
+          cargo install --path apps/liknon-cli --root "$aggregate_root" --locked
+
+          "$validate_root/bin/liknon-validate" --version
+          "$validate_root/bin/likv" --help > /dev/null
+          "$manager_root/bin/liknon-manager" --version
+          "$manager_root/bin/likm" --help > /dev/null
+          "$tool_root/bin/liknon-tool" --version
+          "$tool_root/bin/likt" --help > /dev/null
+          "$aggregate_root/bin/liknon" --version
+          "$aggregate_root/bin/likx" --help > /dev/null
+          "$aggregate_root/bin/liknon-validate" --version
+          "$aggregate_root/bin/likv" --version
+          "$aggregate_root/bin/liknon-manager" --version
+          "$aggregate_root/bin/likm" --version
+          "$aggregate_root/bin/liknon-tool" --version
+          "$aggregate_root/bin/likt" --version
+
           mkdir -p "$smoke_dir"
           cat > "$smoke_dir/config.json" <<'JSON'
           {
@@ -183,38 +207,7 @@ jobs:
           }
           JSON
 
-          "$binary" --version
-          "$binary" --help > /dev/null
-          "$binary" schema config > /dev/null
-          "$binary" schema report > /dev/null
-          "$binary" config validate --config "$smoke_dir/config.json"
-
-          ancestor="$knowledge_dir"
-          while true; do
-            test ! -e "$ancestor/.validation"
-            test "$ancestor" = "/" && break
-            ancestor="$(dirname "$ancestor")"
-          done
-          test -z "$(find "$knowledge_dir" -mindepth 1 -print -quit)"
-
-          (
-            cd "$knowledge_dir"
-            "$binary" knowledge catalog --format=json
-          ) > "$catalog_output"
-          cmp "$package_dir/docs/validation/knowledge/catalog.json" "$catalog_output"
-
-          (
-            cd "$knowledge_dir"
-            "$binary" knowledge show foundation.validation-model
-          ) > "$document_output"
-          cmp \
-            "$package_dir/docs/validation/knowledge/explanations/foundations/validation-model.md" \
-            "$document_output"
-
-          test -z "$(find "$knowledge_dir" -mindepth 1 -print -quit)"
-      - name: Record package size
-        shell: bash
-        run: |
-          archive="target/package/liknon-0.5.0.crate"
-          test -f "$archive"
-          du -h "$archive"
+          "$validate_root/bin/liknon-validate" schema config > /dev/null
+          "$validate_root/bin/liknon-validate" schema report > /dev/null
+          "$validate_root/bin/liknon-validate" config validate \
+            --config "$smoke_dir/config.json"

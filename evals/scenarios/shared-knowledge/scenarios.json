@@ -1,12 +1,12 @@
 {
-  "$schema": "../../../schemas/knowledge-forward-trials.schema.json",
+  "$schema": "../../schemas/knowledge-forward-trials.schema.json",
   "schemaVersion": 1,
   "suiteId": "shared-knowledge-forward-trials",
   "suiteVersion": 1,
   "rubric": "rubrics/shared-knowledge.json",
   "requiredBehaviors": ["minimal-selection", "synthesis-boundary", "evidence-before-tool", "bounded-proof", "precise-source-location", "offline-depth", "missing-topic"],
   "context": {
-    "allowed": ["liknon knowledge catalog --format=json", "liknon knowledge show <document-id>", "canonical docs/validation/knowledge files only for source-repository scenarios"],
+    "allowed": ["docs/validation/knowledge/catalog.json", "documents selected only through catalog-registered paths"],
     "network": "scenario-defined",
     "forbidden": ["implementation plans", "expected prose answers", "other scenario traces"]
   },

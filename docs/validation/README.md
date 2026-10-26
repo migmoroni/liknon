@@ -5,10 +5,9 @@ Use the [Human Flow](flows/human/README.md) to operate the validator, the
 [shared knowledge](knowledge/README.md) to reason about risks, evidence, and
 validation choices.
 
-In this source repository, people and agents may read the canonical knowledge
-tree directly. An installed CLI exposes the same versioned content through
-`liknon knowledge catalog` and `liknon knowledge
-show <document-id>` without requiring workspace initialization.
+In this source repository, people and agents read the canonical knowledge tree
+directly. The Validation CLI does not embed or expose the corpus at the A01
+boundary.
 
 Catalog status is part of the consumption contract. A `draft` identifies
 work in progress and may omit routing metadata; consumers must not invent the
@@ -21,6 +20,5 @@ people and agents decide what evidence is relevant; it does not activate a flow,
 grant authority, or define workspace policy.
 
 Contributors who maintain the shared corpus use the separate
-[authoring contracts](authoring/README.md). Those contracts are packaged for
-maintainers but are not embedded knowledge and are never returned by
-`knowledge show`.
+[authoring contracts](authoring/README.md). Those contracts are
+repository-maintenance inputs rather than Validation CLI runtime assets.

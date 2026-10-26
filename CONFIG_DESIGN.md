@@ -1,9 +1,9 @@
 # Configuration Design
 
 This document defines the design contract for
-`.validation/config.json`. It complements the usage-oriented
+`.liknon/validation/config.json`. It complements the usage-oriented
 [`README.md`](README.md) and the machine-readable
-[`config.schema.json`](schemas/config.schema.json).
+[`config.schema.json`](crates/liknon-validation/schemas/config.schema.json).
 
 The configuration is a declarative domain-specific language for validation
 graphs. It is configuration as data: the document describes available
@@ -246,7 +246,7 @@ updates to:
 - planning and execution when affected;
 - inspection commands and documentation;
 - configuration fixtures and tests;
-- the canonical `.validation/config.json`.
+- the canonical `.liknon/validation/config.json`.
 
 The current contract is authoritative. The loader does not infer missing
 semantics, reinterpret fields from another version, or maintain parallel
@@ -283,9 +283,8 @@ ambiguous. In particular:
 
 ```json
 {
-  "$schema": "./config.schema.json",
   "schemaVersion": 6,
-  "workspaceRoot": "..",
+  "workspaceRoot": "../..",
   "defaultGroup": "general",
   "outputLimitBytes": 1048576,
   "tools": [

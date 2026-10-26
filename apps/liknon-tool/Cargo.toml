@@ -1,0 +1,23 @@
+[package]
+name = "liknon-tool"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Structural shell for the future Liknon offline resource tool"
+
+[dependencies]
+clap.workspace = true
+
+[[bin]]
+name = "liknon-tool"
+path = "src/bin/liknon-tool.rs"
+doc = false
+
+[[bin]]
+name = "likt"
+path = "src/bin/likt.rs"
+doc = false

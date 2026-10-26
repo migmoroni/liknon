@@ -1,0 +1,31 @@
+[package]
+name = "liknon-knowledge-maintenance"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Private editorial validation for the Liknon knowledge source"
+
+[lib]
+path = "src/lib.rs"
+doc = false
+
+[[bin]]
+name = "liknon-knowledge-maintenance"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+jsonschema.workspace = true
+liknon-validation.workspace = true
+pulldown-cmark.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tempfile.workspace = true
+
+[dev-dependencies]
+semver.workspace = true

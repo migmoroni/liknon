@@ -2,7 +2,9 @@
 
 ## Status
 
-`Provisional`. Blocked by A01.0 and the green A01.1 workspace.
+`Complete`. Authored knowledge, editorial contracts, evaluations, and the
+non-active skill handoff have canonical repository owners outside application
+runtime and package payloads.
 
 [Back to Plan A01](README.md)
 

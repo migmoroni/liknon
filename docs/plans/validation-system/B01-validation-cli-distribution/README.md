@@ -2,9 +2,8 @@
 
 ## Status And Relationship To The Validation System
 
-`Provisional`. The distribution model is approved, but implementation is
-blocked until A01 establishes the actual Validation CLI package and supporting
-crate closure.
+`Provisional`. A01 established the Validation CLI package and supporting crate
+closure. B01 is ready to begin at its public-contract gate, B01.0.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only Validation CLI distribution.

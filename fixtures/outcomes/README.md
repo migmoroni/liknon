@@ -1,7 +1,7 @@
 # Outcome Fixtures
 
 This isolated workspace demonstrates every check status rendered by
-`liknon`:
+`liknon-validate`:
 
 - `PASS`: a Rust test succeeds;
 - `FAIL`: a Rust test contains an intentional failing assertion;
@@ -9,7 +9,7 @@ This isolated workspace demonstrates every check status rendered by
 - `BLOCKED`: a check requires an intentionally unavailable executable.
 
 The fixture configuration lives below this directory in
-`.validation/config.json`. Configuration discovery never traverses child
+`.liknon/validation/config.json`. Configuration discovery never traverses child
 directories, so validation started from the repository root continues to use
 the repository configuration and does not execute these fixtures. The nested
 Cargo workspace is independent from the root package, so regular root checks do
@@ -18,30 +18,30 @@ not execute its intentional outcomes.
 Run every outcome explicitly from the repository root:
 
 ```sh
-cargo run --quiet --locked -- validate \
-  --config fixtures/outcomes/.validation/config.json
+cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate \
+  --config fixtures/outcomes/.liknon/validation/config.json
 ```
 
 Run one outcome group:
 
 ```sh
-cargo run --quiet --locked -- validate outcomes.pass \
-  --config fixtures/outcomes/.validation/config.json
+cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate outcomes.pass \
+  --config fixtures/outcomes/.liknon/validation/config.json
 
-cargo run --quiet --locked -- validate outcomes.fail \
-  --config fixtures/outcomes/.validation/config.json
+cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate outcomes.fail \
+  --config fixtures/outcomes/.liknon/validation/config.json
 
-cargo run --quiet --locked -- validate outcomes.blocked \
-  --config fixtures/outcomes/.validation/config.json
+cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate outcomes.blocked \
+  --config fixtures/outcomes/.liknon/validation/config.json
 ```
 
 All regular human-presentation options remain available. This command is useful
 for inspecting every status with both visual accessibility axes enabled:
 
 ```sh
-cargo run --quiet --locked -- validate \
+cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate \
   --color=high-contrast --presentation=low-vision \
-  --config fixtures/outcomes/.validation/config.json
+  --config fixtures/outcomes/.liknon/validation/config.json
 ```
 
 The expected process codes are `0` for `outcomes.pass`, `1` for
@@ -51,7 +51,7 @@ codes in those demonstrations are the expected fixture behavior.
 Run the fixture assertions themselves with the ignored integration-test target:
 
 ```sh
-cargo test --test outcome_fixtures -- --ignored
+cargo test -p liknon-validate --test outcome_fixtures --locked -- --ignored
 ```
 
 These tests use Rust's explicit `#[ignore]` boundary, so the regular workspace
@@ -62,7 +62,8 @@ selects the local fixture configuration:
 
 ```sh
 cd fixtures/outcomes
-cargo run --quiet --locked --manifest-path ../../Cargo.toml -- validate
+cargo run -p liknon-validate --bin liknon-validate --quiet --locked \
+  --manifest-path ../../Cargo.toml -- validate
 ```
 
 The local `.gitignore` excludes only nested Cargo build output. Source files,
