@@ -1,8 +1,8 @@
-# Phase B04.4: Publish Python Bindings
+# Phase B05.4: Publish Python Bindings
 
 ## Status
 
-`Future`. Blocked by an approved B04.0 Python scope.
+`Future`. Blocked by an approved B05.0 Python scope.
 
 [Back to the programmatic API and bindings plan](README.md)
 

@@ -16,8 +16,8 @@ publishes nothing.
 ## Dependencies
 
 - [Plan A01](../A01-product-and-repository-separation/README.md) is complete.
-- Current validation behavior is preserved by A01. Package name `liknon-cli`
-  and command names `liknon` and `likx` are approved target identities and must
+- Current validation behavior is preserved by A01. Package name `liknon-validate`
+  and command names `liknon-validate` and `likv` are approved target identities and must
   exist before this distribution contract exits.
 - The repository is otherwise eligible to enter release preparation.
 - External readiness checkpoint [AP-0](accounts-and-permissions.md#ap-0) is
@@ -30,24 +30,24 @@ publishes nothing.
 The canonical source identity is the approved public repository. A source
 release consists of:
 
-- one signed annotated tag `liknon-cli-v<VERSION>`;
+- one signed annotated tag `liknon-validate-v<VERSION>`;
 - the exact commit selected by that tag;
 - the committed `Cargo.lock`;
 - a metadata-only immutable GitHub Release that locks the tag and carries no
   Liknon binary assets.
 
 The documented source path clones the repository, checks out and verifies the
-exact tag, and installs the `apps/liknon-cli` package with locked dependencies.
+exact tag, and installs the `apps/liknon-validate` package with locked dependencies.
 The default branch is never presented as a reproducible released version.
 
 ### crates.io Source Package
 
-The crates.io channel publishes source package `liknon-cli` with both approved
+The crates.io channel publishes source package `liknon-validate` with both approved
 binary targets. The package builds from its own accepted contents, the locked
 dependency graph selected by the installer, and no unpublished path
 dependency. Exact required versions of every supporting crate selected by the
 A01 ledger are published and read back first. Those supporting packages are
-implementation dependencies, not the future public API from B04.
+implementation dependencies, not the future public API from B05.
 Every accepted package version is immutable.
 
 ### Cloudflare Direct
@@ -66,11 +66,11 @@ them.
 
 ## Version Contract
 
-- The `apps/liknon-cli` Cargo package version is the sole authored version
+- The `apps/liknon-validate` Cargo package version is the sole authored version
   source for this application and is read through structured Cargo metadata.
 - The initial grammar is canonical `MAJOR.MINOR.PATCH`.
-- The tag is exactly `liknon-cli-v<VERSION>` and points to the workflow commit.
-- `liknon --version`, `likx --version`, crates.io metadata, internal
+- The tag is exactly `liknon-validate-v<VERSION>` and points to the workflow commit.
+- `liknon-validate --version`, `likv --version`, crates.io metadata, internal
   build evidence, public direct metadata, archive names, and installer
   metadata carry that exact version.
 - A previously published version is immutable.
@@ -149,7 +149,7 @@ must never be described more strongly than its real trust mode.
 2. Prototype source installation from an exact local signed-tag fixture without
    access to repository-external files.
 3. Package and verify the complete supporting-crate closure, then package and
-   install `liknon-cli` from an isolated crates.io candidate.
+   install `liknon-validate` from an isolated crates.io candidate.
 4. Build and execute each proposed native target through its real runtime path.
 5. Prototype Linux selector probes for GNU-only, MUSL-only, dual-libc, explicit,
    and unknown environments.

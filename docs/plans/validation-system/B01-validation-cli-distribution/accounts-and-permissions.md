@@ -26,7 +26,7 @@ a checklist to complete all at once.
 | Purpose | Canonical identity |
 | --- | --- |
 | Repository | `migmoroni/liknon` |
-| crates.io packages | `liknon-cli` and its required supporting crates |
+| crates.io packages | `liknon-validate` and its required supporting crates |
 | Release workflow | `.github/workflows/release-cli.yml` |
 | Human approval | `cli-release-approval` |
 | crates.io publication | `publish-crates-cli` |
@@ -70,7 +70,7 @@ credential. No secret may enter workflow artifacts or generated metadata.
 **Ownership inventory. Complete before B01.0.**
 
 - [ ] Confirm the canonical GitHub repository owner.
-- [ ] Confirm ownership of `liknon-cli` and every supporting crates.io package
+- [ ] Confirm ownership of `liknon-validate` and every supporting crates.io package
       selected by the approved A01 ledger.
 - [ ] Confirm access to the Cloudflare account, DNS zone, and domain owner.
 - [ ] Record accountable and recovery owners.

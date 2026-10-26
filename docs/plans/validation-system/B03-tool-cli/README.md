@@ -15,8 +15,10 @@ by [Plan A01](../A01-product-and-repository-separation/README.md).
 
 [B02](../B02-resource-hub-and-manager/README.md) defines the Resource Hub,
 resource protocol, and canonical Manager. Tool consumes valid local resource
-state but does not depend on the Manager executable. [B01](../B01-cli-distribution/README.md)
-remains the independent validation executor.
+state but does not depend on the Manager executable.
+[B01](../B01-validation-cli-distribution/README.md) remains the independent
+validation executor. [B04](../B04-unified-launcher-and-cli-suite/README.md)
+owns unified routing and complete-suite composition.
 
 ## Dependencies
 
@@ -49,6 +51,10 @@ Tool reads the nearest valid `.liknon/resources/` store or an explicit
 workspace. It performs no Hub request, download, installation, update, removal,
 materialization, validation execution, AI-policy mutation, or resource-provided
 command execution.
+
+After B04 exists, `liknon tool <args>` is the unified form of
+`liknon-tool <args>`. Tool neither depends on nor invokes that launcher; its
+direct commands remain complete when the launcher is absent.
 
 ## Exclusions
 
@@ -139,10 +145,11 @@ Its crates.io application package resolves only exact published supporting
 crates. Required supporting versions are published and verified first when they
 are not already available.
 
-The website offers Tool separately and may include it in a convenience bundle
-with Validation CLI and Manager. Tool artifacts contain no complete resource
-corpus; inclusion of the single program-owned bootstrap contract does not turn
-that contract into a Hub payload.
+The website offers Tool separately. B04 may consume its verified candidate in
+a complete native suite without taking ownership of Tool publication. Tool
+artifacts contain no complete resource corpus; inclusion of the single
+program-owned bootstrap contract does not turn that contract into a Hub
+payload.
 
 ## Deliverables And Implementation Order
 
@@ -196,4 +203,4 @@ Tool publication.
 Tool is the stable local bridge between installed Liknon resources and the
 humans or agents that deliberately consume them. It keeps resource access fast
 and structured while leaving acquisition to Manager and validation execution
-to `liknon` or `likx`.
+to `liknon-validate` or `likv`.

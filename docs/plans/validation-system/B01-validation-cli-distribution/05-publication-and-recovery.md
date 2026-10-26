@@ -60,7 +60,7 @@ artifacts are workflow transport, not a public download channel.
 2. Reauthenticate all retained candidates and evidence.
 3. Publish any inspected supporting-crate candidate not already available at
    the exact required version, in dependency order, and verify public readback.
-4. Publish the inspected `liknon-cli` source package to crates.io.
+4. Publish the inspected `liknon-validate` source package to crates.io.
 5. Read the accepted application package back and verify source, dependency,
    and command inventory.
 6. Create the metadata-only immutable GitHub Release for the exact signed tag.

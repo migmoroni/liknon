@@ -11,15 +11,18 @@
 Verify that public documentation:
 
 - begins with direct human operation and explains each product independently;
-- distinguishes Validation CLI, Manager, Tool, AI-Tool, workflows, profiles,
-  skills, knowledge, policy, and persistence;
+- distinguishes Validation CLI, Manager, Tool, the unified launcher, the
+  aggregate package, AI-Tool, workflows, profiles, skills, knowledge, policy,
+  and persistence;
 - presents the three distribution channel categories without merging product
   release identities;
 - explains the optional official workflows without making them prerequisites;
 - documents exact machine contracts from their owning B/C plans;
 - separates human work-context guidance from agent operational resources;
 - links to one canonical policy definition instead of restating level tables;
-- labels future APIs and bindings as future.
+- labels B05 APIs and bindings as future;
+- explains that package `liknon-cli` owns the aggregate suite while package
+  `liknon` is reserved for future programmatic integration.
 
 ## Readiness Record
 
@@ -30,7 +33,8 @@ Produce one reviewed integrated record containing:
 - security-review findings and dispositions;
 - evaluation matrix, model settings, aggregate scores, and known limits;
 - documentation revision and unresolved product-specific release blockers;
-- explicit links to B01, B02, and B03 release evidence.
+- explicit links to B01-B03 individual release evidence and B04 aggregate
+  launcher/suite evidence.
 
 The record may declare the integrated candidate ready for product-specific
 release review. It cannot publish artifacts, approve credentials, or replace a

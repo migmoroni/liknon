@@ -15,7 +15,8 @@ behavior without transferring product publication ownership into this plan.
 
 D01 depends on the implemented product and workflow surfaces exercised by each
 scenario. A family may begin only when its own prerequisites exist; independent
-product release evidence is supplied by B01, B02, or B03.
+product release evidence is supplied by B01-B03, while launcher and complete-
+suite evidence is supplied by B04.
 
 ## Deliverables
 
@@ -26,13 +27,15 @@ product release evidence is supplied by B01, B02, or B03.
 
 ## Exclusions
 
-D01 owns integrated evidence, not product release. B01, B02, and B03 retain
-their own packaging, credentials, publication, recovery, and channel readback
-gates.
+D01 owns integrated evidence, not product release. B01-B03 retain their
+individual packaging and release gates; B04 retains launcher, aggregate
+package, complete-suite, publication, recovery, and channel-readback gates.
 
 ## Acceptance Criteria
 
-- [ ] All seven scenario shapes have versioned deterministic coverage.
+- [ ] All eight scenario shapes have versioned deterministic coverage.
+- [ ] Every direct long/compact command and unified launcher namespace has
+      deterministic parity, isolation, help, version, and failure coverage.
 - [ ] The four agent families remain context-isolated and model-neutral.
 - [ ] Security and contract-isolation scenarios pass before scores are used.
 - [ ] Evidence attributes failures to the owning product, resource, or model

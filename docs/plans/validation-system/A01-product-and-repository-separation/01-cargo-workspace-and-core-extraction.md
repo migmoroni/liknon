@@ -83,7 +83,8 @@ This phase does not:
 - create bootstrap, policy, persistence, workflow, or agent contracts;
 - author official resources;
 - publish a package;
-- declare an internal crate to be the future B04 public API.
+- implement B04 launcher routing or aggregate distribution;
+- declare an internal crate to be the future B05 public API.
 
 ## Verification
 

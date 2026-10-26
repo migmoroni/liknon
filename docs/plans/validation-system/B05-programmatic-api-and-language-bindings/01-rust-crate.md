@@ -1,20 +1,20 @@
-# Phase B04.1: Publish The Rust Library Crate
+# Phase B05.1: Publish The Rust Library Crate
 
 ## Status
 
-`Future`. Blocked by an approved B04.0 Rust scope.
+`Future`. Blocked by an approved B05.0 Rust scope.
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
 
-Publish the crates.io `liknon` library only when B04.0 approves a public Rust
+Publish the crates.io `liknon` library only when B05.0 approves a public Rust
 API and a representative consumer. The package is a library, not a CLI or
 resource-distribution channel.
 
 ## Dependencies
 
-- [Phase B04.0](00-programmatic-api-contract.md) is complete.
+- [Phase B05.0](00-programmatic-api-contract.md) is complete.
 - Package ownership, version relationship, MSRV, feature policy, and public
   namespace are approved.
 - A01 has separated the core from CLI argument parsing, terminal rendering,

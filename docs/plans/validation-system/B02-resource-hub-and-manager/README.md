@@ -15,11 +15,12 @@ This plan defines the public resource protocol, the online Liknon Resource Hub,
 and the independent Manager application created by
 [Plan A01](../A01-product-and-repository-separation/README.md).
 
-[B01](../B01-cli-distribution/README.md) distributes validation execution.
+[B01](../B01-validation-cli-distribution/README.md) distributes validation execution.
 [B03](../B03-tool-cli/README.md) distributes offline resource consumption.
-[B04](../B04-programmatic-api-and-language-bindings/README.md) may later expose
-justified programmatic APIs. None of those tracks replaces Manager as the
-canonical networked resource-state mutator.
+[B04](../B04-unified-launcher-and-cli-suite/README.md) owns unified routing and
+complete-suite composition. [B05](../B05-programmatic-api-and-language-bindings/README.md)
+may later expose justified programmatic APIs. None of those tracks replaces
+Manager as the canonical networked resource-state mutator.
 
 ## Dependencies
 
@@ -53,6 +54,10 @@ Manager owns network access to the Hub and mutation below
 `.liknon/resources/`. It does not validate workspaces, interpret or execute
 resource instructions, answer knowledge questions, or invoke another Liknon
 executable.
+
+After B04 exists, `liknon manager <args>` is the unified form of
+`liknon-manager <args>`. Manager neither depends on nor invokes that launcher;
+its direct commands remain complete when the launcher is absent.
 
 The Hub owns public metadata and immutable payload distribution. It is not a
 CLI and does not mutate consumer workspaces.
@@ -153,9 +158,9 @@ The crates.io release publishes and verifies any exact supporting-crate version
 required by Manager before publishing the application package. Installing
 `liknon-manager` never depends on an unpublished workspace path.
 
-The website offers Manager separately and may include it in a convenience
-bundle with Validation CLI and Tool. The bundle does not introduce runtime
-dependencies among them.
+The website offers Manager separately. B04 may consume its verified candidate
+in a complete native suite, without transferring Manager publication or
+introducing runtime dependencies among capability applications.
 
 Resource versions and Hub publication proceed independently from Manager
 releases. Publishing or updating a resource never requires rebuilding Manager.
@@ -206,8 +211,8 @@ milestone and is not a prerequisite for authoring those resources.
 - [ ] Tool can consume Manager-produced state without invoking Manager.
 - [ ] Resource publication does not rebuild any CLI.
 - [ ] The crates.io package resolves only published supporting crates.
-- [ ] The site offers each CLI separately and treats a complete bundle only as
-      a convenience.
+- [ ] The site offers Manager separately; any complete suite is owned by B04
+      and consumes this plan's verified candidate unchanged.
 - [ ] Generated state and credentials enter no published resource or retained
       public evidence.
 

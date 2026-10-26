@@ -1,4 +1,4 @@
-# Plan B04: Programmatic APIs And Language Bindings
+# Plan B05: Programmatic APIs And Language Bindings
 
 ## Status
 
@@ -15,45 +15,50 @@ case exists in at least one language ecosystem.
 
 Do not publish placeholder packages, reserve public package identities through
 empty releases, choose bridge technology, or derive an API mechanically from
-CLI commands before Phase B04.0 is approved.
+CLI commands before Phase B05.0 is approved.
 
 ## Dependencies
 
-B04 depends on stable A01 boundaries and at least one demonstrated in-process
-consumer. Each language phase additionally depends on an approved B04.0 API,
+B05 depends on stable A01 boundaries and at least one demonstrated in-process
+consumer. Each language phase additionally depends on an approved B05.0 API,
 runtime support matrix, bridge strategy, and the
-[B04 registry-readiness runbook](accounts-and-permissions.md).
+[B05 registry-readiness runbook](accounts-and-permissions.md).
 
 ## Relationship To Current Products
 
-- [B01](../B01-cli-distribution/README.md) distributes the validation CLI,
-  `liknon` and `likx`.
+- [B01](../B01-validation-cli-distribution/README.md) distributes the
+  `liknon-validate` / `likv` validation CLI.
 - [B02](../B02-resource-hub-and-manager/README.md) defines the resource Hub and
   the mutating, network-capable `liknon-manager` / `likm` application.
 - [B03](../B03-tool-cli/README.md) distributes the offline, read-only
   `liknon-tool` / `likt` application.
-- B04 may later publish importable libraries named `liknon` in selected
+- [B04](../B04-unified-launcher-and-cli-suite/README.md) owns package
+  `liknon-cli`, launcher commands `liknon` / `likx`, and complete suites.
+- B05 may later publish importable libraries named `liknon` in selected
   language registries.
 
-The three applications and future libraries are separate products. A B04
-library does not install, embed, invoke, or impersonate any CLI. It also does
-not bundle knowledge, skills, workflows, agent profiles, tool descriptors,
-prompts, guides, templates, or collections.
+The three capability applications, launcher, and future libraries are separate
+products. A B05 library does not install, embed, invoke, or impersonate any
+CLI. Package `liknon` owns no command named `liknon`; that terminal identity
+belongs exclusively to the B04 launcher. A library also does not bundle
+knowledge, skills, workflows, agent profiles, tool descriptors, prompts,
+guides, templates, or collections.
 
 A01 may identify and later distribution tracks may publish supporting Cargo
 dependencies so crates.io application packages can build without local paths.
 That technical availability does not make any supporting crate the supported
-B04 Rust API. B04 begins only when the deliberate `liknon` library contract and
+B05 Rust API. B05 begins only when the deliberate `liknon` library contract and
 a real in-process consumer are approved.
 
 ```text
 liknon repository
 ├── crates/<validation-core>        # Name selected by A01 when justified
 ├── crates/<workspace-contracts>    # Name selected by A01 when justified
-├── apps/liknon-cli                 # Validation CLI; B01
+├── apps/liknon-cli                 # Launcher and aggregate package; B04
+├── apps/liknon-validate            # Validation CLI; B01
 ├── apps/liknon-manager             # Hub and resource management CLI; B02
 ├── apps/liknon-tool                # Local resource-consumption CLI; B03
-└── language API adapters           # Added only for approved B04 consumers
+└── language API adapters           # Added only for approved B05 consumers
 ```
 
 ## Objective
@@ -61,7 +66,7 @@ liknon repository
 Expose deliberately selected Liknon capabilities in process for ecosystems
 that have a demonstrated consumer:
 
-| Ecosystem | Candidate public package | Consumption model |
+| Ecosystem | Reserved public package identity | Consumption model |
 | --- | --- | --- |
 | Rust | crates.io `liknon` | Cargo dependency and Rust API |
 | Node.js | npm `liknon` | JavaScript/TypeScript imports |
@@ -69,13 +74,15 @@ that have a demonstrated consumer:
 | Python | PyPI `liknon` | Python imports |
 | .NET | NuGet `liknon` | `PackageReference` and managed API |
 
-These identities are candidates, not pre-existing contracts. Each package is
-created only when its API, implementation, support matrix, documentation, and
-representative consumer are ready together.
+The package identity `liknon` is reserved by this plan in every activated
+ecosystem, but no package exists merely because the name is approved. Each
+package is created only when its API, implementation, support matrix,
+documentation, and representative consumer are ready together. No empty
+release is published to reserve a registry name.
 
 ## Candidate Capabilities
 
-Phase B04.0 evaluates and narrows capabilities such as:
+Phase B05.0 evaluates and narrows capabilities such as:
 
 - parse and validate configuration from explicit data or paths;
 - inspect groups, suites, checks, tools, and resolved plans;
@@ -120,7 +127,7 @@ resource installation, and CLI argument parsing are not programmatic APIs.
 
 ## Exclusions
 
-B04 does not package CLIs, reserve registries speculatively, expose internal
+B05 does not package CLIs, reserve registries speculatively, expose internal
 Rust modules by default, duplicate Hub resources, or begin from a desire for
 symmetry across language ecosystems.
 
@@ -140,7 +147,8 @@ symmetry across language ecosystems.
 
 ## Proposed Repository Shape
 
-Names remain provisional until B04.0 approves them.
+Internal crate, adapter, and directory names remain provisional until B05.0
+approves them. The public package identity `liknon` is already fixed.
 
 ```text
 crates/
@@ -164,13 +172,13 @@ consumer and contract are approved.
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
-| B04.0 | [Programmatic API Contract](00-programmatic-api-contract.md) | A01.4 and demonstrated consumers | Approved API, effects, errors, compatibility, and binding boundary |
-| B04.1 | [Rust Crate](01-rust-crate.md) | B04.0 Rust scope | Tested public Rust API when justified |
-| B04.2 | [Node.js Bindings](02-node-bindings.md) | B04.0 Node scope and approved native boundary when required | Importable JS/TS API |
-| B04.3 | [Ruby Bindings](03-ruby-bindings.md) | B04.0 Ruby scope and approved native boundary when required | Importable Ruby API |
-| B04.4 | [Python Bindings](04-python-bindings.md) | B04.0 Python scope and approved native boundary when required | Importable Python API |
-| B04.5 | [.NET Bindings](05-dotnet-bindings.md) | B04.0 .NET scope and approved native boundary when required | Importable managed API |
-| B04.6 | [Cross-Language Verification And Publication](06-cross-language-verification-and-publication.md) | Implemented binding phases | Conformance evidence and isolated registry publication |
+| B05.0 | [Programmatic API Contract](00-programmatic-api-contract.md) | A01.4 and demonstrated consumers | Approved API, effects, errors, compatibility, and binding boundary |
+| B05.1 | [Rust Crate](01-rust-crate.md) | B05.0 Rust scope | Tested public Rust API when justified |
+| B05.2 | [Node.js Bindings](02-node-bindings.md) | B05.0 Node scope and approved native boundary when required | Importable JS/TS API |
+| B05.3 | [Ruby Bindings](03-ruby-bindings.md) | B05.0 Ruby scope and approved native boundary when required | Importable Ruby API |
+| B05.4 | [Python Bindings](04-python-bindings.md) | B05.0 Python scope and approved native boundary when required | Importable Python API |
+| B05.5 | [.NET Bindings](05-dotnet-bindings.md) | B05.0 .NET scope and approved native boundary when required | Importable managed API |
+| B05.6 | [Cross-Language Verification And Publication](06-cross-language-verification-and-publication.md) | Implemented binding phases | Conformance evidence and isolated registry publication |
 
 Binding phases are optional and need not launch simultaneously.
 

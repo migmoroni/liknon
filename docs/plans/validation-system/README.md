@@ -22,16 +22,11 @@ Read these documents in order before using an implementation plan:
 3. [Plan Coherence And Reorganization](A00-plan-coherence-and-reorganization/README.md)
    - `Historical` completed documentation meta-plan
 4. [Unified Launcher, CLI Suite, And Command Plan Realignment](A00.1-unified-launcher-plan-realignment/README.md)
-   - `Implementation-ready` documentation meta-plan that precedes A01
+   - `Historical` completed documentation meta-plan
 
 The current-state assessment answers what exists. The target summary answers
 what has been approved and what remains undecided. A subordinate plan may add
 detail, but it may not silently contradict either document.
-
-Until A00.1 is completed, its approved command identities, aggregate-package
-model, and launcher boundary take precedence over conflicting target
-identities still present in the target summary or subordinate active plans.
-All other ownership and target decisions retain their existing precedence.
 
 ## Plan Tracks
 
@@ -45,15 +40,19 @@ All other ownership and target decisions retain their existing precedence.
 
 | Plan | Status | Owns |
 | --- | --- | --- |
-| [B01 Validation CLI Distribution](B01-cli-distribution/README.md) | `Provisional`, blocked by A01 | Source-package and native distribution of `liknon` / `likx` |
+| [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | `Provisional`, blocked by A01 | Source-package and native distribution of `liknon-validate` / `likv` |
 | [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | `Decision gate` at B02.0 | Resource protocol, Hub, Manager behavior, and Manager distribution |
 | [B03 Tool CLI](B03-tool-cli/README.md) | `Decision gate` at B03.0 | Offline resource consumption, agent-facing retrieval, and Tool distribution |
-| [B04 Programmatic APIs And Language Bindings](B04-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate in-process APIs with demonstrated consumers |
+| [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, launcher commands `liknon` / `likx`, aggregate Cargo installation, and complete native suites |
+| [B05 Programmatic APIs And Language Bindings](B05-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate in-process APIs with demonstrated consumers |
 
-All three CLIs use the same categories of distribution channel: exact GitHub
-source, crates.io source packages, and project-hosted native binaries through
-Cloudflare/site delivery. They retain independent package identities, release
-artifacts, readiness gates, credentials, and publication authority.
+The three capability CLIs use the same categories of distribution channel:
+exact GitHub source, crates.io source packages, and project-hosted native
+binaries through Cloudflare/site delivery. They retain independent package
+identities, release artifacts, readiness gates, credentials, and publication
+authority. B04 composes verified component candidates into the promoted
+aggregate Cargo package and complete native suites without taking over their
+individual publication.
 
 ### C: AI Governance And Official Workflows
 
@@ -74,8 +73,9 @@ not platform constants.
 | --- | --- | --- |
 | [D01 System Conformance And Agent Evaluation](D01-system-conformance-and-agent-evaluation/README.md) | `Provisional`, blocked by implemented B/C capabilities | Cross-product scenarios, isolation, abuse review, agent evaluation, and integrated readiness evidence |
 
-D01 does not publish products. Publication and recovery remain in B01, B02,
-and B03.
+D01 does not publish products. Individual product publication and recovery
+remain in B01-B03; aggregate launcher and complete-suite publication remain in
+B04.
 
 ## Dependency Graph
 
@@ -84,34 +84,37 @@ current-state assessment + approved target summary
                          |
                          v
           A01 product/repository boundaries
-              |                    |
-              |                    +--> B01 Validation CLI delivery
-              |
-              +--> C01 generic AI/workflow governance contracts
-                         |
-                         +--> B02.0 Manager/Hub decision gate
-                         |
-                         +--> B03.0 Tool decision gate
-                                  |
-                 approved product contracts and implementations
-                                  |
-                         +--------+--------+
-                         |                 |
-                         v                 v
-                C02 official       C03 official validation-
-                action workflow    engineering workflow
-                         \                 /
-                          +-------+-------+
-                                  |
-                                  v
-                  D01 integrated conformance and evaluation
+             |                         |
+             +--> B01 Validation       +--> C01 generic AI/workflow
+             |    CLI delivery              governance contracts
+             |                                  |
+             |                                  +--> B02.0 Manager/Hub
+             |                                  +--> B03.0 Tool
+             |                                           |
+             +--------- stable component contracts ------+
+                                 |
+                                 +--> B04.0 launcher/suite contract
+                                 |
+                 approved product implementations
+                                 |
+              +------------------+------------------+
+              |                  |                  |
+              v                  v                  v
+       C02 official       C03 official       B04 integrated
+       action workflow    validation-        launcher and suites
+                          engineering                |
+              \           workflow                  /
+               +----------------+-------------------+
+                                |
+                                v
+                D01 integrated conformance and evaluation
 
-B04 programmatic APIs and language bindings: future, independently activated
+B05 programmatic APIs and language bindings: future, independently activated
 ```
 
 Distribution readiness remains product-specific. `D01` may verify an
 integrated candidate, but it must not own publication already assigned to
-`B01`, `B02`, or `B03`.
+`B01`, `B02`, `B03`, or `B04`.
 
 ## Active Decision Gates
 
@@ -146,22 +149,31 @@ command grammar, machine outputs, integrity handling, the bootstrap projection
 interface, and the policy/persistence inspection boundary. Existing command
 names in B03 are candidates until this gate passes.
 
-### B04.0: Programmatic API Activation
+### B04.0: Launcher And Suite Contract
 
-Do not activate B04 until at least one real in-process consumer justifies a
+Before launcher implementation or aggregate publication, approve executable
+resolution, compatibility, process forwarding, aggregate target mapping,
+installation collision, native-suite composition, help, version, provenance,
+publication, and recovery contracts. The approved eight binary targets and
+three explicit namespaces are fixed inputs to this gate.
+
+### B05.0: Programmatic API Activation
+
+Do not activate B05 until at least one real in-process consumer justifies a
 deliberate API. CLI syntax and internal Rust modules are not sufficient API
 design evidence.
 
 ## Execution Order
 
-1. Execute A00.1 to realign the active plans with the approved launcher and
-   command identities.
-2. Approve A01.0, then perform the A01 structural cutover in buildable units.
-3. Begin B01 delivery work and C01 contract work from the stable A01 boundary.
-4. Resolve B02.0 and B03.0; only then implement their provisional phases.
+1. Approve A01.0, then perform the A01 structural cutover in buildable units.
+2. Begin B01 delivery work and C01 contract work from the stable A01 boundary.
+3. Resolve B02.0 and B03.0; only then implement their provisional phases.
+4. Resolve B04.0 after A01 boundaries and component command contracts are
+   stable; implement integrated routing and distribution only from verified
+   B01-B03 release candidates.
 5. Implement C02 and C03 as resources over approved generic contracts.
 6. Execute D01 integrated conformance and agent evaluation.
-7. Activate the future programmatic-API plan only through its independent
+7. Activate the future B05 programmatic-API plan only through its independent
    consumer-driven gate.
 
 Each plan owns its own detailed handoff and acceptance criteria. Completion of

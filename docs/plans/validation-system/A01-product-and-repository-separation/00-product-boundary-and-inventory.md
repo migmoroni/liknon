@@ -76,7 +76,7 @@ The inventory must also locate every:
 5. The current skill may be preserved, transformed, or retired only after its
    useful source content and consumers are identified. C02 owns any future
    official operational skill.
-6. Current public Rust exports are not automatically a promised B04 API, but
+6. Current public Rust exports are not automatically a promised B05 API, but
    each export still requires an explicit preserve, internalize, or remove
    decision.
 7. A proposed destination remains a candidate until the ledger identifies its
@@ -91,6 +91,9 @@ A01.0 must decide:
 - the exact Cargo workspace root form and its initial members;
 - the minimum shared-crate boundaries and their names;
 - which crates must eventually be publishable to support CLI source packages;
+- how package `liknon-cli` owns the approved eight binary targets while the
+  standalone packages reuse the same capability implementations;
+- where launcher-only dispatch code lives without importing a capability API;
 - where each current validation schema and application asset belongs;
 - how current knowledge embedding is removed without losing authored sources;
 - how the current static skill is handed to later resource work;
@@ -100,7 +103,8 @@ A01.0 must decide:
 - which documentation changes in each A01 unit.
 
 It does not decide Manager or Tool command grammar, Hub protocol, policy
-operations, workflow persistence, official workflows, or language bindings.
+operations, workflow persistence, official workflows, B04 launcher resolution
+and release contracts, or B05 language bindings.
 
 ## Required Evidence
 

@@ -2,7 +2,10 @@
 
 ## 1. Status
 
-`Implementation-ready` documentation-only meta-plan.
+`Historical`. This documentation-only meta-plan has been executed and is
+retained as the record of the launcher and CLI-suite realignment. It changed no
+Rust source, schema, CI workflow, package, published artifact, workspace state,
+or maintained public documentation.
 
 This plan reconciles the active validation-system plans with the approved
 command architecture. It does not authorize Rust, schema, CI, packaging,
@@ -90,7 +93,8 @@ packages own no CLI executable merely because the terminal launcher is named
 
 ### 3.3 Final Unified Grammar
 
-The first argument to the launcher always selects a capability namespace:
+For capability dispatch, the first positional argument to the launcher selects
+a capability namespace:
 
 ```text
 liknon validate validate fast -> liknon-validate validate fast
@@ -112,6 +116,9 @@ likt show ...
 There is no default capability namespace. In particular:
 
 - `liknon check ...` is not forwarded implicitly.
+
+Launcher-owned root controls, currently `--help` and `--version`, do not select
+or dispatch a capability namespace.
 
 Component discovery, process replacement, signal forwarding, and
 missing-component behavior belong to the launcher contract created by this
@@ -150,7 +157,8 @@ help scope, component list, ordering, or requirement to expose failures.
 1. `liknon` and `likx` are equivalent launcher entry points, not validation
    aliases.
 2. `liknon-validate` and `likv` are equivalent validation entry points.
-3. Every unified invocation names `validate`, `manager`, or `tool` explicitly.
+3. Every capability invocation through the unified launcher names `validate`,
+   `manager`, or `tool` explicitly. Launcher-owned root controls do not.
 4. The launcher removes only the selected namespace before dispatch.
 5. Dispatch is shell-free and never reconstructs arguments as a command
    string.
@@ -258,9 +266,7 @@ Classify each match as one of:
 
 Do not perform a blind repository-wide replacement.
 
-## 8. Workstream 1: Reconcile Foundation Documents
-
-### 8.1 Target-State Summary
+## 8. Workstream 1: Reconcile The Target-State Summary
 
 Update `../resumo-estado-alvo.md` first:
 
@@ -282,37 +288,114 @@ Update `../resumo-estado-alvo.md` first:
 - distinguish independent application distribution from the promoted
   `liknon-cli` aggregate route and complete native suite;
 - preserve Manager, Tool, Hub, AI-resource, and API boundaries;
-- state that no legacy command grammar is retained;
-- add unresolved launcher release details to an explicit B04 decision gate
-  rather than inventing them in the summary.
+- state that no legacy command grammar is retained; and
+- identify unresolved launcher release details as B04 decision-gate inputs
+  rather than deciding them in the summary.
 
-### 8.2 Root Roadmap
+The target summary may describe the final B04/B05 topology, but the active root
+roadmap must not register the new B04 until Workstream 2 completes the ordered
+topology transition.
 
-Update `../README.md` after the target summary:
+## 9. Workstream 2: Transition B04 And B05 Plan Topology
+
+Perform this transition as one coherent documentation change in the following
+order:
+
+1. Move `B04-programmatic-api-and-language-bindings/` to
+   `B05-programmatic-api-and-language-bindings/`.
+2. Repair every link, status table, dependency graph, gate name, and track
+   reference that identifies the programmatic API plan.
+3. Confirm that no active reference still assigns the programmatic API plan to
+   B04 and that the B04 identifier is free.
+4. Create `B04-unified-launcher-and-cli-suite/` with its initial decision gate.
+5. Update the root roadmap only after both final plan paths exist and all links
+   can resolve in the completed change.
+
+Do not publish or commit an intermediate state with two normative B04 plans or
+with the new B04 registered before the old plan has become B05.
+
+### 9.1 Programmatic APIs In B05
+
+Keep the relocated plan `Future`. Clarify that language APIs neither expose the
+launcher as an in-process API nor package CLI copies by default. Reserve package
+identity `liknon` in each supported ecosystem for the integration API activated
+by this plan. In Cargo, crate `liknon` must not provide command `liknon`.
+
+### 9.2 Launcher And CLI Suite In B04
+
+The new B04 plan is the sole owner of:
+
+- aggregate Cargo package `liknon-cli`;
+- commands `liknon` and `likx`;
+- all launcher and capability binary targets owned by the aggregate package;
+- reuse of the same shared implementation crates used by standalone packages;
+- namespace parsing for `validate`, `manager`, and `tool`;
+- deterministic executable discovery;
+- safe argument, environment, working-directory, stdin, stdout, stderr,
+  signal, interruption, and exit-status forwarding;
+- the approved launcher help and aggregate version contract;
+- diagnostics and missing-component behavior;
+- aggregate crates.io installation as the promoted complete-suite route;
+- complete native suites and their exact component manifests;
+- composition rules that consume independently published standalone
+  components without taking ownership of their publication;
+- cross-channel component-location rules;
+- launcher/component compatibility metadata; and
+- launcher-specific provenance, recovery, and publication evidence.
+
+B04.0 must resolve, rather than assume:
+
+1. executable lookup precedence and trusted locations;
+2. behavior when a selected component is absent or incompatible;
+3. whether launcher and components have independent or coordinated release
+   versions;
+4. source mapping for the approved binary target set and the shared
+   implementation-crate dependency graph;
+5. source-package and native-suite composition per channel;
+6. whether partial native suites are supported;
+7. exact aggregate-version output format, component inspection timeout, and
+   exit status when inspection cannot obtain every required version;
+8. POSIX process replacement and Windows process/signal parity;
+9. installation-root ownership, collision detection, replacement, and recovery
+   when aggregate and standalone packages expose the same command names; and
+10. exact boundaries between aggregate publication and standalone component
+    publication.
+
+The approved binary target list in Section 3.2 is not a B04.0 decision and may
+not be reopened by that gate.
+
+The plan must require shell-free dispatch, exact argument preservation, no
+implicit installation, no hidden fallback to validation, and proof that
+`cargo install liknon-cli` installs package-owned targets rather than relying
+on executable artifacts from dependencies.
+
+### 9.3 Root Roadmap And Foundation Checkpoint
+
+Update `../README.md` after the B04/B05 transition:
 
 - list B01 as Validation CLI distribution for `liknon-validate` / `likv`;
 - retain B02 and B03 as the Manager and Tool owners;
-- add B04 as unified launcher, aggregate package, and complete-suite ownership;
-- move future programmatic APIs to B05;
+- register B04 as unified launcher, aggregate package, and complete-suite
+  ownership;
+- register future programmatic APIs as B05;
 - update the dependency graph and execution order;
 - make B04 contract work depend on A01 boundaries and approved component
   command contracts;
 - make B04 integrated verification and distribution depend on the relevant
-  B01-B03 release candidates;
+  B01-B03 release candidates; and
 - keep D01 as integrated conformance rather than publication ownership.
 
-### 8.3 Foundation Checkpoint
-
-Do not update subordinate plans until the target summary and roadmap agree on:
+Do not update the remaining subordinate plans until the target summary and
+roadmap agree on:
 
 - product names and command identities;
 - package names, executable names, and their distinct ownership;
 - three capability boundaries plus one launcher boundary;
 - explicit namespace routing;
-- B01-B05 ownership;
+- B01-B05 ownership; and
 - decision gates and execution order.
 
-## 9. Workstream 2: Reconcile A01 Product Separation
+## 10. Workstream 3: Reconcile A01 Product Separation
 
 Update the A01 README and phases so that the structural ledger can distinguish
 implemented state from newly approved targets:
@@ -335,13 +418,13 @@ implemented state from newly approved targets:
 - preserve shell-free process handling and platform-specific signal/exit
   guarantees;
 - update structural verification for direct and unified invocation;
-- retain the rule that capability applications do not invoke one another;
+- retain the rule that capability applications do not invoke one another; and
 - explicitly permit only the launcher to invoke a selected capability binary.
 
 A01 must decide the buildable cutover units without introducing an
 intermediate public command contract.
 
-## 10. Workstream 3: Refound B01 Around Validation Only
+## 11. Workstream 4: Refound B01 Around Validation Only
 
 Move and rewrite B01 as `B01-validation-cli-distribution/`.
 
@@ -355,77 +438,16 @@ Across its README, phases, runbook, examples, and artifact contracts:
 - remove launcher, Manager, Tool, and bundle ownership;
 - verify direct long/compact command equivalence;
 - retain source, crates.io, Cloudflare, platform, authenticity, recovery, and
-  publication requirements that remain applicable to this product;
+  publication requirements that remain applicable to this product; and
 - update every internal and external link after the directory move.
 
 B01 must not publish package `liknon-cli`, commands `liknon` / `likx`, or
 package `liknon`; it must not require the launcher for installation or
 verification.
 
-## 11. Workstream 4: Relocate Programmatic APIs To B05
+## 12. Workstream 5: Reconcile B02, B03, C, And D Tracks
 
-Move the current B04 API plan to B05 and repair every link, status table,
-dependency graph, gate name, and track reference before creating the new B04.
-Keep it `Future`. Clarify that language APIs neither expose the launcher as an
-in-process API nor package CLI copies by default. Reserve package identity
-`liknon` in each supported ecosystem for the integration API activated by this
-plan. In Cargo, crate `liknon` must not provide command `liknon`.
-
-This workstream is complete only when no active reference still identifies the
-programmatic API plan as B04 and the B04 identifier is free for reassignment.
-
-## 12. Workstream 5: Create B04 Launcher And CLI Suite Plan
-
-Create an active B04 plan with an initial decision gate. It is the sole owner
-of:
-
-- aggregate Cargo package `liknon-cli`;
-- commands `liknon` and `likx`;
-- all launcher and capability binary targets owned by the aggregate package;
-- reuse of the same shared implementation crates used by standalone packages;
-- namespace parsing for `validate`, `manager`, and `tool`;
-- deterministic executable discovery;
-- safe argument, environment, working-directory, stdin, stdout, stderr,
-  signal, interruption, and exit-status forwarding;
-- the approved launcher help and aggregate version contract;
-- diagnostics and missing-component behavior;
-- aggregate crates.io installation as the promoted complete-suite route;
-- complete native suites and their exact component manifests;
-- composition rules that consume independently published standalone
-  components without taking ownership of their publication;
-- cross-channel component-location rules;
-- launcher/component compatibility metadata;
-- launcher-specific provenance, recovery, and publication evidence.
-
-B04.0 must resolve, rather than assume:
-
-1. executable lookup precedence and trusted locations;
-2. behavior when a selected component is absent or incompatible;
-3. whether launcher and components have independent or coordinated release
-   versions;
-4. the exact `liknon-cli` binary target set and shared implementation-crate
-   dependency graph;
-5. source-package and native-suite composition per channel;
-6. whether partial native suites are supported;
-7. exact aggregate-version output format, component inspection timeout, and
-   exit status when inspection cannot obtain every required version;
-8. POSIX process replacement and Windows process/signal parity;
-9. installation-root ownership, collision detection, replacement, and recovery
-   when aggregate and standalone packages expose the same command names;
-10. exact boundaries between aggregate publication and standalone component
-    publication.
-
-The plan must require shell-free dispatch, exact argument preservation, no
-implicit installation, no hidden fallback to validation, and proof that
-`cargo install liknon-cli` installs package-owned targets rather than relying
-on executable artifacts from dependencies.
-
-The new B04 directory, roadmap entry, and links may be created only after
-Workstream 4 has completed.
-
-## 13. Workstream 6: Reconcile B02, B03, C, And D Tracks
-
-### 13.1 Manager And Tool
+### 12.1 Manager And Tool
 
 Preserve the direct products and their existing decision gates. Update only
 cross-product statements needed to establish that:
@@ -435,26 +457,27 @@ cross-product statements needed to establish that:
 - `liknon tool <args>` is equivalent to `liknon-tool <args>` after launcher
   dispatch;
 - Manager and Tool do not depend on, invoke, or embed the launcher;
-- their individual releases remain valid without the aggregate package;
+- their individual releases remain valid without the aggregate package; and
 - B04, not B02 or B03, owns unified routing, aggregate Cargo publication, and
   complete native-suite publication.
 
-### 13.2 AI Governance And Workflows
+### 12.2 AI Governance And Workflows
 
 Use capability roles in generic contracts. Where an executable form is
 necessary, distinguish:
 
 - direct deterministic use of `liknon-validate`, `liknon-manager`, or
   `liknon-tool`;
-- equivalent unified use through the explicit launcher namespace;
+- equivalent unified use through the explicit launcher namespace; and
 - AI-Tool the resource from `liknon-tool` the executable.
 
 Do not alter policy, workflow, profile, skill, persistence, or authority
 semantics merely because command routing changed.
 
-### 13.3 Integrated Conformance
+### 12.3 Integrated Conformance
 
-Extend D01's scenario and isolation matrices to cover:
+Extend D01's scenario and isolation matrices to require future implementation
+tests for:
 
 - every direct long and compact command;
 - every unified namespace through both `liknon` and `likx`;
@@ -470,13 +493,13 @@ Extend D01's scenario and isolation matrices to cover:
 - argument-boundary and executable-path attacks;
 - proof that the launcher performs no network, validation, resource mutation,
   resource interpretation, or AI action itself;
-- independent operation when the launcher is absent;
+- independent operation when the launcher is absent; and
 - explicit rejection of removed command forms.
 
-D01 verifies the integrated candidate but does not publish the launcher or any
-capability product.
+D01 verifies the implemented integrated candidate later; this meta-plan only
+places those requirements in D01 and does not publish any product.
 
-## 14. Workstream 7: Terminology And Link Sweep
+## 13. Workstream 6: Terminology And Link Sweep
 
 After all owning documents are reconciled:
 
@@ -492,11 +515,11 @@ After all owning documents are reconciled:
 - reserve **native suite** or **bundle** for native artifact composition, not
   Cargo dependency semantics or runtime coupling;
 - update relative links, plan tables, dependency graphs, status summaries,
-  acceptance criteria, package paths, tags, examples, and account runbooks;
+  acceptance criteria, package paths, tags, examples, and account runbooks; and
 - preserve current-state and historical language where it remains factually
   correct.
 
-## 15. Verification
+## 14. Verification
 
 The meta-plan execution must include:
 
@@ -508,10 +531,12 @@ The meta-plan execution must include:
    integration and never owns a CLI binary;
 4. a search proving final examples use explicit launcher namespaces and the
    approved command grammar;
-5. tests proving root launcher help remains brief, capability-specific help is
-   delegated, and `liknon` / `likx` expose equivalent help;
-6. tests proving launcher-first version ordering, use of normal component
-   resolution, complete component coverage, and explicit inspection failures;
+5. confirmation that B04 and D01 require future tests proving root launcher
+   help remains brief, capability-specific help is delegated, and `liknon` /
+   `likx` expose equivalent help;
+6. confirmation that B04 and D01 require future tests proving launcher-first
+   version ordering, use of normal component resolution, complete component
+   coverage, and explicit inspection failures;
 7. a search proving removed command forms occur only in explicit rejection
    tests or historical/current-state evidence;
 8. link validation for every moved or newly created plan path;
@@ -527,48 +552,56 @@ The meta-plan execution must include:
 Rust gates are not required for execution of this documentation-only
 meta-plan unless a build input or product source is changed accidentally.
 
-## 16. Acceptance Criteria
+## 15. Acceptance Criteria
 
-- [ ] The target summary defines three capability CLIs and one launcher.
-- [ ] `liknon-validate` / `likv` exclusively identify direct validation.
-- [ ] `liknon` / `likx` exclusively identify the unified launcher.
-- [ ] Cargo package `liknon-cli` installs launcher and capability command
-      targets backed by the same implementations as standalone packages.
-- [ ] Package identity `liknon` is reserved for future programmatic integration
-      in each ecosystem and owns no CLI command.
-- [ ] Unified invocations always name `validate`, `manager`, or `tool`.
-- [ ] Launcher help briefly identifies all three namespaces without duplicating
-      capability-specific help, which remains reachable through dispatch.
-- [ ] Launcher version output identifies the launcher first, reports every
-      resolved capability version, and exposes every inspection failure.
-- [ ] A01 maps current implementation to the target without claiming
+- [x] The target summary defines three capability CLIs and one launcher.
+- [x] `liknon-validate` / `likv` exclusively identify direct validation.
+- [x] `liknon` / `likx` exclusively identify the unified launcher.
+- [x] The target summary, A01, and B04 consistently define Cargo package
+      `liknon-cli` as owning launcher and capability command targets backed by
+      the same implementations as standalone packages.
+- [x] Active plans reserve package identity `liknon` for future programmatic
+      integration in each ecosystem and assign it no CLI command.
+- [x] Every documented capability invocation through the launcher names
+      `validate`, `manager`, or `tool`; root `--help` and `--version` remain
+      launcher-owned controls.
+- [x] B04 and D01 require launcher help to identify all three namespaces without
+      duplicating capability-specific help, which remains reachable through
+      dispatch.
+- [x] B04 and D01 require launcher version output to identify the launcher
+      first, report every resolved capability version, and expose every
+      inspection failure.
+- [x] A01 maps current implementation to the target without claiming
       unimplemented products already exist.
-- [ ] B01 owns only Validation CLI distribution.
-- [ ] B02 owns only Hub and Manager behavior/distribution.
-- [ ] B03 owns only Tool behavior/distribution.
-- [ ] B04 solely owns launcher routing, aggregate Cargo distribution, and
+- [x] B01 owns only Validation CLI distribution.
+- [x] B02 owns only Hub and Manager behavior/distribution.
+- [x] B03 owns only Tool behavior/distribution.
+- [x] B04 solely owns launcher routing, aggregate Cargo distribution, and
       complete native-suite distribution.
-- [ ] Programmatic APIs are consistently owned by future B05.
-- [ ] B05 relocation and reference repair precede creation or registration of
+- [x] Programmatic APIs are consistently owned by future B05.
+- [x] B05 relocation and reference repair precede creation or registration of
       the new B04, with no transient duplicate B04 ownership.
-- [ ] C plans consume command capabilities without embedding product routing.
-- [ ] D01 verifies direct and unified paths without taking publication
-      ownership.
-- [ ] Current-state and historical records remain factually intact.
-- [ ] Every active link resolves and the next implementation step is
+- [x] C plans consume command capabilities without embedding product routing.
+- [x] D01 requires future verification of direct and unified paths without
+      taking publication ownership.
+- [x] Current-state and historical records remain factually intact.
+- [x] Every active link resolves and the next implementation step is
       unambiguous.
 
-## 17. Execution Order
+## 16. Execution Order
 
 1. Complete the reference inventory.
-2. Reconcile the target summary and root roadmap.
-3. Reconcile A01 product and repository boundaries.
-4. Move and refound B01 around `liknon-validate` / `likv`.
-5. Move the future API plan from B04 to B05 and repair all references.
-6. Create B04 launcher and CLI-suite ownership only after B05 is established.
-7. Reconcile B02, B03, C01-C03, and D01 references and tests.
-8. Perform the terminology, link, status, and acceptance sweep.
-9. Mark this meta-plan `Historical` only after all verification succeeds.
+2. Reconcile the target-state summary without registering the new B04 in the
+   root roadmap.
+3. Execute the ordered B04/B05 topology transition, create the new B04, update
+   the root roadmap, and pass the foundation checkpoint.
+4. Reconcile A01 product and repository boundaries.
+5. Move and refound B01 around `liknon-validate` / `likv`.
+6. Reconcile B02, B03, C01-C03, and D01 references and future test
+   requirements.
+7. Perform the terminology, link, status, and acceptance sweep.
+8. Run this meta-plan's documentation verification and mark it `Historical`
+   only after every criterion succeeds.
 
 After this meta-plan is complete, the next executable product step returns to
 A01.0's evidence-based structural inventory.

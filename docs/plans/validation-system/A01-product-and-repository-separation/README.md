@@ -27,13 +27,15 @@ boundaries without changing validation semantics accidentally or defining
 future Manager, Tool, Hub, policy, persistence, workflow, or binding contracts
 inside the structural phase.
 
-The approved target has three independent applications:
+The approved target has three independent capability applications and one
+capability-free launcher application:
 
 | Product | Approved responsibility |
 | --- | --- |
 | Validation CLI | Configure, inspect, plan, and execute declarative validation |
 | Manager | Acquire and mutate installed resource state through an approved Hub contract |
 | Tool | Read and return installed resources offline without mutation |
+| Unified launcher | Select one explicit capability namespace and forward the invocation without implementing it |
 
 Candidate internal crates may separate validation semantics from shared
 workspace primitives. Their exact names, public visibility, and dependency
@@ -48,15 +50,17 @@ graph are A01.0 decisions, not prerequisites invented by later A01 documents.
    resources, paths, or package channels simply do not enter the ledger.
 4. Every later A01 unit consumes the approved ledger.
 5. Validation behavior retains one implementation.
-6. Applications may share libraries but do not invoke one another as hidden
-   subprocesses.
+6. Capability applications may share libraries but do not invoke one another
+   as hidden subprocesses. Only the launcher may invoke the explicitly selected
+   capability executable.
 7. The Validation CLI remains usable without Manager, Tool, or installed AI
    resources.
 8. Manager and Tool feature grammars remain B02.0 and B03.0 decisions.
 9. Generic AI governance and persistence ownership remain C01 decisions.
 10. Official resources and workflow graphs remain C02/C03 responsibilities.
-11. Future public in-process APIs remain B04 responsibilities.
-12. Every unit ends in a buildable and testable repository; a later unit is not
+11. Launcher routing and aggregate distribution remain B04 responsibilities.
+12. Future public in-process APIs remain B05 responsibilities.
+13. Every unit ends in a buildable and testable repository; a later unit is not
     a repair phase for an intentionally broken handoff.
 
 ## Exclusions
@@ -76,7 +80,8 @@ liknon/
 |-- Cargo.toml
 |-- Cargo.lock
 |-- apps/
-|   |-- liknon-cli/
+|   |-- liknon-cli/          # Launcher and aggregate package
+|   |-- liknon-validate/
 |   |-- liknon-manager/
 |   `-- liknon-tool/
 |-- crates/
@@ -115,7 +120,7 @@ advance.
 | A01.0 | [Product Boundary And Inventory](00-product-boundary-and-inventory.md) | `Decision gate` | Reviewed evidence-based ledger |
 | A01.1 | [Cargo Workspace And Core Extraction](01-cargo-workspace-and-core-extraction.md) | `Provisional` | Buildable workspace and approved shared boundaries |
 | A01.2 | [Knowledge And AI Resource Separation](02-knowledge-and-ai-resource-separation.md) | `Provisional` | Authored content separated from application runtime ownership |
-| A01.3 | [Application Composition And Workspace Boundary](03-application-composition-and-workspace-resources.md) | `Provisional` | Three isolated application packages and current workspace-path cutover |
+| A01.3 | [Application Composition And Workspace Boundary](03-application-composition-and-workspace-resources.md) | `Provisional` | Three capability packages, one launcher/aggregate package, and current workspace-path cutover |
 | A01.4 | [Conformance And Documentation](04-conformance-and-documentation.md) | `Provisional` | Proven boundaries and reconciled documentation |
 
 ## Cross-Track Handoff
@@ -124,7 +129,10 @@ advance.
 - C01 begins from the stable A01 workspace/product boundary.
 - B02.0 and B03.0 consume structural shells and shared primitives without
   inheriting speculative command grammars from A01.
+- B04.0 consumes stable application boundaries and command contracts before
+  defining launcher discovery, compatibility, and aggregate distribution.
 - C02 and C03 begin only after C01 and the relevant B02/B03 contracts.
+- B05 remains future until a demonstrated in-process consumer activates it.
 - D01 verifies the integrated result rather than repairing product boundaries.
 
 ## Global Acceptance Criteria
@@ -137,6 +145,10 @@ advance.
       that never existed.
 - [ ] The final Cargo graph has no circular application dependency.
 - [ ] Validation retains one semantic implementation and its current behavior.
+- [ ] `liknon-validate` and `likv` expose that validation implementation
+      directly, while `liknon` and `likx` are launcher-only entry points.
+- [ ] Package `liknon-cli` owns the approved aggregate targets without relying
+      on dependency-owned executables.
 - [ ] Validation packaging contains no authored resource corpus unless a later
       approved contract explicitly requires one.
 - [ ] Manager and Tool packages make no feature claim before B02/B03.
@@ -145,6 +157,7 @@ advance.
 - [ ] Policy and persistence ownership is not assigned by A01.
 - [ ] Official workflow identities and process numbers do not appear in
       application control flow.
+- [ ] Package identity `liknon` remains reserved for B05 and owns no CLI target.
 - [ ] Maintained documentation describes only behavior available at the A01
       exit and labels later behavior as planned.
 - [ ] Full repository formatting, lint, tests, doctests, MSRV, package-boundary,

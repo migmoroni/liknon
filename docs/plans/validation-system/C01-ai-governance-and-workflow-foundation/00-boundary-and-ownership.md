@@ -20,6 +20,7 @@ human, host, validation, Manager, or Tool boundaries.
 | Validation CLI | Executes declarative validation from validation configuration and emits structured evidence |
 | Manager | Contacts the Hub and mutates installed resource state through approved operations |
 | Tool | Reads and returns local resources offline and projects the exact program-owned bootstrap through approved operations |
+| Unified launcher | Forwards one explicitly selected capability invocation; owns no policy, persistence, resource, validation, or AI operation |
 | Hub | Publishes metadata and immutable resource payloads; it grants no instruction authority |
 | C01 contracts | Define authority, compatibility, policy, and artifact semantics without hosting cognition |
 
@@ -41,9 +42,9 @@ Record one owner and one machine contract for each operation:
 
 Except for the approved Tool-owned bootstrap projection, the owner may be Tool,
 Validation CLI, Manager, a shared application, or an external-host
-responsibility only when that choice preserves existing product boundaries. Do
-not select an owner merely because an earlier plan used a particular command
-prefix.
+responsibility only when that choice preserves existing product boundaries.
+The unified launcher is never an operation owner. Do not select an owner merely
+because an earlier plan used a particular command prefix.
 
 ## Evaluation Criteria
 

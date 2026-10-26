@@ -18,6 +18,11 @@ C03 depends on implemented C01 governance, approved and implemented B02/B03
 resource contracts, the Validation CLI, and the C02 operational resources it
 declares. D01 is a downstream evaluator, not a prerequisite.
 
+The workflow may bind the direct capability commands or their explicit B04
+launcher namespaces. `liknon-validate <args>` and
+`liknon validate <args>` reach the same validation capability; launcher use
+does not change policy, operation ownership, or the workflow graph.
+
 ## Deliverables
 
 1. [Workflow Contract](00-workflow-contract.md)

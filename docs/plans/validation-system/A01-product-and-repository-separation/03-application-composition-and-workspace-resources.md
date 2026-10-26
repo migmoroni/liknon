@@ -14,10 +14,10 @@ validation workspace path with the approved `.liknon/validation/` location.
 
 ## Validation CLI
 
-The Validation CLI package provides the approved `liknon` and `likx` entry
-points over one implementation. It owns command parsing, terminal adaptation,
-human presentation, JSON stream selection, signals, exit codes, and explicit
-validation initialization.
+The standalone Validation CLI package provides the approved
+`liknon-validate` and `likv` entry points over one implementation. It owns
+command parsing, terminal adaptation, human presentation, JSON stream
+selection, signals, exit codes, and explicit validation initialization.
 
 It reads only:
 
@@ -27,6 +27,23 @@ It reads only:
 
 It does not contact the Hub, browse installed resources, host an AI model, or
 gain policy/persistence behavior merely because those files share `.liknon/`.
+
+## Launcher And Aggregate Package Boundary
+
+Create `apps/liknon-cli` as the aggregate Cargo package selected by the A01.0
+ledger. It owns launcher targets `liknon` and `likx` plus capability targets
+`liknon-validate`, `likv`, `liknon-manager`, `likm`, `liknon-tool`, and `likt`.
+
+The launcher targets contain only namespace selection and process dispatch.
+They do not import capability APIs to execute work. Aggregate capability
+targets reuse the same shared implementations as the standalone application
+packages; no validation, Manager, or Tool behavior is copied. A01 establishes
+these package and dependency boundaries, while B04.0 decides discovery,
+compatibility, process forwarding, installation collisions, native suites, and
+release behavior.
+
+Do not create a Cargo application package named `liknon`. That package identity
+is reserved for future B05 programmatic integration.
 
 ## Manager And Tool Structural Boundaries
 
@@ -95,6 +112,10 @@ profile, or namespace identity.
 
 - Validation works when Manager and Tool are absent.
 - Approved application names dispatch one implementation per product.
+- Aggregate and standalone capability targets resolve the same shared
+  implementations without circular application dependencies.
+- Launcher-only targets contain no validation, network, resource mutation,
+  resource interpretation, or AI behavior.
 - Structural shells, when created, expose no unapproved feature grammar.
 - Workspace discovery, explicit roots, nested roots, unsafe links, and boundary
   escapes have deterministic tests.
@@ -107,5 +128,5 @@ profile, or namespace identity.
 ## Exit Criterion
 
 Validation uses the sole target workspace path, product packages have the
-approved structural boundaries, and B02/B03/C01 can define their behavior
+approved structural boundaries, and B02/B03/B04/C01 can define their behavior
 without A01 having preassigned it.

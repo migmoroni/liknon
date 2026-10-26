@@ -34,16 +34,16 @@ and validation behavior.
 
 - Clone into an isolated environment with no access to the maintainer checkout.
 - Fetch and verify the exact signed release tag.
-- Build and install `apps/liknon-cli` with the committed lockfile and supported
+- Build and install `apps/liknon-validate` with the committed lockfile and supported
   Rust baseline.
 - Run both command names, schema output, and a representative validation
   fixture.
 - Update an older source-installed fixture through the documented procedure.
-- Uninstall it and prove the isolated Cargo root no longer resolves `liknon`.
+- Uninstall it and prove the isolated Cargo root no longer resolves `liknon-validate`.
 
 ### crates.io Candidate Installation
 
-- Inspect `cargo package --list` and the extracted supporting and `liknon-cli`
+- Inspect `cargo package --list` and the extracted supporting and `liknon-validate`
   crates.
 - Build and install the candidate in an isolated Cargo home.
 - Prove both command names and representative behavior match the GitHub source

@@ -1,10 +1,10 @@
-# B04 Registry Accounts And Publication Authority
+# B05 Registry Accounts And Publication Authority
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Status
 
-`Future`. Deferred until Phase B04.0 approves the public API and at least one language
+`Future`. Deferred until Phase B05.0 approves the public API and at least one language
 binding has a release candidate. Do not create placeholder packages or
 long-lived publication credentials merely to satisfy this document.
 
@@ -19,7 +19,7 @@ long-lived publication credentials merely to satisfy this document.
 | .NET library | NuGet | `PackageReference` |
 
 Each identity is created only when its binding is releasable and a
-representative consumer exists. B04 does not publish placeholder packages or
+representative consumer exists. B05 does not publish placeholder packages or
 parallel names. None of these identities grants permission to publish a CLI or
 authored Hub resources through that registry.
 

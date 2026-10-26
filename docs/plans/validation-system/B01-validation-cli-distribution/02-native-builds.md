@@ -9,7 +9,7 @@
 ## Purpose
 
 Produce one final runnable validation payload for each supported Rust target
-and expose it under `liknon` and `likx` in direct distribution.
+and expose it under `liknon-validate` and `likv` in direct distribution.
 
 ## Dependencies
 
@@ -22,7 +22,7 @@ and expose it under `liknon` and `likx` in direct distribution.
 ## Build Contract
 
 - Each Rust target has one unprivileged build job.
-- Every job builds the `apps/liknon-cli` package and selects only its `liknon`
+- Every job builds the `apps/liknon-validate` package and selects only its `liknon-validate`
   binary target as the canonical native payload.
 - The release Rust toolchain and locked dependency graph are recorded exactly.
 - All deterministic post-processing occurs before platform signing.

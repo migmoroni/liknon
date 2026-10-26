@@ -13,8 +13,8 @@ blocked by C01.0, A01, and B03.0.
 Define the program-owned contract that a human supplies as the first Liknon
 instruction to an AI. This contract establishes how a conforming external AI
 host discovers the workspace, loads governance, selects a workflow, retrieves
-resources, binds application capabilities, uses the three CLIs, and records
-evidence.
+resources, binds application capabilities, uses the three capability CLIs
+directly or through explicit launcher namespaces, and records evidence.
 
 The contract provides a stable root for every governed AI interaction without
 turning Liknon into an AI runtime or coupling the applications to one model,
@@ -22,9 +22,10 @@ provider, agent framework, workflow, or skill.
 
 ## 2. Product Boundary
 
-Liknon does not ship a fourth CLI, model host, conversation manager, or workflow
-executor. The human chooses an external AI environment and explicitly directs it
-to the bootstrap entry point. That environment is conforming only while it:
+The unified launcher adds no AI runtime or capability. Liknon does not ship a
+model host, conversation manager, or workflow executor. The human chooses an
+external AI environment and explicitly directs it to the bootstrap entry
+point. That environment is conforming only while it:
 
 - loads the exact supported bootstrap contract before operational resources;
 - preserves superior system, host, repository, and current human instructions;

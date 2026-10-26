@@ -30,7 +30,9 @@ ID.
   persistence contracts.
 - B02 defines how resources are acquired, locked, updated, and removed.
 - B03 defines how installed resources are discovered and returned offline.
-- The Validation CLI remains the only validation executor.
+- The Validation CLI remains the only validation executor. A host may invoke
+  it directly through `liknon-validate` or, when B04 is installed, through
+  `liknon validate`; the launcher adds no workflow capability or authority.
 
 ## Exclusions
 

@@ -61,6 +61,11 @@ identifier, relevant model settings, run timestamp, completion status,
 observed actions, deterministic assertion results, rubric scores, human
 interventions, and reviewer notes.
 
+When a scenario uses the unified route, also record the launcher version,
+selected namespace, resolved component identity, and whether the same task
+passes through the direct command. The four agent families remain evaluation
+families; this route dimension does not create another AI mode.
+
 Model credentials, provider secrets, private prompts, and sensitive project
 content are never committed. Versioned scenarios, fixtures, rubrics, and
 expected structural outcomes belong to the repository. Raw run evidence and

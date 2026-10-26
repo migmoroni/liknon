@@ -48,6 +48,10 @@ C01 does not own:
 - model selection, conversation hosting, or cognitive orchestration;
 - product publication.
 
+The B04 launcher is an optional transport to the same capability commands. It
+does not become an operation owner, policy authority, workflow engine, or
+additional capability in this plan.
+
 ## Exclusions
 
 C01 does not define Manager or Tool command grammar, install resources, conduct

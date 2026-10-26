@@ -1,8 +1,8 @@
-# Phase B04.3: Publish Ruby Bindings
+# Phase B05.3: Publish Ruby Bindings
 
 ## Status
 
-`Future`. Blocked by an approved B04.0 Ruby scope.
+`Future`. Blocked by an approved B05.0 Ruby scope.
 
 [Back to the programmatic API and bindings plan](README.md)
 

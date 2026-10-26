@@ -1,8 +1,8 @@
-# Phase B04.5: Publish .NET Bindings
+# Phase B05.5: Publish .NET Bindings
 
 ## Status
 
-`Future`. Blocked by an approved B04.0 .NET scope.
+`Future`. Blocked by an approved B05.0 .NET scope.
 
 [Back to the programmatic API and bindings plan](README.md)
 

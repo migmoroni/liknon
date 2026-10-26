@@ -12,6 +12,12 @@ their contracts.
 Prove that:
 
 - direct Validation use works without policy, Manager, Tool, or AI persistence;
+- every capability CLI works without the launcher or sibling CLIs;
+- the launcher forwards only an explicit namespace and performs no capability
+  work itself;
+- direct and unified routes preserve observable process behavior;
+- missing or hostile component resolution fails without fallback, installation,
+  repair, or network access;
 - Validation planning reads only validation configuration;
 - Tool is offline and read-only;
 - Manager installation never activates content;
@@ -21,7 +27,9 @@ Prove that:
   semantics;
 - workflow artifacts cannot become executable validation input;
 - official resources can be replaced without application changes;
-- product versions, packages, and release gates remain independently operable.
+- product versions, packages, and release gates remain independently operable;
+- aggregate and standalone installations expose collisions explicitly instead
+  of silently replacing command ownership.
 
 ## Abuse Matrix
 

@@ -1,4 +1,4 @@
-# Phase B04.6: Verify And Publish Language Libraries
+# Phase B05.6: Verify And Publish Language Libraries
 
 ## Status
 
@@ -14,10 +14,10 @@ language package that has independently completed its binding phase.
 
 ## Dependencies
 
-- [Phase B04.0](00-programmatic-api-contract.md) is complete.
+- [Phase B05.0](00-programmatic-api-contract.md) is complete.
 - At least one binding phase has an approved release candidate.
 - The corresponding account checkpoint in
-  [the B04 runbook](accounts-and-permissions.md) is complete.
+  [the B05 runbook](accounts-and-permissions.md) is complete.
 
 ## Conformance Contract
 

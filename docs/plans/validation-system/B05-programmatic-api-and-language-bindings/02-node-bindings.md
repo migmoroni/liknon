@@ -1,8 +1,8 @@
-# Phase B04.2: Publish Node.js Bindings
+# Phase B05.2: Publish Node.js Bindings
 
 ## Status
 
-`Future`. Blocked by an approved B04.0 Node.js scope.
+`Future`. Blocked by an approved B05.0 Node.js scope.
 
 [Back to the programmatic API and bindings plan](README.md)
 
@@ -41,4 +41,4 @@ artifacts, never the Liknon CLI executable, and expose no global `bin` entry.
 ## Exit Criterion
 
 Node.js applications import Liknon through the normal package dependency model
-and receive idiomatic in-process behavior conforming to B04.0.
+and receive idiomatic in-process behavior conforming to B05.0.

@@ -43,9 +43,10 @@ Update maintained documentation to distinguish:
 - product identities and boundaries approved but not yet feature-complete;
 - B01 distribution work;
 - B02/B03 decision gates;
+- B04 launcher and aggregate-suite work;
 - C01 governance decisions;
 - C02/C03 official workflow work;
-- B04 future APIs.
+- B05 future APIs.
 
 Do not document candidate Manager/Tool commands as available. Do not describe a
 future bootstrap, policy, persistence, Hub, resource, or workflow contract as

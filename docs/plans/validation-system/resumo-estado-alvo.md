@@ -16,17 +16,18 @@ subordinado como contrato aprovado.
 
 ## 2. Visao De Produto
 
-O estado-alvo e um sistema de validacao composto por tres CLIs independentes e
-por um ecossistema aberto de recursos:
+O estado-alvo e um sistema de validacao composto por tres CLIs de capacidade,
+um launcher sem capacidade propria e um ecossistema aberto de recursos:
 
 1. uma CLI executa validacoes declarativas;
 2. uma CLI adquire e organiza recursos;
 3. uma CLI consulta recursos locais de forma segura e economica;
-4. recursos de conhecimento e apoio a IA evoluem sem exigir recompilar as
+4. um launcher oferece uma entrada unificada sem incorporar essas capacidades;
+5. recursos de conhecimento e apoio a IA evoluem sem exigir recompilar as
    CLIs;
-5. humanos e agentes podem usar as interfaces publicas sem depender de um
+6. humanos e agentes podem usar as interfaces publicas sem depender de um
    workflow oficial;
-6. workflows oficiais demonstram e testam a integracao, mas nao recebem
+7. workflows oficiais demonstram e testam a integracao, mas nao recebem
    privilegios embutidos nas aplicacoes.
 
 O objetivo e manter o mecanismo de validacao pequeno e deterministico, ao
@@ -35,12 +36,44 @@ podem crescer de forma independente.
 
 ## 3. Produtos Planejados
 
-### 3.1 Validation CLI
+### 3.1 Launcher Unificado
 
 | Campo | Definicao-alvo |
 | --- | --- |
-| Pacote/aplicacao | `liknon-cli` |
+| Pacote agregado | `liknon-cli` |
 | Comandos | `liknon` e `likx` |
+| Responsabilidade | Selecionar uma CLI de capacidade e encaminhar exatamente a invocacao |
+| Rede | Nenhuma capacidade propria |
+| Mutacao | Nenhuma capacidade propria |
+
+O launcher reconhece os namespaces `validate`, `manager` e `tool`, remove
+somente esse primeiro argumento posicional e encaminha o restante para o
+executavel correspondente. Ele nao valida, instala, consulta, interpreta nem
+repara componentes.
+
+```text
+liknon validate validate fast -> liknon-validate validate fast
+liknon validate check ...     -> liknon-validate check ...
+liknon validate config ...    -> liknon-validate config ...
+liknon manager install ...    -> liknon-manager install ...
+liknon tool show ...          -> liknon-tool show ...
+```
+
+`likx` usa a mesma gramatica. Nao existe namespace padrao, alias de
+compatibilidade ou encaminhamento implicito de comandos antigos.
+
+O pacote `liknon-cli` e tambem a rota agregada promovida no Cargo. Ele possui
+os oito alvos binarios `liknon`, `likx`, `liknon-validate`, `likv`,
+`liknon-manager`, `likm`, `liknon-tool` e `likt`, reutilizando as mesmas
+implementacoes compartilhadas dos tres pacotes de aplicacao independentes. Ele
+nao depende de o Cargo instalar binarios pertencentes a dependencias.
+
+### 3.2 Validation CLI
+
+| Campo | Definicao-alvo |
+| --- | --- |
+| Pacote/aplicacao | `liknon-validate` |
+| Comandos | `liknon-validate` e `likv` |
 | Responsabilidade | Configurar, inspecionar, planejar e executar validacoes |
 | Rede | Nenhuma necessidade para o fluxo normal |
 | Recursos de IA | Nao incorpora o corpus completo nem orquestra agentes |
@@ -49,7 +82,7 @@ Essa aplicacao preserva o motor agnostico ja existente. Ela continua sendo
 utilizavel diretamente por humanos, automacao e agentes que conhecam seu
 contrato publico.
 
-### 3.2 Manager
+### 3.3 Manager
 
 | Campo | Definicao-alvo |
 | --- | --- |
@@ -63,7 +96,7 @@ O Manager acessa o Hub, apresenta planos antes de mutacoes e registra o estado
 desejado e o estado resolvido. Instalar um recurso nao significa executa-lo ou
 ativa-lo.
 
-### 3.3 Tool
+### 3.4 Tool
 
 | Campo | Definicao-alvo |
 | --- | --- |
@@ -78,7 +111,7 @@ automacao. Ela verifica o estado instalado e entrega somente o conteudo
 solicitado. Ela nao executa instrucoes encontradas nos recursos e nao
 orquestra modelos de IA.
 
-### 3.4 Distincao Importante
+### 3.5 Distincao Importante
 
 `liknon-tool` e uma aplicacao de consulta. **AI-Tool** e uma skill oficial de
 operacao assistida. Os nomes proximos nao tornam os dois o mesmo produto:
@@ -95,7 +128,8 @@ fronteiras semelhantes a:
 
 ```text
 apps/
-├── liknon-cli/
+├── liknon-cli/          # launcher e pacote agregado
+├── liknon-validate/
 ├── liknon-manager/
 └── liknon-tool/
 
@@ -130,8 +164,10 @@ contratos.
 
 `liknon-core` concentra semantica de configuracao, planejamento, execucao e
 relatorios estruturados. `liknon-workspace` concentra contratos compartilhados
-de workspace, descoberta e caminhos. As tres aplicacoes usam crates comuns,
-mas nao invocam umas as outras como subprocessos ocultos.
+de workspace, descoberta e caminhos. As tres CLIs de capacidade usam crates
+comuns, mas nao invocam umas as outras como subprocessos ocultos. Somente o
+launcher pode invocar a CLI selecionada, sem importar sua API para executar a
+capacidade.
 
 Os nomes exatos das crates internas e a divisao final de APIs devem ser
 confirmados durante a extracao. A fronteira de responsabilidade e mais
@@ -272,7 +308,7 @@ por nome oficial.
 O fluxo humano continua completo e independente:
 
 ```text
-humano -> config.json -> liknon -> relatorio
+humano -> config.json -> liknon-validate -> relatorio
 ```
 
 O humano pode tambem usar uma IA pontualmente, com documentacao ou skills, sem
@@ -291,7 +327,7 @@ deterministica, persistencia delimitada e evidencia verificavel.
 A direcao ja definida para a Validation CLI inclui:
 
 - codigo fonte versionado no GitHub para clone e compilacao local;
-- pacote fonte `liknon-cli` no crates.io;
+- pacote fonte `liknon-validate` no crates.io;
 - binarios nativos verificados e publicados por alvo no dominio do projeto,
   com armazenamento no Cloudflare;
 - instalacao direta por script ou download pelo site;
@@ -301,7 +337,15 @@ A direcao ja definida para a Validation CLI inclui:
 Os detalhes de build, alvo, libc, checksums, assinatura, aprovacao e recuperacao
 pertencem ao plano B01.
 
-### 9.2 Manager E Tool
+### 9.2 Launcher E Suite Completa
+
+O pacote agregado `liknon-cli`, os comandos `liknon` e `likx`, a descoberta de
+componentes e as suites nativas completas pertencem ao plano B04. A instalacao
+agregada e uma alternativa promovida as instalacoes seletivas dos tres
+produtos; ela nao transfere ao launcher a publicacao individual de nenhum
+componente.
+
+### 9.3 Manager E Tool
 
 Manager e Tool usam as mesmas categorias de canal aprovadas para a Validation
 CLI:
@@ -318,15 +362,19 @@ evidencias, credenciais e autorizacao de publicacao proprios. Os contratos
 detalhados de release pertencem respectivamente aos planos B02 e B03 e somente
 podem ser finalizados depois dos contratos de produto dessas aplicacoes.
 
-### 9.3 APIs Programaticas Futuras
+### 9.4 APIs Programaticas Futuras
 
-Pacotes importaveis para Rust, Node.js, Ruby, Python e .NET pertencem a uma fase
-futura. Eles so devem existir quando houver API deliberada e consumidor real em
-cada ecossistema. Nao sao copias da CLI nem pacotes genericos de conteudo.
+Pacotes importaveis para Rust, Node.js, Ruby, Python e .NET pertencem ao plano
+B05 e a uma fase futura. Eles so devem existir quando houver API deliberada e
+consumidor real em cada ecossistema. Nao sao copias da CLI nem pacotes
+genericos de conteudo.
+O nome de pacote `liknon` fica reservado para essas integracoes e nao identifica
+o pacote do launcher nem fornece o comando `liknon` por implicacao.
 
 ## 10. Decisoes Firmes
 
-1. Existem tres produtos de CLI com responsabilidades independentes.
+1. Existem tres CLIs de capacidade com responsabilidades independentes e um
+   launcher sem capacidade propria.
 2. Validation CLI nao deve depender do Manager, de Tool ou de recursos de IA.
 3. Manager e a unica CLI que acessa o Hub e altera recursos instalados.
 4. Tool e offline, somente leitura e nao executa conteudo retornado.
@@ -347,6 +395,12 @@ cada ecossistema. Nao sao copias da CLI nem pacotes genericos de conteudo.
 15. Validation CLI, Manager e Tool usam GitHub como canal de fonte, crates.io
     como canal de pacote fonte e Cloudflare/site como canal de binarios
     nativos, com releases e artefatos independentes.
+16. `liknon-cli` e o pacote Cargo agregado; `liknon` e `likx` sao seus comandos
+    de launcher, enquanto o nome de pacote `liknon` fica reservado para B05.
+17. Toda invocacao de capacidade pelo launcher informa explicitamente
+    `validate`, `manager` ou `tool`; nao existe capacidade padrao.
+18. A ajuda raiz do launcher resume apenas os tres namespaces, e sua versao
+    informa primeiro o launcher e depois os tres componentes resolvidos.
 
 ## 11. Questoes Ainda Abertas
 
@@ -366,7 +420,13 @@ necessario decidir:
 7. o primeiro conjunto publicavel de recursos oficiais e seus testes de
    conformidade;
 8. quando cada API programatica futura possui justificativa suficiente para
-   iniciar seu proprio contrato.
+   iniciar seu proprio contrato;
+9. a precedencia confiavel de descoberta dos executaveis pelo launcher;
+10. a compatibilidade, o versionamento coordenado ou independente e a
+    recuperacao dos componentes da suite agregada;
+11. o formato e o codigo de saida exatos da inspecao agregada de versoes quando
+    um componente estiver ausente, invalido ou nao responder; e
+12. a composicao e a propriedade das suites nativas completas por canal.
 
 Esses pontos podem ser resolvidos em fases distintas. Eles nao bloqueiam a
 documentacao do estado atual, mas bloqueiam afirmar que todos os planos de
@@ -393,9 +453,11 @@ deve:
 
 Ao final, Liknon sera um conjunto coeso, mas desacoplado:
 
-- `liknon` ou `likx` executa validacoes;
+- `liknon-validate` ou `likv` executa validacoes diretamente;
 - `liknon-manager` ou `likm` obtem e organiza recursos;
 - `liknon-tool` ou `likt` consulta recursos locais;
+- `liknon` ou `likx` encaminha uma invocacao com namespace explicito para uma
+  dessas tres capacidades;
 - o Hub distribui conteudo versionado sem rebuild das CLIs;
 - humanos podem operar diretamente;
 - agentes podem operar diretamente ou por workflows governados;

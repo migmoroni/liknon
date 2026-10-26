@@ -12,6 +12,7 @@ workflow contracts are implemented.
 | Scenario | Context supplied | Primary proof |
 | --- | --- | --- |
 | Direct human operation | Validation CLI and public contract | Complete human use without AI resources or policy |
+| Direct and unified CLI parity | B01-B04 integrated candidates | Equivalent capability behavior with launcher isolation and explicit failure states |
 | CLI-only agent discovery | Executable name and in-band CLI output | Self-discovery through help, diagnostics, schemas, and introspection |
 | Documentation-only direct agent | Public CLI documentation, no AI resources | Direct use from public contracts without workflow guidance |
 | Official action workflow | C01 bootstrap/policy plus exact C02 resources | Bounded governed assistance through replaceable resources |
@@ -22,6 +23,36 @@ workflow contracts are implemented.
 Each scenario declares exact versions, fixture digest, context boundary,
 permissions, network policy, human-decision script, expected deterministic
 assertions, and evidence destination.
+
+## Direct And Unified Route Matrix
+
+When B04 is implemented, require future tests for:
+
+- every direct explicit and compact command:
+  `liknon-validate` / `likv`, `liknon-manager` / `likm`, and
+  `liknon-tool` / `likt`;
+- every `validate`, `manager`, and `tool` namespace through both `liknon` and
+  `likx`;
+- exact argument-boundary, environment, working-directory, stdin, stdout,
+  stderr, JSON, exit-status, timeout, and interruption equivalence;
+- root help that remains launcher-focused, works without components, and is
+  equivalent under `liknon` and `likx`;
+- capability-specific help reached through namespace dispatch and emitted by
+  the selected component;
+- launcher-first root version output covering all three components in the
+  approved order through the same trusted resolution used for dispatch;
+- explicit absent, incompatible, invalid, unresponsive, shadowed, and replaced
+  component states;
+- parity between aggregate-package capability targets and their standalone-
+  package counterparts;
+- argument-boundary and executable-path attacks;
+- independent capability operation when the launcher is absent;
+- proof that the launcher performs no network, validation, resource mutation,
+  resource interpretation, policy, persistence, or AI action; and
+- explicit rejection of removed implicit routes such as `liknon check ...`.
+
+These tests consume B04 candidates. D01 neither chooses the launcher contract
+nor publishes the products under test.
 
 ## Cross-Scenario Rules
 
