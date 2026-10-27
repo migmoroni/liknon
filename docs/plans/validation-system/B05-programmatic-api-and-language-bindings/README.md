@@ -10,8 +10,8 @@ language bindings.
 
 This is a future design track, not an implementation-ready commitment. It may
 start only after [A01](../A01-product-and-repository-separation/README.md) has
-established stable core and workspace boundaries and a concrete in-process use
-case exists in at least one language ecosystem.
+established stable core and workspace boundaries and a concrete programmatic
+integration use case exists in at least one language ecosystem.
 
 Do not publish placeholder packages, reserve public package identities through
 empty releases, choose bridge technology, or derive an API mechanically from
@@ -21,7 +21,8 @@ CLI commands before Phase B05.0 is approved.
 
 B05 depends on stable A01 boundaries and at least one demonstrated in-process
 consumer. Each language phase additionally depends on an approved B05.0 API,
-runtime support matrix, bridge strategy, and the
+runtime support matrix, a bridge strategy when native capabilities require one,
+and the
 [B05 registry-readiness runbook](accounts-and-permissions.md).
 
 ## Relationship To Current Products
@@ -38,11 +39,14 @@ runtime support matrix, bridge strategy, and the
   language registries.
 
 The three capability applications, launcher, and future libraries are separate
-products. A B05 library does not install, embed, invoke, or impersonate any
-CLI. Package `liknon` owns no command named `liknon`; that terminal identity
-belongs exclusively to the B04 launcher. A library also does not bundle
-knowledge, skills, workflows, agent profiles, tool descriptors, prompts,
-guides, templates, or collections.
+products. A B05 library does not install, embed, impersonate, or use a CLI as
+hidden transport for programmatic behavior. An explicitly requested
+integration API may inspect a configured CLI route and produce project
+configuration that invokes it, as defined by the
+[Git-hook integration contract](git-hook-integration.md). Package `liknon`
+owns no command named `liknon`; that terminal identity belongs exclusively to
+the B04 launcher. A library also does not bundle knowledge, skills, workflows,
+agent profiles, tool descriptors, prompts, guides, templates, or collections.
 
 A01 may identify and later distribution tracks may publish supporting Cargo
 dependencies so crates.io application packages can build without local paths.
@@ -63,8 +67,8 @@ liknon repository
 
 ## Objective
 
-Expose deliberately selected Liknon capabilities in process for ecosystems
-that have a demonstrated consumer:
+Expose deliberately selected Liknon capabilities and workspace-integration
+APIs for ecosystems that have a demonstrated consumer:
 
 | Ecosystem | Reserved public package identity | Consumption model |
 | --- | --- | --- |
@@ -73,6 +77,11 @@ that have a demonstrated consumer:
 | Ruby | RubyGems `liknon` | `require` and Ruby objects |
 | Python | PyPI `liknon` | Python imports |
 | .NET | NuGet `liknon` | `PackageReference` and managed API |
+
+An approved Git-hook integration may be the first narrow, independently useful
+API of a language package. That does not authorize an empty package, alternate
+CLI installer, or hidden CLI transport: the package must ship the complete
+planning and explicit-application behavior with a representative consumer.
 
 The package identity `liknon` is reserved by this plan in every activated
 ecosystem, but no package exists merely because the name is approved. Each
@@ -95,6 +104,10 @@ Phase B05.0 evaluates and narrows capabilities such as:
   resources, including generic workflow graphs, agent-profile references, tool
   descriptors, and policy-compatibility metadata when an approved consumer
   requires them.
+- plan, preview, apply, verify, and remove an explicitly requested integration
+  between the Validation CLI and an existing Git-hook provider without
+  replacing that provider or mutating the workspace during package
+  installation.
 
 This list is discovery input. Help rendering, ANSI presentation, process exit,
 implicit current-directory behavior, package-manager discovery, Hub access,
@@ -115,7 +128,10 @@ resource installation, and CLI argument parsing are not programmatic APIs.
 6. Hub acquisition and canonical resource mutation remain Manager
    responsibilities; bindings cannot silently reproduce them.
 7. Wrappers preserve domain meaning through idiomatic host-language types.
-8. No package downloads, installs, or shells out to a Liknon CLI.
+8. No package downloads or installs a Liknon CLI, and no general programmatic
+   API uses one as subprocess transport. An approved integration API may
+   explicitly probe a selected CLI version and generate configuration whose
+   runtime command invokes that CLI directly.
 9. Native payloads, when required, are libraries or extension modules, never
    CLI executable copies.
 10. No authored resource payload is duplicated into a language package.
@@ -128,8 +144,9 @@ resource installation, and CLI argument parsing are not programmatic APIs.
 ## Exclusions
 
 B05 does not package CLIs, reserve registries speculatively, expose internal
-Rust modules by default, duplicate Hub resources, or begin from a desire for
-symmetry across language ecosystems.
+Rust modules by default, duplicate Hub resources, become a Git-hook manager, or
+begin from a desire for symmetry across language ecosystems. Package
+installation never edits provider configuration or Git hooks.
 
 ## Decisions Required Before Implementation
 
@@ -140,9 +157,13 @@ symmetry across language ecosystems.
 - typed errors and panic or exception boundaries;
 - API and ABI versioning;
 - memory ownership, threading, serialization, and runtime loading;
-- bridge technology and supported runtime versions;
-- native target matrix and per-registry packaging strategy;
+- bridge technology when selected capabilities require it and supported
+  runtime versions;
+- native target matrix when native payloads exist and the per-registry
+  packaging strategy;
 - relationship among core, wrapper, native library, and package versions;
+- provider-neutral Git-hook planning, ownership, merge, apply, removal, and CLI
+  discovery contracts when that capability is selected;
 - conformance fixtures, documentation, support, security, and publication.
 
 ## Proposed Repository Shape
@@ -180,6 +201,11 @@ consumer and contract are approved.
 | B05.5 | [.NET Bindings](05-dotnet-bindings.md) | B05.0 .NET scope and approved native boundary when required | Importable managed API |
 | B05.6 | [Cross-Language Verification And Publication](06-cross-language-verification-and-publication.md) | Implemented binding phases | Conformance evidence and isolated registry publication |
 
+The [Git-hook integration contract](git-hook-integration.md) is a
+cross-cutting B05.0 design input rather than a separate publication phase. Each
+activated language phase implements it only when the approved package scope
+includes that capability.
+
 Binding phases are optional and need not launch simultaneously.
 
 ## Global Acceptance Criteria
@@ -187,7 +213,14 @@ Binding phases are optional and need not launch simultaneously.
 - [ ] Every published binding has a documented, representative consumer.
 - [ ] One core owns all validation semantics.
 - [ ] Public APIs are designed independently from CLI syntax and presentation.
-- [ ] No package embeds or invokes a Liknon CLI.
+- [ ] No package embeds a Liknon CLI or invokes one as hidden programmatic
+      transport; only an explicit integration compatibility probe may execute
+      the caller-selected route.
+- [ ] Any Git-hook integration follows explicit plan/diff/apply semantics,
+      preserves unrelated configuration, is idempotent, and never mutates a
+      workspace during package installation.
+- [ ] Generated hooks invoke an explicitly selected public Validation command
+      directly, while CI remains the authoritative validation gate.
 - [ ] No package embeds Hub content or authored resources.
 - [ ] Any exposed workflow, profile, tool, or policy type passes external
       non-official resource fixtures without application-specific branches.
@@ -201,5 +234,6 @@ Binding phases are optional and need not launch simultaneously.
 ## Resulting System
 
 Liknon retains three focused CLIs and may gain ecosystem-native libraries only
-where applications need in-process integration. Registries distribute real
-language APIs, not generic content bundles or alternate CLI installers.
+where applications need programmatic integration. Registries distribute real
+language APIs, including approved configuration integrations, not generic
+content bundles or alternate CLI installers.

@@ -13,7 +13,8 @@ programmatic Python module and a representative consumer are ready.
 
 ## Design Gate
 
-Compare native extension and stable-ABI options against:
+When the selected API requires native core behavior, compare native extension
+and stable-ABI options against:
 
 - supported Python versions and implementations;
 - wheel compatibility and platform policy;
@@ -22,9 +23,17 @@ Compare native extension and stable-ABI options against:
 - exception mapping and native-resource ownership;
 - source-distribution policy and reproducible native builds.
 
-Wheels may contain target-specific native extension or library artifacts. They
-do not install the Liknon CLI command and do not use a Python launcher to invoke
-it.
+When no selected capability requires native code, do not add an extension
+merely for symmetry. Wheels may contain target-specific native extension or
+library artifacts. They do not install the Liknon CLI command and do not use a
+Python launcher to invoke it.
+
+If B05.0 selects Git-hook integration, expose idiomatic typed plan, diff,
+apply, verification, and diagnostic objects over the shared
+[integration contract](git-hook-integration.md). Installing or importing the
+project must not mutate hook configuration, and generated hooks invoke the
+selected native Validation command directly rather than start Python as a
+forwarder.
 
 ## Verification
 
@@ -34,6 +43,8 @@ it.
 - Exceptions, cancellation, interpreter shutdown, and native cleanup are safe.
 - Wheel inspection and isolated installation prove correct platform selection.
 - The project contains no CLI executable or authored Hub resource payload.
+- Approved hook adapters pass shared preservation, idempotency, explicit-apply,
+  and absent-CLI fixtures.
 
 ## Exit Criterion
 

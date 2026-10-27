@@ -46,7 +46,7 @@ detail, but it may not silently contradict either document.
 | [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | `Decision gate` at B02.0 | Resource protocol, Hub, Manager behavior, and Manager distribution |
 | [B03 Tool CLI](B03-tool-cli/README.md) | `Decision gate` at B03.0 | Offline resource consumption, agent-facing retrieval, and Tool distribution |
 | [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, launcher commands `liknon` / `likx`, aggregate Cargo installation, and complete native suites |
-| [B05 Programmatic APIs And Language Bindings](B05-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate in-process APIs with demonstrated consumers |
+| [B05 Programmatic APIs And Language Bindings](B05-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate programmatic APIs and explicit workspace integrations with demonstrated consumers |
 
 The three capability CLIs use the same categories of distribution channel:
 exact GitHub source, crates.io source packages, and project-hosted native
@@ -169,9 +169,10 @@ three explicit namespaces are fixed inputs to this gate.
 
 ### B05.0: Programmatic API Activation
 
-Do not activate B05 until at least one real in-process consumer justifies a
-deliberate API. CLI syntax and internal Rust modules are not sufficient API
-design evidence.
+Do not activate B05 until at least one real programmatic consumer justifies a
+deliberate API. A configuration integration can satisfy this gate only with a
+complete contract and representative consumer. CLI syntax and internal Rust
+modules are not sufficient API design evidence.
 
 ## Execution Order
 

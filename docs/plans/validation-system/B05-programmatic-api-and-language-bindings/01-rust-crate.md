@@ -28,6 +28,9 @@ resource-distribution channel.
 - typed errors, reports, progress, cancellation, and timeouts;
 - feature flags and dependency surface;
 - schema and installed-resource metadata ownership;
+- approved Git-hook provider planning and explicit-apply APIs, when selected by
+  B05.0, conforming to the shared
+  [integration contract](git-hook-integration.md);
 - SemVer and MSRV policies;
 - Rustdoc examples and security guidance.
 
@@ -42,6 +45,8 @@ CLI assets.
 - Rustdoc, examples, feature combinations, and MSRV checks;
 - absence of CLI-only assets and implicit process-global behavior;
 - absence of Hub acquisition, resource mutation, and embedded authored content;
+- hook-integration fixtures proving preservation, idempotency, explicit
+  mutation, and no CLI installation or hidden validation execution;
 - publication readback and checksum verification when this phase reaches
   release.
 

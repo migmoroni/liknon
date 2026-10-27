@@ -14,7 +14,8 @@ ready.
 
 ## Design Gate
 
-Before implementation, compare the feasible native bridge options against:
+When the selected API requires native core behavior, compare feasible native
+bridge options against:
 
 - Node runtime and module-format support;
 - async execution, cancellation, callbacks, and thread safety;
@@ -23,9 +24,18 @@ Before implementation, compare the feasible native bridge options against:
 - error and report fidelity;
 - cross-platform build and maintenance cost.
 
-The package may use target-specific auxiliary packages when required by the
-chosen native technology. Those packages carry native library or extension
-artifacts, never the Liknon CLI executable, and expose no global `bin` entry.
+If B05.0 selects Git-hook integration, expose idiomatic TypeScript plan, diff,
+apply, verification, and diagnostic types over the shared
+[integration contract](git-hook-integration.md). Importing or installing the
+package must not mutate hook configuration, and generated hooks must invoke the
+selected native Validation command directly rather than start Node.js as a
+forwarder.
+
+When no selected capability requires native code, do not add a bridge merely
+for symmetry. The package may use target-specific auxiliary packages when
+required by the chosen native technology. Those packages carry native library
+or extension artifacts, never the Liknon CLI executable, and expose no global
+`bin` entry.
 
 ## Verification
 
@@ -35,6 +45,8 @@ artifacts, never the Liknon CLI executable, and expose no global `bin` entry.
 - Installation selects only the matching native artifact and performs no hidden
   CLI invocation.
 - The package contains no CLI executable or authored Hub resource payload.
+- Approved hook adapters pass shared preservation, idempotency, explicit-apply,
+  and absent-CLI fixtures.
 - Exceptions, cancellation, streams, callbacks, and process cleanup behave
   safely.
 

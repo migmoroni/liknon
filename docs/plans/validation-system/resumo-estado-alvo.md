@@ -391,6 +391,14 @@ genericos de conteudo.
 O nome de pacote `liknon` fica reservado para essas integracoes e nao identifica
 o pacote do launcher nem fornece o comando `liknon` por implicacao.
 
+Uma capacidade inicial candidata e configurar explicitamente a integracao da
+Validation CLI com gerenciadores de Git hooks ja presentes no workspace. O
+pacote deve planejar e apresentar a diferenca antes de alterar arquivos,
+preservar configuracao alheia, ser idempotente e nunca instalar a CLI ou mudar
+hooks durante a instalacao do proprio pacote. O hook gerado chama diretamente
+a rota nativa selecionada, enquanto a CI continua sendo a autoridade final de
+validacao.
+
 ## 10. Decisoes Firmes
 
 1. Existem tres CLIs de capacidade com responsabilidades independentes e um
@@ -408,8 +416,8 @@ o pacote do launcher nem fornece o comando `liknon` por implicacao.
 11. Regras globais podem receber overrides por workflow.
 12. Os workflows oficiais iniciais sao recursos substituiveis, nao logica da
     plataforma.
-13. APIs e bindings de linguagem ficam para uma fase posterior com casos de
-    uso concretos.
+13. APIs, bindings e integracoes de configuracao por linguagem ficam para uma
+    fase posterior com casos de uso concretos.
 14. Como ainda nao houve lancamento publico, a mudanca estrutural nao precisa
     preservar aliases, caminhos ou contratos substituidos por compatibilidade.
 15. Validation CLI, Manager e Tool usam GitHub como canal de fonte, crates.io
