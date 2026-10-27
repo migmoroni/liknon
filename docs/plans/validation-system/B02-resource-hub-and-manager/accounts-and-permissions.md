@@ -25,11 +25,15 @@ The human release owner controls:
 
 GitHub Actions may build, verify, and publish reviewed immutable candidates.
 Build and test jobs receive no publication credential.
+Reusable CLI-distribution workflows receive no inherited B01, B03, B04, or Hub
+credential. The B02 caller binds only the isolated Manager authority required
+by a selected publication job.
 
 ## Required Identities
 
 | Purpose | Isolated authority |
 | --- | --- |
+| Manager release workflow | `.github/workflows/release-manager.yml` |
 | Manager and required supporting-crate publication | `publish-crates-manager` |
 | Manager GitHub metadata release | `publish-github-manager` |
 | Manager native artifacts | `publish-cloudflare-manager` |
@@ -58,7 +62,8 @@ jobs.
 
 Before B02.5 candidate builds, confirm the `liknon-manager` and
 supporting-package identities selected by A01, native target matrix, protected
-environments, and artifact retention.
+environments, Manager product descriptor, shared-foundation revision, and
+artifact retention.
 
 ### Publication
 
@@ -75,6 +80,9 @@ use.
 - No secret enters a resource, lock, manifest, binary archive, log, cache key,
   or retained public evidence.
 - Community publishers never receive Liknon project publication credentials.
+- Manager release storage authorization cannot write Validation, Tool, or suite
+  release state. Use a separate bucket or an equally strong boundary when
+  authorization cannot be scoped to a product prefix.
 
 ## Exit Criterion
 

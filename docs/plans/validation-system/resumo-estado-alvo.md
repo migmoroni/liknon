@@ -317,7 +317,24 @@ deterministica, persistencia delimitada e evidencia verificavel.
 
 ## 9. Distribuicao
 
-### 9.1 Validation CLI
+### 9.1 Fundacao Compartilhada De Distribuicao
+
+As quatro entregas nativas usam uma unica fundacao de release mantida no
+repositorio: Validation, Manager, Tool e launcher/suite. Essa fundacao fornece
+os mecanismos comuns de build por alvo, manifests, proveniencia, empacotamento,
+assinatura, instaladores, deteccao de plataforma e libc, verificacao,
+publicacao, leitura publica e recuperacao.
+
+B01 implementa essa fundacao primeiro, usando Validation como o primeiro perfil
+real. Isso nao torna B01 proprietario das outras publicacoes. Cada produto
+mantem seu proprio pacote, versao, tag, candidatos, hashes, namespace no
+Cloudflare, ponteiro estavel, credenciais, testes, aprovacao e recuperacao.
+
+Os workflows de produto devem ser orquestradores finos sobre mecanismos
+reutilizaveis e sem comportamento especifico de uma capacidade. Uma alteracao
+na fundacao deve validar todos os perfis de produto que ja a utilizam.
+
+### 9.2 Validation CLI
 
 A direcao ja definida para a Validation CLI inclui:
 
@@ -329,10 +346,11 @@ A direcao ja definida para a Validation CLI inclui:
 - metadados de release e proveniencia sem usar o GitHub como origem obrigatoria
   dos binarios publicos.
 
-Os detalhes de build, alvo, libc, checksums, assinatura, aprovacao e recuperacao
-pertencem ao plano B01.
+O contrato comum desses mecanismos pertence a fundacao compartilhada. Os
+detalhes especificos de build, alvo, checksums, assinatura, aprovacao e
+recuperacao da Validation CLI pertencem ao plano B01.
 
-### 9.2 Launcher E Suite Completa
+### 9.3 Launcher E Suite Completa
 
 O pacote agregado `liknon-cli`, os comandos `liknon` e `likx`, a descoberta de
 componentes e as suites nativas completas pertencem ao plano B04. A instalacao
@@ -340,7 +358,13 @@ agregada e uma alternativa promovida as instalacoes seletivas dos tres
 produtos; ela nao transfere ao launcher a publicacao individual de nenhum
 componente.
 
-### 9.3 Manager E Tool
+Para distribuicao nativa, B04 constroi uma vez o payload do launcher por alvo e
+o combina com os candidatos exatos e ja verificados de B01, B02 e B03. B04 nao
+recompila as CLIs de capacidade. O pacote fonte `liknon-cli` no crates.io e um
+caso distinto: ele possui seus alvos declarados e os compila a partir do
+fechamento de fontes aceito.
+
+### 9.4 Manager E Tool
 
 Manager e Tool usam as mesmas categorias de canal aprovadas para a Validation
 CLI:
@@ -351,13 +375,14 @@ CLI:
   armazenamento no Cloudflare;
 - instalacao direta por script ou download pelo site.
 
-Essa decisao compartilha o modelo de distribuicao, nao os artefatos ou o ciclo
-de prontidao. Cada CLI possui identidade de pacote, tags, builds, metadados,
-evidencias, credenciais e autorizacao de publicacao proprios. Os contratos
-detalhados de release pertencem respectivamente aos planos B02 e B03 e somente
-podem ser finalizados depois dos contratos de produto dessas aplicacoes.
+Essa decisao compartilha os mecanismos de distribuicao, nao os candidatos nem o
+ciclo de prontidao. Cada CLI possui identidade de pacote, tags, builds,
+metadados, evidencias, credenciais e autorizacao de publicacao proprios. Os
+contratos detalhados de release pertencem respectivamente aos planos B02 e B03
+e somente podem ser finalizados depois dos contratos de produto dessas
+aplicacoes.
 
-### 9.4 APIs Programaticas Futuras
+### 9.5 APIs Programaticas Futuras
 
 Pacotes importaveis para Rust, Node.js, Ruby, Python e .NET pertencem ao plano
 B05 e a uma fase futura. Eles so devem existir quando houver API deliberada e
@@ -396,6 +421,9 @@ o pacote do launcher nem fornece o comando `liknon` por implicacao.
     `validate`, `manager` ou `tool`; nao existe capacidade padrao.
 18. A ajuda raiz do launcher resume apenas os tres namespaces, e sua versao
     informa primeiro o launcher e depois os tres componentes resolvidos.
+19. B01-B04 compartilham uma fundacao de distribuicao, mas cada produto preserva
+    candidatos, versao, tag, namespace, credenciais, aprovacao, testes e
+    autoridade de publicacao proprios.
 
 ## 11. Questoes Ainda Abertas
 

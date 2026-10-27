@@ -16,6 +16,8 @@ product boundaries established by A01 and B01-B03.
 ## Required Inputs
 
 - the approved A01 package and dependency graph;
+- the [shared CLI distribution foundation](../cli-distribution-foundation.md)
+  and its credential-free conformance evidence;
 - stable direct command contracts from B01-B03;
 - the supported platform and process guarantees of each component;
 - evidence from current shell-free execution and platform-specific process
@@ -64,15 +66,62 @@ Decide:
 
 Decide:
 
+- the launcher/suite product descriptor, release workflow, target rows, tag,
+  Cloudflare storage boundary and prefix, stable pointer, protected
+  environments, and recovery owner;
+- how one final launcher payload is built and verified per target through the
+  shared foundation;
 - exact suite composition for each supported target and channel;
 - component-location rules across aggregate and standalone channels;
 - compatibility and provenance manifest contracts;
+- multi-payload archive, installer, transactional replacement, rollback, and
+  uninstall behavior for all eight command names;
 - how B04 consumes immutable B01-B03 candidates without assuming publication
   ownership;
 - release versioning, tags, artifact names, credentials, retention, retry, and
   recovery boundaries;
 - whether publication waits for all three standalone candidates or supports a
   documented narrower readiness rule.
+
+### Version And Provenance
+
+Record the exact `liknon-cli` Cargo package path as the sole version authority
+for the launcher and complete-suite release, plus its signed-tag prefix. The
+implementation must select the package and version through structured Cargo
+metadata and must not add a handwritten suite version or inherit a capability
+CLI version.
+
+Decide and document:
+
+- the canonical B04 release identity `(suite, liknon-cli, version, tag,
+  commit)` and exact annotated-tag signature requirements;
+- package, binary-target, lockfile, source-closure, tag, and commit checks that
+  precede all candidate creation;
+- the internal launcher build manifest and the public complete-suite manifest;
+- immutable object naming, stable-pointer transition, retry, rollback, and
+  recovery rules for that exact identity;
+- source-package inventory and digest evidence for the aggregate crates.io
+  package; and
+- public-readback and provenance evidence retained for every launcher and suite
+  target.
+
+The direct-suite manifest records the exact product, package, version, signed
+tag, source commit, target, final hash, and provenance reference for the
+launcher and every retained B01-B03 component. It also records the compatibility
+decision used for that composition. Components may have different versions;
+compatibility is never inferred from equality and a capability candidate is
+never relabeled with the suite version.
+
+The aggregate crates.io source package and the direct native suite remain
+different provenance subjects. The source package proves the accepted package
+closure from which it compiles all eight targets. The direct suite proves the
+exact immutable native candidates it composes. Evidence for one cannot stand in
+for the other.
+
+The decision must distinguish the aggregate crates.io source package from a
+direct native suite. The source package compiles its owned targets from source.
+The direct suite combines a newly built launcher payload with exact retained
+capability payloads and cannot rebuild, resign, or mutate them.
 
 ### Help And Aggregate Version
 
@@ -99,7 +148,12 @@ Before approval, produce disposable evidence for:
 7. brief root help plus delegated component help;
 8. launcher-first version output with complete failure reporting;
 9. one representative complete native-suite composition from retained
-   component candidates.
+   component candidates;
+10. one launcher native candidate produced through the shared build lane and a
+    rejected cross-product candidate or namespace substitution;
+11. deterministic launcher/suite manifests plus rejection of a changed version,
+    tag, commit, target, component hash, provenance reference, or source-package
+    closure.
 
 Prototype code is not production code and is removed unless its ownership is
 approved for B04.1 or later.
@@ -115,6 +169,14 @@ approved for B04.1 or later.
 - Capability implementations remain independently buildable and installable.
 - Native composition consumes exact verified candidates and does not rebuild
   them under B04.
+- The launcher and suite release identity comes from the exact `liknon-cli`
+  package, signed tag, and source commit without a second authored version.
+- Every direct-suite component retains its original release identity, target,
+  hash, and provenance reference.
+- Aggregate source-package provenance is not substituted for direct native-suite
+  provenance or vice versa.
+- Launcher native production uses the shared foundation but B04-owned identity,
+  tests, namespaces, credentials, approval, and recovery.
 - Package `liknon` is absent from launcher and suite ownership.
 - D01 receives an explicit future scenario matrix for the approved contract.
 

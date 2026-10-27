@@ -8,8 +8,9 @@
 
 ## Purpose
 
-Produce one final runnable validation payload for each supported Rust target
-and expose it under `liknon-validate` and `likv` in direct distribution.
+Implement the reusable credential-free native build lane, then produce one
+final runnable Validation payload for each supported Rust target and expose it
+under `liknon-validate` and `likv` in direct distribution.
 
 ## Dependencies
 
@@ -22,8 +23,10 @@ and expose it under `liknon-validate` and `likv` in direct distribution.
 ## Build Contract
 
 - Each Rust target has one unprivileged build job.
-- Every job builds the `apps/liknon-validate` package and selects only its `liknon-validate`
-  binary target as the canonical native payload.
+- The reusable job accepts only a validated product descriptor and an approved
+  target row; it owns no product behavior or publication credential.
+- The Validation caller builds the `apps/liknon-validate` package and selects
+  only its `liknon-validate` binary target as the canonical native payload.
 - The release Rust toolchain and locked dependency graph are recorded exactly.
 - All deterministic post-processing occurs before platform signing.
 - Windows signing runs in an isolated job with only its self-signed
@@ -58,7 +61,8 @@ Before a target can feed a public archive, CI proves:
 
 ## Implementation Tasks
 
-1. Add one release build job for each target in the platform contract.
+1. Add one reusable release build job parameterized by a validated product
+   descriptor and one matrix invocation per target in the platform contract.
 2. Install only approved target and toolchain prerequisites.
 3. Build the canonical native payload once with the committed lockfile.
 4. Apply approved deterministic post-processing.
@@ -69,6 +73,8 @@ Before a target can feed a public archive, CI proves:
    and mode-specific evidence in the build manifest.
 8. Upload one private workflow artifact per target with executable metadata
    preserved and bounded retention.
+9. Add descriptor fixtures proving product, package, binary, alias, target, and
+   output namespaces cannot be crossed.
 
 ## Verification
 
@@ -80,9 +86,12 @@ Before a target can feed a public archive, CI proves:
 - Windows verification pins the expected fingerprint without importing trust.
 - macOS verification neither disables Gatekeeper nor clears quarantine.
 - Pre-signature hashes are rejected as non-final evidence.
+- Common build logic contains no Validation smoke behavior; the Validation
+  profile supplies and owns its semantic smoke checks.
 
 ## Exit Criterion
 
-CI retains exactly one runnable, final, accurately described payload and hash
-for each supported target. Every later B01 phase exposes those exact bytes
-under both names without recompilation or mutation.
+CI retains exactly one runnable, final, accurately described Validation payload
+and hash for each supported target. Every later B01 phase exposes those exact
+bytes under both names without recompilation or mutation, and later product
+plans can invoke the same build lane with independent descriptors.

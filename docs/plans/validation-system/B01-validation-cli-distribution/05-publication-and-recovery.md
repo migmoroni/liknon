@@ -22,7 +22,9 @@ resumable without rebuilding candidates.
 ## Workflow And Trust Boundaries
 
 The normal CI workflow remains non-publishing. A dedicated release workflow
-runs for an explicitly selected signed tag with cancellation disabled.
+runs for an explicitly selected signed tag with cancellation disabled. It is a
+thin Validation orchestrator over shared credential-free mechanisms and
+Validation-owned protected publication environments.
 
 The workflow separates:
 
@@ -39,6 +41,8 @@ The workflow separates:
 
 Third-party actions are pinned to full commit SHAs. Private GitHub Actions
 artifacts are workflow transport, not a public download channel.
+Reusable workflows receive no broad inherited secret set. A product-specific
+caller passes only the credential required by the selected isolated job.
 
 ## Credential Boundaries
 
@@ -101,6 +105,9 @@ repair a release.
 5. Implement destination-specific readback and resumable state.
 6. Retain enough private evidence for Phase B01.6 and bounded recovery.
 7. Add fault-injection tests at every publication boundary.
+8. Prove the Validation storage authorization cannot write Manager, Tool,
+   suite, or unrelated release state and cannot select their protected
+   environments.
 
 ## Verification
 

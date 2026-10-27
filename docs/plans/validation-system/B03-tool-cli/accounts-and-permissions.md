@@ -16,6 +16,7 @@ the Tool release phase currently being implemented.
 
 | Purpose | Identity |
 | --- | --- |
+| Release workflow | `.github/workflows/release-tool.yml` |
 | Cargo packages | `liknon-tool` and supporting packages selected by A01 |
 | Signed tag | `liknon-tool-v<VERSION>` |
 | GitHub metadata release | Exact signed tag |
@@ -28,6 +29,9 @@ Tool publication uses no Hub resource-publication or namespace credential.
 
 - Build, test, package inspection, and end-to-end verification have no
   publication credential.
+- Reusable CLI-distribution workflows receive no inherited product secret; the
+  B03 caller binds only the isolated Tool authority required by the selected
+  publication job.
 - crates.io, GitHub, Cloudflare, detached metadata signing, and platform signing
   use separate protected environments.
 - The human release owner controls the signed tag and final approval.
@@ -43,6 +47,10 @@ Tool publication uses no Hub resource-publication or namespace credential.
 3. Configure protected publication environments only when candidates pass.
 4. Activate destination credentials immediately before B03.4 publication.
 5. Verify public readback, revoke temporary credentials, and retain evidence.
+
+Tool storage authorization cannot write Validation, Manager, or suite release
+state. Use a separate bucket or an equally strong boundary when authorization
+cannot be scoped to a product prefix.
 
 ## Exit Criterion
 

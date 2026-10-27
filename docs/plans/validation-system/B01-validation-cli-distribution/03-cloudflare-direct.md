@@ -8,7 +8,8 @@
 
 ## Purpose
 
-Create immutable native archives, signed public release metadata, and user-local
+Implement product-neutral archive, metadata, and installer assembly, then create
+immutable Validation archives, signed public release metadata, and user-local
 installers for users who want a ready Liknon CLI without Rust or a repository
 clone. This phase assembles and tests candidates locally; Phase B01.5 publishes
 them.
@@ -50,6 +51,9 @@ The `r2.dev` development endpoint is not a production channel.
 
 ## Archive And Object Contract
 
+- Shared assembly derives paths and names only from the validated product
+  descriptor and manifest. The layout below is the Validation instance, not a
+  hard-coded common layout.
 - Each archive contains the exact manifest-verified payload under both command
   names plus required license and notice files.
 - Names derive from Cargo version and target identity.
@@ -102,7 +106,10 @@ or recursive attribute clearing is prohibited.
 
 ## Cloudflare Operational Contract
 
-- Use one production R2 bucket and project-controlled custom domain.
+- Use one Validation production R2 bucket and project-controlled custom domain.
+- Scope the Validation upload authority to that bucket or an equally strong
+  storage boundary; do not rely on an object-prefix convention for isolation
+  from other product releases.
 - Keep the production `r2.dev` endpoint disabled.
 - Use a bucket-scoped write credential only in the publication job.
 - Pin the official or S3-compatible upload client version.
@@ -112,7 +119,8 @@ or recursive attribute clearing is prohibited.
 
 ## Implementation Tasks
 
-1. Add version-neutral POSIX and PowerShell installer templates.
+1. Add product-neutral, version-neutral POSIX and PowerShell installer
+   templates driven by authenticated product metadata.
 2. Implement deterministic target and Linux libc selection.
 3. Assemble one archive with both command names from each manifest-verified
    payload.
@@ -121,7 +129,10 @@ or recursive attribute clearing is prohibited.
 6. Sign the exact final manifest bytes.
 7. Add signing-key lifecycle fixtures.
 8. Define reproducible Cloudflare object, cache, and lock configuration.
-9. Stage every generated output under `target/distribution/direct/`.
+9. Stage every generated output under
+   `target/distribution/validation/direct/`.
+10. Test a second fixture product through assembly and installation without
+    granting it Validation paths, names, stable pointers, or credentials.
 
 ## Verification
 
@@ -139,10 +150,12 @@ or recursive attribute clearing is prohibited.
 - Installation works in paths containing spaces.
 - Failure never replaces either valid existing command.
 - Assembly modifies no tracked file.
+- One product descriptor cannot select or overwrite another product's archive,
+  manifest, installer, release prefix, or stable pointer.
 
 ## Exit Criterion
 
 Every supported target has one authenticated direct archive and both installer
 paths operate transactionally without a language toolchain or elevated
 privileges. All staged bytes are covered by deterministic, signed, versioned
-metadata.
+metadata, and the common assembler remains product-neutral.

@@ -8,7 +8,8 @@
 
 ## Purpose
 
-Derive every CLI release identity from structured package metadata and create
+Implement product-neutral descriptor and manifest contracts, then derive the
+Validation release identity from structured package metadata. Create
 deterministic internal and public evidence linking one source commit to the
 crates.io source package and each native artifact.
 
@@ -46,6 +47,8 @@ After native builds, CI creates `build-manifest.json`:
 ```json
 {
   "schemaVersion": 1,
+  "product": "validation",
+  "package": "liknon-validate",
   "version": "<cargo-version>",
   "tag": "liknon-validate-v<cargo-version>",
   "commit": "<full-source-commit>",
@@ -67,11 +70,12 @@ After native builds, CI creates `build-manifest.json`:
 }
 ```
 
-The manifest is private workflow provenance, not a runtime API. Every assembly
-and verification job validates it before touching a binary. GNU and MUSL have
-separate records. Windows records its expected certificate fingerprint,
-signature digest, and verified RFC 3161 timestamp evidence. macOS records strict
-ad hoc verification and `notarized: false`. Linux records no native signer.
+The schema is shared; the record is product-specific private workflow
+provenance, not a runtime API. Every assembly and verification job validates it
+before touching a binary. GNU and MUSL have separate records. Windows records
+its expected certificate fingerprint, signature digest, and verified RFC 3161
+timestamp evidence. macOS records strict ad hoc verification and
+`notarized: false`. Linux records no native signer.
 
 ## Public Direct Manifest
 
@@ -90,17 +94,19 @@ The public manifest contains no workflow internals or credentials.
 
 ## Implementation Tasks
 
-1. Select the CLI package and version using structured Cargo metadata.
-2. Validate both binary targets and assemble the inspected crates.io candidate.
-3. Remove authored release versions from workflow and staging paths.
-4. Enforce the approved version, tag, commit, and signature contract before
+1. Define and validate the product-neutral descriptor and manifest schemas.
+2. Select the CLI package and version using structured Cargo metadata and the
+   reviewed Validation descriptor.
+3. Validate both binary targets and assemble the inspected crates.io candidate.
+4. Remove authored release versions from workflow and staging paths.
+5. Enforce the approved version, tag, commit, and signature contract before
    artifact assembly.
-5. Define structurally validated schemas for internal and public manifests.
 6. Generate the internal manifest from normalized native-job evidence.
 7. Generate the public manifest deterministically from verified direct
    archives, checksum data, and installers.
-8. Reject duplicate targets, unsafe paths, unknown consumers, incomplete
-   signing evidence, size mismatches, and hash mismatches.
+8. Reject duplicate targets, unsafe paths, unknown products or consumers,
+   product/namespace mismatches, incomplete signing evidence, size mismatches,
+   and hash mismatches.
 9. Preserve stable serialization required by detached signatures.
 
 ## Verification
@@ -115,9 +121,12 @@ The public manifest contains no workflow internals or credentials.
 - Windows and macOS records cannot overstate their declared trust modes.
 - Linux records cannot invent a platform-native signer.
 - Generated paths contain no independently authored release version.
+- A fixture for another product passes the shared schema without activating a
+  Validation path, tag, test, namespace, or authority.
 
 ## Exit Criterion
 
-One package-derived identity and deterministic evidence connect the signed
-source revision to the crates.io package and every direct artifact without
-introducing another version or provenance source.
+One package-derived Validation identity and deterministic evidence connect the
+signed source revision to the crates.io package and every direct artifact
+without introducing another version or provenance source. The same schemas can
+represent another CLI without copying logic or inheriting Validation identity.

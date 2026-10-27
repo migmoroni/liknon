@@ -10,12 +10,15 @@ package boundary and release candidate.
 ## Purpose
 
 Resolve every public identity, platform, trust, and installation decision that
-later B01 phases must implement. This phase changes no runtime behavior and
-publishes nothing.
+later B01 phases must implement. It also approves the boundary between reusable
+release mechanisms and the Validation product profile. This phase changes no
+runtime behavior and publishes nothing.
 
 ## Dependencies
 
 - [Plan A01](../A01-product-and-repository-separation/README.md) is complete.
+- The [shared CLI distribution foundation](../cli-distribution-foundation.md)
+  is the governing cross-product release contract.
 - Current validation behavior is preserved by A01. Package name `liknon-validate`
   and command names `liknon-validate` and `likv` are approved target identities and must
   exist before this distribution contract exits.
@@ -122,6 +125,9 @@ must never be described more strongly than its real trust mode.
 
 ## Decisions To Record
 
+- structured Validation product-descriptor location and schema;
+- exact common/product split for workflows, scripts, schemas, installers,
+  fixtures, generated state, and protected environments;
 - canonical repository and release-workflow identity;
 - exact Cloudflare account, bucket, custom domain, and responsible owner;
 - release version grammar and signed-tag identity;
@@ -142,8 +148,8 @@ must never be described more strongly than its real trust mode.
 
 ## Implementation Tasks
 
-1. Record every decision above in one reviewed release-contract fixture or
-   equivalent version-neutral configuration.
+1. Record every product-specific decision above in one reviewed Validation
+   descriptor and keep product-neutral constraints in shared schemas.
 2. Prototype source installation from an exact local signed-tag fixture without
    access to repository-external files.
 3. Package and install `liknon-validate` from an isolated crates.io candidate,
@@ -159,6 +165,9 @@ must never be described more strongly than its real trust mode.
    capabilities against the selected account design.
 9. Confirm that every required credential can be isolated as defined by the
    [runbook](accounts-and-permissions.md).
+10. Prove with fixture descriptors that common release code rejects an unknown
+    product, missing authority, cross-product namespace, unsafe path, and
+    product/target mismatch.
 
 ## Verification
 
@@ -178,9 +187,12 @@ must never be described more strongly than its real trust mode.
 - Versioned Cloudflare objects cannot be overwritten by the normal release
   identity.
 - An accepted crates.io version cannot be replaced.
+- Common release code contains no hard-coded Validation behavior and cannot
+  select another product's credential, namespace, candidate, or stable pointer.
 
 ## Exit Criterion
 
 The three public channels, command aliases, complete platform matrix, release
 identity, signing model, registry and Cloudflare boundaries, and human/CI
-authority are explicit and empirically feasible.
+authority are explicit and empirically feasible. The reusable foundation and
+Validation profile have a reviewed, testable boundary.

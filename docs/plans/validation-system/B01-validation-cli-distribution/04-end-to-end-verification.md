@@ -10,7 +10,8 @@
 
 Prove before publication that GitHub source, packaged crates.io source, and
 every direct native path carry the intended version, source identity, aliases,
-and validation behavior.
+and validation behavior. Establish the common conformance harness that later
+product plans extend with their own semantic cases.
 
 ## Dependencies
 
@@ -91,6 +92,18 @@ and validation behavior.
 - No test can read publication or signing credentials.
 - CLI packages and archives contain no knowledge corpus, skill, prompt, or
   ecosystem AI resource.
+- Shared release fixtures and workflows contain no product publication secret
+  or implicit Validation fallback.
+
+### Shared-Foundation Conformance
+
+- Exercise valid fixture descriptors for Validation and one unrelated product.
+- Reject cross-product candidate, namespace, stable-pointer, package, target,
+  alias, and evidence substitution.
+- Prove the common harness runs product-owned semantic tests without defining
+  those semantics itself.
+- Prove publication credentials remain absent from every reusable build,
+  assembly, and verification job.
 
 ## Evidence Contract
 
@@ -115,6 +128,8 @@ Evidence contains no credential or secret path.
 5. Exercise alias equivalence, update, failure preservation, and uninstall.
 6. Emit and retain the reviewed evidence set.
 7. Fail the joined phase when any channel or target lacks complete evidence.
+8. Retain a reusable conformance suite that B02-B04 can invoke with their own
+   descriptors and product-specific smoke cases.
 
 ## Exit Criterion
 

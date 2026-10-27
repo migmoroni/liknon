@@ -19,9 +19,11 @@ Read these documents in order before using an implementation plan:
 1. [Current-State Assessment](avaliacao-estado-atual.md) - `Current-state record`
 2. [Target-State Summary](resumo-estado-alvo.md) - `Approved target` with
    explicit open decisions
-3. [Plan Coherence And Reorganization](A00-plan-coherence-and-reorganization/README.md)
+3. [Shared CLI Distribution Foundation](cli-distribution-foundation.md) -
+   `Approved cross-product contract` for B01-B04 release mechanisms
+4. [Plan Coherence And Reorganization](A00-plan-coherence-and-reorganization/README.md)
    - `Historical` completed documentation meta-plan
-4. [Unified Launcher, CLI Suite, And Command Plan Realignment](A00.1-unified-launcher-plan-realignment/README.md)
+5. [Unified Launcher, CLI Suite, And Command Plan Realignment](A00.1-unified-launcher-plan-realignment/README.md)
    - `Historical` completed documentation meta-plan
 
 The current-state assessment answers what exists. The target summary answers
@@ -54,6 +56,13 @@ authority. B04 composes verified component candidates into the promoted
 aggregate Cargo package and complete native suites without taking over their
 individual publication.
 
+The [shared CLI distribution foundation](cli-distribution-foundation.md)
+defines the reusable build, manifest, archive, installer, signing, verification,
+publication, and recovery mechanisms. B01 implements those mechanisms first
+with Validation as the first product profile. B02 and B03 instantiate them for
+independent products. B04 uses them to build the launcher and then composes
+exact verified B01-B03 native candidates without rebuilding capability CLIs.
+
 ### C: AI Governance And Official Workflows
 
 | Plan | Status | Owns |
@@ -85,29 +94,30 @@ current-state assessment + approved target summary
                          v
           A01 product/repository boundaries
              |                         |
-             +--> B01 Validation       +--> C01 generic AI/workflow
-             |    CLI delivery              governance contracts
-             |                                  |
-             |                                  +--> B02.0 Manager/Hub
-             |                                  +--> B03.0 Tool
-             |                                           |
-             +--------- stable component contracts ------+
-                                 |
-                                 +--> B04.0 launcher/suite contract
-                                 |
-                 approved product implementations
-                                 |
-              +------------------+------------------+
-              |                  |                  |
-              v                  v                  v
-       C02 official       C03 official       B04 integrated
-       action workflow    validation-        launcher and suites
-                          engineering                |
-              \           workflow                  /
-               +----------------+-------------------+
-                                |
-                                v
-                D01 integrated conformance and evaluation
+             v                         v
+ B01 Validation profile +       C01 generic AI/workflow
+ shared distribution            governance contracts
+ foundation implementation              |
+             |                    +------+------+
+             |                    v             v
+             |               B02.0 Hub/     B03.0 Tool
+             |               Manager        contract
+             |                    |             |
+             +--------------------+-------------+
+                                  |
+                     B02/B03 product implementation
+                     and independent distribution
+                                  |
+                    stable contracts and candidates
+                                  |
+                                  v
+                    B04.0 launcher/suite contract
+                                  |
+                                  v
+                   B04 launcher and native suites
+
+ C01 + B02/B03 contracts --> C02/C03 official workflows
+ B01-B04 + C01-C03 evidence --> D01 integrated conformance
 
 B05 programmatic APIs and language bindings: future, independently activated
 ```
@@ -168,10 +178,14 @@ design evidence.
 1. A01 has implemented the structural cutover in buildable units; complete its
    final hosted verification.
 2. Begin B01 delivery work and C01 contract work from the verified A01 boundary.
+   B01 first establishes the shared distribution primitives and its Validation
+   profile; this does not publish or version another product.
 3. Resolve B02.0 and B03.0; only then implement their provisional phases.
+   Their distribution phases instantiate the shared foundation under separate
+   identities, tests, credentials, and approval.
 4. Resolve B04.0 after A01 boundaries and component command contracts are
-   stable; implement integrated routing and distribution only from verified
-   B01-B03 release candidates.
+   stable; build the launcher through the shared foundation and implement
+   native-suite composition only from verified B01-B03 release candidates.
 5. Implement C02 and C03 as resources over approved generic contracts.
 6. Execute D01 integrated conformance and agent evaluation.
 7. Activate the future B05 programmatic-API plan only through its independent
@@ -186,6 +200,8 @@ one plan never implicitly marks another plan complete.
   current-state assessment.
 - Approved target direction belongs to the target summary.
 - Product behavior and distribution belong to A/B plans.
+- Cross-product release mechanisms belong to the shared CLI distribution
+  foundation; product releases and authorities remain in B01-B04.
 - Generic AI governance belongs to C01.
 - Official workflow definitions belong to C02 or C03.
 - Integrated conformance and agent evaluation belong to D01.
@@ -211,4 +227,6 @@ This roadmap is coherent when:
 - no proposal that was never implemented is described as something to remove;
 - generic platform contracts remain separate from official workflow content;
 - product release work remains separate from integrated-system evaluation;
+- shared release mechanisms are implemented once while every product keeps an
+  independent release identity and authority;
 - all active links resolve and the next executable step is unambiguous.

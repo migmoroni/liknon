@@ -27,8 +27,11 @@ Manager as the canonical networked resource-state mutator.
 B02 depends on A01 product boundaries and on C01 generic resource, workflow,
 capability, effect, and policy-compatibility requirements needed by B02.0. Its
 distribution phases additionally depend on the
-[B02 external-readiness runbook](accounts-and-permissions.md). C02 and C03 are
-consumers, not prerequisites for B02.0.
+[shared CLI distribution foundation](../cli-distribution-foundation.md), its
+credential-free implementation and conformance harness established by B01, and
+the [B02 external-readiness runbook](accounts-and-permissions.md). B02 does not
+depend on publication of a Validation release. C02 and C03 are consumers, not
+prerequisites for B02.0.
 
 ## Objective
 
@@ -154,6 +157,23 @@ Manager has an independent version and release train. It is available through:
 - the `liknon-manager` crates.io source package;
 - authenticated target-native archives through the project download domain.
 
+Manager instantiates the shared CLI distribution foundation with a reviewed
+Manager product descriptor. Common workflows, schemas, archive builders,
+installer logic, and verification harnesses are reused. Manager package names,
+commands, tags, targets, semantic smoke tests, object prefixes, candidates,
+stable pointer, credentials, approval, and recovery remain B02-owned.
+
+The exact `apps/liknon-manager` Cargo package is Manager's sole version
+authority. Structured package metadata, the signed
+`liknon-manager-v<VERSION>` tag, and the full source commit define one release
+identity used by every Manager channel. Internal and public manifests connect
+that identity to the inspected crates.io package closure and each final native
+payload; no version or provenance is inherited from another product.
+
+The initial Manager target matrix explicitly adopts every row in the common
+matrix. Any later deviation requires B02 to record the changed support claim
+and target-native evidence; it cannot arise from an omitted workflow row.
+
 The crates.io release publishes and verifies any exact supporting-crate version
 required by Manager before publishing the application package. Installing
 `liknon-manager` never depends on an unpublished workspace path.
@@ -164,6 +184,8 @@ introducing runtime dependencies among capability applications.
 
 Resource versions and Hub publication proceed independently from Manager
 releases. Publishing or updating a resource never requires rebuilding Manager.
+The shared CLI release foundation does not publish Hub metadata or payloads;
+those remain a separate B02.1 authority and pipeline.
 
 ## Deliverables And Implementation Order
 
@@ -174,7 +196,7 @@ releases. Publishing or updating a resource never requires rebuilding Manager.
 | B02.2 | [Manager Workspace And Commands](02-manager-workspace-and-commands.md) | B02.0 | Local state, discovery, inspection, and stable human/JSON interfaces |
 | B02.3 | [Resolution, Locking, And Installation](03-resolution-locking-and-installation.md) | B02.1-B02.2 | Deterministic dependency resolution and transactional resource lifecycle |
 | B02.4 | [Security, Trust, And Recovery](04-security-trust-and-recovery.md) | B02.3 | Fail-closed verification, rollback, and adversarial coverage |
-| B02.5 | [Distribution And End-To-End Verification](05-distribution-and-end-to-end-verification.md) | B02.4 | Published Manager channels and verified Hub-to-workspace behavior |
+| B02.5 | [Distribution And End-To-End Verification](05-distribution-and-end-to-end-verification.md) | B02.4 and the credential-free shared distribution foundation | Independent Manager source/native candidates, published channels, and verified Hub-to-workspace behavior |
 
 B02.0-B02.4 establish local implementation readiness. Together with B03.2 they
 provide the neutral interoperability evidence required before C02 or C03
@@ -213,6 +235,12 @@ milestone and is not a prerequisite for authoring those resources.
 - [ ] The crates.io package resolves only published supporting crates.
 - [ ] The site offers Manager separately; any complete suite is owned by B04
       and consumes this plan's verified candidate unchanged.
+- [ ] Manager uses the shared release mechanisms without inheriting Validation,
+      Tool, or suite identities, candidates, namespaces, or credentials.
+- [ ] Every Manager source and native channel resolves to one package-derived
+      version, exact signed tag, full commit, and immutable provenance record.
+- [ ] Every supported Manager target has one retained final payload and native
+      evidence before publication.
 - [ ] Generated state and credentials enter no published resource or retained
       public evidence.
 

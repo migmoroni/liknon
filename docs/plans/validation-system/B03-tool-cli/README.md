@@ -25,7 +25,10 @@ owns unified routing and complete-suite composition.
 B03 depends on A01 product boundaries, the B02.0 local resource-state contract,
 and the C01 governance baseline for any bootstrap, policy, or persistence
 inspection selected by B03.0. Distribution phases additionally depend on the
-[B03 external-readiness runbook](accounts-and-permissions.md).
+[shared CLI distribution foundation](../cli-distribution-foundation.md), its
+credential-free implementation and conformance harness established by B01, and
+the [B03 external-readiness runbook](accounts-and-permissions.md). B03 does not
+depend on publication of a Validation release.
 
 ## Objective
 
@@ -141,6 +144,23 @@ Tool has its own version and release train and is available through exact
 tagged GitHub source, the `liknon-tool` crates.io source package, and
 authenticated target-native archives through the project download domain.
 
+Tool instantiates the shared CLI distribution foundation through a reviewed
+Tool product descriptor. Common build, manifest, archive, installer, and
+verification mechanisms are reused; Tool package identity, version, tags,
+targets, semantic smoke tests, candidates, Cloudflare prefixes, stable pointer,
+credentials, approval, and recovery remain B03-owned.
+
+The exact `apps/liknon-tool` Cargo package is Tool's sole version authority.
+Structured package metadata, the signed `liknon-tool-v<VERSION>` tag, and the
+full source commit define one release identity used by every Tool channel.
+Internal and public manifests connect that identity to the inspected crates.io
+package closure and each final native payload; no version or provenance is
+inherited from another product.
+
+The initial Tool target matrix explicitly adopts every common target row. Any
+later deviation is an explicit B03 support decision backed by target-native
+evidence, not an omitted matrix entry.
+
 Its crates.io application package resolves only exact published supporting
 crates. Required supporting versions are published and verified first when they
 are not already available.
@@ -197,6 +217,12 @@ Tool publication.
 - [ ] Resource-only updates require no Tool release.
 - [ ] Bootstrap-contract changes require an explicit compatible Tool release;
       ordinary resource changes do not.
+- [ ] Tool uses the shared release mechanisms without inheriting Validation,
+      Manager, or suite identities, candidates, namespaces, or credentials.
+- [ ] Every Tool source and native channel resolves to one package-derived
+      version, exact signed tag, full commit, and immutable provenance record.
+- [ ] Every supported Tool target has one retained final payload and native
+      evidence before publication.
 
 ## Resulting System
 

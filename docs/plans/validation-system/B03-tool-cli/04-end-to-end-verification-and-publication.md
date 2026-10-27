@@ -52,15 +52,29 @@ Build, verification, approval, crates.io publication, GitHub metadata release,
 native signing, and Cloudflare publication use isolated jobs and credentials.
 No publication job rebuilds a previously verified candidate.
 
+The Tool release workflow is a thin product orchestrator over shared
+credential-free mechanisms. Reusable workflows receive no broad inherited
+secret set; each Tool publication job receives only its destination-specific
+protected environment.
+
 crates.io publication follows dependency order: any required unpublished
 supporting-crate candidate is published and read back before `liknon-tool`.
 
 The Tool stable pointer changes only after public readback and clean-environment
 installation pass for every supported channel and target.
 
+Before that transition, publication verifies that the source package, every
+native archive, installers, checksums, detached signatures, and public manifest
+all name the same Tool package-derived version, signed tag, and full source
+commit. It rejects any retained candidate whose final hash or provenance
+reference differs from the internal build manifest.
+
 The stable pointer does not wait for B02.5. A release that advertises
 public-Manager-to-public-Tool interoperability must additionally pass the
 conditional public cross-channel case above.
+
+Publication also proves Tool storage authorization cannot alter Validation,
+Manager, or suite candidates, stable pointers, or release state.
 
 ## Website Integration
 
@@ -76,11 +90,13 @@ The site:
 
 ## Evidence
 
-Retain versioned evidence for source commit, Tool version, target, installation
-channel, resource-store producer and version, resource-store digest, commands
-exercised, semantic results, network isolation, bootstrap-contract version and
-digest, and artifact inventory. Label repository-built and public-channel
-Manager evidence distinctly.
+Retain versioned evidence for source package, signed tag, full commit, Tool
+version, source-package digest and closure, target, final native hash,
+public-manifest identity, stable-pointer transition, installation channel,
+resource-store producer and version, resource-store digest, commands exercised,
+semantic results, network isolation, bootstrap-contract version and digest,
+artifact inventory, and public readback. Label repository-built and
+public-channel Manager evidence distinctly.
 
 ## Exit Criterion
 

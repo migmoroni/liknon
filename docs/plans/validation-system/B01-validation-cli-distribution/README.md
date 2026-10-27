@@ -8,6 +8,9 @@ into the single `liknon-validate` package.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only Validation CLI distribution.
+The [shared CLI distribution foundation](../cli-distribution-foundation.md)
+owns the cross-product release mechanisms. B01 is their first production
+implementation and Validation is the first product profile.
 
 This directory defines distribution for the validation command-line
 application after [A01](../A01-product-and-repository-separation/README.md)
@@ -26,12 +29,14 @@ launcher and complete-suite distribution. Future in-process APIs belong to
 B01 depends on the approved A01 ledger, a stable Validation CLI package
 boundary, release-ready source, and the destination accounts and permissions
 listed in the [B01 external-readiness runbook](accounts-and-permissions.md). It
-does not depend on C02, C03, or D01.
+also conforms to the shared CLI distribution foundation. It does not depend on
+C02, C03, or D01.
 
 ## Objective
 
-Distribute one canonical validation application through three complementary
-channels:
+Implement the reusable release foundation with Validation as its first real
+profile, then distribute one canonical validation application through three
+complementary channels:
 
 | Channel | Distributed form | User experience | Rust required |
 | --- | --- | --- | --- |
@@ -52,6 +57,10 @@ Every channel installs two command names backed by one implementation:
 
 B01 includes:
 
+- product-neutral release schemas, scripts, installer logic, reusable
+  credential-free workflows, and conformance fixtures required by the shared
+  distribution foundation;
+- one explicit Validation product descriptor and thin release orchestrator;
 - one version and provenance contract for source and native artifacts;
 - one inspected, self-contained `liknon-validate` source package and its locked
   registry dependency closure;
@@ -77,10 +86,11 @@ schemas, and generic `.liknon/validation/` initialization. It does not contain:
 
 ## Exclusions
 
-B01 does not distribute Manager, Tool, the launcher, complete suites, Hub
+B01 does not build or publish Manager, Tool, the launcher, complete suites, Hub
 resources, official workflows, programmatic bindings, or integrated
-agent-evaluation results. Those products and evidence remain with B02-B05 and
-D01.
+agent-evaluation results. Shared release machinery contains no behavior or
+publication authority for those products. Their profiles and evidence remain
+with B02-B05 and D01.
 
 ## Installation Contract
 
@@ -133,20 +143,34 @@ presentation surface, not another artifact source.
     evaluations, and editorial tooling.
 16. The crates.io candidate is built and installed from its extracted package
     with registry dependencies and no unpublished workspace package.
+17. Common release primitives contain no Validation behavior, hard-coded
+    Validation identity, or Validation publication credential.
+18. Validation-specific package names, commands, tags, tests, namespaces,
+    approvals, and recovery owners enter through its reviewed product profile.
+19. B02-B04 may consume common primitives but cannot consume B01 publication
+    authority or silently reuse a Validation candidate.
+20. Once another profile adopts a common primitive, changes to that primitive
+    run conformance for every adopted profile.
 
 ## Proposed Repository Layout
 
 ```text
 distribution/cli/
+├── common/
+│   ├── schemas/
+│   ├── scripts/
+│   └── installers/
 └── validation/
+    ├── product.json
     ├── crates/
     └── direct/
-        ├── install.sh
-        ├── install.ps1
         └── public-key.txt
 
 .github/workflows/
-└── release-cli.yml
+├── _cli-native-candidate.yml
+├── _cli-direct-assembly.yml
+├── _cli-public-verification.yml
+└── release-validation.yml
 
 target/distribution/validation/      # Generated and ignored
 ├── crates/
@@ -174,11 +198,11 @@ execution, archive, installer, alias-equivalence, and public-readback checks.
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
-| B01.0 | [Public Contract](00-public-contract.md) | A01.5 and release-ready source | Approved source, crates, native, platform, trust, and ownership contracts |
-| B01.1 | [Version And Provenance](01-version-and-provenance.md) | B01.0 | Package-derived version authority and deterministic evidence |
-| B01.2 | [Native Builds](02-native-builds.md) | B01.1 | One tested final native payload per target |
-| B01.3 | [Cloudflare Direct](03-cloudflare-direct.md) | B01.2 | Verified native archives, metadata, and installers |
-| B01.4 | [End-To-End Verification](04-end-to-end-verification.md) | B01.3 | Credential-free source, crates, and native installation evidence |
+| B01.0 | [Public Contract](00-public-contract.md) | A01.5 and release-ready source | Approved shared/product split plus Validation source, native, platform, trust, and ownership contracts |
+| B01.1 | [Version And Provenance](01-version-and-provenance.md) | B01.0 | Product-neutral descriptor/manifests and package-derived Validation identity |
+| B01.2 | [Native Builds](02-native-builds.md) | B01.1 | Reusable credential-free build lane and one tested Validation payload per target |
+| B01.3 | [Cloudflare Direct](03-cloudflare-direct.md) | B01.2 | Reusable archive/installer assembly and verified Validation direct candidates |
+| B01.4 | [End-To-End Verification](04-end-to-end-verification.md) | B01.3 | Shared conformance harness plus Validation source, crates, and native evidence |
 | B01.5 | [Publication And Recovery](05-publication-and-recovery.md) | B01.4 | Isolated, resumable crates.io, GitHub, and Cloudflare publication |
 | B01.6 | [Public Verification And Documentation](06-public-verification-and-documentation.md) | B01.5 | Verified public installs, stable pointer, and accurate documentation |
 
@@ -203,6 +227,12 @@ execution, archive, installer, alias-equivalence, and public-readback checks.
 - [ ] Public documentation reproduces all tested installation paths.
 - [ ] Generated distribution state leaves tracked files unchanged.
 - [ ] No application artifact contains knowledge or AI resources.
+- [ ] Shared release primitives accept a validated product descriptor and
+      contain no Validation-specific behavior or publication authority.
+- [ ] The Validation orchestrator is thin and all Validation-specific values
+      are explicit in its profile, tests, or protected environments.
+- [ ] Shared-foundation fixture tests prove another product identity cannot
+      read, overwrite, or publish Validation state.
 
 ## Normative References
 
@@ -225,3 +255,7 @@ Liknon validation remains one lean application with two explicit command names.
 Users may compile it from a verified clone, install its source package from
 crates.io, or obtain one authenticated native target from Cloudflare without
 receiving the independent Manager, Tool, Hub, or modular resources.
+
+The repository also gains one product-neutral release foundation. Later plans
+instantiate it under independent product profiles rather than copying B01 or
+coupling their releases to Validation.

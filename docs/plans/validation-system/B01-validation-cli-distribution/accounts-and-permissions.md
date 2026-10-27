@@ -27,7 +27,7 @@ a checklist to complete all at once.
 | --- | --- |
 | Repository | `migmoroni/liknon` |
 | crates.io package | `liknon-validate` |
-| Release workflow | `.github/workflows/release-cli.yml` |
+| Release workflow | `.github/workflows/release-validation.yml` |
 | Human approval | `cli-release-approval` |
 | crates.io publication | `publish-crates-cli` |
 | Detached release signing | `sign-cli-release` |
@@ -35,7 +35,8 @@ a checklist to complete all at once.
 | GitHub Release publication | `publish-github-cli` |
 | Cloudflare publication | `publish-cloudflare-cli` |
 
-Build, assembly, and verification use `contents: read`. Only the isolated
+Reusable build, assembly, and verification workflows use `contents: read` and
+receive no inherited product secret. Only the isolated
 GitHub publication job receives `contents: write`. Cloudflare uses a separate
 bucket-scoped credential and does not require repository write access.
 
@@ -82,7 +83,7 @@ No upload or signing credential is required yet.
 
 **GitHub release identity. Complete before B01.1.**
 
-- [ ] Enable Actions and confirm `.github/workflows/release-cli.yml` as the stable
+- [ ] Enable Actions and confirm `.github/workflows/release-validation.yml` as the stable
       release workflow identity.
 - [ ] Create the named protected environments without credentials.
 - [ ] Set the default workflow token posture to read-only.
@@ -107,7 +108,8 @@ No upload or signing credential is required yet.
 **Cloudflare and detached-signing foundation. Complete before B01.3.**
 
 - [ ] Activate R2 and any required billing profile.
-- [ ] Create the production bucket and attach the chosen custom domain.
+- [ ] Create the Validation production bucket and attach the chosen custom
+      domain.
 - [ ] Keep the public `r2.dev` endpoint disabled.
 - [ ] Configure cache, TLS, immutable-prefix, bucket-lock, monitoring, and
       budget policies.
@@ -135,8 +137,8 @@ The Cloudflare upload credential remains absent at this checkpoint.
 
 **Just-in-time publication activation. Complete as B01.5 begins.**
 
-- [ ] Create one R2 Object Read & Write credential scoped only to the production
-      bucket and store it in `publish-cloudflare-cli`.
+- [ ] Create one R2 Object Read & Write credential scoped only to the Validation
+      production bucket and store it in `publish-cloudflare-cli`.
 - [ ] Configure crates.io trusted publishing, or create a narrow temporary
       bootstrap token in `publish-crates-cli`.
 - [ ] Verify `sign-cli-release` and `sign-cli-windows` contain only their own identities.
