@@ -10,7 +10,7 @@
 
 Implement the reusable credential-free native build lane, then produce one
 final runnable Validation payload for each supported Rust target and expose it
-under `liknon-validate` and `likv` in direct distribution.
+under `liknon-validator` and `likv` in direct distribution.
 
 ## Dependencies
 
@@ -25,8 +25,8 @@ under `liknon-validate` and `likv` in direct distribution.
 - Each Rust target has one unprivileged build job.
 - The reusable job accepts only a validated product descriptor and an approved
   target row; it owns no product behavior or publication credential.
-- The Validation caller builds the `apps/liknon-validate` package and selects
-  only its `liknon-validate` binary target as the canonical native payload.
+- The Validation caller builds the `apps/liknon-validator` package and selects
+  only its `liknon-validator` binary target as the canonical native payload.
 - The release Rust toolchain and locked dependency graph are recorded exactly.
 - All deterministic post-processing occurs before platform signing.
 - Windows signing runs in an isolated job with only its self-signed

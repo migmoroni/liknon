@@ -2,7 +2,7 @@
 //!
 //! This crate owns configuration loading, semantic validation, planning,
 //! execution, repository evidence, structured reports, and terminal adaptation
-//! for the `liknon-validate` and `likv` binaries.
+//! for the `liknon-validator` and `likv` binaries.
 
 #![warn(missing_docs)]
 #![deny(rustdoc::bare_urls)]

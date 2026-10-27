@@ -29,7 +29,7 @@ assertions, and evidence destination.
 When B04 is implemented, require future tests for:
 
 - every direct explicit and compact command:
-  `liknon-validate` / `likv`, `liknon-manager` / `likm`, and
+  `liknon-validator` / `likv`, `liknon-manager` / `likm`, and
   `liknon-tool` / `likt`;
 - every `validate`, `manager`, and `tool` namespace through both `liknon` and
   `likx`;

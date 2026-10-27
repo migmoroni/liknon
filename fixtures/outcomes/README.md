@@ -1,7 +1,7 @@
 # Outcome Fixtures
 
 This isolated workspace demonstrates every check status rendered by
-`liknon-validate`:
+`liknon-validator`:
 
 - `PASS`: a Rust test succeeds;
 - `FAIL`: a Rust test contains an intentional failing assertion;
@@ -18,20 +18,20 @@ not execute its intentional outcomes.
 Run every outcome explicitly from the repository root:
 
 ```sh
-cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate \
+cargo run -p liknon-validator --bin liknon-validator --quiet --locked -- validate \
   --config fixtures/outcomes/.liknon/validation/config.json
 ```
 
 Run one outcome group:
 
 ```sh
-cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate outcomes.pass \
+cargo run -p liknon-validator --bin liknon-validator --quiet --locked -- validate outcomes.pass \
   --config fixtures/outcomes/.liknon/validation/config.json
 
-cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate outcomes.fail \
+cargo run -p liknon-validator --bin liknon-validator --quiet --locked -- validate outcomes.fail \
   --config fixtures/outcomes/.liknon/validation/config.json
 
-cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate outcomes.blocked \
+cargo run -p liknon-validator --bin liknon-validator --quiet --locked -- validate outcomes.blocked \
   --config fixtures/outcomes/.liknon/validation/config.json
 ```
 
@@ -39,7 +39,7 @@ All regular human-presentation options remain available. This command is useful
 for inspecting every status with both visual accessibility axes enabled:
 
 ```sh
-cargo run -p liknon-validate --bin liknon-validate --quiet --locked -- validate \
+cargo run -p liknon-validator --bin liknon-validator --quiet --locked -- validate \
   --color=high-contrast --presentation=low-vision \
   --config fixtures/outcomes/.liknon/validation/config.json
 ```
@@ -51,7 +51,7 @@ codes in those demonstrations are the expected fixture behavior.
 Run the fixture assertions themselves with the ignored integration-test target:
 
 ```sh
-cargo test -p liknon-validate --test outcome_fixtures --locked -- --ignored
+cargo test -p liknon-validator --test outcome_fixtures --locked -- --ignored
 ```
 
 These tests use Rust's explicit `#[ignore]` boundary, so the regular workspace
@@ -62,7 +62,7 @@ selects the local fixture configuration:
 
 ```sh
 cd fixtures/outcomes
-cargo run -p liknon-validate --bin liknon-validate --quiet --locked \
+cargo run -p liknon-validator --bin liknon-validator --quiet --locked \
   --manifest-path ../../Cargo.toml -- validate
 ```
 

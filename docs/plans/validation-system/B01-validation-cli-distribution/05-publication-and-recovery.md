@@ -62,7 +62,7 @@ caller passes only the credential required by the selected isolated job.
 
 1. Preflight crates.io, GitHub, and Cloudflare without writing.
 2. Reauthenticate all retained candidates and evidence.
-3. Publish the inspected `liknon-validate` source package to crates.io.
+3. Publish the inspected `liknon-validator` source package to crates.io.
 4. Read the accepted application package back and verify source, dependency,
    and command inventory.
 5. Create the metadata-only immutable GitHub Release for the exact signed tag.

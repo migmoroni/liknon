@@ -54,9 +54,9 @@ consumer's maintained workspace differs.
    Vitest configuration, and the build output contract.
 2. Confirm the active Node.js and pnpm major lines and authorize dependency and
    lifecycle mutations.
-3. Save the adapted configuration below and run `liknon-validate config
+3. Save the adapted configuration below and run `liknon-validator config
    validate`.
-4. Inspect the resolved suite, then run `liknon-validate validate
+4. Inspect the resolved suite, then run `liknon-validator validate
    package-gate --format=json`.
 5. Interpret each failed dependency, type, test, build, or repository result
    separately; do not retry toward a pass.

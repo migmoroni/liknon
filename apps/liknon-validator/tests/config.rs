@@ -1,6 +1,6 @@
 mod common;
 
-use liknon_validate::{config, planning};
+use liknon_validator::{config, planning};
 use serde_json::json;
 use std::fs;
 use tempfile::TempDir;

@@ -1,5 +1,5 @@
 [package]
-name = "liknon-validate"
+name = "liknon-validator"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -29,8 +29,8 @@ jsonschema.workspace = true
 tempfile.workspace = true
 
 [[bin]]
-name = "liknon-validate"
-path = "src/bin/liknon-validate.rs"
+name = "liknon-validator"
+path = "src/bin/liknon-validator.rs"
 doc = false
 
 [[bin]]

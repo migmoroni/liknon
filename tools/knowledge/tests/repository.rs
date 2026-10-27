@@ -1,5 +1,5 @@
 use liknon_knowledge_maintenance as knowledge;
-use liknon_validate::contracts::config::Config;
+use liknon_validator::contracts::config::Config;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -57,7 +57,7 @@ fn application_packages_do_not_embed_authored_resources() {
         "apps/liknon-cli/Cargo.toml",
         "apps/liknon-manager/Cargo.toml",
         "apps/liknon-tool/Cargo.toml",
-        "apps/liknon-validate/Cargo.toml",
+        "apps/liknon-validator/Cargo.toml",
     ] {
         let manifest = fs::read_to_string(repository().join(relative)).unwrap();
         for forbidden in ["docs/validation", "skills/", "tools/knowledge", "build.rs"] {

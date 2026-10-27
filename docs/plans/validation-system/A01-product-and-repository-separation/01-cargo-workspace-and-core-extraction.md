@@ -2,7 +2,7 @@
 
 ## Status
 
-`Complete`. The virtual Cargo workspace, consolidated `liknon-validate` package,
+`Complete`. The virtual Cargo workspace, consolidated `liknon-validator` package,
 owner-local tests, dependency graph, and root lockfile implement the approved
 A01 ledger.
 
@@ -12,7 +12,7 @@ A01 ledger.
 
 Create the approved Cargo workspace and keep terminal-independent validation
 behavior separate from terminal adaptation through modules inside one
-`liknon-validate` package while preserving current behavior.
+`liknon-validator` package while preserving current behavior.
 
 ## Inputs
 

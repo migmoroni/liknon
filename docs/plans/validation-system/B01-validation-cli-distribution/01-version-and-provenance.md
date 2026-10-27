@@ -26,7 +26,7 @@ the release unless:
 
 - the selected package is exactly the CLI package approved in B01.0;
 - the version matches canonical `MAJOR.MINOR.PATCH`;
-- the workflow commit is exactly tagged `liknon-validate-v<VERSION>`;
+- the workflow commit is exactly tagged `liknon-validator-v<VERSION>`;
 - the annotated tag signature is valid under the approved identity;
 - source and lockfile pass release gates;
 - no crates.io version, GitHub release identity, or Cloudflare versioned key
@@ -35,8 +35,8 @@ the release unless:
 Release automation does not parse `Cargo.toml` with regular expressions, carry
 a second handwritten version, or normalize versions per destination.
 
-The selected package is `apps/liknon-validate`. Its package name `liknon-validate`,
-package version, and binary targets `liknon-validate` and `likv` are validated
+The selected package is `apps/liknon-validator`. Its package name `liknon-validator`,
+package version, and binary targets `liknon-validator` and `likv` are validated
 separately. Shared workspace metadata may define version policy, but it is not a
 second application-version value.
 
@@ -48,16 +48,16 @@ After native builds, CI creates `build-manifest.json`:
 {
   "schemaVersion": 1,
   "product": "validation",
-  "package": "liknon-validate",
+  "package": "liknon-validator",
   "version": "<cargo-version>",
-  "tag": "liknon-validate-v<cargo-version>",
+  "tag": "liknon-validator-v<cargo-version>",
   "commit": "<full-source-commit>",
   "releaseToolchain": "<exact-rustc-version>",
   "artifacts": [
     {
       "target": "x86_64-unknown-linux-gnu",
-      "payloadFile": "liknon-validate",
-      "installedCommands": ["liknon-validate", "likv"],
+      "payloadFile": "liknon-validator",
+      "installedCommands": ["liknon-validator", "likv"],
       "size": 0,
       "sha256": "<sha256>",
       "platformAuthenticity": {

@@ -12,14 +12,14 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Cargo workspace boundaries for the Validation CLI and its engine modules,
   Manager shell, Tool shell, aggregate launcher package, and private knowledge
   maintenance tool.
-- Direct validation executables `liknon-validate` and `likv`, identity-only
+- Direct validation executables `liknon-validator` and `likv`, identity-only
   Manager and Tool executables, and launcher-only `liknon` and `likx` shells.
 
 ### Changed
 
 - The canonical consumer configuration path is now
   `.liknon/validation/config.json`.
-- Configuration and report schemas now live with `liknon-validate`; authoring
+- Configuration and report schemas now live with `liknon-validator`; authoring
   and evaluation schemas live with their respective documentation and eval
   owners.
 - Knowledge checks run as the private `liknon-knowledge-maintenance` package.

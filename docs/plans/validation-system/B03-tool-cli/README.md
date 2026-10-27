@@ -229,4 +229,4 @@ Tool publication.
 Tool is the stable local bridge between installed Liknon resources and the
 humans or agents that deliberately consume them. It keeps resource access fast
 and structured while leaving acquisition to Manager and validation execution
-to `liknon-validate` or `likv`.
+to `liknon-validator` or `likv`.

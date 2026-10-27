@@ -26,7 +26,7 @@ them.
 ```text
 https://<download-domain>/
 ├── releases/
-│   └── liknon-validate/
+│   └── liknon-validator/
 │       └── v<VERSION>/
 │           ├── manifest.json
 │           ├── manifest.sig
@@ -35,15 +35,15 @@ https://<download-domain>/
 │           ├── install.sh.sig
 │           ├── install.ps1
 │           ├── install.ps1.sig
-│           ├── liknon-validate-v<VERSION>-x86_64-unknown-linux-gnu.tar.gz
-│           ├── liknon-validate-v<VERSION>-x86_64-unknown-linux-musl.tar.gz
-│           ├── liknon-validate-v<VERSION>-aarch64-unknown-linux-gnu.tar.gz
-│           ├── liknon-validate-v<VERSION>-aarch64-unknown-linux-musl.tar.gz
-│           ├── liknon-validate-v<VERSION>-x86_64-apple-darwin.tar.gz
-│           ├── liknon-validate-v<VERSION>-aarch64-apple-darwin.tar.gz
-│           └── liknon-validate-v<VERSION>-x86_64-pc-windows-msvc.zip
+│           ├── liknon-validator-v<VERSION>-x86_64-unknown-linux-gnu.tar.gz
+│           ├── liknon-validator-v<VERSION>-x86_64-unknown-linux-musl.tar.gz
+│           ├── liknon-validator-v<VERSION>-aarch64-unknown-linux-gnu.tar.gz
+│           ├── liknon-validator-v<VERSION>-aarch64-unknown-linux-musl.tar.gz
+│           ├── liknon-validator-v<VERSION>-x86_64-apple-darwin.tar.gz
+│           ├── liknon-validator-v<VERSION>-aarch64-apple-darwin.tar.gz
+│           └── liknon-validator-v<VERSION>-x86_64-pc-windows-msvc.zip
 └── channels/
-    └── liknon-validate/
+    └── liknon-validator/
         └── stable.json
 ```
 
@@ -62,9 +62,9 @@ The `r2.dev` development endpoint is not a production channel.
   manifest.
 - `SHA256SUMS` lists archives and installer scripts; the signed manifest records
   the checksum file's own hash.
-- Objects below `releases/liknon-validate/v<VERSION>/` are immutable and use
+- Objects below `releases/liknon-validator/v<VERSION>/` are immutable and use
   reviewed immutable cache semantics.
-- `channels/liknon-validate/stable.json` is the only planned mutable pointer and has a short
+- `channels/liknon-validator/stable.json` is the only planned mutable pointer and has a short
   cache lifetime.
 - Negative responses under immutable paths are not cached.
 - Publication uploads and reads back every referenced object before

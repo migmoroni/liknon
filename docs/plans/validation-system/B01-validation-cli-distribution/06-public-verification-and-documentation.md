@@ -25,7 +25,7 @@ From clean environments that cannot read private workflow artifacts:
 - clone the canonical GitHub repository, fetch and verify the released signed
   tag, build or install with locked dependencies, and run representative CLI
   behavior;
-- install the exact `liknon-validate` version from crates.io in an isolated Cargo
+- install the exact `liknon-validator` version from crates.io in an isolated Cargo
   home and run both command names;
 - download and authenticate one manual archive for every supported target;
 - download, authenticate, and execute the versioned POSIX and PowerShell
@@ -36,7 +36,7 @@ From clean environments that cannot read private workflow artifacts:
   exists;
 - verify unsupported platforms and integrity failures remain explicit.
 
-Public verification must not succeed by finding another `liknon-validate` or `likv`
+Public verification must not succeed by finding another `liknon-validator` or `likv`
 executable on `PATH`.
 
 ## Download-Domain Verification
@@ -53,7 +53,7 @@ executable on `PATH`.
 
 After every public check passes:
 
-1. create `channels/liknon-validate/stable.json` as a narrow pointer to the exact
+1. create `channels/liknon-validator/stable.json` as a narrow pointer to the exact
    versioned manifest;
 2. upload it through the Cloudflare publication boundary;
 3. read it back through the custom domain;
@@ -67,7 +67,7 @@ A failed target or installation path leaves the previous stable pointer intact.
 Document in one canonical installation reference:
 
 - source installation from an exact signed tag;
-- the exact `apps/liknon-validate` source-install path;
+- the exact `apps/liknon-validator` source-install path;
 - crates.io installation, update, and uninstall behavior;
 - source update and uninstall behavior;
 - authenticated POSIX and PowerShell installer usage;

@@ -5,7 +5,7 @@
 `Implementation complete; hosted verification pending`. A01.0 through A01.5
 were implemented and locally verified on 2026-10-26. The validation engine,
 schemas, CLI adaptation, and both binaries now belong to one
-`liknon-validate` package. The consolidated commit still requires the hosted
+`liknon-validator` package. The consolidated commit still requires the hosted
 macOS and Windows jobs before the B01 handoff.
 
 The [validation-system roadmap](../README.md) owns cross-track order. This plan
@@ -40,7 +40,7 @@ capability-free launcher application:
 | Unified launcher | Select one explicit capability namespace and forward the invocation without implementing it |
 
 Validation semantics and CLI adaptation remain separate Rust modules within the
-single `liknon-validate` package. A shared crate is introduced only when more
+single `liknon-validator` package. A shared crate is introduced only when more
 than one implemented product demonstrates that boundary; the current validation
 product does not require one.
 
@@ -84,7 +84,7 @@ liknon/
 |-- Cargo.lock
 |-- apps/
 |   |-- liknon-cli/          # Launcher and aggregate package
-|   |-- liknon-validate/
+|   |-- liknon-validator/
 |   |-- liknon-manager/
 |   `-- liknon-tool/
 |-- docs/
@@ -122,7 +122,7 @@ advance.
 | A01.2 | [Knowledge And AI Resource Separation](02-knowledge-and-ai-resource-separation.md) | `Complete` | Authored content separated from application runtime ownership |
 | A01.3 | [Application Composition And Workspace Boundary](03-application-composition-and-workspace-resources.md) | `Complete` | Three capability packages, one launcher/aggregate package, and current workspace-path cutover |
 | A01.4 | [Conformance And Documentation](04-conformance-and-documentation.md) | `Complete` | Proven boundaries and reconciled documentation |
-| A01.5 | [Validation Package Consolidation](05-validation-package-consolidation.md) | `Implemented; hosted verification pending` | One `liknon-validate` package owning engine modules, schemas, CLI adaptation, and binaries |
+| A01.5 | [Validation Package Consolidation](05-validation-package-consolidation.md) | `Implemented; hosted verification pending` | One `liknon-validator` package owning engine modules, schemas, CLI adaptation, and binaries |
 
 ## Cross-Track Handoff
 
@@ -147,10 +147,10 @@ advance.
       that never existed.
 - [x] The final Cargo graph has no circular application dependency.
 - [x] Validation retains one semantic implementation and its current behavior.
-- [x] `liknon-validate` owns that implementation, its schemas, CLI adaptation,
+- [x] `liknon-validator` owns that implementation, its schemas, CLI adaptation,
       and both validation binaries without a separate `liknon-validation`
       package.
-- [x] `liknon-validate` and `likv` expose that validation implementation
+- [x] `liknon-validator` and `likv` expose that validation implementation
       directly, while `liknon` and `likx` are launcher-only entry points.
 - [x] Package `liknon-cli` owns the approved aggregate targets without relying
       on dependency-owned executables.

@@ -19,7 +19,7 @@ resource contracts, the Validation CLI, and the C02 operational resources it
 declares. D01 is a downstream evaluator, not a prerequisite.
 
 The workflow may bind the direct capability commands or their explicit B04
-launcher namespaces. `liknon-validate <args>` and
+launcher namespaces. `liknon-validator <args>` and
 `liknon validate <args>` reach the same validation capability; launcher use
 does not change policy, operation ownership, or the workflow graph.
 

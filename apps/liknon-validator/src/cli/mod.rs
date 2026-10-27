@@ -51,7 +51,7 @@ pub fn run_cli() -> ExitCode {
         return match write_output(&mut stdout, rendered.trim_end()) {
             Ok(()) => ExitCode::from(0),
             Err((error, code)) => {
-                write_stderr(&format!("liknon-validate: {error}"));
+                write_stderr(&format!("liknon-validator: {error}"));
                 ExitCode::from(code)
             }
         };
@@ -68,7 +68,7 @@ pub fn run_cli() -> ExitCode {
         Ok(matches) => match Cli::from_arg_matches(&matches) {
             Ok(value) => value,
             Err(error) => {
-                write_stderr(&format!("liknon-validate: {error}"));
+                write_stderr(&format!("liknon-validator: {error}"));
                 return ExitCode::from(4);
             }
         },
@@ -81,7 +81,7 @@ pub fn run_cli() -> ExitCode {
                 return match write_output(&mut stdout, rendered.trim_end()) {
                     Ok(()) => ExitCode::from(0),
                     Err((error, code)) => {
-                        write_stderr(&format!("liknon-validate: {error}"));
+                        write_stderr(&format!("liknon-validator: {error}"));
                         ExitCode::from(code)
                     }
                 };
@@ -103,7 +103,7 @@ pub fn run_cli() -> ExitCode {
     match execute(cli, &mut stdout, &mut stderr) {
         Ok(code) => ExitCode::from(code as u8),
         Err((error, code)) => {
-            let _ = writeln!(stderr, "liknon-validate: {error}");
+            let _ = writeln!(stderr, "liknon-validator: {error}");
             let _ = stderr.flush();
             ExitCode::from(code)
         }

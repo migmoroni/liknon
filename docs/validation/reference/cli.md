@@ -4,26 +4,26 @@ Inspection commands parse and semantically validate the complete configuration
 but do not start configured programs:
 
 ```text
-liknon-validate config validate [--config <path>]
-liknon-validate list [--tree] [--config <path>]
-liknon-validate explain group <group-id> [--config <path>]
-liknon-validate explain suite <suite-id> [--config <path>]
-liknon-validate explain check <check-id> [--config <path>]
-liknon-validate schema config
-liknon-validate schema report
+liknon-validator config validate [--config <path>]
+liknon-validator list [--tree] [--config <path>]
+liknon-validator explain group <group-id> [--config <path>]
+liknon-validator explain suite <suite-id> [--config <path>]
+liknon-validator explain check <check-id> [--config <path>]
+liknon-validator schema config
+liknon-validator schema report
 
 Execution commands run configured programs after full validation and tool
 preflight:
 
 ```text
-liknon-validate validate [group-or-suite] [--config <path>] [--format=human|json]
-liknon-validate check <check-id> [--config <path>] [--format=human|json]
+liknon-validator validate [group-or-suite] [--config <path>] [--format=human|json]
+liknon-validator check <check-id> [--config <path>] [--format=human|json]
 ```
 
 Provisioning is separate from both categories:
 
 ```text
-liknon-validate init --config <candidate-path> [--workspace <path>] [--format=human|json]
+liknon-validator init --config <candidate-path> [--workspace <path>] [--format=human|json]
 ```
 
 Human CLI output is plain by default. The global `--color[=<palette>]` and

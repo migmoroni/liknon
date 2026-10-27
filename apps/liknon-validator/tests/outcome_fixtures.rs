@@ -5,7 +5,7 @@ fn fixture_root() -> PathBuf {
 }
 
 fn validate(selection: Option<&str>) -> std::process::Output {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_liknon-validate"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_liknon-validator"));
     command.arg("validate");
     if let Some(selection) = selection {
         command.arg(selection);

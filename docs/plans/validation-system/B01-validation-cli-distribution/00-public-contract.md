@@ -19,8 +19,8 @@ runtime behavior and publishes nothing.
 - [Plan A01](../A01-product-and-repository-separation/README.md) is complete.
 - The [shared CLI distribution foundation](../cli-distribution-foundation.md)
   is the governing cross-product release contract.
-- Current validation behavior is preserved by A01. Package name `liknon-validate`
-  and command names `liknon-validate` and `likv` are approved target identities and must
+- Current validation behavior is preserved by A01. Package name `liknon-validator`
+  and command names `liknon-validator` and `likv` are approved target identities and must
   exist before this distribution contract exits.
 - The repository is otherwise eligible to enter release preparation.
 - External readiness checkpoint [AP-0](accounts-and-permissions.md#ap-0) is
@@ -33,19 +33,19 @@ runtime behavior and publishes nothing.
 The canonical source identity is the approved public repository. A source
 release consists of:
 
-- one signed annotated tag `liknon-validate-v<VERSION>`;
+- one signed annotated tag `liknon-validator-v<VERSION>`;
 - the exact commit selected by that tag;
 - the committed `Cargo.lock`;
 - a metadata-only immutable GitHub Release that locks the tag and carries no
   Liknon binary assets.
 
 The documented source path clones the repository, checks out and verifies the
-exact tag, and installs the `apps/liknon-validate` package with locked dependencies.
+exact tag, and installs the `apps/liknon-validator` package with locked dependencies.
 The default branch is never presented as a reproducible released version.
 
 ### crates.io Source Package
 
-The crates.io channel publishes source package `liknon-validate` with both
+The crates.io channel publishes source package `liknon-validator` with both
 approved binary targets. The package builds from its own accepted contents,
 the locked registry dependency graph selected by the installer, and no
 unpublished workspace or path dependency. It does not require another Liknon
@@ -67,11 +67,11 @@ them.
 
 ## Version Contract
 
-- The `apps/liknon-validate` Cargo package version is the sole authored version
+- The `apps/liknon-validator` Cargo package version is the sole authored version
   source for this application and is read through structured Cargo metadata.
 - The initial grammar is canonical `MAJOR.MINOR.PATCH`.
-- The tag is exactly `liknon-validate-v<VERSION>` and points to the workflow commit.
-- `liknon-validate --version`, `likv --version`, crates.io metadata, internal
+- The tag is exactly `liknon-validator-v<VERSION>` and points to the workflow commit.
+- `liknon-validator --version`, `likv --version`, crates.io metadata, internal
   build evidence, public direct metadata, archive names, and installer
   metadata carry that exact version.
 - A previously published version is immutable.
@@ -144,7 +144,7 @@ must never be described more strongly than its real trust mode.
 - exact CLI package and archive inventory proving that no knowledge corpus or
   AI resource enters the executable distribution.
 - exact package inventory and registry dependency evidence for the
-  self-contained `liknon-validate` candidate.
+  self-contained `liknon-validator` candidate.
 
 ## Implementation Tasks
 
@@ -152,7 +152,7 @@ must never be described more strongly than its real trust mode.
    descriptor and keep product-neutral constraints in shared schemas.
 2. Prototype source installation from an exact local signed-tag fixture without
    access to repository-external files.
-3. Package and install `liknon-validate` from an isolated crates.io candidate,
+3. Package and install `liknon-validator` from an isolated crates.io candidate,
    proving that its extracted contents require no unpublished workspace file
    or package.
 4. Build and execute each proposed native target through its real runtime path.

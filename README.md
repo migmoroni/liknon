@@ -20,18 +20,18 @@ The repository is a Cargo workspace with explicit application boundaries:
 
 | Package | Executables | Current responsibility |
 | --- | --- | --- |
-| `liknon-validate` | `liknon-validate`, `likv` | Complete validation CLI |
+| `liknon-validator` | `liknon-validator`, `likv` | Complete validation CLI |
 | `liknon-manager` | `liknon-manager`, `likm` | Identity-only shell; resource commands are planned |
 | `liknon-tool` | `liknon-tool`, `likt` | Identity-only shell; offline resource commands are planned |
 | `liknon-cli` | `liknon`, `likx`, and the six capability executables | Aggregate package and launcher shell |
 
 The `liknon` and `likx` launcher targets currently expose their identity and
-capability namespaces, but do not dispatch them yet. Invoke `liknon-validate`
+capability namespaces, but do not dispatch them yet. Invoke `liknon-validator`
 or `likv` for validation. Manager, Tool, Hub, resource, policy, persistence,
 and workflow behavior belongs to later plans and is not advertised as
 available.
 
-The `liknon-validate` package owns both the terminal-independent validation
+The `liknon-validator` package owns both the terminal-independent validation
 modules and their CLI adaptation. This internal Rust surface is not a promised
 programmatic integration API.
 
@@ -43,8 +43,8 @@ and install the functional validation application directly:
 ```sh
 git clone https://github.com/migmoroni/liknon.git
 cd liknon
-cargo install --path apps/liknon-validate --locked --force
-liknon-validate --version
+cargo install --path apps/liknon-validator --locked --force
+liknon-validator --version
 ```
 
 Rust 1.87 or newer is required. Cargo normally writes the executables to
@@ -120,16 +120,16 @@ Validate and install those exact bytes, inspect the resulting configuration,
 and run its default group:
 
 ```sh
-liknon-validate init --config validation.config.json
-liknon-validate config validate
-liknon-validate list --tree
-liknon-validate validate
+liknon-validator init --config validation.config.json
+liknon-validator config validate
+liknon-validator list --tree
+liknon-validator validate
 ```
 
 Use `--format=json` for a machine-readable report:
 
 ```sh
-liknon-validate validate --format=json
+liknon-validator validate --format=json
 ```
 
 ## Configuration Model
@@ -162,16 +162,16 @@ The normative ownership and extension rules are documented in
 ## Validation Commands
 
 ```text
-liknon-validate init --config <candidate-path> [--workspace <path>] [--format=human|json]
-liknon-validate config validate [--config <path>]
-liknon-validate validate [group-or-suite] [--config <path>] [--format=human|json]
-liknon-validate check <check-id> [--config <path>] [--format=human|json]
-liknon-validate list [--tree] [--config <path>]
-liknon-validate explain group <group-id> [--config <path>]
-liknon-validate explain suite <suite-id> [--config <path>]
-liknon-validate explain check <check-id> [--config <path>]
-liknon-validate schema config
-liknon-validate schema report
+liknon-validator init --config <candidate-path> [--workspace <path>] [--format=human|json]
+liknon-validator config validate [--config <path>]
+liknon-validator validate [group-or-suite] [--config <path>] [--format=human|json]
+liknon-validator check <check-id> [--config <path>] [--format=human|json]
+liknon-validator list [--tree] [--config <path>]
+liknon-validator explain group <group-id> [--config <path>]
+liknon-validator explain suite <suite-id> [--config <path>]
+liknon-validator explain check <check-id> [--config <path>]
+liknon-validator schema config
+liknon-validator schema report
 ```
 
 Without `--config`, the CLI discovers the nearest
@@ -212,17 +212,17 @@ execution they apply only to human `validate` and `check` output. JSON mode
 rejects visual options and emits only the version 4 `ValidationReport`.
 
 ```sh
-liknon-validate --color=high-contrast --help
-liknon-validate config --presentation=low-vision --help
-liknon-validate validate --color=deuteranopia --presentation=low-vision
-liknon-validate validate --format=json
+liknon-validator --color=high-contrast --help
+liknon-validator config --presentation=low-vision --help
+liknon-validator validate --color=deuteranopia --presentation=low-vision
+liknon-validator validate --format=json
 ```
 
 ## Knowledge And AI Material
 
 The canonical validation guidance remains under
 [`docs/validation/knowledge`](docs/validation/knowledge/README.md). It is
-authored repository content and is not embedded in `liknon-validate` or exposed
+authored repository content and is not embedded in `liknon-validator` or exposed
 through a validation command at the A01 boundary.
 
 The source under [`skills/liknon`](skills/liknon) is preserved only as
@@ -263,12 +263,12 @@ Rust version is 1.87. Configuration schema version 6 and report schema version
 or converted.
 
 The validation-owned schemas live with their owner at
-[`apps/liknon-validate/schemas`](apps/liknon-validate/schemas). Inspect
+[`apps/liknon-validator/schemas`](apps/liknon-validator/schemas). Inspect
 the contract generated by the running executable with:
 
 ```sh
-liknon-validate schema config
-liknon-validate schema report
+liknon-validator schema config
+liknon-validator schema report
 ```
 
 Knowledge authoring schemas live under
@@ -280,7 +280,7 @@ evaluation-only schemas live under [`evals/schemas`](evals/schemas).
 Run the validation CLI directly from the workspace with:
 
 ```sh
-cargo run -p liknon-validate --bin liknon-validate --locked -- <command>
+cargo run -p liknon-validator --bin liknon-validator --locked -- <command>
 ```
 
 The committed root `Cargo.lock` is the reproducible dependency graph. The root

@@ -1,6 +1,6 @@
 //! Loads a configuration and inspects its default immutable validation plan.
 
-use liknon_validate::{config, planning};
+use liknon_validator::{config, planning};
 use std::{error::Error, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {

@@ -61,7 +61,7 @@ jobs:
       - name: Check authored knowledge
         run: cargo run -p liknon-knowledge-maintenance --locked -- --check
       - name: Test intentional outcome fixtures
-        run: cargo test -p liknon-validate --test outcome_fixtures --locked -- --ignored
+        run: cargo test -p liknon-validator --test outcome_fixtures --locked -- --ignored
 
   msrv:
     name: Rust 1.87
@@ -119,33 +119,33 @@ jobs:
         run: rustup default stable
       - name: List application package contents
         run: |
-          cargo package --list --locked -p liknon-validate
+          cargo package --list --locked -p liknon-validator
           cargo package --list --locked -p liknon-manager
           cargo package --list --locked -p liknon-tool
           cargo package --list --locked -p liknon-cli
       - name: Install and smoke-test local applications
         shell: bash
         run: |
-          validate_root="$RUNNER_TEMP/liknon-validate-install"
+          validator_root="$RUNNER_TEMP/liknon-validator-install"
           manager_root="$RUNNER_TEMP/liknon-manager-install"
           tool_root="$RUNNER_TEMP/liknon-tool-install"
           aggregate_root="$RUNNER_TEMP/liknon-cli-install"
           smoke_dir="$RUNNER_TEMP/liknon-smoke"
 
-          cargo install --path apps/liknon-validate --root "$validate_root" --locked
+          cargo install --path apps/liknon-validator --root "$validator_root" --locked
           cargo install --path apps/liknon-manager --root "$manager_root" --locked
           cargo install --path apps/liknon-tool --root "$tool_root" --locked
           cargo install --path apps/liknon-cli --root "$aggregate_root" --locked
 
-          "$validate_root/bin/liknon-validate" --version
-          "$validate_root/bin/likv" --help > /dev/null
+          "$validator_root/bin/liknon-validator" --version
+          "$validator_root/bin/likv" --help > /dev/null
           "$manager_root/bin/liknon-manager" --version
           "$manager_root/bin/likm" --help > /dev/null
           "$tool_root/bin/liknon-tool" --version
           "$tool_root/bin/likt" --help > /dev/null
           "$aggregate_root/bin/liknon" --version
           "$aggregate_root/bin/likx" --help > /dev/null
-          "$aggregate_root/bin/liknon-validate" --version
+          "$aggregate_root/bin/liknon-validator" --version
           "$aggregate_root/bin/likv" --version
           "$aggregate_root/bin/liknon-manager" --version
           "$aggregate_root/bin/likm" --version
@@ -206,7 +206,7 @@ jobs:
           }
           JSON
 
-          "$validate_root/bin/liknon-validate" schema config > /dev/null
-          "$validate_root/bin/liknon-validate" schema report > /dev/null
-          "$validate_root/bin/liknon-validate" config validate \
+          "$validator_root/bin/liknon-validator" schema config > /dev/null
+          "$validator_root/bin/liknon-validator" schema report > /dev/null
+          "$validator_root/bin/liknon-validator" config validate \
             --config "$smoke_dir/config.json"

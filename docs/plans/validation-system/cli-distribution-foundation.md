@@ -16,7 +16,7 @@ Provide one maintained release foundation for four native delivery subjects:
 
 | Subject | Standalone owner | Native responsibility |
 | --- | --- | --- |
-| Validation | B01 | Build and publish `liknon-validate` / `likv` |
+| Validation | B01 | Build and publish `liknon-validator` / `likv` |
 | Manager | B02 | Build and publish `liknon-manager` / `likm` |
 | Tool | B03 | Build and publish `liknon-tool` / `likt` |
 | Launcher and complete suite | B04 | Build `liknon` / `likx` and compose exact B01-B03 candidates |

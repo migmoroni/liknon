@@ -27,7 +27,7 @@ runtime support matrix, bridge strategy, and the
 ## Relationship To Current Products
 
 - [B01](../B01-validation-cli-distribution/README.md) distributes the
-  `liknon-validate` / `likv` validation CLI.
+  `liknon-validator` / `likv` validation CLI.
 - [B02](../B02-resource-hub-and-manager/README.md) defines the resource Hub and
   the mutating, network-capable `liknon-manager` / `likm` application.
 - [B03](../B03-tool-cli/README.md) distributes the offline, read-only
@@ -55,7 +55,7 @@ liknon repository
 ├── crates/<validation-core>        # Name selected by A01 when justified
 ├── crates/<workspace-contracts>    # Name selected by A01 when justified
 ├── apps/liknon-cli                 # Launcher and aggregate package; B04
-├── apps/liknon-validate            # Validation CLI; B01
+├── apps/liknon-validator            # Validation CLI; B01
 ├── apps/liknon-manager             # Hub and resource management CLI; B02
 ├── apps/liknon-tool                # Local resource-consumption CLI; B03
 └── language API adapters           # Added only for approved B05 consumers

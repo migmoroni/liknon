@@ -13,7 +13,7 @@ description = "Aggregate package and unified launcher shell for the Liknon CLI s
 clap.workspace = true
 liknon-manager.workspace = true
 liknon-tool.workspace = true
-liknon-validate.workspace = true
+liknon-validator.workspace = true
 
 [[bin]]
 name = "liknon"
@@ -26,8 +26,8 @@ path = "src/bin/likx.rs"
 doc = false
 
 [[bin]]
-name = "liknon-validate"
-path = "src/bin/liknon-validate.rs"
+name = "liknon-validator"
+path = "src/bin/liknon-validator.rs"
 doc = false
 
 [[bin]]

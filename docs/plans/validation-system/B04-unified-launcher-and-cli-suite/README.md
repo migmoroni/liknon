@@ -31,7 +31,7 @@ It owns these binary targets:
 
 ```text
 liknon             likx
-liknon-validate    likv
+liknon-validator    likv
 liknon-manager     likm
 liknon-tool        likt
 ```
@@ -42,7 +42,7 @@ application packages:
 
 | Capability | Standalone Cargo package | Explicit command | Compact command |
 | --- | --- | --- | --- |
-| Validation | `liknon-validate` | `liknon-validate` | `likv` |
+| Validation | `liknon-validator` | `liknon-validator` | `likv` |
 | Resource management | `liknon-manager` | `liknon-manager` | `likm` |
 | Local resource access | `liknon-tool` | `liknon-tool` | `likt` |
 
@@ -56,7 +56,7 @@ integration plan B05 and owns no CLI command by implication.
 Capability dispatch uses one explicit namespace:
 
 ```text
-liknon validate <args> -> liknon-validate <args>
+liknon validate <args> -> liknon-validator <args>
 liknon manager <args>  -> liknon-manager <args>
 liknon tool <args>     -> liknon-tool <args>
 ```
@@ -85,7 +85,7 @@ Capability-specific help is emitted by the selected component. The launcher
 does not merge or reproduce its command tree.
 
 Root `--version` reports the launcher first and then
-`liknon-validate`, `liknon-manager`, and `liknon-tool`, in that order. Version
+`liknon-validator`, `liknon-manager`, and `liknon-tool`, in that order. Version
 inspection uses the same trusted executable resolution as dispatch. Missing,
 invalid, incompatible, and unresponsive components are reported explicitly.
 B04.0 decides the exact output, timeout, and exit status, not this ordering or

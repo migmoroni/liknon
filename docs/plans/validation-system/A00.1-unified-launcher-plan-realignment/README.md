@@ -43,7 +43,7 @@ Realign the active plans so that:
 
 | Capability | Cargo application package | Explicit command | Compact command |
 | --- | --- | --- | --- |
-| Validation | `liknon-validate` | `liknon-validate` | `likv` |
+| Validation | `liknon-validator` | `liknon-validator` | `likv` |
 | Resource management | `liknon-manager` | `liknon-manager` | `likm` |
 | Local resource access | `liknon-tool` | `liknon-tool` | `likt` |
 
@@ -68,7 +68,7 @@ package declares these binary targets itself:
 
 ```text
 liknon             likx
-liknon-validate    likv
+liknon-validator    likv
 liknon-manager     likm
 liknon-tool        likt
 ```
@@ -97,9 +97,9 @@ For capability dispatch, the first positional argument to the launcher selects
 a capability namespace:
 
 ```text
-liknon validate validate fast -> liknon-validate validate fast
-liknon validate check ...     -> liknon-validate check ...
-liknon validate config ...    -> liknon-validate config ...
+liknon validate validate fast -> liknon-validator validate fast
+liknon validate check ...     -> liknon-validator check ...
+liknon validate config ...    -> liknon-validator config ...
 liknon manager install ...    -> liknon-manager install ...
 liknon tool show ...          -> liknon-tool show ...
 ```
@@ -142,7 +142,7 @@ must:
 own help. The launcher does not synthesize or merge that detailed output.
 
 `liknon --version` and `likx --version` report the launcher version first,
-followed by the version of `liknon-validate`, `liknon-manager`, and
+followed by the version of `liknon-validator`, `liknon-manager`, and
 `liknon-tool`. Component inspection must use the same trusted executable
 resolution that normal dispatch would use. An absent, incompatible, or
 unresponsive component is reported explicitly rather than omitted or replaced
@@ -156,7 +156,7 @@ help scope, component list, ordering, or requirement to expose failures.
 
 1. `liknon` and `likx` are equivalent launcher entry points, not validation
    aliases.
-2. `liknon-validate` and `likv` are equivalent validation entry points.
+2. `liknon-validator` and `likv` are equivalent validation entry points.
 3. Every capability invocation through the unified launcher names `validate`,
    `manager`, or `tool` explicitly. Launcher-owned root controls do not.
 4. The launcher removes only the selected namespace before dispatch.
@@ -227,7 +227,7 @@ Required plan moves:
 
 - rename `B01-cli-distribution/` to
   `B01-validation-cli-distribution/` and restrict it to
-  `liknon-validate` / `likv`;
+  `liknon-validator` / `likv`;
 - move the current `B04-programmatic-api-and-language-bindings/` to
   `B05-programmatic-api-and-language-bindings/` without changing its future
   activation principle;
@@ -272,9 +272,9 @@ Update `../resumo-estado-alvo.md` first:
 
 - describe three capability CLIs and one capability-free launcher;
 - move the current validation-only package identity from `liknon-cli` to
-  `liknon-validate`;
+  `liknon-validator`;
 - replace validation commands `liknon` / `likx` with
-  `liknon-validate` / `likv`;
+  `liknon-validator` / `likv`;
 - redefine `liknon-cli` as the aggregate source package that owns launcher and
   capability binary targets;
 - add `liknon` / `likx` as launcher commands without assigning package name
@@ -373,7 +373,7 @@ on executable artifacts from dependencies.
 
 Update `../README.md` after the B04/B05 transition:
 
-- list B01 as Validation CLI distribution for `liknon-validate` / `likv`;
+- list B01 as Validation CLI distribution for `liknon-validator` / `likv`;
 - retain B02 and B03 as the Manager and Tool owners;
 - register B04 as unified launcher, aggregate package, and complete-suite
   ownership;
@@ -400,7 +400,7 @@ roadmap agree on:
 Update the A01 README and phases so that the structural ledger can distinguish
 implemented state from newly approved targets:
 
-- map the current validation implementation to `apps/liknon-validate`;
+- map the current validation implementation to `apps/liknon-validator`;
 - map the current validation semantics to one shared implementation;
 - record `apps/liknon-cli` as the new aggregate package and launcher
   application rather than pretending that target already exists;
@@ -430,10 +430,10 @@ Move and rewrite B01 as `B01-validation-cli-distribution/`.
 
 Across its README, phases, runbook, examples, and artifact contracts:
 
-- use package `liknon-validate`;
-- install commands `liknon-validate` and `likv`;
-- use tag `liknon-validate-v<VERSION>`;
-- use `liknon-validate` in archive, manifest, channel, installer, and evidence
+- use package `liknon-validator`;
+- install commands `liknon-validator` and `likv`;
+- use tag `liknon-validator-v<VERSION>`;
+- use `liknon-validator` in archive, manifest, channel, installer, and evidence
   identities;
 - remove launcher, Manager, Tool, and bundle ownership;
 - verify direct long/compact command equivalence;
@@ -466,7 +466,7 @@ cross-product statements needed to establish that:
 Use capability roles in generic contracts. Where an executable form is
 necessary, distinguish:
 
-- direct deterministic use of `liknon-validate`, `liknon-manager`, or
+- direct deterministic use of `liknon-validator`, `liknon-manager`, or
   `liknon-tool`;
 - equivalent unified use through the explicit launcher namespace; and
 - AI-Tool the resource from `liknon-tool` the executable.
@@ -503,7 +503,7 @@ places those requirements in D01 and does not publish any product.
 
 After all owning documents are reconciled:
 
-- use **Validation CLI** for the capability role and `liknon-validate` for its
+- use **Validation CLI** for the capability role and `liknon-validator` for its
   concrete package or command;
 - use **launcher** or **unified launcher** for `liknon` / `likx`;
 - use **aggregate CLI package** for Cargo package `liknon-cli`;
@@ -555,7 +555,7 @@ meta-plan unless a build input or product source is changed accidentally.
 ## 15. Acceptance Criteria
 
 - [x] The target summary defines three capability CLIs and one launcher.
-- [x] `liknon-validate` / `likv` exclusively identify direct validation.
+- [x] `liknon-validator` / `likv` exclusively identify direct validation.
 - [x] `liknon` / `likx` exclusively identify the unified launcher.
 - [x] The target summary, A01, and B04 consistently define Cargo package
       `liknon-cli` as owning launcher and capability command targets backed by
@@ -596,7 +596,7 @@ meta-plan unless a build input or product source is changed accidentally.
 3. Execute the ordered B04/B05 topology transition, create the new B04, update
    the root roadmap, and pass the foundation checkpoint.
 4. Reconcile A01 product and repository boundaries.
-5. Move and refound B01 around `liknon-validate` / `likv`.
+5. Move and refound B01 around `liknon-validator` / `likv`.
 6. Reconcile B02, B03, C01-C03, and D01 references and future test
    requirements.
 7. Perform the terminology, link, status, and acceptance sweep.

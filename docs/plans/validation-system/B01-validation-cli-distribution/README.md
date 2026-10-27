@@ -4,7 +4,7 @@
 
 `Provisional`; blocked only by the final hosted A01.5 verification. A01 has
 consolidated the validation engine, schemas, CLI adaptation, and binary targets
-into the single `liknon-validate` package.
+into the single `liknon-validator` package.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only Validation CLI distribution.
@@ -40,8 +40,8 @@ complementary channels:
 
 | Channel | Distributed form | User experience | Rust required |
 | --- | --- | --- | --- |
-| GitHub source | Signed tagged source for the canonical monorepo | Clone, select a version, and install `apps/liknon-validate` | Yes |
-| crates.io | Source application package `liknon-validate` | `cargo install liknon-validate --locked` | Yes |
+| GitHub source | Signed tagged source for the canonical monorepo | Clone, select a version, and install `apps/liknon-validator` | Yes |
+| crates.io | Source application package `liknon-validator` | `cargo install liknon-validator --locked` | Yes |
 | Cloudflare Direct | Versioned native archive through a project-controlled domain | Run an authenticated installer or verify and extract an archive | No |
 
 GitHub is the complete source channel, crates.io is the application source
@@ -52,7 +52,7 @@ lock source identity and carry metadata but no Liknon binary assets.
 
 Every channel installs two command names backed by one implementation:
 
-- `liknon-validate`, the explicit long command;
+- `liknon-validator`, the explicit long command;
 - `likv`, the compact command.
 
 B01 includes:
@@ -62,7 +62,7 @@ B01 includes:
   distribution foundation;
 - one explicit Validation product descriptor and thin release orchestrator;
 - one version and provenance contract for source and native artifacts;
-- one inspected, self-contained `liknon-validate` source package and its locked
+- one inspected, self-contained `liknon-validator` source package and its locked
   registry dependency closure;
 - one final native executable payload per supported target;
 - two equivalent installed command names;
@@ -97,12 +97,12 @@ with B02-B05 and D01.
 ### GitHub Source
 
 Clone the canonical repository, select and verify an exact signed
-`liknon-validate-v<VERSION>` tag, and install `apps/liknon-validate` with the committed
+`liknon-validator-v<VERSION>` tag, and install `apps/liknon-validator` with the committed
 lockfile and supported Rust toolchain.
 
 ### crates.io
 
-Install exact published source for package `liknon-validate` with locked
+Install exact published source for package `liknon-validator` with locked
 dependencies. The package contains both binary targets and builds from its
 published contents without repository-only files or unpublished path
 dependencies.
@@ -120,10 +120,10 @@ presentation surface, not another artifact source.
 
 ## Architectural Invariants
 
-1. The `apps/liknon-validate` Cargo package version is the sole authored
+1. The `apps/liknon-validator` Cargo package version is the sole authored
    validation-CLI version source.
 2. The initial version grammar is canonical `MAJOR.MINOR.PATCH`.
-3. Signed tag `liknon-validate-v<VERSION>` points exactly to the released commit.
+3. Signed tag `liknon-validator-v<VERSION>` points exactly to the released commit.
 4. A metadata-only immutable GitHub Release locks that source identity.
 5. Both command names execute one implementation and report one version.
 6. CI builds the native payload once per target. Later jobs may copy verified
@@ -183,13 +183,13 @@ target/distribution/validation/      # Generated and ignored
 
 | Rust target | Installed commands | Direct archive | Initial platform authenticity |
 | --- | --- | --- | --- |
-| `x86_64-unknown-linux-gnu` | `liknon-validate`, `likv` | `.tar.gz` | Signed release metadata and hashes |
-| `x86_64-unknown-linux-musl` | `liknon-validate`, `likv` | `.tar.gz` | Signed release metadata and hashes |
-| `aarch64-unknown-linux-gnu` | `liknon-validate`, `likv` | `.tar.gz` | Signed release metadata and hashes |
-| `aarch64-unknown-linux-musl` | `liknon-validate`, `likv` | `.tar.gz` | Signed release metadata and hashes |
-| `x86_64-apple-darwin` | `liknon-validate`, `likv` | `.tar.gz` | Ad hoc code signature; not notarized |
-| `aarch64-apple-darwin` | `liknon-validate`, `likv` | `.tar.gz` | Ad hoc code signature; not notarized |
-| `x86_64-pc-windows-msvc` | `liknon-validate.exe`, `likv.exe` | `.zip` | Project-controlled self-signed Authenticode with RFC 3161 timestamp |
+| `x86_64-unknown-linux-gnu` | `liknon-validator`, `likv` | `.tar.gz` | Signed release metadata and hashes |
+| `x86_64-unknown-linux-musl` | `liknon-validator`, `likv` | `.tar.gz` | Signed release metadata and hashes |
+| `aarch64-unknown-linux-gnu` | `liknon-validator`, `likv` | `.tar.gz` | Signed release metadata and hashes |
+| `aarch64-unknown-linux-musl` | `liknon-validator`, `likv` | `.tar.gz` | Signed release metadata and hashes |
+| `x86_64-apple-darwin` | `liknon-validator`, `likv` | `.tar.gz` | Ad hoc code signature; not notarized |
+| `aarch64-apple-darwin` | `liknon-validator`, `likv` | `.tar.gz` | Ad hoc code signature; not notarized |
+| `x86_64-pc-windows-msvc` | `liknon-validator.exe`, `likv.exe` | `.zip` | Project-controlled self-signed Authenticode with RFC 3161 timestamp |
 
 Every row is a distinct artifact. A target becomes public only after native
 execution, archive, installer, alias-equivalence, and public-readback checks.

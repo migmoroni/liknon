@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(
-    name = "liknon-validate",
+    name = "liknon-validator",
     version,
     about = help::root::ABOUT
 )]

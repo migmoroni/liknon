@@ -1,5 +1,5 @@
 mod common;
-use liknon_validate::{
+use liknon_validator::{
     config,
     contracts::report::{
         CheckContext, CheckExecutionResult, GroupResult, OverallResult, Status, SuiteResult,

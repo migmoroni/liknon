@@ -1,4 +1,4 @@
-use liknon_validate::contracts::{
+use liknon_validator::contracts::{
     config::Config,
     init::{InitResourceKind, InitResourceResult, InitResourceStatus, InitResult, InitStatus},
     report::ValidationReport,

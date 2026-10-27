@@ -52,9 +52,9 @@ executavel correspondente. Ele nao valida, instala, consulta, interpreta nem
 repara componentes.
 
 ```text
-liknon validate validate fast -> liknon-validate validate fast
-liknon validate check ...     -> liknon-validate check ...
-liknon validate config ...    -> liknon-validate config ...
+liknon validate validate fast -> liknon-validator validate fast
+liknon validate check ...     -> liknon-validator check ...
+liknon validate config ...    -> liknon-validator config ...
 liknon manager install ...    -> liknon-manager install ...
 liknon tool show ...          -> liknon-tool show ...
 ```
@@ -63,7 +63,7 @@ liknon tool show ...          -> liknon-tool show ...
 compatibilidade ou encaminhamento implicito de comandos antigos.
 
 O pacote `liknon-cli` e tambem a rota agregada promovida no Cargo. Ele possui
-os oito alvos binarios `liknon`, `likx`, `liknon-validate`, `likv`,
+os oito alvos binarios `liknon`, `likx`, `liknon-validator`, `likv`,
 `liknon-manager`, `likm`, `liknon-tool` e `likt`, reutilizando as mesmas
 implementacoes compartilhadas dos tres pacotes de aplicacao independentes. Ele
 nao depende de o Cargo instalar binarios pertencentes a dependencias.
@@ -72,8 +72,8 @@ nao depende de o Cargo instalar binarios pertencentes a dependencias.
 
 | Campo | Definicao-alvo |
 | --- | --- |
-| Pacote/aplicacao | `liknon-validate` |
-| Comandos | `liknon-validate` e `likv` |
+| Pacote/aplicacao | `liknon-validator` |
+| Comandos | `liknon-validator` e `likv` |
 | Responsabilidade | Configurar, inspecionar, planejar e executar validacoes |
 | Rede | Nenhuma necessidade para o fluxo normal |
 | Recursos de IA | Nao incorpora o corpus completo nem orquestra agentes |
@@ -129,7 +129,7 @@ fronteiras semelhantes a:
 ```text
 apps/
 ├── liknon-cli/          # launcher e pacote agregado
-├── liknon-validate/     # engine, schemas, adaptacao CLI e binarios
+├── liknon-validator/     # engine, schemas, adaptacao CLI e binarios
 ├── liknon-manager/
 └── liknon-tool/
 
@@ -158,7 +158,7 @@ O tipo do recurso vem antes da origem. `official` identifica uma origem e nao
 concede privilegio de execucao. Outras origens devem poder usar os mesmos
 contratos.
 
-`liknon-validate` concentra sua semantica de configuracao, planejamento,
+`liknon-validator` concentra sua semantica de configuracao, planejamento,
 execucao, relatorios estruturados, schemas e adaptacao de terminal em modulos
 internos de um unico pacote. As tres CLIs de capacidade nao invocam umas as
 outras como subprocessos ocultos. Somente o launcher pode invocar a CLI
@@ -303,7 +303,7 @@ por nome oficial.
 O fluxo humano continua completo e independente:
 
 ```text
-humano -> config.json -> liknon-validate -> relatorio
+humano -> config.json -> liknon-validator -> relatorio
 ```
 
 O humano pode tambem usar uma IA pontualmente, com documentacao ou skills, sem
@@ -339,7 +339,7 @@ na fundacao deve validar todos os perfis de produto que ja a utilizam.
 A direcao ja definida para a Validation CLI inclui:
 
 - codigo fonte versionado no GitHub para clone e compilacao local;
-- pacote fonte `liknon-validate` no crates.io;
+- pacote fonte `liknon-validator` no crates.io;
 - binarios nativos verificados e publicados por alvo no dominio do projeto,
   com armazenamento no Cloudflare;
 - instalacao direta por script ou download pelo site;
@@ -476,7 +476,7 @@ deve:
 
 Ao final, Liknon sera um conjunto coeso, mas desacoplado:
 
-- `liknon-validate` ou `likv` executa validacoes diretamente;
+- `liknon-validator` ou `likv` executa validacoes diretamente;
 - `liknon-manager` ou `likm` obtem e organiza recursos;
 - `liknon-tool` ou `likt` consulta recursos locais;
 - `liknon` ou `likx` encaminha uma invocacao com namespace explicito para uma

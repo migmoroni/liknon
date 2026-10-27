@@ -16,7 +16,7 @@ validation workspace path with the approved `.liknon/validation/` location.
 ## Validation CLI
 
 The standalone Validation CLI package provides the approved
-`liknon-validate` and `likv` entry points over one implementation. It owns
+`liknon-validator` and `likv` entry points over one implementation. It owns
 command parsing, terminal adaptation, human presentation, JSON stream
 selection, signals, exit codes, and explicit validation initialization.
 
@@ -33,7 +33,7 @@ gain policy/persistence behavior merely because those files share `.liknon/`.
 
 Create `apps/liknon-cli` as the aggregate Cargo package selected by the A01.0
 ledger. It owns launcher targets `liknon` and `likx` plus capability targets
-`liknon-validate`, `likv`, `liknon-manager`, `likm`, `liknon-tool`, and `likt`.
+`liknon-validator`, `likv`, `liknon-manager`, `likm`, `liknon-tool`, and `likt`.
 
 The launcher targets contain only namespace selection and process dispatch.
 They do not import capability APIs to execute work. Aggregate capability

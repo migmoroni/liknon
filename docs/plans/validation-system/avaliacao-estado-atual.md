@@ -29,7 +29,7 @@ manutencao:
 
 | Pacote | Estado atual |
 | --- | --- |
-| `liknon-validate` | Aplicacao de validacao completa, biblioteca interna e binarios `liknon-validate` / `likv` |
+| `liknon-validator` | Aplicacao de validacao completa, biblioteca interna e binarios `liknon-validator` / `likv` |
 | `liknon-manager` | Shell de identidade para o futuro Manager, sem comandos de recursos |
 | `liknon-tool` | Shell de identidade para o futuro Tool, sem comandos de consulta |
 | `liknon-cli` | Pacote agregado e shell do launcher `liknon` / `likx`; ainda nao despacha capacidades |
@@ -47,22 +47,22 @@ workflows instalaveis e despacho agregado continuam planejados.
 
 ## 3. Produto De Validacao Implementado
 
-O pacote `apps/liknon-validate` possui uma unica implementacao de validacao. A
+O pacote `apps/liknon-validator` possui uma unica implementacao de validacao. A
 separacao entre semantica e terminal ocorre por modulos internos, nao por um
 segundo pacote:
 
 | Area | Implementacao atual |
 | --- | --- |
-| Configuracao | `apps/liknon-validate/src/config/` |
-| Contratos estruturados | `apps/liknon-validate/src/contracts/` |
-| Planejamento e DAG | `apps/liknon-validate/src/planning/` e `dag.rs` |
-| Execucao de processos | `apps/liknon-validate/src/execution/` e `process.rs` |
-| Evidencia de repositorio | `apps/liknon-validate/src/repository/` |
-| Relatorios e apresentacao | `apps/liknon-validate/src/reporting/` |
-| CLI e ajuda | `apps/liknon-validate/src/cli/` |
-| Temas acessiveis | `apps/liknon-validate/src/theme/` |
-| Inicializacao | `apps/liknon-validate/src/initialization.rs` |
-| Schemas | `apps/liknon-validate/schemas/` |
+| Configuracao | `apps/liknon-validator/src/config/` |
+| Contratos estruturados | `apps/liknon-validator/src/contracts/` |
+| Planejamento e DAG | `apps/liknon-validator/src/planning/` e `dag.rs` |
+| Execucao de processos | `apps/liknon-validator/src/execution/` e `process.rs` |
+| Evidencia de repositorio | `apps/liknon-validator/src/repository/` |
+| Relatorios e apresentacao | `apps/liknon-validator/src/reporting/` |
+| CLI e ajuda | `apps/liknon-validator/src/cli/` |
+| Temas acessiveis | `apps/liknon-validator/src/theme/` |
+| Inicializacao | `apps/liknon-validator/src/initialization.rs` |
+| Schemas | `apps/liknon-validator/schemas/` |
 
 O crate expoe internamente os modulos exigidos pelos consumidores atuais do
 workspace, mas essa superficie Rust ainda nao e uma API programatica publica
@@ -111,16 +111,16 @@ destino canonico dentro do workspace explicitamente selecionado.
 ### 5.2 Comandos Funcionais
 
 ```text
-liknon-validate init
-liknon-validate config validate
-liknon-validate validate
-liknon-validate check
-liknon-validate list
-liknon-validate explain group
-liknon-validate explain suite
-liknon-validate explain check
-liknon-validate schema config
-liknon-validate schema report
+liknon-validator init
+liknon-validator config validate
+liknon-validator validate
+liknon-validator check
+liknon-validator list
+liknon-validator explain group
+liknon-validator explain suite
+liknon-validator explain check
+liknon-validator schema config
+liknon-validator schema report
 ```
 
 `likv` oferece o mesmo comportamento. Nao existe namespace de conhecimento no
@@ -150,7 +150,7 @@ O pacote `liknon-cli` instala:
 Os launchers reconhecem os namespaces `validate`, `manager` e `tool`, mas
 encerram com diagnostico explicito porque o despacho ainda nao foi
 implementado. A validacao deve ser chamada diretamente por
-`liknon-validate` ou `likv`.
+`liknon-validator` ou `likv`.
 
 ## 7. Conhecimento E Apoio A IA
 
@@ -160,7 +160,7 @@ embutida no Validation CLI e nao possui comando de leitura em runtime.
 
 O pacote privado `liknon-knowledge-maintenance` valida catalogo, fontes,
 integridade, receitas, indice gerado e o handoff da skill. Ele depende da
-biblioteca de `liknon-validate` apenas para verificar exemplos de configuracao
+biblioteca de `liknon-validator` apenas para verificar exemplos de configuracao
 com o carregador real. Nenhum produto distribuido depende dessa ferramenta.
 
 O conteudo em `skills/liknon/` permanece como entrada nao ativa para planos
@@ -176,10 +176,10 @@ privada.
 O caminho funcional documentado instala o Validation CLI a partir do clone:
 
 ```sh
-cargo install --path apps/liknon-validate --locked --force
+cargo install --path apps/liknon-validator --locked --force
 ```
 
-O pacote `liknon-validate` inclui motor, adaptacao CLI, schemas, branding,
+O pacote `liknon-validator` inclui motor, adaptacao CLI, schemas, branding,
 exemplo e testes. Ele nao inclui o corpus de conhecimento, skills, planos,
 avaliacoes, fixtures externas ou ferramentas editoriais. Seu build nao depende
 de outro pacote Liknon.
