@@ -2,11 +2,14 @@
 
 ## Status And Relationship To The Validation System
 
-The repository-side release implementation is in place. Operational acceptance
-remains blocked by the human-owned AP-0 through AP-6 setup, an exact signed
-release tag, the first protected hosted release, and public-channel
-verification. A01 has consolidated the validation engine, schemas, CLI
-adaptation, and binary targets into the single `liknon-validator` package.
+The repository-side release implementation is in place. Product acceptance
+still requires the human-owned AP-0 through AP-6 setup, an exact signed release
+tag, and a release-ready candidate. The first protected hosted release and
+public-channel verification are coordinated by
+[B06](../B06-coordinated-public-release/README.md) after B02-B05 provide the
+other selected release inputs. A01 has consolidated the validation engine,
+schemas, CLI adaptation, and binary targets into the single
+`liknon-validator` package.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only Validation CLI distribution.
@@ -25,6 +28,9 @@ offline `liknon-tool`.
 [B04](../B04-unified-launcher-and-cli-suite/README.md) owns the aggregate
 launcher and complete-suite distribution. Future in-process APIs belong to
 [B05](../B05-programmatic-api-and-language-bindings/README.md).
+[B06](../B06-coordinated-public-release/README.md) freezes and activates the
+first public multi-product release without taking ownership of this product's
+workflow or credentials.
 
 ## Dependencies
 
@@ -90,9 +96,10 @@ schemas, and generic `.liknon/validation/` initialization. It does not contain:
 
 B01 does not build or publish Manager, Tool, the launcher, complete suites, Hub
 resources, official workflows, programmatic bindings, or integrated
-agent-evaluation results. Shared release machinery contains no behavior or
-publication authority for those products. Their profiles and evidence remain
-with B02-B05 and D01.
+agent-evaluation results. It also does not coordinate the complete first public
+release. Shared release machinery contains no behavior or publication
+authority for those products. Their profiles and evidence remain with B02-B05,
+B06, and D01.
 
 ## Installation Contract
 
@@ -208,8 +215,13 @@ execution, archive, installer, alias-equivalence, and public-readback checks.
 | B01.2 | [Native Builds](02-native-builds.md) | B01.1 | Reusable credential-free build lane and one tested Validation payload per target |
 | B01.3 | [Cloudflare Direct](03-cloudflare-direct.md) | B01.2 | Reusable archive/installer assembly and verified Validation direct candidates |
 | B01.4 | [End-To-End Verification](04-end-to-end-verification.md) | B01.3 | Shared conformance harness plus Validation source, crates, and native evidence |
-| B01.5 | [Publication And Recovery](05-publication-and-recovery.md) | B01.4 | Isolated, resumable crates.io, GitHub, and Cloudflare publication |
-| B01.6 | [Public Verification And Documentation](06-public-verification-and-documentation.md) | B01.5 | Verified public installs, stable pointer, and accurate documentation |
+| B01.5 | [Publication And Recovery](05-publication-and-recovery.md) | B01.4 | Isolated, resumable product publication workflow ready for B06 invocation |
+| B01.6 | [Public Verification And Documentation](06-public-verification-and-documentation.md) | B01.5 | Public-readback, stable-pointer, and documentation procedure handed to B06 |
+
+B01.5 and B01.6 remain the product-owned publication and verification
+contracts. For the first public release, B06 invokes them with the exact B01
+candidate recorded in its frozen release-set ledger. Later Validation releases
+may use the same contracts independently.
 
 ## Global Acceptance Criteria
 
@@ -257,9 +269,10 @@ execution, archive, installer, alias-equivalence, and public-readback checks.
 ## Resulting System
 
 Liknon validation remains one lean application with two explicit command names.
-Users may compile it from a verified clone, install its source package from
-crates.io, or obtain one authenticated native target from Cloudflare without
-receiving the independent Manager, Tool, Hub, or modular resources.
+After B06 activates its first release, users may compile it from a verified
+clone, install its source package from crates.io, or obtain one authenticated
+native target from Cloudflare without receiving the independent Manager, Tool,
+Hub, or modular resources.
 
 The repository also gains one product-neutral release foundation. Later plans
 instantiate it under independent product profiles rather than copying B01 or

@@ -37,6 +37,9 @@ and the
   `liknon-cli`, launcher commands `liknon` / `likx`, and complete suites.
 - B05 may later publish importable libraries named `liknon` in selected
   language registries.
+- [B06](../B06-coordinated-public-release/README.md) coordinates the first
+  public activation of only those B05 ecosystems whose consumer-driven gate,
+  implementation, candidate verification, and registry readiness have passed.
 
 The three capability applications, launcher, and future libraries are separate
 products. A B05 library does not install, embed, impersonate, or use a CLI as
@@ -199,14 +202,17 @@ consumer and contract are approved.
 | B05.3 | [Ruby Bindings](03-ruby-bindings.md) | B05.0 Ruby scope and approved native boundary when required | Importable Ruby API |
 | B05.4 | [Python Bindings](04-python-bindings.md) | B05.0 Python scope and approved native boundary when required | Importable Python API |
 | B05.5 | [.NET Bindings](05-dotnet-bindings.md) | B05.0 .NET scope and approved native boundary when required | Importable managed API |
-| B05.6 | [Cross-Language Verification And Publication](06-cross-language-verification-and-publication.md) | Implemented binding phases | Conformance evidence and isolated registry publication |
+| B05.6 | [Cross-Language Verification And Publication Readiness](06-cross-language-verification-and-publication.md) | Implemented binding phases | Conformance evidence, release-ready packages, and isolated registry workflows ready for B06 |
 
 The [Git-hook integration contract](git-hook-integration.md) is a
 cross-cutting B05.0 design input rather than a separate publication phase. Each
 activated language phase implements it only when the approved package scope
 includes that capability.
 
-Binding phases are optional and need not launch simultaneously.
+Binding phases are optional and need not launch simultaneously. B06 includes
+only the phases selected in its frozen release set. It does not delay the first
+public release for an unimplemented ecosystem or publish a placeholder to make
+the registry set symmetrical.
 
 ## Global Acceptance Criteria
 

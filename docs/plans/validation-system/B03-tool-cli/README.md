@@ -171,6 +171,12 @@ artifacts contain no complete resource corpus; inclusion of the single
 program-owned bootstrap contract does not turn that contract into a Hub
 payload.
 
+For the first public Liknon release,
+[B06](../B06-coordinated-public-release/README.md) records the exact Tool
+candidate, invokes the B03-owned publication authorities, and performs
+coordinated public readback. Later Tool releases retain their independent B03
+release train.
+
 ## Deliverables And Implementation Order
 
 | Phase | Document | Depends on | Primary result |
@@ -179,14 +185,14 @@ payload.
 | B03.1 | [Local Catalog And Retrieval](01-local-catalog-and-retrieval.md) | B03.0 | Deterministic offline discovery and exact payload retrieval |
 | B03.2 | [Context And Agent Safety](02-context-and-agent-safety.md) | B03.1 | Bounded progressive disclosure and safe machine consumption |
 | B03.3 | [Source And Native Distribution](03-source-and-native-distribution.md) | B03.2 | Independently installable Tool candidates |
-| B03.4 | [End-To-End Verification And Publication](04-end-to-end-verification-and-publication.md) | B03.3 and local B02/B03 interoperability evidence | Public Tool distribution and clean-environment local-store interoperability |
+| B03.4 | [End-To-End Verification And Publication Readiness](04-end-to-end-verification-and-publication.md) | B03.3 and local B02/B03 interoperability evidence | Release-ready Tool candidate, product-owned publication workflow, and clean-environment local-store interoperability ready for B06 |
 
 B03.0-B03.2 establish local implementation readiness. Their interoperability
 gate combines repository-built B02.4 Manager and B03.2 Tool with neutral
-fixtures. B03.3-B03.4 are distribution work and are not prerequisites for C02
-or C03. When B02.5 is also complete, B03.4 adds public-Manager-to-public-Tool
-interoperability evidence; that cross-channel claim does not gate independent
-Tool publication.
+fixtures. B03.3-B03.4 are release-readiness work and are not prerequisites for
+C02 or C03. B06 adds public-Manager-to-public-Tool interoperability evidence
+after it activates both products; that cross-channel claim does not permanently
+couple later Tool publication to Manager.
 
 ## Global Acceptance Criteria
 

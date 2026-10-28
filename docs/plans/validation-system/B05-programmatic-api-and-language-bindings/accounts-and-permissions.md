@@ -23,6 +23,12 @@ representative consumer exists. B05 does not publish placeholder packages or
 parallel names. None of these identities grants permission to publish a CLI or
 authored Hub resources through that registry.
 
+For the first public release, every activated registry supplies its exact
+readiness state to the
+[B06 consolidated checklist](../B06-coordinated-public-release/accounts-and-permissions.md).
+B06 coordinates invocation and readback but never receives or combines the
+registry credentials defined here.
+
 ## Activation Rules
 
 For each language independently:
@@ -35,8 +41,9 @@ For each language independently:
 5. configure registry-native trusted publishing when available;
 6. use a destination-scoped bootstrap credential only when the first
    publication cannot use trusted publishing, then revoke it immediately;
-7. perform human approval without exposing the publication credential;
-8. verify public readback before closing the release.
+7. perform human approval without exposing the publication credential; for the
+   first release, this is part of the frozen B06 release-set approval;
+8. let B06 coordinate public readback before closing the first release.
 
 Registry phases do not share credentials. Build and conformance jobs cannot
 read any publication environment.

@@ -1,10 +1,12 @@
-# Phase B02.5: Distribute Manager And Verify Hub-To-Workspace Behavior
+# Phase B02.5: Prepare Manager Distribution And Verify Hub-To-Workspace Behavior
 
 ## Status
 
 `Provisional`. Blocked by B02.4, the credential-free shared distribution
 foundation implemented and proven through B01.1-B01.4, and explicit human
-release approval. It does not wait for B01 Validation publication.
+candidate approval. It does not wait for B01 Validation publication. The first
+public invocation of the retained Manager and Hub workflows is coordinated by
+B06.
 
 Operation labels in this document are placeholders for the exact grammar
 selected by B02.0.
@@ -13,12 +15,14 @@ selected by B02.0.
 
 ## Purpose
 
-Distribute Manager independently and prove the complete path from authenticated
-Hub metadata to a verified workspace resource store.
+Prepare Manager for independent distribution and prove the complete path from
+authenticated Hub metadata to a verified workspace resource store. This phase
+retains exact candidates and product-owned publication procedures; B06 performs
+their first production activation.
 
 ## Distribution Channels
 
-Publish one Manager version through:
+Prepare one Manager version for publication through:
 
 - signed tagged GitHub source for `apps/liknon-manager`;
 - the `liknon-manager` crates.io source package;
@@ -142,8 +146,9 @@ From clean environments:
     namespace-based privilege. When C02 resources already exist, repeat the
     same case with the official action workflow without changing Manager code.
 
-Repeat representative cases through both command names and all published
-Manager channels.
+Repeat representative cases through both command names and every retained
+Manager channel candidate. B06 repeats the public-channel cases after
+publication.
 
 Also run the shared-foundation conformance suite with the Manager descriptor,
 including cross-product namespace, candidate, alias, target, stable-pointer,
@@ -151,8 +156,10 @@ credential, version, tag, commit, and provenance-substitution rejection.
 
 ## Hub Publication Verification
 
-- Publish immutable official-resource candidates independently from Manager.
-- Read every metadata and payload object back through the production origin.
+- Publish immutable official-resource candidates to a local or test origin
+  independently from Manager.
+- Read every metadata and payload object back through that origin. B06 repeats
+  the checks against the production origin.
 - Authenticate catalog snapshots and object references.
 - Verify cache headers, rollback protection, yanking, revocation, and stable
   catalog-pointer behavior.
@@ -183,10 +190,15 @@ The product-specific release orchestrator is thin. Reusable build, assembly,
 and verification workflows receive no broad inherited secrets. Isolated
 Manager publication jobs receive only their destination-specific authority.
 
+For the first public release, B06 supplies the frozen release-set identity and
+coordinates when these B02-owned jobs run. B06 does not receive the Manager or
+Hub credentials.
+
 ## Exit Criterion
 
-Users can install Manager through every declared channel and reproducibly obtain
-selected, authenticated resources from the Hub without executing resource
-content or depending on Validation CLI or Tool. Every Manager native target is
-the exact retained output of the common build contract, while all publication
-identity and authority remain B02-specific.
+B06 can publish one exact Manager and Hub release through every declared
+channel without rebuilding it. After public activation, users can reproducibly
+obtain selected, authenticated resources without executing resource content or
+depending on Validation CLI or Tool. Every Manager native target is the exact
+retained output of the common build contract, while all publication identity
+and authority remain B02-specific.

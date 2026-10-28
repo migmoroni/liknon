@@ -12,6 +12,11 @@ phase.
 Stage only the external ownership, signing, and publication access needed for
 the Tool release phase currently being implemented.
 
+For the first public release, this runbook supplies B03's exact requirements to
+the [B06 consolidated readiness checklist](../B06-coordinated-public-release/accounts-and-permissions.md).
+B06 records readiness and coordinates invocation without receiving Tool
+credentials.
+
 ## Canonical Identities
 
 | Purpose | Identity |
@@ -45,8 +50,10 @@ Tool publication uses no Hub resource-publication or namespace credential.
    ownership before B03.0.
 2. Create credential-free release candidates during B03.3.
 3. Configure protected publication environments only when candidates pass.
-4. Activate destination credentials immediately before B03.4 publication.
-5. Verify public readback, revoke temporary credentials, and retain evidence.
+4. Activate destination credentials immediately before B06 invokes the B03.4
+   publication procedure for the first release.
+5. Let B06 coordinate public readback, then revoke temporary credentials and
+   retain B03-owned evidence.
 
 Tool storage authorization cannot write Validation, Manager, or suite release
 state. Use a separate bucket or an equally strong boundary when authorization

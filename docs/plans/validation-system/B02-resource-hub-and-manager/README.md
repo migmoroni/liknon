@@ -187,6 +187,12 @@ releases. Publishing or updating a resource never requires rebuilding Manager.
 The shared CLI release foundation does not publish Hub metadata or payloads;
 those remain a separate B02.1 authority and pipeline.
 
+For the first public Liknon release,
+[B06](../B06-coordinated-public-release/README.md) records the exact Manager
+and Hub candidates, invokes the B02-owned publication authorities in dependency
+order, and performs coordinated public readback. Later Manager and resource
+releases remain independent B02 release trains.
+
 ## Deliverables And Implementation Order
 
 | Phase | Document | Depends on | Primary result |
@@ -196,12 +202,13 @@ those remain a separate B02.1 authority and pipeline.
 | B02.2 | [Manager Workspace And Commands](02-manager-workspace-and-commands.md) | B02.0 | Local state, discovery, inspection, and stable human/JSON interfaces |
 | B02.3 | [Resolution, Locking, And Installation](03-resolution-locking-and-installation.md) | B02.1-B02.2 | Deterministic dependency resolution and transactional resource lifecycle |
 | B02.4 | [Security, Trust, And Recovery](04-security-trust-and-recovery.md) | B02.3 | Fail-closed verification, rollback, and adversarial coverage |
-| B02.5 | [Distribution And End-To-End Verification](05-distribution-and-end-to-end-verification.md) | B02.4 and the credential-free shared distribution foundation | Independent Manager source/native candidates, published channels, and verified Hub-to-workspace behavior |
+| B02.5 | [Distribution And End-To-End Verification](05-distribution-and-end-to-end-verification.md) | B02.4 and the credential-free shared distribution foundation | Independent Manager and Hub candidates, product-owned publication workflows, and verified Hub-to-workspace behavior ready for B06 |
 
 B02.0-B02.4 establish local implementation readiness. Together with B03.2 they
 provide the neutral interoperability evidence required before C02 or C03
-official resources are implemented. B02.5 is a separate public-distribution
-milestone and is not a prerequisite for authoring those resources.
+official resources are implemented. B02.5 is a separate release-readiness
+milestone and is not a prerequisite for authoring those resources. Its first
+public activation occurs through B06.
 
 ## Global Acceptance Criteria
 

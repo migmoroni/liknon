@@ -13,6 +13,12 @@ Resolve the operational and release questions required to implement the
 capability-free launcher and aggregate suite without weakening the independent
 product boundaries established by A01 and B01-B03.
 
+The approved contract must also define a B06 handoff: one immutable B04
+candidate identity, exact B01-B03 component closure, product-owned workflow
+entry point, protected authority boundary, public-readback procedure, and
+resumable destination state. B06 coordinates the first invocation but cannot
+rebuild the suite or receive B04 credentials.
+
 ## Required Inputs
 
 - the approved A01 package and dependency graph;

@@ -399,6 +399,21 @@ hooks durante a instalacao do proprio pacote. O hook gerado chama diretamente
 a rota nativa selecionada, enquanto a CI continua sendo a autoridade final de
 validacao.
 
+### 9.6 Primeira Publicacao Coordenada
+
+B01 a B05 deixam seus produtos selecionados com candidatos exatos, workflows
+de publicacao, autoridades isoladas e procedimentos de recuperacao prontos. O
+plano B06 coordena somente a primeira ativacao publica do conjunto: congela as
+versoes e dependencias escolhidas, confirma contas e raizes de confianca,
+ensaia a sequencia sem credenciais de publicacao, aciona os workflows de cada
+produto, verifica a leitura publica e promove os ponteiros estaveis.
+
+B06 nao possui uma credencial universal, nao recompila candidatos aceitos e
+nao retira dos produtos seus ciclos de release. Publicacoes posteriores podem
+voltar a ocorrer de forma independente. Um ecossistema de B05 ainda nao
+implementado fica explicitamente fora do conjunto, sem pacote vazio ou
+placeholder.
+
 ## 10. Decisoes Firmes
 
 1. Existem tres CLIs de capacidade com responsabilidades independentes e um
@@ -432,6 +447,9 @@ validacao.
 19. B01-B04 compartilham uma fundacao de distribuicao, mas cada produto preserva
     candidatos, versao, tag, namespace, credenciais, aprovacao, testes e
     autoridade de publicacao proprios.
+20. B06 coordena a primeira publicacao publica a partir dos candidatos exatos
+    de B01-B05 e da evidencia integrada selecionada, sem unificar credenciais,
+    versoes ou ciclos posteriores de release.
 
 ## 11. Questoes Ainda Abertas
 

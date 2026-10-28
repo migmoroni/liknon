@@ -2,15 +2,17 @@
 
 ## Status
 
-`Provisional`. Blocked by B01.4 and explicit human release approval.
+`Provisional`. Blocked by B01.4 and explicit human release approval. The first
+public invocation is coordinated by B06 from its frozen release-set ledger;
+later Validation releases may invoke this product workflow independently.
 
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose
 
-Publish one verified validation CLI release to crates.io, GitHub, and
-Cloudflare while isolating credentials and making partial publication
-resumable without rebuilding candidates.
+Provide the product-owned workflow that publishes one verified validation CLI
+release to crates.io, GitHub, and Cloudflare while isolating credentials and
+making partial publication resumable without rebuilding candidates.
 
 ## Dependencies
 

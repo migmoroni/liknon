@@ -1,16 +1,19 @@
-# Phase B05.6: Verify And Publish Language Libraries
+# Phase B05.6: Verify And Prepare Language Libraries For Publication
 
 ## Status
 
 `Future`. Blocked until at least one binding phase has an approved release
-candidate.
+candidate. B06 coordinates the first public invocation for the exact language
+packages selected in its frozen release set.
 
 [Back to the programmatic API and bindings plan](README.md)
 
 ## Purpose
 
-Apply one conformance, provenance, security, and publication discipline to each
-language package that has independently completed its binding phase.
+Apply one conformance, provenance, security, and publication-readiness
+discipline to each language package that has independently completed its
+binding phase. Retain exact candidates and product-owned registry workflows for
+B06 without requiring unimplemented ecosystems to participate.
 
 ## Dependencies
 
@@ -39,6 +42,10 @@ Idiomatic representation may differ, but observable domain meaning may not.
 
 ## Publication Contract
 
+For the first public release, B06 invokes the destination-specific workflows
+defined here after candidate rehearsal and human approval. Registry credentials
+remain B05-owned and never enter the B06 coordinator.
+
 - When selected APIs require native artifacts, build them independently from
   all three CLI artifacts, then assemble only the approved language packages.
 - Keep build jobs credential-free.
@@ -63,12 +70,13 @@ Idiomatic representation may differ, but observable domain meaning may not.
 - Approved provider integrations produce equivalent plans and diagnostics
   across languages and preserve unrelated configuration.
 - Platform selection retrieves only compatible native library artifacts.
-- Public package behavior matches the retained candidate and shared fixtures.
+- Before publication, an isolated installed candidate matches shared fixtures.
+  During B06 public readback, the accepted package must match that candidate.
 - Partial publication recovery never rebuilds or replaces an accepted version.
 - Credentials do not enter packages, logs, or retained evidence.
 
 ## Exit Criterion
 
-Every published language package is a real, independently useful programmatic
-interface with public readback, conformance evidence, and isolated publication
-authority.
+Every selected language package is a real, independently useful programmatic
+interface with an exact retained candidate, conformance evidence, isolated
+publication authority, and a public-readback procedure that B06 can execute.

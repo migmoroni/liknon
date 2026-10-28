@@ -1,9 +1,10 @@
-# Phase B03.4: Verify And Publish Tool End To End
+# Phase B03.4: Verify Tool And Prepare Publication End To End
 
 ## Status
 
 `Provisional`. Blocked by B03.3, local B02/B03 interoperability evidence, and
-explicit human release approval.
+explicit human candidate approval. B06 coordinates the first public invocation
+of the retained Tool workflow.
 
 Operation labels in this document are placeholders for the exact grammar
 selected by B03.0.
@@ -12,10 +13,10 @@ selected by B03.0.
 
 ## Purpose
 
-Prove public Tool installation and local-store interoperability while retaining
-Tool's independent offline contract. Public-Manager-to-public-Tool
-interoperability is additional conditional evidence, not a prerequisite for
-publishing Tool.
+Prove Tool installation candidates and local-store interoperability while
+retaining Tool's independent offline contract. This phase prepares the
+product-owned publication and readback procedures; B06 executes their first
+production use.
 
 ## Verification Matrix
 
@@ -40,17 +41,19 @@ From clean environments:
     policy to either graph. When official workflows have completed their owning
     phases, repeat the same case without changing Tool code.
 
-When B02.5 has already published Manager, repeat Step 7 from a clean environment
-with that exact public Manager channel and retain a separate cross-channel
-interoperability result. Absence of a public Manager delays only that additional
-claim; the repository-built interoperability evidence remains the Tool
-publication prerequisite.
+During B06 public verification, repeat Step 7 from a clean environment with the
+exact public Manager channel and retain a separate cross-channel
+interoperability result. The repository-built interoperability evidence remains
+the Tool candidate prerequisite.
 
-## Publication
+## Publication Procedure
 
 Build, verification, approval, crates.io publication, GitHub metadata release,
 native signing, and Cloudflare publication use isolated jobs and credentials.
 No publication job rebuilds a previously verified candidate.
+
+For the first public release, B06 supplies the frozen release-set identity and
+coordinates when these B03-owned jobs run. B06 never receives Tool credentials.
 
 The Tool release workflow is a thin product orchestrator over shared
 credential-free mechanisms. Reusable workflows receive no broad inherited
@@ -69,8 +72,8 @@ all name the same Tool package-derived version, signed tag, and full source
 commit. It rejects any retained candidate whose final hash or provenance
 reference differs from the internal build manifest.
 
-The stable pointer does not wait for B02.5. A release that advertises
-public-Manager-to-public-Tool interoperability must additionally pass the
+The product stable pointer does not permanently depend on a Manager release.
+The first coordinated release advances it only after B06 completes the
 conditional public cross-channel case above.
 
 Publication also proves Tool storage authorization cannot alter Validation,
@@ -100,7 +103,8 @@ public-channel Manager evidence distinctly.
 
 ## Exit Criterion
 
-Every public Tool channel consumes the same verified local resources offline,
-and the published application remains independent from Manager, Validation CLI,
-and authored resource releases. When claimed, public cross-channel Manager
-interoperability has its own clean-environment evidence.
+B06 can publish every Tool channel from the exact retained candidate without
+rebuilding it. After activation, every public Tool channel consumes the same
+verified local resources offline, and the application remains independent from
+Manager, Validation CLI, and authored resource releases. Public cross-channel
+Manager interoperability has its own clean-environment evidence.

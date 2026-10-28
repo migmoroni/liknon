@@ -12,6 +12,11 @@ Stage the human-owned account, permission, signing, and credential work needed
 for CLI distribution. This is a just-in-time runbook, not an extra phase and not
 a checklist to complete all at once.
 
+For the first public release, this runbook supplies B01's exact requirements to
+the [B06 consolidated readiness checklist](../B06-coordinated-public-release/accounts-and-permissions.md).
+B06 records readiness and coordinates use; it does not receive or duplicate
+the Validation credentials defined here.
+
 ## Publication Authority
 
 - The human release owner controls crates.io, GitHub, and Cloudflare ownership,

@@ -47,6 +47,7 @@ detail, but it may not silently contradict either document.
 | [B03 Tool CLI](B03-tool-cli/README.md) | `Decision gate` at B03.0 | Offline resource consumption, agent-facing retrieval, and Tool distribution |
 | [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, launcher commands `liknon` / `likx`, aggregate Cargo installation, and complete native suites |
 | [B05 Programmatic APIs And Language Bindings](B05-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate programmatic APIs and explicit workspace integrations with demonstrated consumers |
+| [B06 Coordinated Public Release](B06-coordinated-public-release/README.md) | `Future`; blocked by release-ready B01-B05 inputs | Frozen first-release set, external authority, coordinated public activation, readback, and closure |
 
 The three capability CLIs use the same categories of distribution channel:
 exact GitHub source, crates.io source packages, and project-hosted native
@@ -55,6 +56,12 @@ identities, release artifacts, readiness gates, credentials, and publication
 authority. B04 composes verified component candidates into the promoted
 aggregate Cargo package and complete native suites without taking over their
 individual publication.
+
+B01-B05 own product-specific candidate creation, publication workflows,
+credentials, recovery contracts, and recurring release trains. B06 does not
+replace those responsibilities. It coordinates their first public activation
+after the selected products are ready, and it excludes any unimplemented B05
+ecosystem instead of publishing placeholders.
 
 The [shared CLI distribution foundation](cli-distribution-foundation.md)
 defines the reusable build, manifest, archive, installer, signing, verification,
@@ -82,9 +89,9 @@ not platform constants.
 | --- | --- | --- |
 | [D01 System Conformance And Agent Evaluation](D01-system-conformance-and-agent-evaluation/README.md) | `Provisional`, blocked by implemented B/C capabilities | Cross-product scenarios, isolation, abuse review, agent evaluation, and integrated readiness evidence |
 
-D01 does not publish products. Individual product publication and recovery
-remain in B01-B03; aggregate launcher and complete-suite publication remain in
-B04.
+D01 does not publish products. Product publication and recovery remain in
+B01-B05. B06 coordinates their first public activation without taking over
+those authorities.
 
 ## Dependency Graph
 
@@ -120,11 +127,18 @@ current-state assessment + approved target summary
  B01-B04 + C01-C03 evidence --> D01 integrated conformance
 
 B05 programmatic APIs and language bindings: future, independently activated
+                                  |
+                                  v
+B01-B05 release-ready candidates + selected D01 evidence
+                                  |
+                                  v
+                  B06 coordinated first public release
 ```
 
 Distribution readiness remains product-specific. `D01` may verify an
 integrated candidate, but it must not own publication already assigned to
-`B01`, `B02`, `B03`, or `B04`.
+`B01`, `B02`, `B03`, `B04`, or `B05`. `B06` coordinates those owners without
+acquiring their destination credentials or recurring release authority.
 
 ## Active Decision Gates
 
@@ -174,6 +188,16 @@ deliberate API. A configuration integration can satisfy this gate only with a
 complete contract and representative consumer. CLI syntax and internal Rust
 modules are not sufficient API design evidence.
 
+### B06.0: Coordinated Release Set
+
+Before any registry package, Hub object, native object, metadata release, or
+stable pointer is published, approve one immutable ledger containing the exact
+included products, independently owned versions, signed tags, commits,
+candidates, targets, destinations, dependencies, exclusions, retention windows,
+and recovery owners. A changed candidate or destination invalidates that
+approval. B06 does not publish a placeholder for a B05 ecosystem whose
+activation gate has not passed.
+
 ## Execution Order
 
 1. A01 has implemented the structural cutover in buildable units; complete its
@@ -188,9 +212,15 @@ modules are not sufficient API design evidence.
    stable; build the launcher through the shared foundation and implement
    native-suite composition only from verified B01-B03 release candidates.
 5. Implement C02 and C03 as resources over approved generic contracts.
-6. Execute D01 integrated conformance and agent evaluation.
-7. Activate the future B05 programmatic-API plan only through its independent
-   consumer-driven gate.
+6. Execute the D01 integrated conformance and agent evaluation required before
+   public release.
+7. Activate the future B05 programmatic-API phases only through their
+   independent consumer-driven gates and prepare candidates for every language
+   ecosystem selected for the first public release.
+8. Execute B06 only after B01-B05 have handed off the selected exact candidates
+   and D01 has produced the designated blocking evidence. B06 rehearses and
+   activates the complete set, verifies public readback, promotes stable
+   pointers, and revokes bootstrap credentials.
 
 Each plan owns its own detailed handoff and acceptance criteria. Completion of
 one plan never implicitly marks another plan complete.
@@ -203,6 +233,9 @@ one plan never implicitly marks another plan complete.
 - Product behavior and distribution belong to A/B plans.
 - Cross-product release mechanisms belong to the shared CLI distribution
   foundation; product releases and authorities remain in B01-B04.
+- Programmatic package releases and registry authorities remain in B05.
+- The coordinated first public activation, release-set ledger, cross-product
+  publication order, and closure evidence belong to B06.
 - Generic AI governance belongs to C01.
 - Official workflow definitions belong to C02 or C03.
 - Integrated conformance and agent evaluation belong to D01.
@@ -230,4 +263,6 @@ This roadmap is coherent when:
 - product release work remains separate from integrated-system evaluation;
 - shared release mechanisms are implemented once while every product keeps an
   independent release identity and authority;
+- first public activation is coordinated by B06 from exact product-owned
+  candidates without creating a permanent coupled release train;
 - all active links resolve and the next executable step is unambiguous.

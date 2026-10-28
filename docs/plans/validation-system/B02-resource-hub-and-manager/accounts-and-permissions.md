@@ -12,6 +12,11 @@ phase.
 Stage only the external ownership, signing, storage, and publication access
 needed by the B02 phase currently being implemented.
 
+For the first public release, this runbook supplies B02's exact requirements to
+the [B06 consolidated readiness checklist](../B06-coordinated-public-release/accounts-and-permissions.md).
+B06 records readiness and coordinates invocation without receiving Manager or
+Hub credentials.
+
 ## Authority Boundaries
 
 The human release owner controls:
@@ -68,9 +73,9 @@ artifact retention.
 ### Publication
 
 Activate narrow production credentials only after credential-free candidate
-verification and human approval. Prefer workload identity or trusted
-publishing where supported. Bootstrap tokens are temporary and revoked after
-use.
+verification and human approval. For the first release, that approval and
+invocation occur through B06. Prefer workload identity or trusted publishing
+where supported. Bootstrap tokens are temporary and revoked after use.
 
 ## Secret Rules
 

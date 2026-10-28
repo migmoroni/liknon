@@ -23,6 +23,9 @@ of any capability CLI.
   candidates owned by B01-B03.
 - [D01](../D01-system-conformance-and-agent-evaluation/README.md) later verifies
   the integrated candidate without taking publication ownership.
+- [B06](../B06-coordinated-public-release/README.md) later coordinates the
+  first public activation from the exact B04 candidate and B01-B03 component
+  identities without taking B04 publication authority.
 
 ## Product Boundary
 
@@ -146,6 +149,12 @@ B01-B03 retain source-package and native publication of their standalone
 products. B04 consumes verified candidates and does not republish an individual
 component under a second owner.
 
+B04 retains the launcher and suite publication workflows, credentials, stable
+pointer, and recovery state. For the first public release, B06 freezes the exact
+B04 candidate and component closure, invokes those B04-owned workflows, and
+promotes the aggregate suite pointer last. Later launcher and suite releases may
+proceed through the independent B04 train.
+
 ## Architectural Invariants
 
 1. Capability CLIs remain usable when the launcher and sibling CLIs are absent.
@@ -176,7 +185,7 @@ component under a second owner.
 | B04.1 | Launcher implementation | `Future`, defined after B04.0 | Shell-free launcher and direct/unified parity |
 | B04.2 | Aggregate Cargo package | `Future`, defined after B04.0 | Package-owned eight-target suite |
 | B04.3 | Launcher native builds and complete native suites | `Future`, defined after B04.0 and B01-B03 candidates | One final launcher payload plus verified target-specific suite artifacts composed from exact component candidates |
-| B04.4 | Integrated publication and recovery | `Future`, defined after B04.0 | Isolated aggregate release and recovery evidence |
+| B04.4 | Integrated publication readiness and recovery | `Future`, defined after B04.0 | Isolated aggregate workflow, exact release candidate, and recovery evidence ready for B06 |
 
 Later unit documents are created only after B04.0 resolves their contract.
 
@@ -217,10 +226,13 @@ Future B04 implementation must prove:
       non-interchangeable.
 - [ ] The launcher/suite profile uses shared mechanisms without inheriting a
       capability product's publication authority.
+- [ ] B06 can invoke the B04-owned first-publication procedure from one frozen
+      candidate without receiving capability or suite credentials.
 - [ ] D01 can verify direct and unified behavior without owning publication.
 
 ## Result
 
-Users can install each capability selectively or install one complete native
-suite. The unified command improves ergonomics without merging capability
-authority, runtime logic, or release ownership.
+After B06 activates the first release, users can install each capability
+selectively or install one complete native suite. The unified command improves
+ergonomics without merging capability authority, runtime logic, or release
+ownership.

@@ -2,19 +2,24 @@
 
 ## Status
 
-`Provisional`. Blocked by B01.5.
+`Provisional`. Blocked by B01.5. B06 executes this procedure for the first
+public release after every selected immutable product channel is published.
 
 [Back to the CLI distribution plan](README.md)
 
 ## Purpose
 
-Verify all public source and native surfaces, publish the stable pointer only
-after success, and make public instructions reproduce tested behavior.
+Provide and execute the Validation-owned procedure that verifies all public
+source and native surfaces, publishes the product stable pointer only after
+success, and makes public instructions reproduce tested behavior. During the
+first coordinated release, B06 controls cross-product ordering and promotes the
+B04 aggregate pointer last.
 
 ## Dependencies
 
 - [Phase B01.5](05-publication-and-recovery.md) completed publication or reached
-  a recorded recoverable state.
+  a recorded recoverable state. For the first public release, the B01
+  destination state is also recorded by the B06 release ledger.
 - External readiness checkpoint [AP-6](accounts-and-permissions.md#ap-6) is
   complete.
 
