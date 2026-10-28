@@ -5,6 +5,11 @@ The product orchestrator is
 at `distribution/cli/validation/product.json` and the product-neutral machinery
 under `distribution/cli/common`.
 
+The current cross-platform matrices remain active during development. A later,
+explicit cost-driven reduction to Linux x86-64 is specified in
+[`future-linux-x86-64-build-scope.md`](future-linux-x86-64-build-scope.md); that
+document is not an instruction to reduce the current matrices automatically.
+
 ## Preconditions
 
 Complete the matching AP-0 through AP-5 checkpoints in
