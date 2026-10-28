@@ -5,12 +5,12 @@ members = [
   "apps/liknon-manager",
   "apps/liknon-tool",
   "apps/liknon-validator",
+  "tools/cli-distribution",
   "tools/knowledge",
 ]
 exclude = ["fixtures/outcomes", "fixtures/process-tool"]
 
 [workspace.package]
-version = "0.5.0"
 edition = "2021"
 rust-version = "1.87"
 authors = ["Miguel Eduardo Senna Moroni"]
@@ -40,4 +40,4 @@ windows-sys = { version = "0.61.2", features = [
 
 liknon-manager = { version = "=0.5.0", path = "apps/liknon-manager" }
 liknon-tool = { version = "=0.5.0", path = "apps/liknon-tool" }
-liknon-validator = { version = "=0.5.0", path = "apps/liknon-validator" }
+liknon-validator = { path = "apps/liknon-validator" }

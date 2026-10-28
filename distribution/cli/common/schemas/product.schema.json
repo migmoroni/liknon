@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProductDescriptor",
+  "type": "object",
+  "properties": {
+    "distribution": {
+      "$ref": "#/$defs/DistributionIdentity"
+    },
+    "product": {
+      "$ref": "#/$defs/ProductIdentity"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TargetDescriptor"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "product",
+    "distribution",
+    "targets"
+  ],
+  "$defs": {
+    "Architecture": {
+      "type": "string",
+      "enum": [
+        "x86-64",
+        "aarch64"
+      ]
+    },
+    "ArchiveFormat": {
+      "type": "string",
+      "enum": [
+        "tar-gz",
+        "zip"
+      ]
+    },
+    "AuthenticityMode": {
+      "type": "string",
+      "enum": [
+        "metadata-signature",
+        "ad-hoc",
+        "self-signed-authenticode"
+      ]
+    },
+    "DistributionIdentity": {
+      "type": "object",
+      "properties": {
+        "cratesRegistry": {
+          "type": "string"
+        },
+        "environments": {
+          "$ref": "#/$defs/PublicationEnvironments"
+        },
+        "manifestSigningKeyId": {
+          "type": "string"
+        },
+        "releasePrefix": {
+          "type": "string"
+        },
+        "stablePointer": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "cratesRegistry",
+        "releasePrefix",
+        "stablePointer",
+        "manifestSigningKeyId",
+        "environments"
+      ]
+    },
+    "Libc": {
+      "type": "string",
+      "enum": [
+        "gnu",
+        "musl"
+      ]
+    },
+    "OperatingSystem": {
+      "type": "string",
+      "enum": [
+        "linux",
+        "macos",
+        "windows"
+      ]
+    },
+    "ProductIdentity": {
+      "type": "object",
+      "properties": {
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 1,
+          "minItems": 1
+        },
+        "canonicalCommand": {
+          "type": "string"
+        },
+        "cargoManifest": {
+          "type": "string"
+        },
+        "cargoPackage": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "licenseFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ownerPlan": {
+          "type": "string"
+        },
+        "releaseRustToolchain": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "tagPrefix": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ownerPlan",
+        "cargoPackage",
+        "cargoManifest",
+        "canonicalCommand",
+        "aliases",
+        "tagPrefix",
+        "releaseRustToolchain",
+        "repository",
+        "licenseFiles"
+      ]
+    },
+    "PublicationEnvironments": {
+      "type": "object",
+      "properties": {
+        "approval": {
+          "type": "string"
+        },
+        "cloudflare": {
+          "type": "string"
+        },
+        "crates": {
+          "type": "string"
+        },
+        "detachedSigning": {
+          "type": "string"
+        },
+        "github": {
+          "type": "string"
+        },
+        "windowsSigning": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "approval",
+        "crates",
+        "detachedSigning",
+        "windowsSigning",
+        "github",
+        "cloudflare"
+      ]
+    },
+    "TargetDescriptor": {
+      "type": "object",
+      "properties": {
+        "architecture": {
+          "$ref": "#/$defs/Architecture"
+        },
+        "archiveFormat": {
+          "$ref": "#/$defs/ArchiveFormat"
+        },
+        "authenticity": {
+          "$ref": "#/$defs/AuthenticityMode"
+        },
+        "executableSuffix": {
+          "type": "string"
+        },
+        "libc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Libc"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operatingSystem": {
+          "$ref": "#/$defs/OperatingSystem"
+        },
+        "runner": {
+          "type": "string"
+        },
+        "runtimeBaseline": {
+          "type": "string"
+        },
+        "rustTarget": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "rustTarget",
+        "runner",
+        "operatingSystem",
+        "architecture",
+        "archiveFormat",
+        "executableSuffix",
+        "authenticity",
+        "runtimeBaseline"
+      ]
+    }
+  }
+}

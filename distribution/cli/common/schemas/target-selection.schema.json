@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Selection",
+  "type": "object",
+  "properties": {
+    "architecture": {
+      "$ref": "#/$defs/Architecture"
+    },
+    "decisionSource": {
+      "$ref": "#/$defs/DecisionSource"
+    },
+    "detectedLibcs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Libc"
+      }
+    },
+    "operatingSystem": {
+      "$ref": "#/$defs/OperatingSystem"
+    },
+    "selectedTarget": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "operatingSystem",
+    "architecture",
+    "detectedLibcs",
+    "decisionSource",
+    "selectedTarget"
+  ],
+  "$defs": {
+    "Architecture": {
+      "type": "string",
+      "enum": [
+        "x86-64",
+        "aarch64"
+      ]
+    },
+    "DecisionSource": {
+      "type": "string",
+      "enum": [
+        "explicit",
+        "automatic-gnu-preferred",
+        "automatic-single",
+        "platform"
+      ]
+    },
+    "Libc": {
+      "type": "string",
+      "enum": [
+        "gnu",
+        "musl"
+      ]
+    },
+    "OperatingSystem": {
+      "type": "string",
+      "enum": [
+        "linux",
+        "macos",
+        "windows"
+      ]
+    }
+  }
+}

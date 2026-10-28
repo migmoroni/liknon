@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BuildManifest",
+  "type": "object",
+  "properties": {
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/NativeArtifact"
+      }
+    },
+    "identity": {
+      "$ref": "#/$defs/ReleaseIdentity"
+    },
+    "releaseToolchain": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "identity",
+    "releaseToolchain",
+    "artifacts"
+  ],
+  "$defs": {
+    "AuthenticityEvidence": {
+      "type": "object",
+      "properties": {
+        "certificateFingerprint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "method": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/$defs/AuthenticityMode"
+        },
+        "notarized": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "timestamped": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "verified",
+        "method"
+      ]
+    },
+    "AuthenticityMode": {
+      "type": "string",
+      "enum": [
+        "metadata-signature",
+        "ad-hoc",
+        "self-signed-authenticode"
+      ]
+    },
+    "NativeArtifact": {
+      "type": "object",
+      "properties": {
+        "consumer": {
+          "type": "string"
+        },
+        "installedCommands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "payloadFile": {
+          "type": "string"
+        },
+        "payloadPath": {
+          "type": "string"
+        },
+        "platformAuthenticity": {
+          "$ref": "#/$defs/AuthenticityEvidence"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "payloadFile",
+        "payloadPath",
+        "size",
+        "sha256",
+        "installedCommands",
+        "consumer",
+        "platformAuthenticity"
+      ]
+    },
+    "ReleaseIdentity": {
+      "type": "object",
+      "properties": {
+        "binaryTargets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cargoLockSha256": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "package": {
+          "type": "string"
+        },
+        "packagePath": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "tag": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "product",
+        "package",
+        "packagePath",
+        "version",
+        "tag",
+        "commit",
+        "cargoLockSha256",
+        "binaryTargets"
+      ]
+    }
+  }
+}

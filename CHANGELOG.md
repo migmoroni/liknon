@@ -14,6 +14,13 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   maintenance tool.
 - Direct validation executables `liknon-validator` and `likv`, identity-only
   Manager and Tool executables, and launcher-only `liknon` and `likx` shells.
+- Product-neutral native CLI release contracts, deterministic manifests,
+  authenticated installers, immutable Cloudflare publication and recovery
+  scripts, and reusable credential-free workflows, with Validation as the
+  first reviewed product profile.
+- Independent `liknon-validator` source packaging for crates.io and exact
+  release provenance derived from Cargo metadata, signed tag, commit, and
+  committed lockfile.
 
 ### Changed
 

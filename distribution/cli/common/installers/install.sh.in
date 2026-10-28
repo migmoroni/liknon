@@ -1,0 +1,250 @@
+#!/bin/sh
+set -eu
+
+PRODUCT='@@PRODUCT@@'
+PACKAGE='@@PACKAGE@@'
+VERSION='@@VERSION@@'
+TAG='@@TAG@@'
+COMMIT='@@COMMIT@@'
+BASE_URL='@@BASE_URL@@'
+RELEASE_PREFIX='@@RELEASE_PREFIX@@'
+SIGNING_KEY_ID='@@SIGNING_KEY_ID@@'
+CANONICAL_COMMAND='@@CANONICAL_COMMAND@@'
+ALIAS_COMMAND='@@ALIAS_COMMAND@@'
+PUBLIC_KEY_PEM='@@PUBLIC_KEY_PEM@@'
+
+install_dir=${HOME:+"$HOME/.local/bin"}
+requested_libc=
+base_url_override=
+uninstall=0
+
+fail() {
+  printf '%s\n' "liknon installer: $*" >&2
+  exit 1
+}
+
+usage() {
+  cat <<EOF
+Usage: install.sh [--install-dir <path>] [--libc gnu|musl] [--base-url <url>] [--uninstall]
+
+Installs $CANONICAL_COMMAND and $ALIAS_COMMAND version $VERSION.
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --install-dir)
+      [ "$#" -ge 2 ] || fail "--install-dir requires a path"
+      install_dir=$2
+      shift 2
+      ;;
+    --libc)
+      [ "$#" -ge 2 ] || fail "--libc requires gnu or musl"
+      requested_libc=$2
+      shift 2
+      ;;
+    --base-url)
+      [ "$#" -ge 2 ] || fail "--base-url requires an HTTPS origin"
+      base_url_override=$2
+      shift 2
+      ;;
+    --uninstall)
+      uninstall=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *) fail "unknown option: $1" ;;
+  esac
+done
+
+if [ -n "$base_url_override" ]; then
+  BASE_URL=${base_url_override%/}
+fi
+case "$BASE_URL" in
+  https://*) download_protocol='=https' ;;
+  http://127.0.0.1:*|http://localhost:*) download_protocol='=http' ;;
+  *) fail "download origin must use HTTPS (HTTP is accepted only for local verification)" ;;
+esac
+
+[ -n "${install_dir:-}" ] || fail "HOME is unset; pass --install-dir"
+
+if [ "$uninstall" -eq 1 ]; then
+  rm -f -- "$install_dir/$CANONICAL_COMMAND" "$install_dir/$ALIAS_COMMAND"
+  printf '%s\n' "Removed $CANONICAL_COMMAND and $ALIAS_COMMAND from $install_dir"
+  exit 0
+fi
+
+for program in openssl jq tar; do
+  command -v "$program" >/dev/null 2>&1 || fail "required verifier is unavailable: $program"
+done
+if command -v curl >/dev/null 2>&1; then
+  download() {
+    curl --fail --silent --show-error --max-redirs 0 \
+      --proto "$download_protocol" --proto-redir "$download_protocol" \
+      --tlsv1.2 --output "$2" "$1"
+  }
+elif command -v wget >/dev/null 2>&1; then
+  case "$download_protocol" in
+    '=https') download() { wget --https-only --max-redirect=0 --quiet --output-document="$2" "$1"; } ;;
+    '=http') download() { wget --max-redirect=0 --quiet --output-document="$2" "$1"; } ;;
+  esac
+else
+  fail "curl or wget is required"
+fi
+
+tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/liknon-install.XXXXXX") || fail "cannot create temporary directory"
+cleanup() { rm -rf -- "$tmp_dir"; }
+trap cleanup EXIT HUP INT TERM
+
+release_url="$BASE_URL/$RELEASE_PREFIX/v$VERSION"
+manifest="$tmp_dir/manifest.json"
+manifest_signature="$tmp_dir/manifest.sig"
+public_key="$tmp_dir/public-key.pem"
+printf '%s\n' "$PUBLIC_KEY_PEM" > "$public_key"
+download "$release_url/manifest.json" "$manifest" || fail "cannot download manifest"
+download "$release_url/manifest.sig" "$manifest_signature" || fail "cannot download manifest signature"
+openssl dgst -sha256 -verify "$public_key" -signature "$manifest_signature" "$manifest" >/dev/null 2>&1 \
+  || fail "manifest signature is invalid for key $SIGNING_KEY_ID"
+
+[ "$(jq -r '.schemaVersion' "$manifest")" = 1 ] || fail "unsupported manifest schema"
+[ "$(jq -r '.identity.product' "$manifest")" = "$PRODUCT" ] || fail "manifest product mismatch"
+[ "$(jq -r '.identity.package' "$manifest")" = "$PACKAGE" ] || fail "manifest package mismatch"
+[ "$(jq -r '.identity.version' "$manifest")" = "$VERSION" ] || fail "manifest version mismatch"
+[ "$(jq -r '.identity.tag' "$manifest")" = "$TAG" ] || fail "manifest tag mismatch"
+[ "$(jq -r '.identity.commit' "$manifest")" = "$COMMIT" ] || fail "manifest commit mismatch"
+
+os=$(uname -s 2>/dev/null || true)
+arch=$(uname -m 2>/dev/null || true)
+case "$arch" in
+  x86_64|amd64) rust_arch=x86_64 ;;
+  arm64|aarch64) rust_arch=aarch64 ;;
+  *) fail "unsupported architecture: $arch" ;;
+esac
+
+detected_libcs=none
+decision_source=platform
+case "$os" in
+  Linux)
+    gnu=0
+    musl=0
+    if command -v getconf >/dev/null 2>&1 && getconf GNU_LIBC_VERSION >/dev/null 2>&1; then
+      gnu=1
+    fi
+    if (ldd --version 2>&1 || true) | grep -qi musl; then
+      musl=1
+    fi
+    for loader in /lib/ld-musl-*.so.1 /usr/lib/ld-musl-*.so.1; do
+      if [ -e "$loader" ]; then
+        musl=1
+        break
+      fi
+    done
+    if [ "$gnu" -eq 1 ] && [ "$musl" -eq 1 ]; then
+      detected_libcs=gnu,musl
+    elif [ "$gnu" -eq 1 ]; then
+      detected_libcs=gnu
+    elif [ "$musl" -eq 1 ]; then
+      detected_libcs=musl
+    fi
+    if [ -n "$requested_libc" ]; then
+      case "$requested_libc" in
+        gnu) [ "$gnu" -eq 1 ] || fail "requested GNU libc was not detected" ;;
+        musl) [ "$musl" -eq 1 ] || fail "requested MUSL was not detected" ;;
+        *) fail "--libc accepts only gnu or musl" ;;
+      esac
+      selected_libc=$requested_libc
+      decision_source=explicit
+    elif [ "$gnu" -eq 1 ]; then
+      selected_libc=gnu
+      if [ "$musl" -eq 1 ]; then decision_source=automatic-gnu-preferred; else decision_source=automatic-single; fi
+    elif [ "$musl" -eq 1 ]; then
+      selected_libc=musl
+      decision_source=automatic-single
+    else
+      fail "neither a compatible GNU libc nor MUSL implementation was detected"
+    fi
+    target="$rust_arch-unknown-linux-$selected_libc"
+    ;;
+  Darwin)
+    [ -z "$requested_libc" ] || fail "--libc applies only to Linux"
+    target="$rust_arch-apple-darwin"
+    ;;
+  *) fail "unsupported operating system: $os" ;;
+esac
+
+printf '%s\n' \
+  "Operating system: $os" \
+  "Architecture: $arch" \
+  "Detected libc: $detected_libcs" \
+  "Decision source: $decision_source" \
+  "Selected target: $target"
+
+artifact_count=$(jq --arg target "$target" '[.artifacts[] | select(.target == $target)] | length' "$manifest")
+[ "$artifact_count" = 1 ] || fail "manifest does not contain exactly one artifact for $target"
+archive_path=$(jq -r --arg target "$target" '.artifacts[] | select(.target == $target) | .archive.path' "$manifest")
+archive_sha=$(jq -r --arg target "$target" '.artifacts[] | select(.target == $target) | .archive.sha256' "$manifest")
+case "$archive_path" in
+  ""|*/*|*..*) fail "manifest contains an unsafe archive path" ;;
+esac
+
+archive="$tmp_dir/$archive_path"
+download "$release_url/$archive_path" "$archive" || fail "cannot download selected archive"
+actual_archive_sha=$(openssl dgst -sha256 -r "$archive" | awk '{print $1}')
+[ "$actual_archive_sha" = "$archive_sha" ] || fail "archive hash mismatch"
+
+extract_dir="$tmp_dir/extracted"
+mkdir "$extract_dir" || fail "cannot create extraction directory"
+tar -xzf "$archive" -C "$extract_dir" || fail "cannot extract archive"
+
+for command_name in "$CANONICAL_COMMAND" "$ALIAS_COMMAND"; do
+  expected_sha=$(jq -r --arg target "$target" --arg name "$command_name" \
+    '.artifacts[] | select(.target == $target) | .commands[] | select(.name == $name) | .sha256' "$manifest")
+  [ -n "$expected_sha" ] && [ "$expected_sha" != null ] || fail "manifest command record is missing: $command_name"
+  [ -f "$extract_dir/$command_name" ] || fail "archive command is missing: $command_name"
+  actual_sha=$(openssl dgst -sha256 -r "$extract_dir/$command_name" | awk '{print $1}')
+  [ "$actual_sha" = "$expected_sha" ] || fail "extracted command hash mismatch: $command_name"
+done
+
+if [ "$os" = Darwin ]; then
+  command -v codesign >/dev/null 2>&1 \
+    || fail "required macOS signature verifier is unavailable: codesign"
+  codesign --verify --strict --verbose=2 "$extract_dir/$CANONICAL_COMMAND" \
+    || fail "canonical command has an invalid macOS code signature"
+  codesign --verify --strict --verbose=2 "$extract_dir/$ALIAS_COMMAND" \
+    || fail "alias command has an invalid macOS code signature"
+fi
+
+mkdir -p -- "$install_dir" || fail "cannot create installation directory"
+canonical_new="$install_dir/.$CANONICAL_COMMAND.new.$$"
+alias_new="$install_dir/.$ALIAS_COMMAND.new.$$"
+canonical_backup="$install_dir/.$CANONICAL_COMMAND.backup.$$"
+alias_backup="$install_dir/.$ALIAS_COMMAND.backup.$$"
+cp "$extract_dir/$CANONICAL_COMMAND" "$canonical_new" || fail "cannot stage canonical command"
+cp "$extract_dir/$ALIAS_COMMAND" "$alias_new" || fail "cannot stage alias command"
+chmod 755 "$canonical_new" "$alias_new" || fail "cannot set executable permissions"
+
+had_canonical=0
+had_alias=0
+if [ -e "$install_dir/$CANONICAL_COMMAND" ]; then
+  mv "$install_dir/$CANONICAL_COMMAND" "$canonical_backup" || fail "cannot back up canonical command"
+  had_canonical=1
+fi
+if [ -e "$install_dir/$ALIAS_COMMAND" ]; then
+  if ! mv "$install_dir/$ALIAS_COMMAND" "$alias_backup"; then
+    [ "$had_canonical" -eq 0 ] || mv "$canonical_backup" "$install_dir/$CANONICAL_COMMAND"
+    fail "cannot back up alias command"
+  fi
+  had_alias=1
+fi
+if ! mv "$canonical_new" "$install_dir/$CANONICAL_COMMAND" \
+  || ! mv "$alias_new" "$install_dir/$ALIAS_COMMAND"; then
+  rm -f -- "$install_dir/$CANONICAL_COMMAND" "$install_dir/$ALIAS_COMMAND"
+  [ "$had_canonical" -eq 0 ] || mv "$canonical_backup" "$install_dir/$CANONICAL_COMMAND"
+  [ "$had_alias" -eq 0 ] || mv "$alias_backup" "$install_dir/$ALIAS_COMMAND"
+  fail "transactional installation failed; previous commands were restored"
+fi
+rm -f -- "$canonical_backup" "$alias_backup"
+printf '%s\n' "Installed $CANONICAL_COMMAND and $ALIAS_COMMAND $VERSION in $install_dir"

@@ -2,9 +2,11 @@
 
 ## Status And Relationship To The Validation System
 
-`Provisional`; blocked only by the final hosted A01.5 verification. A01 has
-consolidated the validation engine, schemas, CLI adaptation, and binary targets
-into the single `liknon-validator` package.
+The repository-side release implementation is in place. Operational acceptance
+remains blocked by the human-owned AP-0 through AP-6 setup, an exact signed
+release tag, the first protected hosted release, and public-channel
+verification. A01 has consolidated the validation engine, schemas, CLI
+adaptation, and binary targets into the single `liknon-validator` package.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only Validation CLI distribution.
@@ -162,9 +164,12 @@ distribution/cli/
 │   └── installers/
 └── validation/
     ├── product.json
-    ├── crates/
-    └── direct/
-        └── public-key.txt
+    ├── direct/
+    │   ├── README.md
+    │   └── public-key.pem              # Provisioned at AP-3
+    └── smoke/
+        ├── verify.sh
+        └── verify.ps1
 
 .github/workflows/
 ├── _cli-native-candidate.yml

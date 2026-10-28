@@ -67,10 +67,12 @@ infers publication authority from a package name and never receives arbitrary
 commands from public metadata.
 
 A standalone product descriptor resolves to one canonical implementation
-payload per target plus its aliases. The B04 suite descriptor resolves to one
+payload per target plus exactly one compact command alias in the current
+foundation contract. Widening that cardinality requires a coordinated schema,
+installer, and conformance change. The B04 suite descriptor resolves to one
 launcher payload plus authenticated component payload records. Shared schemas
-represent both forms explicitly; they do not flatten a suite into one binary or
-silently substitute a missing component.
+represent both forms explicitly; they do not flatten a suite into one binary
+or silently substitute a missing component.
 
 ## Version And Provenance Contract
 

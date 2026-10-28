@@ -655,6 +655,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "liknon-cli-distribution"
+version = "0.5.0"
+dependencies = [
+ "clap",
+ "schemars",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "liknon-knowledge-maintenance"
 version = "0.5.0"
 dependencies = [

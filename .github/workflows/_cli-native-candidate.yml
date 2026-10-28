@@ -1,0 +1,215 @@
+name: Reusable CLI native candidate
+
+on:
+  workflow_call:
+    inputs:
+      descriptor:
+        required: true
+        type: string
+      release_ref:
+        required: true
+        type: string
+      identity_artifact:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+      runner:
+        required: true
+        type: string
+      toolchain:
+        required: true
+        type: string
+      package:
+        required: true
+        type: string
+      canonical_command:
+        required: true
+        type: string
+      alias_command:
+        required: true
+        type: string
+      executable_suffix:
+        required: true
+        type: string
+      authenticity:
+        required: true
+        type: string
+      artifact_prefix:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ inputs.target }}
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Checkout exact release source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.release_ref }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Download inspected release identity
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ inputs.identity_artifact }}
+          path: ${{ runner.temp }}/contract
+
+      - name: Install exact release toolchain
+        shell: bash
+        env:
+          RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
+          RELEASE_TARGET: ${{ inputs.target }}
+        run: |
+          rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
+          rustup target add --toolchain "$RELEASE_TOOLCHAIN" "$RELEASE_TARGET"
+
+      - name: Validate product contract and source identity
+        shell: bash
+        env:
+          RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
+        run: |
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            validate-descriptor --descriptor "$DESCRIPTOR"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            inspect --descriptor "$DESCRIPTOR" --workspace . \
+            --output "$RUNNER_TEMP/identity.json"
+          cmp "$RUNNER_TEMP/identity.json" "$RUNNER_TEMP/contract/identity.json"
+
+      - name: Build canonical payload once
+        shell: bash
+        env:
+          RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
+          RELEASE_TARGET: ${{ inputs.target }}
+          RELEASE_PACKAGE: ${{ inputs.package }}
+          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
+        run: |
+          cargo "+$RELEASE_TOOLCHAIN" build --release --locked \
+            --target "$RELEASE_TARGET" \
+            --package "$RELEASE_PACKAGE" \
+            --bin "$CANONICAL_COMMAND"
+
+      - name: Verify static MUSL payload
+        if: endsWith(inputs.target, '-musl')
+        shell: bash
+        env:
+          RELEASE_TARGET: ${{ inputs.target }}
+          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
+        run: |
+          payload="target/$RELEASE_TARGET/release/$CANONICAL_COMMAND"
+          readelf -l "$payload" > "$RUNNER_TEMP/program-headers.txt"
+          if grep -F 'Requesting program interpreter' "$RUNNER_TEMP/program-headers.txt"; then
+            printf '%s\n' "MUSL payload is dynamically linked" >&2
+            exit 1
+          fi
+
+      - name: Apply and verify macOS ad hoc signature
+        if: inputs.authenticity == 'ad-hoc'
+        shell: bash
+        env:
+          RELEASE_TARGET: ${{ inputs.target }}
+          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
+        run: |
+          payload="target/$RELEASE_TARGET/release/$CANONICAL_COMMAND"
+          codesign --force --sign - --timestamp=none "$payload"
+          codesign --verify --strict --verbose=2 "$payload"
+
+      - name: Stage and smoke-test final payload
+        shell: bash
+        env:
+          RELEASE_TARGET: ${{ inputs.target }}
+          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
+          ALIAS_COMMAND: ${{ inputs.alias_command }}
+          EXECUTABLE_SUFFIX: ${{ inputs.executable_suffix }}
+        run: |
+          payload="target/$RELEASE_TARGET/release/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX"
+          payload_dir="$RUNNER_TEMP/native/payloads/$RELEASE_TARGET"
+          mkdir -p "$payload_dir" "$RUNNER_TEMP/native/records"
+          cp "$payload" "$payload_dir/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX"
+          cp "$payload" "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX"
+          chmod 755 "$payload_dir/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" || true
+          chmod 755 "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX" || true
+          "$payload_dir/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" --version > "$RUNNER_TEMP/canonical-version.txt"
+          "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX" --version > "$RUNNER_TEMP/alias-version.txt"
+          cmp "$RUNNER_TEMP/canonical-version.txt" "$RUNNER_TEMP/alias-version.txt"
+          "$payload_dir/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" -h > "$RUNNER_TEMP/canonical-help.txt"
+          "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX" -h > "$RUNNER_TEMP/alias-help.txt"
+          cmp "$RUNNER_TEMP/canonical-help.txt" "$RUNNER_TEMP/alias-help.txt"
+          rm -f "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX"
+
+      - name: Record Linux authenticity evidence
+        if: inputs.authenticity == 'metadata-signature'
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/authenticity.json" <<'JSON'
+          {
+            "mode": "metadata-signature",
+            "verified": true,
+            "method": "signed release metadata and exact SHA-256; no native signer claimed"
+          }
+          JSON
+
+      - name: Record macOS authenticity evidence
+        if: inputs.authenticity == 'ad-hoc'
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/authenticity.json" <<'JSON'
+          {
+            "mode": "ad-hoc",
+            "verified": true,
+            "method": "codesign --verify --strict",
+            "notarized": false
+          }
+          JSON
+
+      - name: Record final native candidate
+        if: inputs.authenticity != 'self-signed-authenticode'
+        shell: bash
+        env:
+          RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
+          RELEASE_TARGET: ${{ inputs.target }}
+          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
+          EXECUTABLE_SUFFIX: ${{ inputs.executable_suffix }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
+        run: |
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            native-record \
+            --descriptor "$DESCRIPTOR" \
+            --target "$RELEASE_TARGET" \
+            --payload "$RUNNER_TEMP/native/payloads/$RELEASE_TARGET/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" \
+            --payload-path "$RELEASE_TARGET/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" \
+            --authenticity "$RUNNER_TEMP/authenticity.json" \
+            --output "$RUNNER_TEMP/native/records/$RELEASE_TARGET.json"
+
+      - name: Preserve candidate transport metadata
+        shell: bash
+        env:
+          RELEASE_TARGET: ${{ inputs.target }}
+        run: tar -cf "$RUNNER_TEMP/$RELEASE_TARGET.tar" -C "$RUNNER_TEMP/native" .
+
+      - name: Upload unsigned Windows candidate
+        if: inputs.authenticity == 'self-signed-authenticode'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ inputs.artifact_prefix }}-native-unsigned-${{ inputs.target }}
+          path: ${{ runner.temp }}/${{ inputs.target }}.tar
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Upload final native candidate
+        if: inputs.authenticity != 'self-signed-authenticode'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ inputs.artifact_prefix }}-native-final-${{ inputs.target }}
+          path: ${{ runner.temp }}/${{ inputs.target }}.tar
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0

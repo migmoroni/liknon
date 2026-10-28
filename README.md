@@ -52,6 +52,20 @@ Rust 1.87 or newer is required. Cargo normally writes the executables to
 a compiled copy, not a link to the checkout, so reinstall it after updating or
 modifying the source.
 
+## Release Distribution
+
+The repository contains the B01 release foundation for three Validation CLI
+channels: signed GitHub source tags, the `liknon-validator` crates.io source
+package, and authenticated target-native archives on a project-controlled
+Cloudflare domain. The registry and native channels are not advertised as live
+until their first protected release completes; local source installation above
+remains the current development path.
+
+The complete installation, update, uninstall, platform, and trust contract is
+documented in
+[`docs/distribution/validation-cli.md`](docs/distribution/validation-cli.md).
+GitHub Releases intentionally carry metadata only and no Liknon binaries.
+
 ## Quick Start
 
 Author a complete candidate such as `validation.config.json` at the workspace
@@ -286,5 +300,10 @@ cargo run -p liknon-validator --bin liknon-validator --locked -- <command>
 The committed root `Cargo.lock` is the reproducible dependency graph. The root
 workspace owns formatting, lint, tests, doctests, and package-boundary checks;
 nested fixtures remain excluded workspace inputs.
+
+Release maintainers use the reviewed product profile under
+[`distribution/cli/validation`](distribution/cli/validation) and the
+[Validation release runbook](docs/distribution/releasing-validation-cli.md).
+Generated release candidates remain below `target/distribution/`.
 
 Liknon is licensed under the [MIT License](LICENSE).

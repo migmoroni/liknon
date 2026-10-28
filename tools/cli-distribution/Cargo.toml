@@ -1,0 +1,27 @@
+[package]
+name = "liknon-cli-distribution"
+version = "0.5.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Private release-contract tooling for Liknon native CLIs"
+
+[[bin]]
+name = "liknon-cli-distribution"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clap.workspace = true
+schemars.workspace = true
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

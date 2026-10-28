@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReleaseIdentity",
+  "type": "object",
+  "properties": {
+    "binaryTargets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cargoLockSha256": {
+      "type": "string"
+    },
+    "commit": {
+      "type": "string"
+    },
+    "package": {
+      "type": "string"
+    },
+    "packagePath": {
+      "type": "string"
+    },
+    "product": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "tag": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "product",
+    "package",
+    "packagePath",
+    "version",
+    "tag",
+    "commit",
+    "cargoLockSha256",
+    "binaryTargets"
+  ]
+}

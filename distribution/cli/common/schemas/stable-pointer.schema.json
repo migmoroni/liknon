@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StablePointer",
+  "type": "object",
+  "properties": {
+    "commit": {
+      "type": "string"
+    },
+    "manifestPath": {
+      "type": "string"
+    },
+    "manifestSha256": {
+      "type": "string"
+    },
+    "product": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "tag": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "product",
+    "version",
+    "tag",
+    "commit",
+    "manifestPath",
+    "manifestSha256"
+  ]
+}

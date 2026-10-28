@@ -52,6 +52,14 @@ jobs:
         run: rustup default stable
       - name: Check formatting
         run: cargo fmt --all -- --check
+      - name: Check release shell syntax
+        shell: bash
+        run: |
+          for script in distribution/cli/common/scripts/*.sh \
+            distribution/cli/common/installers/install.sh.in \
+            distribution/cli/validation/smoke/verify.sh; do
+            sh -n "$script"
+          done
       - name: Run Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Build warning-free Rustdoc
@@ -139,6 +147,9 @@ jobs:
 
           "$validator_root/bin/liknon-validator" --version
           "$validator_root/bin/likv" --help > /dev/null
+          sh distribution/cli/validation/smoke/verify.sh \
+            "$validator_root/bin/liknon-validator" \
+            "$validator_root/bin/likv"
           "$manager_root/bin/liknon-manager" --version
           "$manager_root/bin/likm" --help > /dev/null
           "$tool_root/bin/liknon-tool" --version

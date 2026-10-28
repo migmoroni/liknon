@@ -40,11 +40,15 @@ receive no inherited product secret. Only the isolated
 GitHub publication job receives `contents: write`. Cloudflare uses a separate
 bucket-scoped credential and does not require repository write access.
 
+After the credential-free human approval, three isolated preflight jobs inspect
+crates.io, GitHub, and Cloudflare without publishing. No destination write
+begins unless all three preflights agree with the retained candidates.
+
 ## Credential Placement
 
 | Identity or credential | Location | Lifetime |
 | --- | --- | --- |
-| crates.io trusted-publishing identity or bootstrap token | `publish-crates-cli` environment | OIDC preferred; bootstrap token revoked after use |
+| crates.io trusted-publishing identity or bootstrap token | `publish-crates-cli` environment | OIDC mints a job-scoped token; bootstrap token is revoked after first use |
 | R2 access key and secret | `publish-cloudflare-cli` environment | Persistent, bucket-scoped, rotated |
 | Detached-manifest signing key | `sign-cli-release` environment | Persistent, separately backed up and rotated |
 | Windows PFX and password | `sign-cli-windows` environment | Persistent project identity, separately backed up |
@@ -53,6 +57,49 @@ bucket-scoped credential and does not require repository write access.
 
 Do not use repository-wide secrets when an isolated environment can hold the
 credential. No secret may enter workflow artifacts or generated metadata.
+
+## Workflow Configuration Inventory
+
+The implemented workflow uses the following exact public files, variables, and
+environment-scoped secrets. Names are part of the B01 operator contract.
+
+### Reviewed Public Trust Files
+
+| Path | Purpose |
+| --- | --- |
+| `distribution/cli/validation/direct/tag-signing-public-key.asc` | Optional GPG trust root for human release tags |
+| `distribution/cli/validation/direct/tag-signing-allowed-signers` | Optional SSH allowed-signers file; use instead of the GPG file |
+| `distribution/cli/validation/direct/public-key.pem` | RSA public key for direct manifest and installer signatures |
+
+Exactly one tag-signing trust mechanism is configured. No private key or PFX
+belongs in the repository.
+
+### Public Repository Or Environment Variables
+
+| Variable | Scope | Purpose |
+| --- | --- | --- |
+| `LIKNON_DOWNLOAD_BASE_URL` | Repository | Production HTTPS custom-domain origin |
+| `WINDOWS_CERT_FINGERPRINT` | `sign-cli-windows` and repository readback | Persistent self-signed signer fingerprint |
+| `WINDOWS_TIMESTAMP_URL` | `sign-cli-windows` | RFC 3161 SHA-256 timestamp service |
+| `AWS_CLI_VERSION` | `publish-cloudflare-cli` | Exact AWS CLI v2 client version |
+| `AWS_CLI_ZIP_SHA256` | `publish-cloudflare-cli` | Approved SHA-256 of that official client archive |
+| `R2_BUCKET` | `publish-cloudflare-cli` | Validation-only production bucket |
+| `R2_ENDPOINT_URL` | `publish-cloudflare-cli` | Account-scoped R2 S3 endpoint |
+
+### Protected Environment Secrets
+
+| Secret | Environment | Purpose |
+| --- | --- | --- |
+| `WINDOWS_PFX_BASE64` | `sign-cli-windows` | Persistent self-signed Authenticode PFX |
+| `WINDOWS_PFX_PASSWORD` | `sign-cli-windows` | PFX decryption password |
+| `DIRECT_SIGNING_PRIVATE_KEY_BASE64` | `sign-cli-release` | RSA private key for detached release signatures |
+| `CARGO_REGISTRY_TOKEN` | `publish-crates-cli` | Narrow bootstrap token used only before trusted publishing can be configured |
+| `R2_ACCESS_KEY_ID` | `publish-cloudflare-cli` | Validation-bucket access key |
+| `R2_SECRET_ACCESS_KEY` | `publish-cloudflare-cli` | Validation-bucket secret key |
+
+The AWS CLI archive is downloaded at release time, verified against the
+reviewed SHA-256, and installed below the ephemeral runner directory without
+`sudo`.
 
 ## Phase Checkpoint Map
 
@@ -141,6 +188,9 @@ The Cloudflare upload credential remains absent at this checkpoint.
       production bucket and store it in `publish-cloudflare-cli`.
 - [ ] Configure crates.io trusted publishing, or create a narrow temporary
       bootstrap token in `publish-crates-cli`.
+- [ ] After the first accepted version, configure trusted publishing for
+      repository `migmoroni/liknon`, workflow `release-validation.yml`, and
+      environment `publish-crates-cli`; then revoke the bootstrap token.
 - [ ] Verify `sign-cli-release` and `sign-cli-windows` contain only their own identities.
 - [ ] Create and push the signed annotated tag only after pre-publication checks
       pass.

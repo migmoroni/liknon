@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PublicationState",
+  "type": "object",
+  "properties": {
+    "destinations": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/PublicationObjectState"
+      }
+    },
+    "identity": {
+      "$ref": "#/$defs/ReleaseIdentity"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "identity",
+    "destinations"
+  ],
+  "$defs": {
+    "PublicationObjectState": {
+      "type": "object",
+      "properties": {
+        "detail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/PublicationStatus"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "sha256"
+      ]
+    },
+    "PublicationStatus": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "published",
+        "verified",
+        "failed"
+      ]
+    },
+    "ReleaseIdentity": {
+      "type": "object",
+      "properties": {
+        "binaryTargets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cargoLockSha256": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "package": {
+          "type": "string"
+        },
+        "packagePath": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "tag": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "product",
+        "package",
+        "packagePath",
+        "version",
+        "tag",
+        "commit",
+        "cargoLockSha256",
+        "binaryTargets"
+      ]
+    }
+  }
+}

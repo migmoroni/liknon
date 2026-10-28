@@ -1,13 +1,16 @@
 [package]
 name = "liknon-validator"
-version.workspace = true
+version = "0.5.0"
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-publish = false
+publish = ["crates-io"]
 description = "Declarative, shell-free validation CLI for heterogeneous workspaces"
+readme = "README.md"
+keywords = ["validation", "cli", "workspace", "automation", "ci"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 clap.workspace = true

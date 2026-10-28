@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DirectManifest",
+  "type": "object",
+  "properties": {
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/DirectArtifact"
+      }
+    },
+    "checksums": {
+      "$ref": "#/$defs/FileRecord"
+    },
+    "identity": {
+      "$ref": "#/$defs/ReleaseIdentity"
+    },
+    "installers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/InstallerRecord"
+      }
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "signature": {
+      "$ref": "#/$defs/ManifestSignature"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "identity",
+    "artifacts",
+    "installers",
+    "checksums",
+    "signature"
+  ],
+  "$defs": {
+    "ArchiveFormat": {
+      "type": "string",
+      "enum": [
+        "tar-gz",
+        "zip"
+      ]
+    },
+    "AuthenticityEvidence": {
+      "type": "object",
+      "properties": {
+        "certificateFingerprint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "method": {
+          "type": "string"
+        },
+        "mode": {
+          "$ref": "#/$defs/AuthenticityMode"
+        },
+        "notarized": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "timestamped": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "verified",
+        "method"
+      ]
+    },
+    "AuthenticityMode": {
+      "type": "string",
+      "enum": [
+        "metadata-signature",
+        "ad-hoc",
+        "self-signed-authenticode"
+      ]
+    },
+    "DirectArtifact": {
+      "type": "object",
+      "properties": {
+        "archive": {
+          "$ref": "#/$defs/FileRecord"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InstalledCommandRecord"
+          }
+        },
+        "format": {
+          "$ref": "#/$defs/ArchiveFormat"
+        },
+        "platformAuthenticity": {
+          "$ref": "#/$defs/AuthenticityEvidence"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "format",
+        "archive",
+        "commands",
+        "platformAuthenticity"
+      ]
+    },
+    "FileRecord": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "size",
+        "sha256"
+      ]
+    },
+    "InstalledCommandRecord": {
+      "type": "object",
+      "properties": {
+        "equalsCanonical": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "path",
+        "size",
+        "sha256",
+        "equalsCanonical"
+      ]
+    },
+    "InstallerPlatform": {
+      "type": "string",
+      "enum": [
+        "posix",
+        "powershell"
+      ]
+    },
+    "InstallerRecord": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "$ref": "#/$defs/FileRecord"
+        },
+        "platform": {
+          "$ref": "#/$defs/InstallerPlatform"
+        },
+        "signatureAlgorithm": {
+          "type": "string"
+        },
+        "signaturePath": {
+          "type": "string"
+        },
+        "signingKeyId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "platform",
+        "file",
+        "signaturePath",
+        "signatureAlgorithm",
+        "signingKeyId"
+      ]
+    },
+    "ManifestSignature": {
+      "type": "object",
+      "properties": {
+        "algorithm": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "signingKeyId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "algorithm",
+        "signingKeyId"
+      ]
+    },
+    "ReleaseIdentity": {
+      "type": "object",
+      "properties": {
+        "binaryTargets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cargoLockSha256": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "package": {
+          "type": "string"
+        },
+        "packagePath": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "tag": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "product",
+        "package",
+        "packagePath",
+        "version",
+        "tag",
+        "commit",
+        "cargoLockSha256",
+        "binaryTargets"
+      ]
+    }
+  }
+}

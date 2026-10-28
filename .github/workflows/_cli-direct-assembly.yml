@@ -1,0 +1,164 @@
+name: Reusable CLI direct assembly
+
+on:
+  workflow_call:
+    inputs:
+      descriptor:
+        required: true
+        type: string
+      release_ref:
+        required: true
+        type: string
+      toolchain:
+        required: true
+        type: string
+      artifact_prefix:
+        required: true
+        type: string
+      identity_artifact:
+        required: true
+        type: string
+      download_base_url:
+        required: true
+        type: string
+      public_key:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  assemble:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact release source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.release_ref }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Install exact release toolchain
+        shell: bash
+        env:
+          RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
+        run: rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
+
+      - name: Download inspected release identity
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ inputs.identity_artifact }}
+          path: ${{ runner.temp }}/contract
+
+      - name: Download final native candidates
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: ${{ inputs.artifact_prefix }}-native-final-*
+          path: ${{ runner.temp }}/transport
+          merge-multiple: true
+
+      - name: Restore exact native candidates
+        shell: bash
+        env:
+          DESCRIPTOR: ${{ inputs.descriptor }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/candidate"
+          found=0
+          for archive in "$RUNNER_TEMP"/transport/*.tar; do
+            [ -f "$archive" ] || continue
+            tar -xf "$archive" -C "$RUNNER_TEMP/candidate"
+            found=$((found + 1))
+          done
+          expected=$(jq '.targets | length' "$DESCRIPTOR")
+          [ "$found" -eq "$expected" ] \
+            || { printf '%s\n' "expected $expected final native candidates, found $found" >&2; exit 1; }
+
+      - name: Assemble and verify internal build manifest
+        shell: bash
+        env:
+          RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
+        run: |
+          rustc_version=$(rustc "+$RELEASE_TOOLCHAIN" --version)
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            build-manifest \
+            --descriptor "$DESCRIPTOR" \
+            --identity "$RUNNER_TEMP/contract/identity.json" \
+            --workspace . \
+            --records-dir "$RUNNER_TEMP/candidate/records" \
+            --release-toolchain "$rustc_version" \
+            --output "$RUNNER_TEMP/build-manifest.json"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            verify-build \
+            --descriptor "$DESCRIPTOR" \
+            --identity "$RUNNER_TEMP/contract/identity.json" \
+            --workspace . \
+            --build-manifest "$RUNNER_TEMP/build-manifest.json" \
+            --payload-root "$RUNNER_TEMP/candidate/payloads"
+
+      - name: Assemble direct archives and installers
+        shell: bash
+        env:
+          RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
+          DOWNLOAD_BASE_URL: ${{ inputs.download_base_url }}
+          PUBLIC_KEY: ${{ inputs.public_key }}
+        run: |
+          [ -f "$PUBLIC_KEY" ] || { printf '%s\n' "AP-3 incomplete: missing production public key $PUBLIC_KEY" >&2; exit 1; }
+          source_date_epoch=$(git show -s --format=%ct HEAD)
+          direct="$RUNNER_TEMP/direct"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            assemble-archives \
+            --descriptor "$DESCRIPTOR" \
+            --identity "$RUNNER_TEMP/contract/identity.json" \
+            --workspace . \
+            --build-manifest "$RUNNER_TEMP/build-manifest.json" \
+            --payload-root "$RUNNER_TEMP/candidate/payloads" \
+            --output-dir "$direct" \
+            --source-date-epoch "$source_date_epoch"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            render-installers \
+            --descriptor "$DESCRIPTOR" \
+            --identity "$RUNNER_TEMP/contract/identity.json" \
+            --workspace . \
+            --base-url "$DOWNLOAD_BASE_URL" \
+            --public-key "$PUBLIC_KEY" \
+            --posix-template distribution/cli/common/installers/install.sh.in \
+            --powershell-template distribution/cli/common/installers/install.ps1.in \
+            --output-dir "$direct"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            checksums \
+            --descriptor "$DESCRIPTOR" \
+            --identity "$RUNNER_TEMP/contract/identity.json" \
+            --workspace . \
+            --root "$direct"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            direct-manifest \
+            --descriptor "$DESCRIPTOR" \
+            --identity "$RUNNER_TEMP/contract/identity.json" \
+            --workspace . \
+            --root "$direct" \
+            --output "$direct/manifest.json"
+          rm -rf "$direct/.records"
+          tar -cf "$RUNNER_TEMP/direct-unsigned.tar" -C "$direct" .
+          mkdir -p "$RUNNER_TEMP/evidence"
+          cp "$RUNNER_TEMP/build-manifest.json" "$RUNNER_TEMP/evidence/"
+          cp "$RUNNER_TEMP/contract/identity.json" "$RUNNER_TEMP/evidence/"
+
+      - name: Upload unsigned direct candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ inputs.artifact_prefix }}-direct-unsigned
+          path: ${{ runner.temp }}/direct-unsigned.tar
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Upload internal build evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ inputs.artifact_prefix }}-build-evidence
+          path: ${{ runner.temp }}/evidence
+          if-no-files-found: error
+          retention-days: 30
