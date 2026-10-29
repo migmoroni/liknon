@@ -1,5 +1,9 @@
 # A01.0 Current-To-Target Ledger
 
+> **Historical ledger:** this document records the approved and implemented
+> A01 transition. Its executable-target rows describe the pre-B04 state. The
+> current target is defined by the target summary and B04.
+
 ## Status
 
 `Implemented`. The user approved this ledger on 2026-10-26, and A01.1-A01.5

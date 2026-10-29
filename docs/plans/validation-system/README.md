@@ -20,7 +20,7 @@ Read these documents in order before using an implementation plan:
 2. [Target-State Summary](resumo-estado-alvo.md) - `Approved target` with
    explicit open decisions
 3. [Shared CLI Distribution Foundation](cli-distribution-foundation.md) -
-   `Approved cross-product contract` for B01-B04 release mechanisms
+   `Approved suite contract` for the B04 source and native release
 4. [Plan Coherence And Reorganization](A00-plan-coherence-and-reorganization/README.md)
    - `Historical` completed documentation meta-plan
 5. [Unified Launcher, CLI Suite, And Command Plan Realignment](A00.1-unified-launcher-plan-realignment/README.md)
@@ -50,40 +50,38 @@ foundation.
 
 | Plan | Status | Owns |
 | --- | --- | --- |
-| [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | Repository release implementation in place; external/public completion pending | Source-package and native distribution of `liknon-validator` / `likv` |
-| [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | Repository implementation in place; B02.5 external/public completion pending | Resource protocol, Hub, Manager behavior, and Manager distribution |
-| [B03 Tool CLI](B03-tool-cli/README.md) | Store-backed repository implementation in place; C01 bootstrap and external/public completion pending | Offline resource consumption, agent-facing retrieval, and Tool distribution |
-| [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, launcher commands `liknon` / `likx`, aggregate Cargo installation, and complete native suites |
+| [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | Validator behavior and reusable release foundation implemented; standalone publication superseded by B04 | Validator behavior, contracts, and focused release evidence consumed by the suite |
+| [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | Repository implementation in place; Hub authority and suite integration pending | Resource protocol, Hub publication, Manager behavior, and focused release evidence consumed by the suite |
+| [B03 Tool CLI](B03-tool-cli/README.md) | Store-backed repository implementation in place; C01 bootstrap and suite integration pending | Offline resource consumption, agent-facing retrieval, and focused release evidence consumed by the suite |
+| [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, executables `liknon`, `liknon-validator`, `liknon-manager`, and `liknon-tool`, plus one native suite archive per target |
 | [B05 Programmatic APIs And Language Bindings](B05-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate programmatic APIs and explicit workspace integrations with demonstrated consumers |
-| [B06 Coordinated Public Release](B06-coordinated-public-release/README.md) | `Future`; blocked by release-ready B01-B05 inputs | Frozen first-release set, external authority, coordinated public activation, readback, and closure |
+| [B06 Coordinated Public Release](B06-coordinated-public-release/README.md) | `Future`; blocked by B04 suite, B02 Hub, E01 site, D01 evidence, and selected B05 inputs | Frozen first-release set, external authority, coordinated public activation, readback, and closure |
 
-The three capability CLIs use the same categories of distribution channel:
-exact GitHub source, crates.io source packages, and project-hosted native
-binaries through Cloudflare/site delivery. They retain independent package
-identities, release artifacts, readiness gates, credentials, and publication
-authority. B04 composes verified component candidates into the promoted
-aggregate Cargo package and complete native suites without taking over their
-individual publication.
+The three capability CLIs remain independent executable processes and behavior
+boundaries, but they share one public CLI distribution. B04 owns the
+`liknon-cli` source package, the four physical executable targets, and one
+complete native suite archive per supported target. B01-B03 provide focused
+behavior, security, and conformance evidence; they do not retain standalone
+public CLI packages or native download channels after the B04 cutover.
 
-B01-B05 own product-specific candidate creation, publication workflows,
-credentials, recovery contracts, and recurring release trains. B06 does not
-replace those responsibilities. It coordinates their first public activation
-after the selected products are ready, and it excludes any unimplemented B05
-ecosystem instead of publishing placeholders.
+B02 continues to own Hub publication because resources are external data.
+B05 owns any activated programmatic packages. B06 coordinates the first public
+activation of the B04 suite, Hub, site, and selected B05 outputs without
+rebuilding their candidates.
 
 The [shared CLI distribution foundation](cli-distribution-foundation.md)
 defines the reusable build, manifest, archive, installer, signing, verification,
-publication, and recovery mechanisms. B01 implements those mechanisms first
-with Validation as the first product profile. B02 and B03 instantiate them for
-independent products. B04 uses them to build the launcher and then composes
-exact verified B01-B03 native candidates without rebuilding capability CLIs.
+publication, and recovery mechanisms. B01 supplied the first implementation of
+many of those mechanisms. B04 now adapts them to one suite candidate and builds
+the four executables once per target; it does not compose separately published
+capability products.
 
 [A02](A02-shared-cli-experience-foundation/README.md) separately defines the
 runtime terminal experience shared by those applications: palettes,
 presentation, help styling, `NO_COLOR`, low-vision behavior, and neutral
-semantic style primitives. Product command grammars, domain renderers, machine
-schemas, errors, exit codes, versions, and publication authority remain with
-their owning B plans.
+semantic style primitives. B01-B03 retain product command grammars, domain
+renderers, machine schemas, errors, and exit codes; B04 owns the shared suite
+version and CLI publication authority.
 
 ### C: AI Governance And Official Workflows
 
@@ -104,9 +102,10 @@ not platform constants.
 | --- | --- | --- |
 | [D01 System Conformance And Agent Evaluation](D01-system-conformance-and-agent-evaluation/README.md) | `Provisional`, blocked by implemented B/C capabilities | Cross-product scenarios, isolation, abuse review, agent evaluation, and integrated readiness evidence |
 
-D01 does not publish products. Product publication and recovery remain in
-B01-B05. B06 coordinates their first public activation without taking over
-those authorities.
+D01 does not publish products. CLI publication and recovery remain in B04, Hub
+publication remains in B02, and activated programmatic packages remain in B05.
+B06 coordinates their first public activation without taking over those
+authorities.
 
 ### E: Public Web And Delivery Surfaces
 
@@ -139,9 +138,9 @@ current-state assessment + approved target summary
           A01 product/repository boundaries
              |                         |
              v                         v
- B01 Validation profile +       C01 generic AI/workflow
- shared distribution            governance contracts
- foundation implementation              |
+ B01 Validator behavior +        C01 generic AI/workflow
+ release-foundation evidence             governance contracts
+             |                           |
              |                           v
              +------------------> B02.0-B02.4 Hub/Manager
                                       local implementation
@@ -153,8 +152,8 @@ current-state assessment + approved target summary
                            |
                   +--------+--------+
                   v                 v
-          B01/B02 release       B03.0-B03.4 Tool
-          closure               implementation/distribution
+          B01/B02 behavior      B03.0-B03.4 Tool
+          closure               implementation and evidence
                   |                 |
                   +--------+--------+
                            |
@@ -165,7 +164,7 @@ current-state assessment + approved target summary
                  B04.0 launcher/suite contract
                            |
                            v
-                B04 launcher and native suites
+          B04 liknon-cli package and one suite archive per target
 
  C01 + B02/B03 contracts --> C02/C03 official workflows
  B01-B04 + C01-C03 evidence --> D01 integrated conformance
@@ -173,7 +172,8 @@ current-state assessment + approved target summary
 B05 programmatic APIs and language bindings: future, independently activated
                                   |
                                   v
-B01-B05 release-ready candidates + selected D01 evidence
+B04 CLI-suite candidate + B02 Hub + selected B05 candidates
+          + selected D01 evidence
           + E01 site/Hub delivery candidate
                                   |
                                   v
@@ -183,10 +183,10 @@ B01-B05 release-ready candidates + selected D01 evidence
                   F01 Rust 1.90 MSRV modernization
 ```
 
-Distribution readiness remains product-specific. `D01` may verify an
-integrated candidate, but it must not own publication already assigned to
-`B01`, `B02`, `B03`, `B04`, or `B05`. `B06` coordinates those owners without
-acquiring their destination credentials or recurring release authority.
+Capability readiness remains diagnosable through B01-B03, while public CLI
+distribution readiness belongs to B04. `D01` may verify an integrated
+candidate, but it does not publish it. `B06` coordinates the owning plans
+without rebuilding or mutating their accepted outputs.
 
 ## Active Decision Gates
 
@@ -207,12 +207,12 @@ Before AI-governance implementation, decide:
 - how these operations remain generic and independent from official workflow
   identities.
 
-### B02.5: Manager And Hub External Readiness
+### B02.5: Manager, Hub, And Suite Handoff Readiness
 
 The repository-side Manager and Hub contracts are implemented. Before B02
 release readiness closes, complete the human-owned external setup, public Hub
-authority, exact source/native candidates, A02 Manager presentation adoption,
-and clean public-channel readback defined by B02.5 and B06.
+authority, A02 Manager presentation adoption, focused Manager evidence for
+B04, and clean Hub readback defined by B02.5 and B06.
 
 ### B03.0: Tool Contract
 
@@ -223,11 +223,11 @@ names in B03 are candidates until this gate passes.
 
 ### B04.0: Launcher And Suite Contract
 
-Before launcher implementation or aggregate publication, approve executable
-resolution, compatibility, process forwarding, aggregate target mapping,
-installation collision, native-suite composition, help, version, provenance,
-publication, and recovery contracts. The approved eight binary targets and
-three explicit namespaces are fixed inputs to this gate.
+Before launcher implementation or suite publication, approve executable
+resolution, compatibility, process forwarding, four-target package ownership,
+one-archive-per-target composition, transactional installation, help, version,
+provenance, publication, and recovery contracts. The four physical executables
+and `validator|v`, `manager|m`, and `tool|t` namespaces are fixed inputs.
 
 ### B05.0: Programmatic API Activation
 
@@ -240,8 +240,8 @@ modules are not sufficient API design evidence.
 
 Before any registry package, Hub object, native object, metadata release, or
 stable pointer is published, approve one immutable ledger containing the exact
-included products, independently owned versions, signed tags, commits,
-candidates, targets, destinations, dependencies, exclusions, retention windows,
+B04 CLI suite candidate, B02 Hub candidate, selected B05 candidates, site
+candidate, targets, destinations, dependencies, exclusions, retention windows,
 and recovery owners. A changed candidate or destination invalidates that
 approval. B06 does not publish a placeholder for a B05 ecosystem whose
 activation gate has not passed.
@@ -258,28 +258,28 @@ Liknon consumers and verification evidence.
 
 1. A01 has implemented the structural cutover in buildable units; complete its
    final hosted verification.
-2. Continue B01 delivery work and C01 contract work from the verified A01
-   boundary. B01 establishes the shared distribution primitives and its
-   Validation profile; this does not publish or version another product.
+2. Use the implemented B01 release machinery and Validator evidence as inputs
+   to the shared suite foundation; do not complete its superseded standalone
+   publication path.
 3. The repository-side B02.0-B02.4 implementation supplied the second concrete
    CLI surface and A02 extracted `liknon-cli-ui`, migrated Validator and
    Manager, and established Tool and launcher consumption boundaries.
-4. Resolve B03.0 against the completed A02 terminal contract, then
-   implement B03.1-B03.4 without creating another theme or help system.
+4. Complete the remaining C01-dependent B03 contract and the B03.3-B03.4 Tool
+   handoff evidence without creating another theme or help system.
 5. Resolve B04.0 after A02 and the capability command contracts are stable;
-   build the launcher through both shared foundations and compose native suites
-   only from verified B01-B03 release candidates.
+   move executable ownership to `liknon-cli`, remove physical compact aliases,
+   and build one authenticated four-executable archive per target.
 6. Implement C02 and C03 as resources over approved generic contracts.
 7. Execute the D01 integrated conformance and agent evaluation required before
    public release, including cross-CLI experience checks from A02.
 8. Activate the future B05 programmatic-API phases only through their
    independent consumer-driven gates and prepare candidates for every language
    ecosystem selected for the first public release.
-9. Execute B06 only after A02 and B01-B05 have handed off the selected exact
-   source/native candidates and D01 has produced the designated blocking
-   evidence. B06 publishes supporting crates in dependency order, activates the
-   complete set, verifies public readback, promotes stable pointers, and
-   revokes bootstrap credentials.
+9. Execute B06 only after B04 has handed off one exact CLI-suite candidate,
+   B02 has handed off the Hub candidate, selected B05 outputs are ready, E01 is
+   ready, and D01 has produced the designated blocking evidence. B06 publishes
+   dependencies in order, activates the complete set, verifies public readback,
+   promotes stable pointers, and revokes bootstrap credentials.
 10. After the current roadmap has reached a terminal state and B06 has closed
     the first public release, activate F01 as one deliberate Rust 1.90
     compatibility transition. Reinventory the completed system before changing
@@ -296,8 +296,8 @@ one plan never implicitly marks another plan complete.
 - Product behavior and distribution belong to A/B plans.
 - Shared runtime terminal experience and the `liknon-cli-ui` supporting package
   belong to A02; application-specific presentation remains with its product.
-- Cross-product release mechanisms belong to the shared CLI distribution
-  foundation; product releases and authorities remain in B01-B04.
+- CLI release mechanisms belong to the shared distribution foundation; the
+  public CLI package, native archives, and release authority belong to B04.
 - Programmatic package releases and registry authorities remain in B05.
 - The coordinated first public activation, release-set ledger, cross-product
   publication order, and closure evidence belong to B06.
@@ -328,10 +328,10 @@ This roadmap is coherent when:
 - no proposal that was never implemented is described as something to remove;
 - generic platform contracts remain separate from official workflow content;
 - product release work remains separate from integrated-system evaluation;
-- shared release mechanisms are implemented once while every product keeps an
-  independent release identity and authority;
+- shared release mechanisms are implemented once while the complete CLI suite
+  keeps one release identity and authority;
 - shared terminal behavior is implemented once without merging product command
   grammars, reports, machine schemas, errors, or exit codes;
-- first public activation is coordinated by B06 from exact product-owned
-  candidates without creating a permanent coupled release train;
+- first public activation is coordinated by B06 from the exact B04 suite, Hub,
+  site, and selected programmatic candidates without rebuilding them;
 - all active links resolve and the next executable step is unambiguous.

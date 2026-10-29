@@ -1,5 +1,11 @@
 # A00.1: Unified Launcher, CLI Suite, And Command Plan Realignment
 
+> **Historical contract:** this completed meta-plan explains the eight-target
+> intermediate repository state. B04 now supersedes its public topology with
+> four physical executables, no compact executable aliases, launcher-only
+> namespaces `validator|v`, `manager|m`, and `tool|t`, and one suite archive
+> per target. Do not use this file as the current implementation target.
+
 ## 1. Status
 
 `Historical`. This documentation-only meta-plan has been executed and is

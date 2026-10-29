@@ -1,5 +1,10 @@
 # Plan A02: Shared CLI Experience Foundation
 
+> **B04 topology note:** A02 remains authoritative for shared terminal
+> experience. References to compact executable aliases or the eight-target
+> intermediate package are implementation evidence only; B04 defines the
+> current four-executable public suite.
+
 ## Status
 
 `Repository implementation complete; hosted verification and public readback

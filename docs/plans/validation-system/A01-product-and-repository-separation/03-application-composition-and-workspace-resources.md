@@ -1,5 +1,9 @@
 # Phase A01.3: Compose Applications And Establish The Workspace Boundary
 
+> **Implemented intermediate state:** retain this phase as A01 evidence. B04
+> later replaces its eight executable targets and compact aliases with the
+> four-target `liknon-cli` suite.
+
 ## Status
 
 `Complete`. The approved application packages and targets exist, structural

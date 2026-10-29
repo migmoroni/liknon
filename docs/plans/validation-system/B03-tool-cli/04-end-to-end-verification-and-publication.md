@@ -1,112 +1,66 @@
-# Phase B03.4: Verify Tool And Prepare Publication End To End
+# Phase B03.4: Verify Tool And Hand Off To The CLI Suite
 
 ## Status
 
-`Repository verification paths in place; production execution pending`.
-Contract-valid fixtures, local Manager-to-Tool interoperability, source
-rehearsal, and semantic smoke coverage exist. Signed candidate creation,
-explicit human approval, external publication, public readback, and bootstrap
-verification remain pending B06, external authorities, and C01 respectively.
+`Partially implemented`. Local Tool behavior and store interoperability are
+present. This phase completes focused evidence for B04; it does not publish a
+standalone Tool product.
 
-[Back to the Tool CLI plan](README.md)
+[Back to Plan B03](README.md)
 
-## Purpose
+## Objective
 
-Prove Tool installation candidates and local-store interoperability while
-retaining Tool's independent offline contract. This phase prepares the
-product-owned publication and readback procedures; B06 executes their first
-production use.
+Prove Tool end to end from installed resource state through human and
+machine-readable retrieval, then attach that evidence to the exact B04 suite
+candidate.
 
-## Verification Matrix
+## Verification Sequence
 
-From clean environments:
+1. run formatting, linting, tests, documentation tests, and package checks;
+2. build Tool from the exact `liknon-cli` source closure;
+3. verify direct `liknon-tool` help, version, JSON, errors, and exit codes;
+4. verify `liknon tool` and `liknon t` route to the same executable;
+5. consume Manager-produced state and neutral fixture state;
+6. exercise catalog, search, show, resolve, context, and any C01-approved
+   bootstrap operation;
+7. reject integrity drift, unsafe paths, resource cycles, unsupported schemas,
+   revocation, and oversized context requests;
+8. prove offline and read-only behavior under observation;
+9. run target-native checks for every B04 target;
+10. bind reports and digests to the exact B04 suite candidate.
 
-1. install Tool from exact GitHub source;
-2. install the crates.io candidate;
-3. install each authenticated native target;
-4. exercise both command names;
-5. run the approved bootstrap projection with no workspace and verify exact
-   source bytes, version, and digest;
-6. consume a contract-valid fixture store without Manager installed;
-7. use the repository-built B02.4 Manager to install one knowledge item, skill,
-   collection, and dependency graph, then remove Manager from `PATH`;
-8. run Tool catalog, search, show, resolve, and context offline;
-9. reject modified, unsupported, revoked, unsafe, partial, and oversized state;
-10. run the complete A02 help, palette, presentation, `NO_COLOR`, ANSI-free
-    machine-output, and alias-equivalence matrix in addition to Tool-specific
-    human and JSON assertions;
-11. prove Validation CLI absence does not affect resource consumption;
-12. resolve and assemble context for project-controlled conformance and external
-    workflows with different node identifiers, transitions, and agent profiles;
-13. prove that Tool returns both without executing, activating, or applying
-    policy to either graph. When official workflows have completed their owning
-    phases, repeat the same case without changing Tool code.
+## Cross-Product Proof
 
-During B06 public verification, repeat Step 7 from a clean environment with the
-exact public Manager channel and retain a separate cross-channel
-interoperability result. The repository-built interoperability evidence remains
-the Tool candidate prerequisite.
+The joined fixture proves:
 
-## Publication Procedure
+- Manager may create valid resource state without granting instruction
+  authority;
+- Tool may read that state without invoking Manager;
+- Validator does not depend on either resource application;
+- the launcher routes without performing resource or validation behavior;
+- resource-only updates require no CLI rebuild;
+- all four executables in an archive share one B04 version and provenance chain.
 
-Build, verification, approval, crates.io publication, GitHub metadata release,
-native signing, and Cloudflare publication use isolated jobs and credentials.
-No publication job rebuilds a previously verified candidate.
+## Publication Boundary
 
-For the first public release, B06 supplies the frozen release-set identity and
-coordinates when these B03-owned jobs run. B06 never receives Tool credentials.
+B03 creates no registry publication, native object prefix, stable pointer, or
+publication credential. B04 owns CLI-suite publication. B06 coordinates the
+first public readback. B02 independently owns Hub publication.
 
-The Tool release workflow is a thin product orchestrator over shared
-credential-free mechanisms. Reusable workflows receive no broad inherited
-secret set; each Tool publication job receives only its destination-specific
-protected environment.
+## Acceptance Criteria
 
-crates.io publication follows dependency order: any required unpublished
-supporting-crate candidate, including the exact accepted `liknon-cli-ui`
-version, is published and read back before `liknon-tool`.
+- [ ] All focused Tool tests pass against the exact suite source closure.
+- [ ] Direct and routed Tool invocations are equivalent.
+- [ ] No physical compact alias exists.
+- [ ] Every selected B04 target has reproducible Tool evidence.
+- [ ] Manager-to-Tool interoperability passes without hidden process coupling.
+- [ ] Tool performs no network or mutation effect.
+- [ ] Every evidence record binds to the B04 version, tag, commit, target, and
+  executable hash.
+- [ ] B04 can reject a suite candidate when Tool evidence is absent or stale.
+- [ ] B03 owns no standalone publication authority.
 
-The Tool stable pointer changes only after public readback and clean-environment
-installation pass for every supported channel and target.
+## Exit
 
-Before that transition, publication verifies that the source package, every
-native archive, installers, checksums, detached signatures, and public manifest
-all name the same Tool package-derived version, signed tag, and full source
-commit. It rejects any retained candidate whose final hash or provenance
-reference differs from the internal build manifest.
-
-The product stable pointer does not permanently depend on a Manager release.
-The first coordinated release advances it only after B06 completes the
-conditional public cross-channel case above.
-
-Publication also proves Tool storage authorization cannot alter Validation,
-Manager, or suite candidates, stable pointers, or release state.
-
-## Website Integration
-
-The site:
-
-- offers Tool independently;
-- explains that Manager is optional for Tool runtime but is the canonical Hub
-  client;
-- explains that Validation CLI is independently selectable;
-- may offer all three as a convenience bundle;
-- never describes the bundle as a shared executable or runtime dependency;
-- documents supported resource schemas and offline behavior.
-
-## Evidence
-
-Retain versioned evidence for source package, signed tag, full commit, Tool
-version, source-package digest and closure, target, final native hash,
-public-manifest identity, stable-pointer transition, installation channel,
-resource-store producer and version, resource-store digest, commands exercised,
-semantic results, network isolation, bootstrap-contract version and digest,
-artifact inventory, and public readback. Label repository-built and
-public-channel Manager evidence distinctly.
-
-## Exit Criterion
-
-B06 can publish every Tool channel from the exact retained candidate without
-rebuilding it. After activation, every public Tool channel consumes the same
-verified local resources offline, and the application remains independent from
-Manager, Validation CLI, and authored resource releases. Public cross-channel
-Manager interoperability has its own clean-environment evidence.
+B03.4 exits when Tool is behaviorally ready and its exact evidence can gate the
+complete B04 source and native suite candidates.

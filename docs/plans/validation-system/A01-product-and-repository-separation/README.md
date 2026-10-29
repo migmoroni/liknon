@@ -1,5 +1,11 @@
 # Plan A01: Liknon Product And Repository Separation
 
+> **Post-A01 target note:** this completed plan records the structural state
+> that exists before B04. B04 supersedes its eight-target/compact-alias
+> topology by moving exactly four public executable targets to `liknon-cli`.
+> A01 remains evidence for implementation boundaries, not the current
+> distribution contract.
+
 ## Status
 
 `Implementation complete; hosted verification pending`. A01.0 through A01.5

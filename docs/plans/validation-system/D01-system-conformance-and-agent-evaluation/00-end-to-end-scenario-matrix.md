@@ -28,28 +28,27 @@ assertions, and evidence destination.
 
 When B04 is implemented, require future tests for:
 
-- every direct explicit and compact command:
-  `liknon-validator` / `likv`, `liknon-manager` / `likm`, and
-  `liknon-tool` / `likt`;
-- every `validate`, `manager`, and `tool` namespace through both `liknon` and
-  `likx`;
+- every direct capability command: `liknon-validator`, `liknon-manager`, and
+  `liknon-tool`;
+- every `validator|v`, `manager|m`, and `tool|t` launcher namespace through
+  `liknon`;
 - exact argument-boundary, environment, working-directory, stdin, stdout,
   stderr, JSON, exit-status, timeout, and interruption equivalence;
-- root help that remains launcher-focused, works without components, and is
-  equivalent under `liknon` and `likx`;
+- root help that remains launcher-focused and reports missing suite components
+  deterministically;
 - capability-specific help reached through namespace dispatch and emitted by
   the selected component;
 - launcher-first root version output covering all three components in the
   approved order through the same trusted resolution used for dispatch;
 - explicit absent, incompatible, invalid, unresponsive, shadowed, and replaced
   component states;
-- parity between aggregate-package capability targets and their standalone-
-  package counterparts;
+- parity between each direct capability executable and its launcher route;
 - argument-boundary and executable-path attacks;
-- independent capability operation when the launcher is absent;
+- direct capability operation without routing through the launcher;
 - proof that the launcher performs no network, validation, resource mutation,
   resource interpretation, policy, persistence, or AI action; and
-- explicit rejection of removed implicit routes such as `liknon check ...`.
+- explicit rejection of unknown or implicit routes such as
+  `liknon validate ...` and `liknon check ...`.
 
 These tests consume B04 candidates. D01 neither chooses the launcher contract
 nor publishes the products under test.

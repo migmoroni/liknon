@@ -17,20 +17,21 @@ Record, without secret values:
 
 - release-set ID and creation time;
 - human release owner and approvers;
-- repository commit and signed product tags;
-- each included product, package, version, command, platform target, and public
-  destination;
+- repository commit and signed release tags;
+- the B04 suite package, suite version, four commands, platform targets, and
+  public destinations;
 - each retained candidate ID, digest, provenance statement, signature, and
   retention deadline;
-- package, Hub-resource, runtime, and aggregate-suite dependencies;
+- package, Hub-resource, runtime, and CLI-suite dependencies;
 - compatibility claims between Validator, Manager, Tool, launcher, resources,
   and activated language APIs;
 - every excluded product, target, channel, or B05 ecosystem with a reason;
 - required publication and readback workflows;
 - recovery owner for every irreversible destination.
 
-Product versions are not normalized. The ledger binds their independently
-chosen versions into one coordinated release set.
+The four CLI executables use one B04 suite version. Hub resources and selected
+B05 integrations retain independently chosen versions that the ledger binds
+into one coordinated release set.
 
 ## Freeze Rules
 

@@ -12,7 +12,8 @@ their contracts.
 Prove that:
 
 - direct Validation use works without policy, Manager, Tool, or AI persistence;
-- every capability CLI works without the launcher or sibling CLIs;
+- every capability executable works directly without routing through the
+  launcher or invoking a sibling capability;
 - the launcher forwards only an explicit namespace and performs no capability
   work itself;
 - direct and unified routes preserve observable process behavior;
@@ -27,9 +28,10 @@ Prove that:
   semantics;
 - workflow artifacts cannot become executable validation input;
 - official resources can be replaced without application changes;
-- product versions, packages, and release gates remain independently operable;
-- aggregate and standalone installations expose collisions explicitly instead
-  of silently replacing command ownership.
+- capability behavior and failure evidence remain independently diagnosable
+  while all four executables share one suite release identity;
+- installation owns exactly four command files and rejects shadowed, foreign,
+  partial, or mixed-version siblings instead of silently replacing ownership.
 
 ## Abuse Matrix
 

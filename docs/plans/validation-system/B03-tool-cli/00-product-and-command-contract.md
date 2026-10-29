@@ -1,5 +1,9 @@
 # Phase B03.0: Define The Tool Product And Command Contract
 
+> **B04 executable-topology supersession:** Tool behavior and command grammar
+> remain authoritative, but B04 removes the physical `likt` alias and exposes
+> `tool|t` only as launcher namespaces.
+
 ## Status
 
 `Partially implemented`. A02 is complete, and the offline store-backed grammar

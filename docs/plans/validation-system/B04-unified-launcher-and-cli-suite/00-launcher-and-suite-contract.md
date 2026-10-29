@@ -1,200 +1,173 @@
-# Phase B04.0: Approve The Launcher And Suite Contract
-
-## Status
-
-`Decision gate`. This phase changes no product code, package, CI workflow,
-artifact, public documentation, or published channel.
-
-[Back to Plan B04](README.md)
+# B04.0 - Launcher And Suite Contract Gate
 
 ## Purpose
 
-Resolve the operational and release questions required to implement the
-capability-free launcher and aggregate suite without weakening the independent
-product boundaries established by A01 and B01-B03.
+Freeze the package, process, routing, archive, and release contracts required
+to consolidate the three capability CLIs into one distributable suite without
+merging their responsibilities.
 
-The approved contract must also define a B06 handoff: one immutable B04
-candidate identity, exact B01-B03 component closure, product-owned workflow
-entry point, protected authority boundary, public-readback procedure, and
-resumable destination state. B06 coordinates the first invocation but cannot
-rebuild the suite or receive B04 credentials.
+No B04 implementation begins before every decision and prototype in this gate
+is recorded and accepted.
 
-## Required Inputs
+## Fixed Inputs
 
-- the approved A01 package and dependency graph;
-- the completed
-  [A02 shared CLI experience foundation](../A02-shared-cli-experience-foundation/README.md)
-  and its launcher-owned help conformance evidence;
-- the [shared CLI distribution foundation](../cli-distribution-foundation.md)
-  and its credential-free conformance evidence;
-- stable direct command contracts from B01-B03;
-- the supported platform and process guarantees of each component;
-- evidence from current shell-free execution and platform-specific process
-  handling;
-- the approved eight-target list from the target summary and B04 README.
+The gate starts from these approved decisions:
 
-The target list is fixed input. This gate does not reopen it.
+- public source package: `liknon-cli`;
+- physical executables: `liknon`, `liknon-validator`, `liknon-manager`, and
+  `liknon-tool`;
+- no compact executable aliases;
+- launcher namespaces: `validator|v`, `manager|m`, and `tool|t`;
+- capability behavior remains owned by B01, B02, and B03;
+- one native suite archive per supported target;
+- every native archive contains all four executable roles for that target;
+- source and native installation expose the same command set;
+- Hub resources remain external data and are not bundled into the suite.
 
-## Decisions Required
+This gate refines implementation mechanics. It does not reopen those product
+decisions.
 
-### Executable Resolution And Compatibility
+## Required Decisions
 
-Decide:
+### 1. Cargo Ownership And Source Closure
 
-- trusted executable locations and exact lookup precedence;
-- protection against self-resolution, path shadowing, unsafe replacement, and
-  launcher recursion;
-- component identity and compatibility metadata;
-- coordinated or independent version policy;
-- behavior for absent, incompatible, invalid, or unresponsive components;
-- inspection timeout and diagnostics.
+Record:
 
-### Process Semantics
+- the exact `apps/liknon-cli` package manifest;
+- four and only four `[[bin]]` targets;
+- which supporting crates remain publishable dependencies;
+- which implementation must move or be folded to avoid unpublished path
+  dependencies;
+- the committed lockfile and supported Rust toolchain;
+- package inventory rules proving that no Hub corpus or AI-resource payload is
+  included.
 
-Decide and prototype:
+Capability implementation crates must own no executable targets after the
+cutover.
 
-- POSIX replacement or forwarding behavior;
-- Windows process, signal, interruption, and exit-status parity;
-- exact preservation of arguments, environment, working directory, stdin,
-  stdout, and stderr;
-- launcher-owned usage failures versus component-owned outcomes;
-- shell-free execution on every supported platform.
+### 2. Launcher Resolution And Process Semantics
 
-### Aggregate Package And Installation
+Specify:
 
-Decide:
+- sibling executable resolution for Cargo and native installations;
+- Windows executable suffix handling;
+- deterministic failure when a sibling executable is absent or mismatched;
+- exact namespace stripping and argument forwarding;
+- working-directory, environment, standard-stream, signal, interruption, and
+  exit-code behavior;
+- recursion prevention and rejection of unknown namespaces;
+- long and short namespace equivalence;
+- prohibition on fallback to PATH entries from another suite installation.
 
-- source mapping from all eight binary targets to shared implementation crates;
-- dependency direction that prevents launcher capability coupling;
-- package inventory and supporting-crate publication order;
-- aggregate versus standalone ownership in a shared Cargo installation root;
-- collision detection, replacement, rollback, and recovery;
-- whether partial native suites are supported.
+The launcher must execute the sibling capability binary from its own installed
+suite. It must not import or call capability implementation in-process.
 
-### Native Suites And Publication
+### 3. Help And Version Contract
 
-Decide:
+Record:
 
-- the launcher/suite product descriptor, release workflow, target rows, tag,
-  Cloudflare storage boundary and prefix, stable pointer, protected
-  environments, and recovery owner;
-- how one final launcher payload is built and verified per target through the
-  shared foundation;
-- exact suite composition for each supported target and channel;
-- component-location rules across aggregate and standalone channels;
-- compatibility and provenance manifest contracts;
-- multi-payload archive, installer, transactional replacement, rollback, and
-  uninstall behavior for all eight command names;
-- how B04 consumes immutable B01-B03 candidates without assuming publication
-  ownership;
-- release versioning, tags, artifact names, credentials, retention, retry, and
-  recovery boundaries;
-- whether publication waits for all three standalone candidates or supports a
-  documented narrower readiness rule.
+- concise root help for the three launcher namespaces;
+- focused help ownership in each capability executable;
+- suite and component version output;
+- mismatch detection and failure semantics;
+- JSON or other machine-readable version output, if required by B06.
 
-### Version And Provenance
+### 4. Native Target And Archive Contract
 
-Record the exact `liknon-cli` Cargo package path as the sole version authority
-for the launcher and complete-suite release, plus its signed-tag prefix. The
-implementation must select the package and version through structured Cargo
-metadata and must not add a handwritten suite version or inherit a capability
-CLI version.
+For every supported target, record:
 
-Decide and document:
+- target triple and runtime baseline;
+- archive format and filename;
+- the four executable filenames;
+- platform-authenticity mode;
+- archive and executable hash fields;
+- provenance references;
+- installer and uninstaller behavior;
+- target-detection rules, including GNU preference when GNU and MUSL both
+  appear viable;
+- atomic replacement and rollback semantics for all four files.
 
-- the canonical B04 release identity `(suite, liknon-cli, version, tag,
-  commit)` and exact annotated-tag signature requirements;
-- package, binary-target, lockfile, source-closure, tag, and commit checks that
-  precede all candidate creation;
-- the internal launcher build manifest and the public complete-suite manifest;
-- immutable object naming, stable-pointer transition, retry, rollback, and
-  recovery rules for that exact identity;
-- source-package inventory and digest evidence for the aggregate crates.io
-  package; and
-- public-readback and provenance evidence retained for every launcher and suite
-  target.
+Each target produces one archive. An archive contains no binaries for another
+target and no separately versioned capability payload.
 
-The direct-suite manifest records the exact product, package, version, signed
-tag, source commit, target, final hash, and provenance reference for the
-launcher and every retained B01-B03 component. It also records the compatibility
-decision used for that composition. Components may have different versions;
-compatibility is never inferred from equality and a capability candidate is
-never relabeled with the suite version.
+### 5. Release Identity And Publication
 
-The aggregate crates.io source package and the direct native suite remain
-different provenance subjects. The source package proves the accepted package
-closure from which it compiles all eight targets. The direct suite proves the
-exact immutable native candidates it composes. Evidence for one cannot stand in
-for the other.
+Record one canonical identity:
 
-The decision must distinguish the aggregate crates.io source package from a
-direct native suite. The source package compiles its owned targets from source.
-The direct suite combines a newly built launcher payload with exact retained
-capability payloads and cannot rebuild, resign, or mutate them.
+```text
+(product=cli-suite, package=liknon-cli, version, tag, commit, target)
+```
 
-### Help And Aggregate Version
+Define:
 
-Decide only the details left open by the approved contract:
+- the sole version authority;
+- tag syntax;
+- source package digest and dependency closure;
+- one immutable object prefix and one stable pointer for the suite;
+- candidate, approval, publication, rollback, and public-readback states;
+- how B06 consumes the suite candidate without rebuilding it;
+- how the site resolves one target to one suite archive.
 
-- exact human and machine-readable version format, if both are needed;
-- component inspection timeout;
-- exit status when one or more component versions cannot be obtained;
-- diagnostics for unavailable, incompatible, invalid, and unresponsive states.
-
-The gate may not expand root help into capability documentation, change the
-component list or ordering, hide an inspection failure, or create a launcher-
-local replacement for `liknon-cli-ui`. The launcher applies shared presentation
-only to launcher-owned output and passes delegated streams through unchanged.
+B01, B02, and B03 must not publish independent public CLI stable pointers after
+this cutover.
 
 ## Required Prototypes
 
-Before approval, produce disposable evidence for:
+Run the following prototypes before accepting implementation:
 
-1. exact argument and stream forwarding without a shell;
-2. POSIX and Windows interruption/exit behavior;
-3. deterministic trusted resolution and self-recursion prevention;
-4. missing, invalid, incompatible, shadowed, and unresponsive components;
-5. package-owned installation of all eight Cargo binary targets;
-6. aggregate/standalone collision detection in an isolated Cargo root;
-7. brief root help plus delegated component help;
-8. launcher-first version output with complete failure reporting;
-9. one representative complete native-suite composition from retained
-   component candidates;
-10. one launcher native candidate produced through the shared build lane and a
-    rejected cross-product candidate or namespace substitution;
-11. deterministic launcher/suite manifests plus rejection of a changed version,
-    tag, commit, target, component hash, provenance reference, or source-package
-    closure.
+1. package `liknon-cli` and inspect its exact four binary targets;
+2. install the packaged source into an isolated Cargo root and prove all four
+   command files exist while compact aliases do not;
+3. execute each capability directly and through both launcher namespace forms;
+4. prove argument, environment, working-directory, stream, signal, and exit-code
+   preservation;
+5. prove the launcher rejects a missing, foreign, or version-mismatched sibling;
+6. build one target-native archive containing the four executables and inspect
+   its complete inventory;
+7. verify every executable and archive hash from authenticated metadata;
+8. install, interrupt, update, roll back, and uninstall the four-file suite in
+   an isolated destination;
+9. prove GNU and MUSL selection requests exactly one matching Linux archive;
+10. prove B01, B02, and B03 behavior suites remain green through direct and
+    routed execution;
+11. rehearse B06 candidate handoff without rebuilding or renaming payloads.
 
-Prototype code is not production code and is removed unless its ownership is
-approved for B04.1 or later.
+## Failure Cases
 
-## Verification
+The gate must define deterministic rejection for:
 
-- Every decision has an owner, test strategy, and recovery behavior.
-- Resolution never falls back silently to validation or another component.
-- Dispatch never reconstructs a command string.
-- Root help works without installed components.
-- Root help conforms to A02 and delegated component help remains byte-for-byte
-  component-owned.
-- Version inspection uses the normal trusted resolution contract.
-- Aggregate installation proves targets belong to `liknon-cli` itself.
-- Capability implementations remain independently buildable and installable.
-- Native composition consumes exact verified candidates and does not rebuild
-  them under B04.
-- The launcher and suite release identity comes from the exact `liknon-cli`
-  package, signed tag, and source commit without a second authored version.
-- Every direct-suite component retains its original release identity, target,
-  hash, and provenance reference.
-- Aggregate source-package provenance is not substituted for direct native-suite
-  provenance or vice versa.
-- Launcher native production uses the shared foundation but B04-owned identity,
-  tests, namespaces, credentials, approval, and recovery.
-- Package `liknon` is absent from launcher and suite ownership.
-- D01 receives an explicit future scenario matrix for the approved contract.
+- missing or extra Cargo binary targets;
+- compact executable aliases reintroduced by metadata or packaging;
+- unresolved or unpublished source dependencies;
+- missing, foreign, recursive, or version-mismatched sibling executables;
+- unknown or missing launcher namespaces;
+- changed argument ordering or exit status;
+- archive inventory drift;
+- duplicate, missing, or cross-target payloads;
+- manifest, tag, commit, target, size, or hash mismatch;
+- partial installation or mixed component versions;
+- unsafe extraction paths, links, or permissions;
+- unsigned, expired, or rolled-back stable metadata;
+- a public site link resolving more than one target artifact.
 
-## Exit Criterion
+## Exit Criteria
 
-The user has approved one implementable launcher, aggregate-package, native-
-suite, collision, compatibility, publication, and recovery contract. Only then
-may B04.1-B04.4 receive implementation-ready phase documents.
+- [ ] Package ownership is fixed at exactly four binary targets.
+- [ ] Compact executable aliases are explicitly absent.
+- [ ] Launcher namespaces and process behavior are frozen.
+- [ ] Supporting-crate publication or consolidation is decided.
+- [ ] Help and version contracts are frozen.
+- [ ] Every supported target has one reviewed suite archive contract.
+- [ ] Installer atomicity and rollback are specified for all four files.
+- [ ] One suite release identity and stable pointer are approved.
+- [ ] Site target selection and R2 object layout are approved.
+- [ ] Required prototypes pass on the available platform and CI covers the
+  remaining supported targets.
+- [ ] B01, B02, B03, and B06 handoffs are explicit.
+
+## Exit Evidence
+
+B04.0 exits with a reviewed decision record, package inventory, source-closure
+proof, launcher prototype, target/archive matrix, installer prototype, release
+identity, and B06 handoff contract. Later B04 units implement that exact
+contract rather than reopening product topology.

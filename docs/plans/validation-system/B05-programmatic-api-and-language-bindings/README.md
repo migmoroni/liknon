@@ -32,14 +32,14 @@ it through repository proximity.
 
 ## Relationship To Current Products
 
-- [B01](../B01-validation-cli-distribution/README.md) distributes the
-  `liknon-validator` / `likv` validation CLI.
+- [B01](../B01-validation-cli-distribution/README.md) owns Validator behavior
+  and focused evidence.
 - [B02](../B02-resource-hub-and-manager/README.md) defines the resource Hub and
-  the mutating, network-capable `liknon-manager` / `likm` application.
-- [B03](../B03-tool-cli/README.md) distributes the offline, read-only
-  `liknon-tool` / `likt` application.
+  the mutating, network-capable Manager behavior and Hub.
+- [B03](../B03-tool-cli/README.md) owns offline, read-only Tool behavior.
 - [B04](../B04-unified-launcher-and-cli-suite/README.md) owns package
-  `liknon-cli`, launcher commands `liknon` / `likx`, and complete suites.
+  `liknon-cli`, the `liknon` launcher, all three direct capability
+  executables, and one complete suite archive per target.
 - B05 may later publish importable libraries named `liknon` in selected
   language registries.
 - [B06](../B06-coordinated-public-release/README.md) coordinates the first
@@ -66,10 +66,10 @@ a real in-process consumer are approved.
 liknon repository
 ├── crates/<validation-core>        # Name selected by A01 when justified
 ├── crates/<workspace-contracts>    # Name selected by A01 when justified
-├── apps/liknon-cli                 # Launcher and aggregate package; B04
-├── apps/liknon-validator            # Validation CLI; B01
-├── apps/liknon-manager             # Hub and resource management CLI; B02
-├── apps/liknon-tool                # Local resource-consumption CLI; B03
+├── apps/liknon-cli                 # Public package and four executables; B04
+├── apps/liknon-validator            # Validator implementation boundary; B01
+├── apps/liknon-manager             # Manager implementation boundary; B02
+├── apps/liknon-tool                # Tool implementation boundary; B03
 └── language API adapters           # Added only for approved B05 consumers
 ```
 

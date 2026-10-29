@@ -1,5 +1,9 @@
 # Phase A02.1: CLI UI Crate And Validator Extraction
 
+> **Pre-B04 evidence:** alias-specific tests below record the implemented A02
+> input state. B04 removes compact executable aliases while preserving the
+> shared UI behavior.
+
 ## Status
 
 `Implemented`. `liknon-cli-ui` is packageable independently and Validation now

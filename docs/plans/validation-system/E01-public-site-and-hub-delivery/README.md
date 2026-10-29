@@ -50,7 +50,7 @@ Use these public boundaries:
 | `https://liknon.org` | `apps/liknon-site` deployed as static assets on Cloudflare Workers | Human documentation, product discovery, resource catalog presentation, and links |
 | `https://www.liknon.org` | Permanent redirect | Redirect to the apex site |
 | `https://hub.liknon.org` | Dedicated Cloudflare R2 custom domain | Signed Hub pointer, snapshots, and immutable payload objects |
-| `https://downloads.liknon.org` | Existing product-download R2 boundary | Native CLI archives, manifests, checksums, signatures, and installers |
+| `https://downloads.liknon.org` | B04 CLI-suite R2 boundary | One complete native suite archive per target, manifests, checksums, signatures, and installers |
 
 The Hub and download origins may share one Cloudflare account, but they must
 not share buckets, object prefixes, publication credentials, stable pointers,
@@ -93,8 +93,10 @@ measured feature cannot be provided safely at build time.
 
 The first site release should provide:
 
-- a concise product overview for Validator, Manager, Tool, and the unified CLI;
-- installation and download pages that link to exact published artifacts;
+- a concise overview of the unified CLI suite and its three capability
+  executables;
+- installation and download pages that select one exact suite archive for the
+  user's target;
 - versioned user and protocol documentation selected from canonical repository
   sources;
 - a resource catalog generated from one authenticated Hub snapshot;
@@ -218,8 +220,9 @@ and no third-party analytics or scripts without a separate privacy review.
   signatures, publication mechanics, and Hub recovery.
 - E01 owns the public domain topology, site application, human catalog view,
   and verified presentation of B02 outputs.
-- B01-B04 continue to own their CLI artifacts. E01 only links to exact public
-  manifests and downloads.
+- B01-B03 own capability behavior and evidence; B04 owns the CLI package and
+  native suite artifacts. E01 links only to exact B04 manifests and one
+  complete archive per target.
 - C02 and C03 may supply official resources after their own contracts pass;
   E01 grants them no special execution authority.
 - B06 freezes and coordinates the first public activation of the exact E01 site

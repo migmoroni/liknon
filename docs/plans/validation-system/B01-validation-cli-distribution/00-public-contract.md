@@ -1,5 +1,11 @@
 # Phase B01.0: Confirm The CLI Distribution Contract
 
+> **Superseded public topology:** retain this file as evidence for the
+> implemented Validator release foundation. B04 owns the public
+> `liknon-cli` package, four executable targets, and one suite archive per
+> target. Standalone package, alias, archive, tag, and stable-pointer decisions
+> below are not future publication instructions.
+
 ## Status
 
 `Decision gate`. Run only after A01 has established the actual

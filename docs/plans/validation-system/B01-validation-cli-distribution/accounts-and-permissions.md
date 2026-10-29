@@ -1,5 +1,9 @@
 # B01 External Accounts, Permissions, And Publication Authority
 
+> **Superseded public topology:** do not provision standalone Validator
+> publication authority. B04/B06 own the CLI-suite destinations and credentials;
+> this runbook remains evidence for least-privilege design.
+
 ## Status
 
 `Provisional`. Complete each checkpoint only when its owning B01 phase is ready.

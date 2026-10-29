@@ -13,17 +13,14 @@ permissions, and recovery procedures.
 
 | Area | Required readiness | Owning plan | State |
 | --- | --- | --- | --- |
-| Canonical GitHub repository | Protected default branch, Actions enabled, signed-tag policy, immutable-release settings, environment reviewers, artifact retention | B01-B05 | Pending |
-| Shared CLI UI crates.io package | `liknon-cli-ui` ownership, `cli-ui-release-approval`, and `publish-crates-cli-ui` trusted publisher or scoped bootstrap token | A02 | Pending |
-| Validation crates.io package | `liknon-validator` ownership and trusted publisher or scoped bootstrap token | B01 | Pending |
-| Manager crates.io package | `liknon-manager` plus required supporting-crate ownership and publisher | B02 | Pending |
-| Tool crates.io package | `liknon-tool` plus required supporting-crate ownership and publisher | B03 | Pending |
-| Aggregate crates.io package | `liknon-cli` plus exact supporting-crate publication order | B04 | Pending |
-| Cloudflare account | R2 storage, project domain, DNS, public read policy, cache behavior, bucket locks, and product-isolated write authorities | B01-B04 | Pending |
-| Release metadata signing | Offline or protected private key, published public key, rotation and revocation owner | Shared foundation plus product plans | Pending |
+| Canonical GitHub repository | Protected default branch, Actions enabled, signed-tag policy, immutable-release settings, environment reviewers, artifact retention | B04-B05 | Pending |
+| Supporting Rust packages | `liknon-cli-ui`, `liknon-resource-contracts`, and any other exact publishable dependency required by `liknon-cli` | A02/B02/B04 | Pending |
+| CLI-suite crates.io package | `liknon-cli` ownership, trusted publisher or scoped bootstrap token, and exact supporting-crate publication order | B04 | Pending |
+| CLI-suite native storage | R2 storage, download domain, public-read policy, cache behavior, bucket locks, and suite-only write authority | B04 | Pending |
+| CLI-suite metadata signing | Offline or protected private key, published public key, rotation, revocation, and recovery owner | B04 | Pending |
 | Hub publication | Catalog authority, metadata-signing key, immutable payload storage, namespace ownership, and recovery owner | B02 | Pending |
-| Website | Authority to publish exact installation and trust documentation after public readback | B01-B04 | Pending |
-| Platform signing | Approved signing identity and disclosed trust mode for every selected Windows or macOS target | Product owner | Pending or excluded |
+| Website | Authority to publish exact installation and trust documentation after public readback | E01 | Pending |
+| Platform signing | Approved signing identity and disclosed trust mode for every selected Windows or macOS suite target | B04 | Pending or excluded |
 | B05 registries | Namespace, trusted publisher or scoped token, recovery owner, and public-readback account for each activated ecosystem | B05 | Pending or excluded |
 | Incident response | Contact, stop authority, partial-release owner, credential-revocation procedure, and status channel | B06 | Pending |
 

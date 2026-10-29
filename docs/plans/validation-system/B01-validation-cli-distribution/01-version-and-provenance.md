@@ -1,5 +1,9 @@
 # Phase B01.1: Centralize Version And Provenance
 
+> **Superseded public topology:** this phase records implemented provenance
+> machinery. B04 applies it to one `liknon-cli` suite identity rather than an
+> independent Validator release identity.
+
 ## Status
 
 `Provisional`. Blocked by B01.0.

@@ -40,40 +40,41 @@ podem crescer de forma independente.
 
 | Campo | Definicao-alvo |
 | --- | --- |
-| Pacote agregado | `liknon-cli` |
-| Comandos | `liknon` e `likx` |
+| Pacote da suite | `liknon-cli` |
+| Comando do launcher | `liknon` |
 | Responsabilidade | Selecionar uma CLI de capacidade e encaminhar exatamente a invocacao |
 | Rede | Nenhuma capacidade propria |
 | Mutacao | Nenhuma capacidade propria |
 
-O launcher reconhece os namespaces `validate`, `manager` e `tool`, remove
+O launcher reconhece os namespaces `validator`, `manager` e `tool`, remove
 somente esse primeiro argumento posicional e encaminha o restante para o
 executavel correspondente. Ele nao valida, instala, consulta, interpreta nem
 repara componentes.
 
 ```text
-liknon validate validate fast -> liknon-validator validate fast
-liknon validate check ...     -> liknon-validator check ...
-liknon validate config ...    -> liknon-validator config ...
-liknon manager install ...    -> liknon-manager install ...
-liknon tool show ...          -> liknon-tool show ...
+liknon validator <args...> -> liknon-validator <args...>
+liknon v <args...>         -> liknon-validator <args...>
+liknon manager <args...>   -> liknon-manager <args...>
+liknon m <args...>         -> liknon-manager <args...>
+liknon tool <args...>      -> liknon-tool <args...>
+liknon t <args...>         -> liknon-tool <args...>
 ```
 
-`likx` usa a mesma gramatica. Nao existe namespace padrao, alias de
-compatibilidade ou encaminhamento implicito de comandos antigos.
+`v`, `m` e `t` sao aliases do parser do launcher. Eles nao sao arquivos,
+symlinks, alvos binarios Cargo nem artefatos de download. Nao existe namespace
+padrao, alias de compatibilidade ou encaminhamento implicito.
 
-O pacote `liknon-cli` e tambem a rota agregada promovida no Cargo. Ele possui
-os oito alvos binarios `liknon`, `likx`, `liknon-validator`, `likv`,
-`liknon-manager`, `likm`, `liknon-tool` e `likt`, reutilizando as mesmas
-implementacoes compartilhadas dos tres pacotes de aplicacao independentes. Ele
-nao depende de o Cargo instalar binarios pertencentes a dependencias.
+O pacote `liknon-cli` possui exatamente quatro alvos binarios: `liknon`,
+`liknon-validator`, `liknon-manager` e `liknon-tool`. A instalacao do
+pacote instala os quatro por comportamento normal do Cargo, sem hooks de
+pos-instalacao ou binarios pertencentes a dependencias.
 
 ### 3.2 Validation CLI
 
 | Campo | Definicao-alvo |
 | --- | --- |
-| Pacote/aplicacao | `liknon-validator` |
-| Comandos | `liknon-validator` e `likv` |
+| Implementacao de capacidade | Validator |
+| Comando | `liknon-validator` |
 | Responsabilidade | Configurar, inspecionar, planejar e executar validacoes |
 | Rede | Nenhuma necessidade para o fluxo normal |
 | Recursos de IA | Nao incorpora o corpus completo nem orquestra agentes |
@@ -86,8 +87,8 @@ contrato publico.
 
 | Campo | Definicao-alvo |
 | --- | --- |
-| Pacote/aplicacao | `liknon-manager` |
-| Comandos | `liknon-manager` e `likm` |
+| Implementacao de capacidade | Manager |
+| Comando | `liknon-manager` |
 | Responsabilidade | Descobrir, obter, verificar, instalar, atualizar, remover e organizar recursos |
 | Rede | Permitida somente nas operacoes declaradas |
 | Mutacao | Unica CLI autorizada a alterar o estado local de recursos |
@@ -100,8 +101,8 @@ ativa-lo.
 
 | Campo | Definicao-alvo |
 | --- | --- |
-| Pacote/aplicacao | `liknon-tool` |
-| Comandos | `liknon-tool` e `likt` |
+| Implementacao de capacidade | Tool |
+| Comando | `liknon-tool` |
 | Responsabilidade | Catalogar, pesquisar, resolver e retornar recursos ja instalados |
 | Rede | Proibida |
 | Mutacao | Proibida |
@@ -128,10 +129,10 @@ fronteiras semelhantes a:
 
 ```text
 apps/
-├── liknon-cli/          # launcher e pacote agregado
-├── liknon-validator/     # engine, schemas, adaptacao de dominio e binarios
-├── liknon-manager/
-└── liknon-tool/
+├── liknon-cli/           # pacote publico e quatro alvos binarios
+├── liknon-validator/     # implementacao da capacidade de validacao
+├── liknon-manager/       # implementacao da capacidade de recursos
+└── liknon-tool/          # implementacao da capacidade de consulta
 
 crates/
 ├── liknon-cli-ui/        # experiencia de terminal compartilhada
@@ -172,7 +173,8 @@ aplicacao.
 
 As tres CLIs de capacidade nao invocam umas as outras como subprocessos
 ocultos. Somente o launcher pode invocar a CLI selecionada, sem importar sua
-API para executar a capacidade.
+API para executar a capacidade. Os pacotes internos de implementacao deixam de
+possuir alvos binarios publicos quando B04 consolidar a suite.
 
 Uma crate compartilhada so deve surgir quando mais de um produto implementado
 demonstrar essa necessidade. Validator e Manager demonstram a fronteira de
@@ -333,68 +335,43 @@ deterministica, persistencia delimitada e evidencia verificavel.
 
 ### 9.1 Fundacao Compartilhada De Distribuicao
 
-As quatro entregas nativas usam uma unica fundacao de release mantida no
-repositorio: Validation, Manager, Tool e launcher/suite. Essa fundacao fornece
-os mecanismos comuns de build por alvo, manifests, proveniencia, empacotamento,
+Uma unica entrega CLI usa a fundacao de release mantida no repositorio. Essa
+fundacao fornece build por alvo, manifests, proveniencia, empacotamento,
 assinatura, instaladores, deteccao de plataforma e libc, verificacao,
 publicacao, leitura publica e recuperacao.
 
-B01 implementa essa fundacao primeiro, usando Validation como o primeiro perfil
-real. Isso nao torna B01 proprietario das outras publicacoes. Cada produto
-mantem seu proprio pacote, versao, tag, candidatos, hashes, namespace no
-Cloudflare, ponteiro estavel, credenciais, testes, aprovacao e recuperacao.
-
-Os workflows de produto devem ser orquestradores finos sobre mecanismos
-reutilizaveis e sem comportamento especifico de uma capacidade. Uma alteracao
-na fundacao deve validar todos os perfis de produto que ja a utilizam.
+B01 implementou primeiro grande parte desses mecanismos usando Validator. B04
+os consolida em um unico produto publico: o pacote `liknon-cli` e uma suite
+nativa completa por alvo. B01, B02 e B03 continuam donos dos comportamentos,
+contratos e testes focados, mas nao publicam pacotes CLI ou downloads nativos
+independentes depois do corte de B04.
 
 ### 9.2 Validation CLI
 
-A direcao ja definida para a Validation CLI inclui:
-
-- codigo fonte versionado no GitHub para clone e compilacao local;
-- pacote fonte `liknon-validator` no crates.io;
-- binarios nativos verificados e publicados por alvo no dominio do projeto,
-  com armazenamento no Cloudflare;
-- instalacao direta por script ou download pelo site;
-- metadados de release e proveniencia sem usar o GitHub como origem obrigatoria
-  dos binarios publicos.
-
-O contrato comum desses mecanismos pertence a fundacao compartilhada. Os
-detalhes especificos de build, alvo, checksums, assinatura, aprovacao e
-recuperacao da Validation CLI pertencem ao plano B01.
+Validator permanece uma capacidade e um executavel diretamente utilizavel. B01
+continua responsavel por sua semantica e evidencia focada. Seu executavel
+`liknon-validator` passa a pertencer ao pacote e ao arquivo nativo da suite
+definidos por B04.
 
 ### 9.3 Launcher E Suite Completa
 
-O pacote agregado `liknon-cli`, os comandos `liknon` e `likx`, a descoberta de
-componentes e as suites nativas completas pertencem ao plano B04. A instalacao
-agregada e uma alternativa promovida as instalacoes seletivas dos tres
-produtos; ela nao transfere ao launcher a publicacao individual de nenhum
-componente.
+O pacote `liknon-cli` e o unico pacote fonte publico da suite CLI. Ele instala
+`liknon`, `liknon-validator`, `liknon-manager` e `liknon-tool`. As
+implementacoes podem permanecer em crates de apoio, mas somente `liknon-cli`
+possui os alvos binarios publicos.
 
-Para distribuicao nativa, B04 constroi uma vez o payload do launcher por alvo e
-o combina com os candidatos exatos e ja verificados de B01, B02 e B03. B04 nao
-recompila as CLIs de capacidade. O pacote fonte `liknon-cli` no crates.io e um
-caso distinto: ele possui seus alvos declarados e os compila a partir do
-fechamento de fontes aceito.
+Para distribuicao nativa, B04 compila os quatro executaveis para cada alvo e
+gera um unico arquivo autenticado daquele alvo. GNU e MUSL permanecem arquivos
+distintos. O site e o instalador selecionam exatamente um arquivo compativel;
+nenhum usuario baixa binarios de outros alvos ou pacotes separados por
+capacidade.
 
 ### 9.4 Manager E Tool
 
-Manager e Tool usam as mesmas categorias de canal aprovadas para a Validation
-CLI:
-
-- codigo fonte versionado no GitHub para clone e compilacao local;
-- pacotes fonte independentes no crates.io;
-- binarios nativos independentes publicados no dominio do projeto com
-  armazenamento no Cloudflare;
-- instalacao direta por script ou download pelo site.
-
-Essa decisao compartilha os mecanismos de distribuicao, nao os candidatos nem o
-ciclo de prontidao. Cada CLI possui identidade de pacote, tags, builds,
-metadados, evidencias, credenciais e autorizacao de publicacao proprios. Os
-contratos detalhados de release pertencem respectivamente aos planos B02 e B03
-e somente podem ser finalizados depois dos contratos de produto dessas
-aplicacoes.
+Manager e Tool permanecem executaveis e processos independentes, com contratos
+e testes proprios em B02 e B03. Seus executaveis pertencem, contudo, ao mesmo
+pacote fonte, versao, tag, arquivo nativo por alvo, manifest, instalador,
+ponteiro estavel e ciclo publico da suite B04.
 
 ### 9.5 APIs Programaticas Futuras
 
@@ -415,16 +392,14 @@ validacao.
 
 ### 9.6 Primeira Publicacao Coordenada
 
-B01 a B05 deixam seus produtos selecionados com candidatos exatos, workflows
-de publicacao, autoridades isoladas e procedimentos de recuperacao prontos. O
-plano B06 coordena somente a primeira ativacao publica do conjunto: congela as
-versoes e dependencias escolhidas, confirma contas e raizes de confianca,
-ensaia a sequencia sem credenciais de publicacao, aciona os workflows de cada
-produto, verifica a leitura publica e promove os ponteiros estaveis.
+B04 entrega um candidato exato da suite CLI. B02 entrega o Hub, E01 entrega o
+site e B05 entrega somente integracoes programaticas ja ativadas. O plano B06
+coordena a primeira ativacao publica desse conjunto: congela candidatos e
+dependencias, confirma contas e raizes de confianca, ensaia a sequencia sem
+credenciais de publicacao, verifica a leitura publica e promove ponteiros
+estaveis.
 
-B06 nao possui uma credencial universal, nao recompila candidatos aceitos e
-nao retira dos produtos seus ciclos de release. Publicacoes posteriores podem
-voltar a ocorrer de forma independente. Um ecossistema de B05 ainda nao
+B06 nao recompila candidatos aceitos. Um ecossistema de B05 ainda nao
 implementado fica explicitamente fora do conjunto, sem pacote vazio ou
 placeholder.
 
@@ -449,21 +424,24 @@ placeholder.
     fase posterior com casos de uso concretos.
 14. Como ainda nao houve lancamento publico, a mudanca estrutural nao precisa
     preservar aliases, caminhos ou contratos substituidos por compatibilidade.
-15. Validation CLI, Manager e Tool usam GitHub como canal de fonte, crates.io
-    como canal de pacote fonte e Cloudflare/site como canal de binarios
-    nativos, com releases e artefatos independentes.
-16. `liknon-cli` e o pacote Cargo agregado; `liknon` e `likx` sao seus comandos
-    de launcher, enquanto o nome de pacote `liknon` fica reservado para B05.
+15. `liknon-cli` e o unico pacote fonte publico da suite CLI e possui quatro
+    executaveis: `liknon`, `liknon-validator`, `liknon-manager` e
+    `liknon-tool`.
+16. `liknon` e o unico executavel do launcher; o nome de pacote `liknon`
+    permanece reservado para B05.
 17. Toda invocacao de capacidade pelo launcher informa explicitamente
-    `validate`, `manager` ou `tool`; nao existe capacidade padrao.
+    `validator|v`, `manager|m` ou `tool|t`; nao existe capacidade padrao e
+    os nomes curtos nao sao executaveis.
 18. A ajuda raiz do launcher resume apenas os tres namespaces, e sua versao
     informa primeiro o launcher e depois os tres componentes resolvidos.
-19. B01-B04 compartilham uma fundacao de distribuicao, mas cada produto preserva
-    candidatos, versao, tag, namespace, credenciais, aprovacao, testes e
-    autoridade de publicacao proprios.
-20. B06 coordena a primeira publicacao publica a partir dos candidatos exatos
-    de B01-B05 e da evidencia integrada selecionada, sem unificar credenciais,
-    versoes ou ciclos posteriores de release.
+19. B01-B03 preservam propriedade de comportamento e testes; B04 possui uma
+    unica identidade publica, versao, tag, pacote, suite nativa, credenciais e
+    autoridade de publicacao para as quatro CLIs.
+20. Cada alvo suportado possui um unico arquivo nativo com os quatro
+    executaveis; nao existem downloads independentes por capacidade.
+21. B06 coordena a primeira publicacao publica a partir do candidato exato de
+    B04, do Hub de B02, do site de E01, das integracoes B05 selecionadas e da
+    evidencia integrada, sem reconstruir artefatos.
 
 ## 11. Questoes Ainda Abertas
 
@@ -484,12 +462,11 @@ necessario decidir:
    conformidade;
 8. quando cada API programatica futura possui justificativa suficiente para
    iniciar seu proprio contrato;
-9. a precedencia confiavel de descoberta dos executaveis pelo launcher;
-10. a compatibilidade, o versionamento coordenado ou independente e a
-    recuperacao dos componentes da suite agregada;
-11. o formato e o codigo de saida exatos da inspecao agregada de versoes quando
+9. a resolucao confiavel dos executaveis irmaos pelo launcher;
+10. os detalhes de instalacao atomica e recuperacao da suite;
+11. o formato e o codigo de saida exatos da inspecao de versoes quando
     um componente estiver ausente, invalido ou nao responder; e
-12. a composicao e a propriedade das suites nativas completas por canal.
+12. a matriz inicial exata de alvos publicos e seus modos de autenticidade.
 
 Esses pontos podem ser resolvidos em fases distintas. Eles nao bloqueiam a
 documentacao do estado atual, mas bloqueiam afirmar que todos os planos de
@@ -516,11 +493,14 @@ deve:
 
 Ao final, Liknon sera um conjunto coeso, mas desacoplado:
 
-- `liknon-validator` ou `likv` executa validacoes diretamente;
-- `liknon-manager` ou `likm` obtem e organiza recursos;
-- `liknon-tool` ou `likt` consulta recursos locais;
-- `liknon` ou `likx` encaminha uma invocacao com namespace explicito para uma
-  dessas tres capacidades;
+- `liknon-validator` executa validacoes diretamente;
+- `liknon-manager` obtem e organiza recursos;
+- `liknon-tool` consulta recursos locais;
+- `liknon` encaminha uma invocacao com namespace explicito para uma dessas
+  tres capacidades;
+- `v`, `m` e `t` existem somente como aliases de namespace no launcher;
+- `liknon-cli` instala os quatro executaveis e cada arquivo nativo por alvo
+  entrega a suite completa;
 - o Hub distribui conteudo versionado sem rebuild das CLIs;
 - humanos podem operar diretamente;
 - agentes podem operar diretamente ou por workflows governados;

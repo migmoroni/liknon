@@ -17,15 +17,14 @@ order, with explicit partial-release state and no rebuilds.
 The exact order is generated from the B06.0 dependency graph. A typical order
 is:
 
-1. supporting Rust crates and other package prerequisites required by selected
-   application or language packages;
+1. supporting Rust crates and other package prerequisites required by
+   `liknon-cli` or selected language packages;
 2. immutable Hub payloads and versioned metadata, without advancing mutable
    catalog aliases or stable pointers;
-3. standalone Validator, Manager, and Tool source packages and immutable native
-   objects;
-4. launcher source package and immutable complete native suites;
-5. activated B05 language packages in registry dependency order;
-6. metadata-only source releases and other immutable public records not already
+3. the `liknon-cli` source package and immutable complete native suite
+   archives;
+4. activated B05 language packages in registry dependency order;
+5. metadata-only source releases and other immutable public records not already
    created by the product workflows.
 
 This list is a default shape, not authority to violate an actual dependency.
@@ -61,4 +60,4 @@ Cross-registry publication cannot be atomic. On failure:
 - [ ] Every public immutable object matches the candidate digest.
 - [ ] Dependency failures stop dependent publications.
 - [ ] Partial publication state is complete enough to resume safely.
-- [ ] No stable pointer or aggregate default is advanced in this phase.
+- [ ] No stable pointer or suite default is advanced in this phase.

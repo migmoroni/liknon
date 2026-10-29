@@ -14,9 +14,9 @@ behavior without transferring product publication ownership into this plan.
 ## Dependencies
 
 D01 depends on the implemented product and workflow surfaces exercised by each
-scenario. A family may begin only when its own prerequisites exist; independent
-product release evidence is supplied by B01-B03, while launcher and complete-
-suite evidence is supplied by B04. Cross-CLI help, palette, presentation,
+scenario. A family may begin only when its own prerequisites exist. B01-B03
+supply focused capability evidence, while package, launcher, and complete-suite
+evidence is supplied by B04. Cross-CLI help, palette, presentation,
 `NO_COLOR`, ANSI, and accessibility expectations come from A02; D01 verifies
 their integrated use without owning the shared crate.
 
@@ -29,14 +29,14 @@ their integrated use without owning the shared crate.
 
 ## Exclusions
 
-D01 owns integrated evidence, not product release. B01-B03 retain their
-individual packaging and release gates; B04 retains launcher, aggregate
-package, complete-suite, publication, recovery, and channel-readback gates.
+D01 owns integrated evidence, not product release. B01-B03 retain focused
+behavior and security gates; B04 owns the source package, four executable
+targets, complete native suites, publication, recovery, and channel readback.
 
 ## Acceptance Criteria
 
 - [ ] All eight scenario shapes have versioned deterministic coverage.
-- [ ] Every direct long/compact command and unified launcher namespace has
+- [ ] Every direct capability command and long/short launcher namespace has
       deterministic parity, isolation, help, version, and failure coverage.
 - [ ] Every applicable direct and unified surface passes the A02 shared CLI
       experience matrix without merging product-specific output contracts.

@@ -1,66 +1,54 @@
-# B03 Tool Accounts, Permissions, And Publication Authority
+# B03 Tool Handoff Accounts And Permissions
 
 ## Status
 
-`External setup pending`. Repository-owned names and isolation boundaries are
-defined; each account, environment, key, and credential is created just in time
-for its delivery phase rather than as one broad credential setup.
+`Approved target`. Tool has no standalone publication authority.
 
 [Back to the Tool CLI plan](README.md)
 
 ## Purpose
 
-Stage only the external ownership, signing, and publication access needed for
-the Tool release phase currently being implemented.
+Record that B03's handoff to B04 is credential-free and prevent obsolete
+standalone Tool publication access from being provisioned.
 
-For the first public release, this runbook supplies B03's exact requirements to
-the [B06 consolidated readiness checklist](../B06-coordinated-public-release/accounts-and-permissions.md).
-B06 records readiness and coordinates invocation without receiving Tool
-credentials.
+## Authority Boundary
 
-## Canonical Identities
+B03 owns Tool behavior, local safety contracts, tests, and evidence. It does
+not own:
 
-| Purpose | Identity |
-| --- | --- |
-| Release workflow | `.github/workflows/release-tool.yml` |
-| Cargo packages | `liknon-tool` and supporting packages selected by A01 |
-| Signed tag | `liknon-tool-v<VERSION>` |
-| GitHub metadata release | Exact signed tag |
-| Native download channel | Tool-specific immutable Cloudflare prefix |
-| Human approval | Credential-free protected environment |
+- a crates.io `liknon-tool` publication identity;
+- a Tool release tag;
+- a Tool-specific R2 prefix or stable pointer;
+- platform-signing authority;
+- a Tool publication environment.
 
-Tool publication uses no Hub resource-publication or namespace credential.
+B04 owns those effects for the complete `liknon-cli` suite. B06 coordinates
+their first use.
 
-## Credential Boundaries
+## Handoff Evidence
 
-- Build, test, package inspection, and end-to-end verification have no
-  publication credential.
-- Reusable CLI-distribution workflows receive no inherited product secret; the
-  B03 caller binds only the isolated Tool authority required by the selected
-  publication job.
-- crates.io, GitHub, Cloudflare, detached metadata signing, and platform signing
-  use separate protected environments.
-- The human release owner controls the signed tag and final approval.
-- Bootstrap tokens are narrow, temporary, and revoked after use.
-- No secret enters a binary, archive, log, cache key, or retained public
-  evidence.
+B03 may generate and retain:
 
-## Checkpoints
+- source-closure reports;
+- package inventory reports;
+- direct and routed smoke-test results;
+- target-native Tool evidence;
+- machine-contract fixtures;
+- offline and read-only effect observations;
+- compatibility evidence for Manager-produced state.
 
-1. Confirm `liknon-tool` and supporting-package ownership plus tag
-   ownership before B03.0.
-2. Create credential-free release candidates during B03.3.
-3. Configure protected publication environments only when candidates pass.
-4. Activate destination credentials immediately before B06 invokes the B03.4
-   publication procedure for the first release.
-5. Let B06 coordinate public readback, then revoke temporary credentials and
-   retain B03-owned evidence.
+These artifacts contain no secret and grant no publication authority.
 
-Tool storage authorization cannot write Validation, Manager, or suite release
-state. Use a separate bucket or an equally strong boundary when authorization
-cannot be scoped to a product prefix.
+## Required Protections
+
+- Tool test jobs have no network or publication credential.
+- Evidence is bound to commit, suite candidate, target, executable hash, and
+  test revision.
+- A stale or mismatched report blocks the B04 target.
+- No B03 workflow can write Hub, CLI-suite, or site production state.
+- No secret enters fixtures, resource stores, logs, caches, or retained reports.
 
 ## Exit Criterion
 
-Tool publication has independent ownership, minimal credentials, and no ability
-to alter Hub resources, Manager releases, or Validation CLI releases.
+B03 can prove Tool readiness to B04 without possessing any destination
+credential or independent public release identity.

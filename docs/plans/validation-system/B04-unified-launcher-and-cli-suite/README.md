@@ -1,256 +1,243 @@
-# Plan B04: Unified Launcher And CLI Suite
+# B04 - Unified Launcher And CLI Suite
 
 ## Status
 
-`Decision gate` at B04.0. No functional dispatch, aggregate native suite, or
-publication behavior begins until the contract is approved. A02 has adapted
-the existing structural launcher shell to product-neutral help/theme
-primitives without implementing discovery, dispatch, compatibility, aggregate
-composition, or any other B04-owned behavior.
+`Approved target`. B04 is the normative owner of the public CLI suite,
+including source packaging, native archives, installation, launcher routing,
+and public release identity.
 
-The [validation-system roadmap](../README.md) owns cross-track order. This plan
-is the sole owner of the unified launcher, aggregate Cargo package, and complete
-native-suite composition. It does not own the behavior or individual release
-of any capability CLI.
+B01, B02, and B03 remain the owners of Validator, Manager, and Tool behavior.
+Their earlier standalone distribution work is retained as implementation
+evidence and reusable infrastructure, but B04 supersedes standalone public CLI
+packages and standalone native downloads.
 
-## Dependencies
+## Objective
 
-- [A01](../A01-product-and-repository-separation/README.md) must establish the
-  shared implementation boundaries and buildable application packages.
-- [A02](../A02-shared-cli-experience-foundation/README.md) must establish the
-  shared terminal experience before launcher-owned help is implemented. The
-  launcher consumes that crate without styling or reinterpreting delegated
-  capability output.
-- The [shared CLI distribution foundation](../cli-distribution-foundation.md)
-  must have a proven credential-free implementation before native launcher or
-  suite candidates are produced.
-- The command contracts selected by B01-B03 must be stable before integrated
-  launcher verification.
-- A complete native suite may be assembled only from verified release
-  candidates owned by B01-B03.
-- [D01](../D01-system-conformance-and-agent-evaluation/README.md) later verifies
-  the integrated candidate without taking publication ownership.
-- [B06](../B06-coordinated-public-release/README.md) later coordinates the
-  first public activation from the exact B04 candidate and B01-B03 component
-  identities without taking B04 publication authority.
+Ship one compact CLI suite that preserves three independent capability
+processes while giving users one installation and one optional launcher:
 
-## Product Boundary
+| Physical executable | Responsibility |
+| --- | --- |
+| `liknon` | Capability-free launcher and suite entry point |
+| `liknon-validator` | Declarative workspace validation |
+| `liknon-manager` | Resource acquisition and workspace organization |
+| `liknon-tool` | Safe local resource inspection and retrieval |
 
-Cargo package `liknon-cli` is the promoted complete-suite installation route.
-It owns these binary targets:
+The capability executables remain directly invocable. The launcher never
+absorbs their domain behavior.
+
+## Public Package Contract
+
+The crates.io package is `liknon-cli`. It owns exactly four Cargo binary
+targets:
 
 ```text
-liknon             likx
-liknon-validator    likv
-liknon-manager     likm
-liknon-tool        likt
+liknon
+liknon-validator
+liknon-manager
+liknon-tool
 ```
 
-`liknon` and `likx` are equivalent launcher entry points. The other six
-targets expose the same implementations as their independently installable
-application packages:
+`cargo install liknon-cli --locked` installs all four executables through
+Cargo's normal multi-binary package behavior. No post-install hook, secondary
+installer, dependency-side binary, or package mutation is required.
 
-| Capability | Standalone Cargo package | Explicit command | Compact command |
-| --- | --- | --- | --- |
-| Validation | `liknon-validator` | `liknon-validator` | `likv` |
-| Resource management | `liknon-manager` | `liknon-manager` | `likm` |
-| Local resource access | `liknon-tool` | `liknon-tool` | `likt` |
+`liknon-cli` is a package name, not an additional executable name. The compact
+executables `likx`, `likv`, `likm`, and `likt` do not exist in the approved
+target. There is no compatibility layer because the product has not been
+publicly released.
 
-The aggregate package declares every target itself and reuses shared
-implementation crates. It does not assume Cargo installs binary targets from
-dependencies. Package `liknon` is reserved for the future programmatic
-integration plan B05 and owns no CLI command by implication.
+Supporting implementation crates may remain separate inside the repository,
+but after the B04 cutover they own no public executable targets. They must be
+publishable dependencies of `liknon-cli`, or their implementation must be
+folded into its publishable source closure.
 
-## Launcher Contract
+The package name `liknon` remains reserved for the programmatic and
+workspace-integration product defined by B05. It does not install this CLI
+suite.
 
-Capability dispatch uses one explicit namespace:
+## Launcher Grammar
+
+The launcher accepts only an explicit capability namespace:
 
 ```text
-liknon validate <args> -> liknon-validator <args>
-liknon manager <args>  -> liknon-manager <args>
-liknon tool <args>     -> liknon-tool <args>
+liknon validator <args...>  -> liknon-validator <args...>
+liknon v <args...>          -> liknon-validator <args...>
+
+liknon manager <args...>    -> liknon-manager <args...>
+liknon m <args...>          -> liknon-manager <args...>
+
+liknon tool <args...>       -> liknon-tool <args...>
+liknon t <args...>          -> liknon-tool <args...>
 ```
 
-`likx` has exactly the same grammar. The launcher removes only the selected
-namespace, preserves every remaining argument boundary, forwards the working
-directory, environment and process streams, and returns the selected
-component's outcome.
+`v`, `m`, and `t` are parser aliases inside `liknon`; they are not files,
+symlinks, copied executables, Cargo binary targets, or download artifacts.
 
-There is no default namespace and no compatibility route such as
-`liknon check ...`. Dispatch is shell-free. The launcher never validates,
-downloads, installs, updates, repairs, mutates resources, interprets content,
-or performs AI work.
+The launcher strips only the selected namespace and forwards all remaining
+arguments in order. It resolves the sibling executable from the installed
+suite, preserves standard streams and signals, and returns the child exit
+status. It rejects missing or unknown namespaces and never chooses a default
+capability.
 
-## Help And Version Contract
+## Help And Version
 
-Root `--help` for `liknon` and `likx`:
+`liknon --help` explains the three namespaces and points users to the focused
+help of each capability executable. It does not duplicate their complete
+command references.
 
-- identifies the program as a launcher;
-- briefly lists `validate`, `manager`, and `tool`;
-- shows the unified grammar;
-- directs the user to `liknon <namespace> --help`; and
-- remains available when a component is absent or invalid.
+`liknon --version` reports the suite version and the version of each bundled
+capability executable. A mismatch is an integrity failure, not an alternate
+supported state.
 
-Launcher-owned help and parser diagnostics use `liknon-cli-ui` for palette,
-presentation, `NO_COLOR`, low-vision, branding, and generic help behavior. B04
-still owns the brief launcher content above. Visual options forwarded after a
-selected namespace belong to that capability and are not consumed by the
-launcher.
+Each direct executable retains its own focused `--help` and `--version`.
 
-Capability-specific help is emitted by the selected component. The launcher
-does not merge or reproduce its command tree.
+## Source Installation
 
-Root `--version` reports the launcher first and then
-`liknon-validator`, `liknon-manager`, and `liknon-tool`, in that order. Version
-inspection uses the same trusted executable resolution as dispatch. Missing,
-invalid, incompatible, and unresponsive components are reported explicitly.
-B04.0 decides the exact output, timeout, and exit status, not this ordering or
-coverage.
+The source package installs the complete suite:
 
-## Distribution Ownership
+```sh
+cargo install liknon-cli --locked
+```
 
-B04 owns:
+A source checkout uses the same package and committed lockfile. Packaging tests
+must prove that the crates.io source closure builds all four targets outside the
+repository without unpublished path dependencies.
 
-- crates.io publication of aggregate package `liknon-cli`;
-- commands `liknon` and `likx`;
-- aggregate installation and command-collision handling;
-- complete native suites and exact component manifests;
-- cross-channel component-location and compatibility metadata;
-- launcher and suite provenance, recovery, and publication evidence.
+The package does not install AI resources, Hub content, or a knowledge corpus.
+Those remain independently managed data.
 
-B04 instantiates the shared distribution foundation with a launcher/suite
-descriptor. It uses the common machinery to build one final launcher payload
-per target, but it does not build capability payloads. A complete direct native
-suite combines the exact retained launcher payload with exact verified
-B01-B03 candidates for the same target and records every component identity and
-hash.
+## Native Distribution
 
-The suite archive and installer expose all eight command names, authenticate
-the complete component manifest before extraction, verify every payload and
-alias, and update the installed suite transactionally. A missing or
-incompatible component fails before replacement of an existing suite.
+The site and Cloudflare R2 publish exactly one native suite archive for each
+supported target. Every archive contains the same four executable roles:
 
-The aggregate crates.io source package is a different distribution form. It
-owns and compiles its eight declared binary targets from the accepted source
-closure; it does not package prebuilt B01-B03 native candidates.
+```text
+liknon
+liknon-validator
+liknon-manager
+liknon-tool
+```
 
-## Version And Provenance Contract
+Windows archives use the corresponding `.exe` filenames. Archive format,
+platform authenticity, and runtime baseline remain target-specific.
 
-The exact `liknon-cli` Cargo package selected by B04.0 is the sole version
-authority for the launcher and complete-suite release. Structured Cargo
-metadata, a B04-owned signed tag, and the full source commit define its release
-identity. B04.0 records the exact package path and tag prefix; no second suite
-version is authored and no capability version is borrowed.
+Examples of distinct target artifacts include:
 
-The launcher build manifest records that identity and each final launcher
-target, command, toolchain, size, hash, and platform-authenticity result. A
-direct complete-suite manifest additionally records every retained component's
-product, package, version, signed tag, commit, target, final hash, provenance
-reference, and compatibility result. Component versions may differ and remain
-owned by B01-B03.
+```text
+x86_64-unknown-linux-gnu
+x86_64-unknown-linux-musl
+x86_64-pc-windows-msvc
+aarch64-apple-darwin
+```
 
-The aggregate crates.io source candidate has its own package-inventory,
-supporting-closure, and digest evidence because it compiles all eight targets
-from source. The direct suite has composition evidence because it reuses exact
-native candidates. These evidence forms are not interchangeable.
+GNU and MUSL are separate target archives. Platform detection selects exactly
+one compatible archive; when both environments appear viable, GNU is the
+preferred Linux target. No archive contains binaries for another target.
 
-Versioned suite objects are immutable. The B04 stable pointer advances only
-after exact public readback and complete-suite verification, and B04 recovery
-cannot move a B01-B03 pointer or rewrite component provenance.
+The website offers one suite download for the selected target. R2 does not
+publish separate Validator, Manager, or Tool downloads in the approved target.
 
-B01-B03 retain source-package and native publication of their standalone
-products. B04 consumes verified candidates and does not republish an individual
-component under a second owner.
+Each archive has one authenticated manifest that records:
 
-B04 retains the launcher and suite publication workflows, credentials, stable
-pointer, and recovery state. For the first public release, B06 freezes the exact
-B04 candidate and component closure, invokes those B04-owned workflows, and
-promotes the aggregate suite pointer last. Later launcher and suite releases may
-proceed through the independent B04 train.
+- suite package, version, tag, and source commit;
+- Rust target and runtime baseline;
+- all four executable filenames, sizes, and SHA-256 hashes;
+- archive hash and size;
+- provenance and platform-authenticity references;
+- installer compatibility and minimum supported installer version.
 
-## Architectural Invariants
+Installers authenticate metadata before payload use and replace the four files
+transactionally. Interrupted or partial installation must leave either the
+previous complete suite or the new complete suite, never a mixed version.
 
-1. Capability CLIs remain usable when the launcher and sibling CLIs are absent.
-2. Capability applications neither invoke nor depend on the launcher.
-3. Only the launcher invokes one selected capability executable.
-4. Launcher targets import no capability API merely to dispatch.
-5. Aggregate capability targets and standalone targets use the same shared
-   implementation and satisfy the same command contract.
-6. Product separation is defense in depth, not an operating-system sandbox.
-7. Aggregate and standalone installations in one Cargo root are alternative
-   owners of the same capability command names; collisions are explicit.
-8. No package, executable, or native artifact named `liknon-cli` is described
-   as the Validation CLI alone.
-9. Shared release machinery is reused, while launcher and suite versions,
-   tags, candidates, namespaces, credentials, approval, and recovery remain
-   B04-owned.
-10. Direct suite assembly cannot rebuild, resign, or mutate a retained
-    capability candidate.
-11. Launcher and suite identity is package-derived and each composed component
-    retains its independently verified version, tag, commit, target, hash, and
-    provenance.
-12. Shared terminal presentation is imported from `liknon-cli-ui`; launcher
-    code contains no private palette/help implementation and never restyles a
-    selected capability's streams.
+## Release Identity
 
-## Decision Gate And Later Units
+`apps/liknon-cli/Cargo.toml` is the sole authored version authority for the
+public CLI suite. The package, all four executables, source candidate, native
+archives, manifests, installers, documentation, and public stable pointer agree
+on one version, tag, commit, and source closure.
 
-| Unit | Document | Status | Primary result |
-| --- | --- | --- | --- |
-| B04.0 | [Launcher And Suite Contract](00-launcher-and-suite-contract.md) | `Decision gate` | Approved discovery, compatibility, process, composition, collision, and release contracts |
-| B04.1 | Launcher implementation | `Future`, defined after B04.0 | Shell-free launcher and direct/unified parity |
-| B04.2 | Aggregate Cargo package | `Future`, defined after B04.0 | Package-owned eight-target suite |
-| B04.3 | Launcher native builds and complete native suites | `Future`, defined after B04.0 and B01-B03 candidates | One final launcher payload plus verified target-specific suite artifacts composed from exact component candidates |
-| B04.4 | Integrated publication readiness and recovery | `Future`, defined after B04.0 | Isolated aggregate workflow, exact release candidate, and recovery evidence ready for B06 |
+B01, B02, and B03 do not retain independent public CLI release trains after the
+B04 cutover. Their behavior can evolve in separate modules and tests, but the
+public executable suite is promoted atomically.
 
-Later unit documents are created only after B04.0 resolves their contract.
+The resource Hub and resource versions remain independent because they are
+data products rather than bundled CLI executables.
 
-## Verification Requirements
+External authority and least-privilege setup are defined in
+[Accounts And Permissions](accounts-and-permissions.md).
 
-Future B04 implementation must prove:
+## Internal Boundaries
 
-- direct and unified argument, stream, working-directory, interruption, and
-  exit-status equivalence;
-- `liknon` and `likx` help and dispatch equivalence;
-- brief root help and delegated capability help;
-- launcher-first version output with all three components and explicit
-  inspection failures;
-- deterministic handling of absent, incompatible, shadowed, or replaced
-  executables;
-- resistance to argument-boundary and executable-path attacks;
-- parity between aggregate capability targets and standalone packages;
-- independent capability operation when the launcher is absent;
-- rejection of removed implicit command forms; and
-- absence of network, validation, resource, or AI behavior in the launcher.
+- Validator behavior remains owned by B01 and its implementation modules.
+- Manager and Hub behavior remain owned by B02.
+- Tool behavior remains owned by B03.
+- `liknon-cli-ui` remains the shared terminal-experience crate.
+- `liknon-resource-contracts` remains the shared resource contract where
+  Manager and Tool need identical semantics.
+- `liknon` performs routing only.
+- Direct and routed execution must invoke the same installed capability
+  executable and produce equivalent behavior.
+
+## Implementation Units
+
+| Unit | Purpose | Exit evidence |
+| --- | --- | --- |
+| B04.0 | Freeze launcher, package, executable, and suite contracts | [Decision gate](00-launcher-and-suite-contract.md) approved with executable ownership and archive topology fixed |
+| B04.1 | Move all public binary targets under `liknon-cli` and implement routing | Exactly four package-owned executables; no compact executable aliases |
+| B04.2 | Close and verify the source package | `cargo package` and isolated `cargo install` produce all four commands |
+| B04.3 | Build and install one native suite archive per target | Authenticated archive, direct/routed smoke tests, transactional install, and rollback evidence |
+| B04.4 | Prepare coordinated publication | One suite candidate, stable pointer, site contract, documentation, and public readback evidence |
+
+## Verification
+
+The B04 verification matrix must prove:
+
+- the package owns exactly four binary targets;
+- no compact executable alias is installed or archived;
+- direct invocations of all three capability executables work;
+- long and short launcher namespaces route to the same executable;
+- argument bytes, environment, working directory, standard streams, signals,
+  and exit codes are preserved;
+- launcher help and version behavior remain capability-free;
+- the source package builds outside the repository;
+- each native archive contains exactly the four target-compatible executables
+  plus declared metadata;
+- all four executable hashes match the authenticated manifest;
+- installation and update are atomic across the suite;
+- archive extraction, replacement, interruption, and rollback reject unsafe or
+  incomplete states;
+- the site selects one archive for one target and never downloads unrelated
+  platform payloads;
+- direct and routed execution remain semantically equivalent on every supported
+  target.
 
 ## Acceptance Criteria
 
-- [ ] B04.0 is approved before implementation or publication begins.
-- [ ] Package `liknon-cli` owns exactly the approved eight binary targets.
-- [ ] Package `liknon` remains outside this plan and provides no launcher.
-- [ ] Every capability dispatch uses an explicit namespace.
-- [ ] Root help is launcher-focused and detailed help is delegated.
-- [ ] Launcher-owned help conforms to A02 while delegated capability output is
-      passed through unchanged.
-- [ ] Root version covers the launcher and every resolved capability.
-- [ ] Aggregate installation does not rely on dependency-owned executables.
-- [ ] Standalone products preserve independent release and operation.
-- [ ] Complete suites contain only verified B01-B03 candidates.
-- [ ] Every supported target contains one newly built and verified launcher
-      payload plus unchanged compatible capability candidates.
-- [ ] The launcher and complete suite use one B04-owned package-derived release
-      identity with no handwritten or inherited version.
-- [ ] Aggregate source and direct native-suite provenance remain explicit and
-      non-interchangeable.
-- [ ] The launcher/suite profile uses shared mechanisms without inheriting a
-      capability product's publication authority.
-- [ ] B06 can invoke the B04-owned first-publication procedure from one frozen
-      candidate without receiving capability or suite credentials.
-- [ ] D01 can verify direct and unified behavior without owning publication.
+- [ ] `liknon-cli` is the only public source package for the CLI suite.
+- [ ] The package installs `liknon`, `liknon-validator`, `liknon-manager`, and
+  `liknon-tool`.
+- [ ] `likx`, `likv`, `likm`, and `likt` are absent from Cargo metadata,
+  archives, installers, and supported-command documentation; tests assert their
+  rejection.
+- [ ] `validator|v`, `manager|m`, and `tool|t` are launcher-only namespaces.
+- [ ] Each capability executable remains independently invocable.
+- [ ] The launcher owns no capability behavior.
+- [ ] Source packaging has a complete publishable dependency closure.
+- [ ] Every supported target has exactly one authenticated native suite archive.
+- [ ] Every archive contains exactly the four executable roles for that target.
+- [ ] Installation, update, rollback, and uninstall treat the suite as one
+  coherent version.
+- [ ] The website and R2 expose one suite download per target, not standalone
+  capability downloads.
+- [ ] B01, B02, and B03 behavior gates remain green after consolidation.
+- [ ] B06 can promote one reviewed CLI suite candidate without reconstructing
+  or replacing any binary.
 
-## Result
+## Exit
 
-After B06 activates the first release, users can install each capability
-selectively or install one complete native suite. The unified command improves
-ergonomics without merging capability authority, runtime logic, or release
-ownership.
+B04 exits when users can obtain one source package or one target-native archive,
+receive all four executable roles, invoke each capability directly or through
+`liknon`, and verify that every route belongs to one authenticated suite
+release.

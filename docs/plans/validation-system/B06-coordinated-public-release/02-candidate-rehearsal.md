@@ -16,9 +16,9 @@ public destination.
 Use only the exact candidates and evidence named by the frozen ledger:
 
 - crates.io source-package archives and dependency closures;
-- target-native Validator, Manager, Tool, launcher, and suite archives;
+- one complete target-native CLI-suite archive per selected target;
 - Hub catalog, metadata, payload, and signature candidates;
-- aggregate `liknon-cli` source and native-suite candidates;
+- the exact `liknon-cli` source candidate;
 - every activated B05 language-package candidate;
 - installers, manifests, checksums, signatures, attestations, and public
   documentation candidates.
@@ -26,13 +26,13 @@ Use only the exact candidates and evidence named by the frozen ledger:
 ## Required Rehearsal
 
 1. Reauthenticate every retained input.
-2. Execute each product's isolated package and native smoke tests.
-3. Install standalone capability CLIs and the aggregate suite in clean
-   environments without mixing their installation roots.
+2. Execute each owning plan's focused behavior and security tests.
+3. Install the `liknon-cli` source candidate and every selected native suite
+   archive in clean environments; prove exactly four command files.
 4. Exercise Manager-to-Hub acquisition and Tool consumption from a local or
    test origin that preserves immutable object semantics.
-5. Verify launcher forwarding, version reporting, help, aliases, exit codes,
-   signal handling, and component compatibility.
+5. Verify direct and launcher-routed behavior, version reporting, help,
+   namespace aliases, exit codes, signal handling, and suite integrity.
 6. Exercise each activated B05 API against its shared conformance fixtures and
    at least one representative consumer.
 7. Run the D01 scenarios selected as first-release blockers.

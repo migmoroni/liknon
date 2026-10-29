@@ -1,5 +1,9 @@
 # Phase B01.6: Verify Public Installation And Documentation
 
+> **Superseded public topology:** public verification and documentation now
+> describe one `liknon-cli` source package and one complete archive per
+> target. Retain the checks here only as reusable Validator evidence.
+
 ## Status
 
 `Provisional`. Blocked by B01.5. B06 executes this procedure for the first

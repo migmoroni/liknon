@@ -1,5 +1,8 @@
 # Phase B01.4: Verify CLI Distribution End To End
 
+> **Superseded public topology:** retain Validator-focused checks as B04 input.
+> Public source/native parity is verified for the complete `liknon-cli` suite.
+
 ## Status
 
 `Provisional`. Blocked by B01.3.

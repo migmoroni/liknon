@@ -1,5 +1,9 @@
 # Phase B01.3: Assemble Cloudflare Direct Distribution
 
+> **Superseded public topology:** standalone Validator objects and pointers are
+> not the approved target. B04 publishes one CLI-suite archive and one suite
+> metadata chain per target.
+
 ## Status
 
 `Provisional`. Blocked by B01.2.

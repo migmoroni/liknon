@@ -1,18 +1,25 @@
 # Plan B01: Liknon Validation CLI Distribution
 
+> **B04 distribution supersession:** this plan records the implemented
+> Validator behavior and the first reusable release-foundation profile. Its
+> standalone `liknon-validator` crates.io package, `likv` executable alias,
+> per-capability native archives, tags, stable pointers, and publication steps
+> are not the approved public target. B04 migrates the reusable machinery and
+> focused evidence into the single `liknon-cli` package and one complete suite
+> archive per target. Unchecked standalone-publication criteria below are
+> retired rather than pending.
+
 ## Status And Relationship To The Validation System
 
-The repository-side release implementation is in place. Product acceptance
-still requires the human-owned AP-0 through AP-6 setup, an exact signed release
-tag, and a release-ready candidate. The first protected hosted release and
-public-channel verification are coordinated by
-[B06](../B06-coordinated-public-release/README.md) after B02-B05 provide the
-other selected release inputs. A01 has consolidated the validation engine,
-schemas, CLI adaptation, and binary targets into the single
-`liknon-validator` package.
+The repository-side Validator and release-foundation implementation is in
+place. It is accepted as an implementation input to B04, not as an independent
+public release candidate. A01 consolidated the validation engine, schemas, CLI
+adaptation, and then-current binary targets under `liknon-validator`; B04 owns
+the target-state executable migration and public packaging.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
-gates, and contract ownership. This plan owns only Validation CLI distribution.
+gates, and contract ownership. This plan owns Validator behavior and focused
+distribution evidence.
 The [shared CLI distribution foundation](../cli-distribution-foundation.md)
 owns the cross-product release mechanisms. B01 is their first production
 implementation and Validation is the first product profile.
@@ -23,10 +30,11 @@ separates it from resource management and local resource tooling. It does not
 change validation behavior, configuration, report, or exit contracts.
 
 [B02](../B02-resource-hub-and-manager/README.md) defines the resource Hub and
-`liknon-manager`. [B03](../B03-tool-cli/README.md) distributes the independent,
-offline `liknon-tool`.
-[B04](../B04-unified-launcher-and-cli-suite/README.md) owns the aggregate
-launcher and complete-suite distribution. Future in-process APIs belong to
+`liknon-manager`. [B03](../B03-tool-cli/README.md) defines the independent,
+offline Tool capability.
+[B04](../B04-unified-launcher-and-cli-suite/README.md) owns the public source
+package, launcher, executable targets, and complete-suite distribution. Future
+in-process APIs belong to
 [B05](../B05-programmatic-api-and-language-bindings/README.md).
 [B06](../B06-coordinated-public-release/README.md) freezes and activates the
 first public multi-product release without taking ownership of this product's
@@ -47,9 +55,10 @@ on C02, C03, or D01.
 
 ## Objective
 
-Implement the reusable release foundation with Validation as its first real
-profile, then distribute one canonical validation application through three
-complementary channels:
+The implemented B01 work established the reusable release foundation with
+Validator as its first real profile. The table below records the standalone
+channel model used to build and test that foundation; B04 replaces it as the
+public distribution contract:
 
 | Channel | Distributed form | User experience | Rust required |
 | --- | --- | --- | --- |

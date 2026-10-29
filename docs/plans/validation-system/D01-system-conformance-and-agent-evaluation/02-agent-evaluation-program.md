@@ -287,7 +287,7 @@ blocked, and adversarial prompts. Include at minimum:
 
 - selecting the correct primary operation from a natural human request;
 - loading only the required operation and retrieving only relevant shared
-  knowledge through `likt`;
+  knowledge through `liknon-tool` or its explicit launcher route;
 - validating policy and applying its effective decision before governed work;
 - inspecting and using exact CLI commands, directories, selections, and JSON
   reports;
@@ -344,7 +344,8 @@ failure modes, and validation gaps. Include at minimum:
   operation, using canonical reference documentation and recording why the
   direct route was necessary;
 - missing-resource behavior that stops safely and requests a distinct,
-  policy-governed acquisition decision instead of invoking `likm` implicitly.
+  policy-governed acquisition decision instead of invoking
+  `liknon-manager` implicitly.
 
 ### 6.3 Evaluation Questions
 

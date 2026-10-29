@@ -1,5 +1,9 @@
 # Phase B01.5: Publish With Resumable State
 
+> **Superseded public topology:** B04 owns CLI-suite publication and recovery;
+> B06 coordinates its first activation. This file remains implementation
+> evidence for the reusable mechanism.
+
 ## Status
 
 `Provisional`. Blocked by B01.4 and explicit human release approval. The first

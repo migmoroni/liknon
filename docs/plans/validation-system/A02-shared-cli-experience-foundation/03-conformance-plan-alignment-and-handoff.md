@@ -1,5 +1,9 @@
 # Phase A02.3: Conformance, Plan Alignment, And Handoff
 
+> **Pre-B04 evidence:** the command inventory below records the completed A02
+> handoff. B04 owns the final four-target command inventory and launcher-only
+> namespace aliases.
+
 ## Status
 
 `Repository implementation complete; hosted verification pending`. Local

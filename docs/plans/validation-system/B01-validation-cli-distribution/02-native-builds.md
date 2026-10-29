@@ -1,5 +1,9 @@
 # Phase B01.2: Build Native CLI Artifacts Once
 
+> **Superseded public topology:** this phase records the first native build
+> profile. B04 reuses the mechanism to build all four suite executables and
+> produce one complete archive per target.
+
 ## Status
 
 `Provisional`. Blocked by B01.1.

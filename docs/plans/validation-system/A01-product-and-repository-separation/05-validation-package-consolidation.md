@@ -1,5 +1,9 @@
 # Phase A01.5: Consolidate The Validation Package
 
+> **Implemented intermediate state:** this phase records Validator
+> consolidation before B04 moves public executable ownership and removes the
+> `likv` alias.
+
 ## Status
 
 `Implemented; hosted verification pending`. All locally executable gates passed

@@ -1,5 +1,9 @@
 # Phase A02.2: Existing And Future CLI Adoption
 
+> **Pre-B04 evidence:** alias-specific adoption checks below record the
+> implemented input state. B04 retains direct capability executables but
+> removes their compact executable aliases.
+
 ## Status
 
 `Implemented`. Manager, Tool's structural shell, and launcher-owned surfaces

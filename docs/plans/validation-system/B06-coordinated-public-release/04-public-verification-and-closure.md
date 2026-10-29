@@ -16,13 +16,14 @@ after that proof, and close the temporary authority used for the first release.
 From clean, unauthenticated environments:
 
 1. fetch and verify every signed source tag and metadata-only source release;
-2. install each selected source package from its public registry;
+2. install `liknon-cli` and each selected B05 source package from its public
+   registry;
 3. fetch native manifests and archives through the public project domain,
    authenticate metadata first, and verify installed command hashes;
 4. acquire selected resources through Manager from the public Hub and consume
    them through Tool;
-5. verify standalone and launcher-routed command behavior, aliases, versions,
-   exit codes, and supported target claims;
+5. verify all three direct capability commands and both long and short launcher
+   namespaces, versions, exit codes, and supported target claims;
 6. install and exercise every activated B05 package through its normal package
    manager and representative consumer;
 7. run the blocking integrated scenarios against public artifacts only;
@@ -32,10 +33,10 @@ From clean, unauthenticated environments:
 
 After all immutable readback passes:
 
-1. promote product-specific stable pointers and Hub catalog references whose
+1. promote Hub catalog references and selected B05 stable references whose
    dependencies are already verified;
 2. publish or activate the corresponding website installation paths;
-3. promote the aggregate B04 suite pointer last;
+3. promote the B04 CLI-suite pointer last;
 4. repeat a concise clean-environment smoke test through every promoted path.
 
 ## Closure
@@ -48,8 +49,8 @@ After all immutable readback passes:
 - Confirm retention and immutability policies on public objects.
 - Update status pages and documentation with exact supported products,
   channels, targets, trust modes, and exclusions.
-- Return later releases to the independent product trains unless a future
-  coordinated release explicitly selects another frozen set.
+- Return later releases to their owning trains; the four CLI executables remain
+  one B04 suite train.
 
 ## Acceptance Criteria
 
@@ -57,7 +58,7 @@ After all immutable readback passes:
       state.
 - [ ] Public bytes and metadata match retained evidence.
 - [ ] Stable pointers were promoted only after complete verification.
-- [ ] The aggregate suite pointer was promoted last.
+- [ ] The CLI-suite pointer was promoted last.
 - [ ] Temporary bootstrap credentials were revoked or rotated.
 - [ ] Documentation makes no claim for an excluded target or ecosystem.
 - [ ] Recovery owners can reconstruct the complete first-release state from

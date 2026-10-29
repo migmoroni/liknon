@@ -1,205 +1,149 @@
-# Phase B02.5: Prepare Manager Distribution And Verify Hub-To-Workspace Behavior
+# Phase B02.5: Prepare Manager Handoff And Verify Hub-To-Workspace Behavior
 
 ## Status
 
-`Provisional`. Blocked by B02.4, the credential-free shared distribution
-foundation implemented and proven through B01.1-B01.4, and explicit human
-candidate approval. It does not wait for B01 Validation publication. The first
-public invocation of the retained Manager and Hub workflows is coordinated by
-B06.
+`Partially implemented`. B02.0-B02.4 behavior is present in the repository.
+This phase closes focused Manager evidence for B04 and prepares the separately
+versioned Hub candidate. It does not publish a standalone Manager package or
+native archive.
 
-Operation labels in this document are placeholders for the exact grammar
-selected by B02.0.
+[Back to Plan B02](README.md)
 
-[Back to the Resource Hub and Manager plan](README.md)
+## Objective
 
-## Purpose
+Prove that Manager can enter the B04 CLI suite without losing its network,
+mutation, trust, recovery, and resource-state contracts, while independently
+preparing the public Hub that Manager consumes.
 
-Prepare Manager for independent distribution and prove the complete path from
-authenticated Hub metadata to a verified workspace resource store. This phase
-retains exact candidates and product-owned publication procedures; B06 performs
-their first production activation.
+## Ownership
 
-## Distribution Channels
+B02 owns:
 
-Prepare one Manager version for publication through:
+- Hub protocol, objects, catalog, signatures, revocation, publication, and
+  recovery;
+- Manager command behavior, machine contracts, security properties, and
+  focused conformance tests;
+- Manager-to-Hub-to-workspace end-to-end evidence;
+- the handoff record consumed by B04.
 
-- signed tagged GitHub source for `apps/liknon-manager`;
-- the `liknon-manager` crates.io source package;
-- one authenticated native archive per supported target through the project
-  download domain.
+B04 owns:
 
-Each channel installs `liknon-manager` and `likm` from one implementation.
-Native target, signing, provenance, installer, rollback, and public-readback
-rules conform to the
-[shared CLI distribution foundation](../cli-distribution-foundation.md) while
-retaining separate version, tag, package, artifact, and credential identities.
+- the public `liknon-manager` executable target;
+- the `liknon-cli` source package and suite version;
+- target-native suite archives;
+- CLI provenance, installers, stable pointer, publication, and recovery.
 
-The crates.io candidate includes no unpublished path dependency. Publish and
-read back any exact supporting-crate version in its dependency closure,
-including the accepted A02 `liknon-cli-ui` version, before publishing
-`liknon-manager`; reuse an already published byte-equivalent version rather
-than attempting to replace it.
+B06 coordinates the first public activation of the exact B02 Hub and B04 suite
+candidates.
 
-The website offers Manager separately and may offer an installer selection or
-complete convenience bundle. Selecting the bundle does not make another CLI a
-Manager dependency.
+## Manager Handoff Contract
 
-## Manager Product Profile
+The handoff records:
 
-The reviewed descriptor supplies at least:
+- exact repository commit and Manager implementation source closure;
+- required supporting-crate versions;
+- direct command `liknon-manager`;
+- launcher routes `liknon manager` and `liknon m`;
+- absence of a physical `likm` target;
+- command, help, version, JSON, error, and exit-code fixtures;
+- runtime dependencies and supported-target evidence;
+- network and filesystem effect boundaries;
+- semantic smoke commands for B04;
+- compatibility with the exact Hub protocol and local resource-state schema.
 
-- product ID `manager` and owner B02;
-- Cargo package and path `liknon-manager` / `apps/liknon-manager`;
-- product orchestrator `.github/workflows/release-manager.yml`;
-- canonical payload `liknon-manager` and installed alias `likm`;
-- signed-tag prefix `liknon-manager-v`;
-- enforceable Manager-only Cloudflare storage boundary, immutable release
-  prefix, and stable pointer;
-- every adopted target row and runtime baseline;
-- Manager-specific source, Hub-client, mutation, recovery, help, and version
-  smoke tests;
-- Manager-only protected environments and accountable recovery owner.
+The handoff does not define a Manager version, tag, R2 prefix, stable pointer,
+or registry credential independent from B04.
 
-The descriptor contains no Hub publication credential. Manager release jobs
-cannot publish resource catalog or payload objects, and Hub publication jobs
-cannot select a Manager candidate.
+## Source-Closure Verification
 
-## Version And Provenance
+Before B04 consumes Manager:
 
-The exact `liknon-manager` package at `apps/liknon-manager` is Manager's sole
-version authority. The release workflow selects it through structured Cargo
-metadata and rejects a candidate unless:
+1. enumerate every source and supporting crate required to build Manager;
+2. reject unpublished or undeclared path dependencies;
+3. prove the implementation builds through the `liknon-cli` package closure;
+4. inspect the final package inventory for unintended Hub payloads, resources,
+   fixtures, secrets, or generated state;
+5. prove direct Manager help and machine contracts remain product-owned;
+6. prove `liknon-cli-ui` supplies only shared terminal behavior.
 
-- package name, package path, and binary targets match the reviewed Manager
-  descriptor;
-- the package version has canonical `MAJOR.MINOR.PATCH` form;
-- the selected commit is exactly identified by the annotated, signed
-  `liknon-manager-v<VERSION>` tag;
-- the committed lockfile and inspected source-package closure are the inputs to
-  every Manager channel; and
-- the release identity does not name different bytes in crates.io, GitHub, or
-  Manager's immutable Cloudflare namespace.
+## Target And Smoke Evidence
 
-Manager carries no handwritten release version and inherits no version, tag,
-or commit from Validation, Tool, the Hub resource corpus, or a complete suite.
-GitHub source, crates.io source, and native candidates all refer to the same
-Manager release identity `(manager, liknon-manager, version, tag, commit)`.
+For every target selected by B04, Manager evidence proves:
 
-The shared internal manifest records the inspected source-package digest and
-supporting-package closure plus the exact final target, commands, size,
-SHA-256, toolchain, and platform-authenticity evidence for every native
-candidate. The public direct manifest is derived from those retained records
-and names only Manager archives, installers, checksums, signatures, and public
-readback evidence.
+- the executable starts and reports the expected suite version;
+- help and JSON output satisfy the B02 contract;
+- local fixture operations work without a public Hub;
+- networked fixture operations contact only the explicit test Hub;
+- target-specific path, permission, rename, lock, and recovery semantics pass;
+- direct and launcher-routed execution are equivalent;
+- interruption and cancellation preserve transaction guarantees.
 
-Manager's stable pointer advances only after exact source/native candidates and
-public bytes have been verified. Retry, rollback, and recovery reuse the same
-retained identity and cannot alter another product's provenance or pointer.
+A failed Manager row blocks the complete suite archive for that target.
 
-## Native Candidate Contract
+## Hub Candidate
 
-For every adopted target, the shared credential-free build lane:
+The Hub candidate remains a B02 product independent from the CLI suite. It
+contains:
 
-1. builds `apps/liknon-manager` once from the selected commit and lockfile;
-2. retains one final canonical payload after required platform sealing;
-3. runs target-native version, help, alias, network-boundary, and representative
-   Manager semantic checks;
-4. records product, package, version, tag, target, toolchain, commit, size,
-   final SHA-256, and accurate platform-authenticity evidence;
-5. transports the exact retained candidate without publication credentials.
+- one immutable catalog snapshot;
+- immutable resource payloads and metadata;
+- signatures and trust-root references;
+- revocation data;
+- cache and rollback policy;
+- a public-readback plan;
+- exact compatibility metadata for the selected Manager behavior.
 
-GNU and MUSL candidates remain distinct on Linux x64 and arm64. Windows and
-macOS use the common declared trust modes and native verification. A failed or
-missing target row blocks that Manager target from publication.
-
-## Direct Assembly And Installation
-
-The common assembler creates Manager-specific archives, signed metadata,
-checksums, POSIX and PowerShell installers, and public-readback evidence. It
-places objects only below Manager's immutable version prefix and updates only
-Manager's stable pointer after public verification.
-
-Installers authenticate metadata before parsing it, select exactly one target,
-verify the archive and both installed command names, install transactionally
-without elevated privileges, and preserve an existing installation on failure.
-Manager installation neither installs resources nor contacts the Hub.
+Hub publication never rebuilds Manager or any other CLI executable.
 
 ## End-To-End Matrix
 
-From clean environments:
+Exercise at minimum:
 
-1. discover an official knowledge resource;
-2. inspect metadata without downloading its payload;
-3. install that resource and one transitive dependency;
-4. verify manifest, lock, payloads, provenance, and trust;
-5. consume the result with B03 Tool when available;
-6. update within an accepted constraint;
-7. reject a forged, revoked, incompatible, and malicious resource;
-8. remove the selection without deleting unowned bytes;
-9. restore exact state from manifest and lock;
-10. exercise explicit materialization and drift detection;
-11. perform offline verification after the network is removed;
-12. install one project-controlled conformance workflow and one external
-    workflow with unrelated node IDs, graph shape, profile dependencies, and
-    declared effects;
-13. prove that neither installation activates a workflow or receives a
-    namespace-based privilege. When C02 resources already exist, repeat the
-    same case with the official action workflow without changing Manager code.
+1. initialize an empty workspace through Manager;
+2. search and inspect against the immutable test Hub;
+3. preview an install without mutation;
+4. install a resource graph transactionally;
+5. consume resulting state through Tool fixtures or the implemented Tool;
+6. update, remove, materialize, interrupt, and recover;
+7. reject invalid signatures, revocation, digest drift, dependency cycles,
+   unsafe paths, archive expansion abuse, lock contention, and incompatible
+   contracts;
+8. run the same Manager operation directly and through both launcher
+   namespaces;
+9. prove Validator remains independent from Hub availability and resource
+   state;
+10. prove no installed resource executes during acquisition.
 
-Repeat representative cases through both command names and every retained
-Manager channel candidate. B06 repeats the public-channel cases after
-publication.
+## External Readiness
 
-Also run the shared-foundation conformance suite with the Manager descriptor,
-including cross-product namespace, candidate, alias, target, stable-pointer,
-credential, version, tag, commit, and provenance-substitution rejection.
+Human-owned setup is required only for the destinations actually retained by
+the target architecture:
 
-## Hub Publication Verification
+- Hub domain and R2 boundary;
+- Hub signing and trust roots;
+- protected Hub publication environment;
+- B04/B06 CLI-suite publication authority;
+- E01 site presentation and public links.
 
-- Publish immutable official-resource candidates to a local or test origin
-  independently from Manager.
-- Read every metadata and payload object back through that origin. B06 repeats
-  the checks against the production origin.
-- Authenticate catalog snapshots and object references.
-- Verify cache headers, rollback protection, yanking, revocation, and stable
-  catalog-pointer behavior.
-- Confirm a resource-only release changes no Manager or Tool artifact.
+Do not create standalone Manager registry ownership, native-object prefixes, or
+stable pointers.
 
-## Evidence
+## Acceptance Criteria
 
-Retain machine-readable evidence for source package, signed tag, full commit,
-Manager version, source-package digest and closure, command name, target, final
-native hash, public-manifest identity, Hub snapshot, resource IDs and versions,
-lock digest, payload hashes, mutation result, recovery result, stable-pointer
-transition, and public readback.
+- [ ] Manager behavior and security tests pass from the exact B04 source closure.
+- [ ] `liknon-manager` is the only physical Manager executable.
+- [ ] `manager|m` route through `liknon` without changing semantics.
+- [ ] Every selected B04 target has focused Manager native evidence.
+- [ ] The Manager handoff contains no independent release identity.
+- [ ] The Hub candidate is immutable, authenticated, revocable, and recoverable.
+- [ ] Hub-to-workspace-to-Tool scenarios pass from clean state.
+- [ ] Resource publication requires no CLI rebuild.
+- [ ] E01 can present the exact Hub identity and B04 suite download without
+  inventing another source of truth.
+- [ ] B06 can consume the Hub and suite candidates without rebuilding either.
 
-Evidence contains no credential, authorization header, private cache path, or
-sensitive workspace content.
+## Exit
 
-## Publication And Recovery
-
-Build and verification jobs have no publication credentials. Manager
-publication, Hub metadata signing, Hub object publication, crates.io, GitHub,
-and native-object publication use isolated identities and protected approval
-boundaries.
-
-A partial publication resumes only from exact retained candidates. Immutable
-objects are never overwritten to repair a release.
-
-The product-specific release orchestrator is thin. Reusable build, assembly,
-and verification workflows receive no broad inherited secrets. Isolated
-Manager publication jobs receive only their destination-specific authority.
-
-For the first public release, B06 supplies the frozen release-set identity and
-coordinates when these B02-owned jobs run. B06 does not receive the Manager or
-Hub credentials.
-
-## Exit Criterion
-
-B06 can publish one exact Manager and Hub release through every declared
-channel without rebuilding it. After public activation, users can reproducibly
-obtain selected, authenticated resources without executing resource content or
-depending on Validation CLI or Tool. Every Manager native target is the exact
-retained output of the common build contract, while all publication identity
-and authority remain B02-specific.
+B02.5 exits when B04 can build and verify Manager as one member of the complete
+CLI suite, while B02 can independently publish and recover the exact Hub that
+Manager consumes.
