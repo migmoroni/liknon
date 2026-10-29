@@ -52,7 +52,7 @@ foundation.
 | --- | --- | --- |
 | [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | Repository release implementation in place; external/public completion pending | Source-package and native distribution of `liknon-validator` / `likv` |
 | [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | Repository implementation in place; B02.5 external/public completion pending | Resource protocol, Hub, Manager behavior, and Manager distribution |
-| [B03 Tool CLI](B03-tool-cli/README.md) | `Decision gate` at B03.0 | Offline resource consumption, agent-facing retrieval, and Tool distribution |
+| [B03 Tool CLI](B03-tool-cli/README.md) | Store-backed repository implementation in place; C01 bootstrap and external/public completion pending | Offline resource consumption, agent-facing retrieval, and Tool distribution |
 | [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, launcher commands `liknon` / `likx`, aggregate Cargo installation, and complete native suites |
 | [B05 Programmatic APIs And Language Bindings](B05-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate programmatic APIs and explicit workspace integrations with demonstrated consumers |
 | [B06 Coordinated Public Release](B06-coordinated-public-release/README.md) | `Future`; blocked by release-ready B01-B05 inputs | Frozen first-release set, external authority, coordinated public activation, readback, and closure |

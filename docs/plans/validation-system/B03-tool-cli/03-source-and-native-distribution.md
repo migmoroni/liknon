@@ -2,12 +2,12 @@
 
 ## Status
 
-`Provisional`. Blocked by B03.2 and the credential-free shared distribution
-foundation implemented and proven through B01.1-B01.4. It does not wait for a
-published Validation release.
-
-Any operation labels used by distribution fixtures remain placeholders for the
-exact grammar selected by B03.0.
+`Repository release implementation in place; external completion pending`.
+The Tool descriptor, source-package rehearsal, offline semantic smoke fixtures,
+native release workflow, and product-isolated publication paths are present.
+Signed-tag execution, target-native retained evidence, registry publication,
+Cloudflare publication, and public readback remain external work. Bootstrap
+distribution assertions remain pending C01.
 
 [Back to the Tool CLI plan](README.md)
 

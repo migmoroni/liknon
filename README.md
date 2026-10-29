@@ -22,7 +22,7 @@ The repository is a Cargo workspace with explicit application boundaries:
 | --- | --- | --- |
 | `liknon-validator` | `liknon-validator`, `likv` | Complete validation CLI |
 | `liknon-manager` | `liknon-manager`, `likm` | Authenticated resource discovery, resolution, installation, verification, and materialization |
-| `liknon-tool` | `liknon-tool`, `likt` | Identity-only shell; offline resource commands are planned |
+| `liknon-tool` | `liknon-tool`, `likt` | Verified offline discovery, retrieval, resolution, and bounded context for installed resources |
 | `liknon-cli` | `liknon`, `likx`, and the six capability executables | Aggregate package and launcher shell |
 
 Two supporting libraries preserve boundaries between those applications:
@@ -34,9 +34,10 @@ Two supporting libraries preserve boundaries between those applications:
 
 The `liknon` and `likx` launcher targets currently expose their identity and
 capability namespaces, but do not dispatch them yet. Invoke `liknon-validator`
-or `likv` for validation, and `liknon-manager` or `likm` for resource-state
-administration. Tool, unified routing, and governed workflow execution remain
-separate incomplete tracks.
+or `likv` for validation, `liknon-manager` or `likm` for resource-state
+administration, and `liknon-tool` or `likt` for read-only local resource
+consumption. Unified routing and governed workflow execution remain separate
+incomplete tracks.
 
 The applications share the terminal-facing foundation documented in
 [`docs/cli-experience.md`](docs/cli-experience.md), while retaining their own
@@ -57,6 +58,9 @@ liknon-validator --version
 
 cargo install --path apps/liknon-manager --locked --force
 liknon-manager --version
+
+cargo install --path apps/liknon-tool --locked --force
+liknon-tool --version
 ```
 
 Rust 1.87 or newer is required. Cargo normally writes the executables to
@@ -66,9 +70,9 @@ modifying the source.
 
 ## Release Distribution
 
-The repository contains product-isolated release profiles for Validation and
-Manager across signed GitHub source tags, crates.io source packages, and
-authenticated target-native archives on a project-controlled Cloudflare
+The repository contains product-isolated release profiles for Validation,
+Manager, and Tool across signed GitHub source tags, crates.io source packages,
+and authenticated target-native archives on a project-controlled Cloudflare
 domain. Registry and native channels are not advertised as live until their
 first protected releases complete; local source installation above remains the
 current development path.
@@ -79,6 +83,8 @@ documented in
 GitHub Releases intentionally carry metadata only and no Liknon binaries.
 Manager distribution is documented in
 [`docs/distribution/manager-cli.md`](docs/distribution/manager-cli.md).
+Tool distribution is documented in
+[`docs/distribution/tool-cli.md`](docs/distribution/tool-cli.md).
 
 ## Resource Manager
 
@@ -104,6 +110,29 @@ Manager never executes resource content or activates workflows. No production
 Hub origin is advertised before protected publication and public readback have
 passed. The protocol, Hub layout, trust model, and complete operating contract
 start at [`docs/resources/README.md`](docs/resources/README.md).
+
+## Resource Tool
+
+Tool reads installed state without contacting the Hub or changing the
+workspace. Discovery commands expose bounded metadata without loading payload
+files; content commands verify locked paths, compatibility, revocation, byte
+lengths, and SHA-256 digests before returning content.
+
+```sh
+liknon-tool catalog --kind knowledge
+liknon-tool search reproducible
+liknon-tool show knowledge:<namespace>/<name>
+liknon-tool resolve collection:<namespace>/<name>
+liknon-tool context collection:<namespace>/<name> \
+  --max-files 32 \
+  --max-bytes 1048576 \
+  --format=json
+```
+
+Returned resource text remains untrusted data and never gains system, host,
+policy, repository, or human authority through retrieval. The complete command,
+output, safety, and exit contract is documented in
+[`apps/liknon-tool/README.md`](apps/liknon-tool/README.md).
 
 ## Quick Start
 

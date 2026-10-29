@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "resources": [
+    {
+      "identity": {
+        "kind": "knowledge",
+        "namespace": "fixture",
+        "name": "smoke"
+      },
+      "requirement": "^1",
+      "source": {
+        "kind": "local",
+        "path": "distribution-smoke-fixture"
+      }
+    }
+  ]
+}

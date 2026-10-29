@@ -6,15 +6,25 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-publish = false
-description = "Structural shell for the future Liknon offline resource tool"
+publish = ["crates-io"]
+description = "Offline, read-only access to installed Liknon resources"
+readme = "README.md"
+keywords = ["liknon", "resources", "cli", "offline"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
+base64.workspace = true
 clap.workspace = true
 liknon-cli-ui.workspace = true
+liknon-resource-contracts.workspace = true
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 console.workspace = true
+tempfile.workspace = true
 
 [[bin]]
 name = "liknon-tool"

@@ -23,6 +23,10 @@ fn manager_descriptor() -> PathBuf {
     repository_root().join("distribution/cli/manager/product.json")
 }
 
+fn tool_descriptor() -> PathBuf {
+    repository_root().join("distribution/cli/tool/product.json")
+}
+
 fn run(arguments: &[&str]) -> std::process::Output {
     Command::new(binary())
         .args(arguments)
@@ -132,6 +136,38 @@ fn cargo_inspection_derives_isolated_manager_identity() {
 }
 
 #[test]
+fn cargo_inspection_derives_isolated_tool_identity() {
+    let temporary = TempDir::new().unwrap();
+    let identity = temporary.path().join("identity.json");
+    let output = run(&[
+        "inspect",
+        "--descriptor",
+        tool_descriptor().to_str().unwrap(),
+        "--workspace",
+        repository_root().to_str().unwrap(),
+        "--output",
+        identity.to_str().unwrap(),
+    ]);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let value: Value = serde_json::from_slice(&fs::read(identity).unwrap()).unwrap();
+    assert_eq!(value["product"], "tool");
+    assert_eq!(value["package"], "liknon-tool");
+    assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(
+        value["tag"],
+        format!("liknon-tool-v{}", env!("CARGO_PKG_VERSION"))
+    );
+    assert_eq!(
+        value["binaryTargets"],
+        serde_json::json!(["liknon-tool", "likt"])
+    );
+}
+
+#[test]
 fn descriptor_rejects_cross_product_namespace() {
     let temporary = TempDir::new().unwrap();
     let mut value: Value = serde_json::from_slice(&fs::read(descriptor()).unwrap()).unwrap();
@@ -207,7 +243,7 @@ fn descriptor_rejects_more_than_one_compact_alias() {
 }
 
 #[test]
-fn reusable_workflows_contain_no_validation_product_identity() {
+fn reusable_workflows_contain_no_product_identity() {
     for workflow in [
         "_cli-native-candidate.yml",
         "_cli-direct-assembly.yml",
@@ -224,6 +260,10 @@ fn reusable_workflows_contain_no_validation_product_identity() {
             "manager-native",
             "distribution/cli/manager",
             "apps/liknon-manager",
+            "liknon-tool",
+            "tool-native",
+            "distribution/cli/tool",
+            "apps/liknon-tool",
         ] {
             assert!(
                 !content.contains(product_value),

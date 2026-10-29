@@ -2,9 +2,10 @@
 
 ## Status
 
-`Decision gate`. Blocked by completion of A02. The command names and semantics
-below are candidate design material. They become normative only through an
-explicit approved exit record.
+`Partially implemented`. A02 is complete, and the offline store-backed grammar
+(`catalog`, `search`, `show`, `resolve`, and `context`) is approved and
+implemented. The program-owned bootstrap projection remains blocked by C01;
+its command name, source, and envelope are not implemented or inferred here.
 
 [Back to the Tool CLI plan](README.md)
 

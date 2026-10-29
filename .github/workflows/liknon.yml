@@ -58,7 +58,8 @@ jobs:
           for script in distribution/cli/common/scripts/*.sh \
             distribution/cli/common/installers/install.sh.in \
             distribution/cli/validation/smoke/verify.sh \
-            distribution/cli/manager/smoke/verify.sh; do
+            distribution/cli/manager/smoke/verify.sh \
+            distribution/cli/tool/smoke/verify.sh; do
             if head -n 1 "$script" | grep -q 'bash'; then
               bash -n "$script"
             else
@@ -148,7 +149,7 @@ jobs:
         run: |
           distribution/cli/common/scripts/rehearse-source-packages.sh \
             liknon-cli-ui liknon-resource-contracts -- \
-            liknon-validator liknon-manager
+            liknon-validator liknon-manager liknon-tool
       - name: Install and smoke-test local applications
         shell: bash
         run: |
@@ -175,6 +176,9 @@ jobs:
             "$manager_root/bin/likm"
           "$tool_root/bin/liknon-tool" --version
           "$tool_root/bin/likt" --help > /dev/null
+          sh distribution/cli/tool/smoke/verify.sh \
+            "$tool_root/bin/liknon-tool" \
+            "$tool_root/bin/likt"
           "$aggregate_root/bin/liknon" --version
           "$aggregate_root/bin/likx" --help > /dev/null
           "$aggregate_root/bin/liknon-validator" --version
@@ -183,6 +187,22 @@ jobs:
           "$aggregate_root/bin/likm" --version
           "$aggregate_root/bin/liknon-tool" --version
           "$aggregate_root/bin/likt" --version
+
+          interop_workspace="$RUNNER_TEMP/liknon-manager-tool-interop"
+          mkdir -p "$interop_workspace"
+          "$manager_root/bin/liknon-manager" init \
+            --workspace "$interop_workspace" \
+            --format=json > /dev/null
+          "$manager_root/bin/liknon-manager" install \
+            --local distribution/cli/tool/smoke/source \
+            --workspace "$interop_workspace" \
+            --yes \
+            --format=json > /dev/null
+          "$tool_root/bin/liknon-tool" show knowledge:fixture/smoke \
+            --workspace "$interop_workspace" \
+            --format=json > "$RUNNER_TEMP/manager-tool-interop.json"
+          grep -F 'Liknon Tool smoke payload.' \
+            "$RUNNER_TEMP/manager-tool-interop.json" > /dev/null
 
           mkdir -p "$smoke_dir"
           cat > "$smoke_dir/config.json" <<'JSON'

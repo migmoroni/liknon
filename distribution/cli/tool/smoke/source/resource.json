@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "kind": "knowledge",
+    "namespace": "fixture",
+    "name": "smoke"
+  },
+  "version": "1.0.0",
+  "title": "Tool smoke fixture",
+  "summary": "Static native distribution retrieval fixture",
+  "authors": [
+    "Liknon"
+  ],
+  "license": "MIT",
+  "source": {
+    "repository": "https://example.invalid/liknon-tool-smoke",
+    "revision": "fixture-1",
+    "path": "smoke"
+  },
+  "trust": {
+    "class": "local",
+    "publisher": "Liknon fixture",
+    "review": "unreviewed"
+  },
+  "compatibility": {
+    "resourceSchema": "^1",
+    "manager": "*",
+    "tool": "^0.5"
+  },
+  "dependencies": [],
+  "collectionMembers": [],
+  "capabilities": [],
+  "containsExecutableContent": false,
+  "payloads": [
+    {
+      "path": "content.txt",
+      "object": "objects/sha256/7a/7a204fe75692be2e68c0c094309f7526e50d37b73e6d6fa494b3d6505251a36a",
+      "mediaType": "text/plain",
+      "length": 27,
+      "sha256": "7a204fe75692be2e68c0c094309f7526e50d37b73e6d6fa494b3d6505251a36a",
+      "executable": false
+    }
+  ],
+  "yanked": false,
+  "deprecated": false,
+  "revoked": false
+}

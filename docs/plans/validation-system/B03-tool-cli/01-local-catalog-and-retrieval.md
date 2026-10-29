@@ -2,10 +2,9 @@
 
 ## Status
 
-`Provisional`. Blocked by the approved B03.0 exit record.
-
-Operation labels in this document are placeholders for the exact grammar
-selected by B03.0; they are not independently approved commands.
+`Repository implementation complete` for local store loading, catalog, search,
+exact retrieval, and locked closure resolution. The bootstrap-specific clauses
+remain pending C01 and are excluded from this completion claim.
 
 [Back to the Tool CLI plan](README.md)
 

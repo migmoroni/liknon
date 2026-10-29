@@ -1,11 +1,14 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use semver::{Version, VersionReq};
 
 use crate::{
-    validate_relative_path, validate_sha256, CatalogSnapshot, ContractError, ResourceIdentity,
-    ResourceKind, ResourceVersion, TrustKeyStatus, TrustRoot, CATALOG_SCHEMA_VERSION,
-    RESOURCE_SCHEMA_VERSION, TRUST_ROOT_SCHEMA_VERSION,
+    canonical_json_sha256, validate_relative_path, validate_sha256, CatalogSnapshot, ContractError,
+    LockedResourceOrigin, RequestedSource, ResourceIdentity, ResourceKind, ResourceLock,
+    ResourceManifest, ResourceVersion, TrustKeyStatus, TrustRoot, CATALOG_SCHEMA_VERSION,
+    RESOURCE_LOCK_SCHEMA_VERSION, RESOURCE_MANIFEST_SCHEMA_VERSION, RESOURCE_SCHEMA_VERSION,
+    RETAINED_CATALOG_PATH, RETAINED_CATALOG_SIGNATURE_PATH, RETAINED_TRUST_ROOT_PATH,
+    TRUST_ROOT_SCHEMA_VERSION,
 };
 
 /// Resource payload bounds enforced before allocation or installation.
@@ -188,6 +191,312 @@ pub fn validate_resource(
 
     if let Some(workflow) = &resource.workflow {
         validate_workflow(resource, workflow)?;
+    }
+    Ok(())
+}
+
+/// Validates the complete desired-state and exact-lock relationship.
+///
+/// This operation is transport- and filesystem-neutral. Applications remain
+/// responsible for authenticating retained catalog bytes and checking that
+/// installed payload files match the validated lock.
+pub fn validate_store_state(
+    manifest: &ResourceManifest,
+    lock: &ResourceLock,
+    limits: ValidationLimits,
+) -> Result<(), ContractError> {
+    if manifest.schema_version != RESOURCE_MANIFEST_SCHEMA_VERSION {
+        return Err(ContractError::UnsupportedSchema {
+            document: "resource manifest",
+            expected: RESOURCE_MANIFEST_SCHEMA_VERSION,
+            actual: manifest.schema_version,
+        });
+    }
+    if lock.schema_version != RESOURCE_LOCK_SCHEMA_VERSION {
+        return Err(ContractError::UnsupportedSchema {
+            document: "resource lock",
+            expected: RESOURCE_LOCK_SCHEMA_VERSION,
+            actual: lock.schema_version,
+        });
+    }
+
+    if let Some(catalog) = &lock.catalog {
+        validate_sha256(&catalog.sha256)?;
+        for (value, label) in [
+            (&catalog.origin, "locked catalog origin"),
+            (&catalog.trust_authority, "locked catalog trust authority"),
+            (&catalog.signing_key_id, "locked catalog signing key ID"),
+        ] {
+            require_text(value, label)?;
+        }
+        for (actual, expected) in [
+            (&catalog.catalog_path, RETAINED_CATALOG_PATH),
+            (
+                &catalog.catalog_signature_path,
+                RETAINED_CATALOG_SIGNATURE_PATH,
+            ),
+            (&catalog.trust_root_path, RETAINED_TRUST_ROOT_PATH),
+        ] {
+            validate_relative_path(actual)?;
+            if actual != expected {
+                return Err(ContractError::InvalidContract(format!(
+                    "noncanonical retained catalog evidence path `{actual}`"
+                )));
+            }
+        }
+    }
+
+    let mut prior_request: Option<&ResourceIdentity> = None;
+    for request in &manifest.resources {
+        request.identity.validate()?;
+        parse_requirement(&request.requirement, "resource request")?;
+        if prior_request.is_some_and(|prior| prior >= &request.identity) {
+            return Err(ContractError::InvalidContract(
+                "manifest resources must be sorted by unique identity".to_owned(),
+            ));
+        }
+        if let RequestedSource::Local { path } = &request.source {
+            require_text(path, "local resource source path")?;
+        }
+        prior_request = Some(&request.identity);
+    }
+
+    let mut prior_locked: Option<&ResourceIdentity> = None;
+    for locked in &lock.resources {
+        validate_resource(&locked.resource, limits)?;
+        if locked.manifest_sha256 != canonical_json_sha256(&locked.resource)? {
+            return Err(ContractError::InvalidContract(format!(
+                "locked metadata digest differs for {}",
+                locked.resource.identity
+            )));
+        }
+        validate_relative_path(&locked.install_path)?;
+        if locked.install_path
+            != locked
+                .resource
+                .identity
+                .version_path(&locked.resource.version)?
+        {
+            return Err(ContractError::InvalidContract(format!(
+                "noncanonical install path for {}",
+                locked.resource.identity
+            )));
+        }
+        if prior_locked.is_some_and(|prior| prior >= &locked.resource.identity) {
+            return Err(ContractError::InvalidContract(
+                "locked resources must be sorted by unique identity".to_owned(),
+            ));
+        }
+        match &locked.origin {
+            LockedResourceOrigin::Hub { origin } => {
+                let catalog = lock.catalog.as_ref().ok_or_else(|| {
+                    ContractError::InvalidContract(
+                        "Hub-backed resource has no locked catalog".to_owned(),
+                    )
+                })?;
+                if origin != &catalog.origin {
+                    return Err(ContractError::InvalidContract(format!(
+                        "Hub origin for {} differs from the locked catalog",
+                        locked.resource.identity
+                    )));
+                }
+            }
+            LockedResourceOrigin::Local { path } => {
+                require_text(path, "local locked-resource origin")?;
+            }
+        }
+        validate_locked_edges(locked)?;
+        prior_locked = Some(&locked.resource.identity);
+    }
+
+    let locked = lock
+        .resources
+        .iter()
+        .map(|resource| (&resource.resource.identity, resource))
+        .collect::<BTreeMap<_, _>>();
+    for request in &manifest.resources {
+        let resolved = locked.get(&request.identity).ok_or_else(|| {
+            ContractError::InvalidContract(format!(
+                "requested resource {} is absent from the lock",
+                request.identity
+            ))
+        })?;
+        let requirement = VersionReq::parse(&request.requirement).map_err(|error| {
+            ContractError::InvalidVersion(format!(
+                "resource request `{}`: {error}",
+                request.requirement
+            ))
+        })?;
+        let version = Version::parse(&resolved.resource.version).map_err(|error| {
+            ContractError::InvalidVersion(format!(
+                "locked resource version `{}`: {error}",
+                resolved.resource.version
+            ))
+        })?;
+        if !requirement.matches(&version) {
+            return Err(ContractError::InvalidContract(format!(
+                "locked resource {}@{} does not satisfy request `{}`",
+                request.identity, resolved.resource.version, request.requirement
+            )));
+        }
+        let source_matches = matches!(
+            (&request.source, &resolved.origin),
+            (RequestedSource::Hub, LockedResourceOrigin::Hub { .. })
+        ) || matches!(
+            (&request.source, &resolved.origin),
+            (
+                RequestedSource::Local { path: requested },
+                LockedResourceOrigin::Local { path: locked }
+            ) if requested == locked
+        );
+        if !source_matches {
+            return Err(ContractError::InvalidContract(format!(
+                "locked origin for {} differs from its requested source",
+                request.identity
+            )));
+        }
+    }
+    for resource in &lock.resources {
+        for edge in &resource.dependencies {
+            if locked
+                .get(&edge.identity)
+                .is_none_or(|dependency| dependency.resource.version != edge.version)
+            {
+                return Err(ContractError::InvalidContract(format!(
+                    "locked dependency {}@{} is absent",
+                    edge.identity, edge.version
+                )));
+            }
+        }
+    }
+
+    let mut prior_destination: Option<&str> = None;
+    for materialization in &lock.materializations {
+        materialization.identity.validate()?;
+        Version::parse(&materialization.version).map_err(|error| {
+            ContractError::InvalidVersion(format!(
+                "materialized version `{}`: {error}",
+                materialization.version
+            ))
+        })?;
+        validate_relative_path(&materialization.payload_path)?;
+        validate_relative_path(&materialization.destination)?;
+        validate_sha256(&materialization.sha256)?;
+        if prior_destination.is_some_and(|prior| prior >= materialization.destination.as_str()) {
+            return Err(ContractError::InvalidContract(
+                "materializations must be sorted by unique destination".to_owned(),
+            ));
+        }
+        let resource = lock
+            .resources
+            .iter()
+            .find(|resource| {
+                resource.resource.identity == materialization.identity
+                    && resource.resource.version == materialization.version
+            })
+            .ok_or_else(|| {
+                ContractError::InvalidContract(format!(
+                    "materialization `{}` references an absent resource",
+                    materialization.destination
+                ))
+            })?;
+        if !resource.resource.payloads.iter().any(|payload| {
+            payload.path == materialization.payload_path && payload.sha256 == materialization.sha256
+        }) {
+            return Err(ContractError::InvalidContract(format!(
+                "materialization `{}` references an absent payload",
+                materialization.destination
+            )));
+        }
+        prior_destination = Some(&materialization.destination);
+    }
+    Ok(())
+}
+
+fn validate_locked_edges(locked: &crate::LockedResource) -> Result<(), ContractError> {
+    let mut prior: Option<&ResourceIdentity> = None;
+    for edge in &locked.dependencies {
+        edge.identity.validate()?;
+        Version::parse(&edge.version).map_err(|error| {
+            ContractError::InvalidVersion(format!(
+                "locked dependency version `{}`: {error}",
+                edge.version
+            ))
+        })?;
+        if prior.is_some_and(|prior| prior >= &edge.identity) {
+            return Err(ContractError::InvalidContract(format!(
+                "locked dependencies for {} must be sorted by unique identity",
+                locked.resource.identity
+            )));
+        }
+        let declared = locked
+            .resource
+            .dependencies
+            .iter()
+            .map(|dependency| (dependency, false))
+            .chain(
+                locked
+                    .resource
+                    .collection_members
+                    .iter()
+                    .map(|dependency| (dependency, true)),
+            )
+            .find(|(dependency, _)| dependency.identity == edge.identity);
+        let Some((declared, collection_member)) = declared else {
+            return Err(ContractError::InvalidContract(format!(
+                "locked dependency {} is not declared by {}",
+                edge.identity, locked.resource.identity
+            )));
+        };
+        if collection_member != edge.collection_member {
+            return Err(ContractError::InvalidContract(format!(
+                "locked dependency {} has the wrong edge kind for {}",
+                edge.identity, locked.resource.identity
+            )));
+        }
+        let requirement = VersionReq::parse(&declared.requirement).map_err(|error| {
+            ContractError::InvalidVersion(format!(
+                "dependency requirement `{}`: {error}",
+                declared.requirement
+            ))
+        })?;
+        let version = Version::parse(&edge.version).map_err(|error| {
+            ContractError::InvalidVersion(format!(
+                "locked dependency version `{}`: {error}",
+                edge.version
+            ))
+        })?;
+        if !requirement.matches(&version) {
+            return Err(ContractError::InvalidContract(format!(
+                "locked dependency {}@{} does not satisfy `{}`",
+                edge.identity, edge.version, declared.requirement
+            )));
+        }
+        prior = Some(&edge.identity);
+    }
+    for (declared, collection_member) in locked
+        .resource
+        .dependencies
+        .iter()
+        .map(|dependency| (dependency, false))
+        .chain(
+            locked
+                .resource
+                .collection_members
+                .iter()
+                .map(|dependency| (dependency, true)),
+        )
+    {
+        if !declared.optional
+            && !locked.dependencies.iter().any(|edge| {
+                edge.identity == declared.identity && edge.collection_member == collection_member
+            })
+        {
+            return Err(ContractError::InvalidContract(format!(
+                "required dependency {} is absent from the lock for {}",
+                declared.identity, locked.resource.identity
+            )));
+        }
     }
     Ok(())
 }

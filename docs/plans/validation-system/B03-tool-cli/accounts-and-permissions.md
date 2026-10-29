@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Blocked by B03.0 and completed just in time for each delivery
-phase.
+`External setup pending`. Repository-owned names and isolation boundaries are
+defined; each account, environment, key, and credential is created just in time
+for its delivery phase rather than as one broad credential setup.
 
 [Back to the Tool CLI plan](README.md)
 

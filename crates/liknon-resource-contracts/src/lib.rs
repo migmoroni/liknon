@@ -25,7 +25,10 @@ pub use signature::{
     verify_detached, DetachedSignature, SignatureAlgorithm, TrustKey, TrustKeyStatus, TrustRoot,
 };
 pub use state::*;
-pub use validation::{validate_catalog, validate_resource, validate_trust_root, ValidationLimits};
+pub use validation::{
+    validate_catalog, validate_resource, validate_store_state, validate_trust_root,
+    ValidationLimits,
+};
 
 /// Resource contract schema version supported by this crate.
 pub const RESOURCE_SCHEMA_VERSION: u32 = 1;

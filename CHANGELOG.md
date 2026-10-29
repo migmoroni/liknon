@@ -16,11 +16,12 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   surfaces, with application-local command grammars and domain renderers.
 - A canonical cross-application CLI experience contract.
 - Cargo workspace boundaries for the Validation CLI and its engine modules,
-  Manager application, Tool shell, aggregate launcher package, and private knowledge
-  maintenance tool.
+  Manager application, Tool application, aggregate launcher package, and
+  private knowledge maintenance tool.
 - Direct validation executables `liknon-validator` and `likv`, authenticated
-  resource-management executables `liknon-manager` and `likm`, identity-only
-  Tool executables, and launcher-only `liknon` and `likx` shells.
+  resource-management executables `liknon-manager` and `likm`, verified offline
+  resource-consumption executables `liknon-tool` and `likt`, and launcher-only
+  `liknon` and `likx` shells.
 - Product-neutral native CLI release contracts, deterministic manifests,
   authenticated installers, immutable Cloudflare publication and recovery
   scripts, and reusable credential-free workflows, with Validation as the
@@ -38,6 +39,11 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   mutation exclusion, and interrupted-operation recovery.
 - An isolated Manager distribution profile and release preparation contract
   built on the shared product-neutral CLI distribution foundation.
+- Deterministic Tool catalog, metadata search, exact payload retrieval, locked
+  dependency resolution, bounded context assembly, integrity enforcement, and
+  explicit untrusted-content boundaries over local resource stores.
+- An isolated Tool source/native distribution profile, semantic offline smoke
+  fixture, and Manager-to-Tool interoperability gate.
 
 ### Changed
 
@@ -47,6 +53,8 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   and evaluation schemas live with their respective documentation and eval
   owners.
 - Knowledge checks run as the private `liknon-knowledge-maintenance` package.
+- Shared resource-state validation now verifies requested roots, exact locked
+  versions and origins, and every required dependency edge before consumption.
 
 ### Removed
 

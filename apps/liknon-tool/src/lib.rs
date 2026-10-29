@@ -1,55 +1,54 @@
-//! Identity-only shell for the future Liknon offline resource tool.
+//! Offline, read-only discovery and retrieval for installed Liknon resources.
+
+#![warn(missing_docs)]
+
+mod cli;
+mod error;
+mod operations;
+mod output;
+mod store;
+mod theme;
+mod workspace;
 
 use std::{io::Write as _, process::ExitCode};
 
-use clap::{error::ErrorKind, CommandFactory as _, FromArgMatches as _, Parser};
+use clap::{error::ErrorKind, CommandFactory as _, FromArgMatches as _};
 use liknon_cli_ui::{
     clap as clap_theme,
     help::{self as shared_help, RootHelp},
-    VisualOptions, VisualSelection,
+    terminal::{self, OutputKind},
+    Theme, VisualSelection,
 };
 
 const HELP: &str = "Print help at the root or after any command";
 const HELP_LONG: &str = "Prints help at the root or after any command.\n\nThe -h flag prints a compact summary; --help prints complete details.";
 
-#[derive(Debug, Parser)]
-#[command(
-    name = "liknon-tool",
-    version,
-    about = "Reads installed Liknon resources offline (commands are not available yet)",
-    arg_required_else_help = true,
-    disable_help_subcommand = true
-)]
-struct Cli {
-    #[command(flatten)]
-    _visual: VisualOptions,
-}
-
-/// Parses the identity-only Tool shell through the shared terminal foundation.
+/// Parses process arguments, executes one Tool operation, and returns its stable exit status.
 pub fn run_cli() -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
     let selection = VisualSelection::from_args(&arguments);
     let command = clap_theme::apply(
-        shared_help::disable_help_subcommands(Cli::command()),
+        shared_help::disable_help_subcommands(cli::configure(cli::Cli::command())),
         selection.palette(),
         selection.presentation(),
     );
 
     if shared_help::is_complete_root_request(&arguments) {
-        return write_help(shared_help::render_complete_root(
+        let rendered = shared_help::render_complete_root(
             command,
             selection.palette(),
             selection.presentation(),
             RootHelp::liknon(HELP, HELP_LONG),
-        ));
+        );
+        return write_help(rendered);
     }
 
-    match command.try_get_matches_from(arguments) {
-        Ok(matches) => match Cli::from_arg_matches(&matches) {
-            Ok(_) => ExitCode::SUCCESS,
+    let cli = match command.try_get_matches_from(arguments) {
+        Ok(matches) => match cli::Cli::from_arg_matches(&matches) {
+            Ok(cli) => cli,
             Err(error) => {
                 eprintln!("liknon-tool: {error}");
-                ExitCode::from(4)
+                return ExitCode::from(5);
             }
         },
         Err(error) => {
@@ -58,10 +57,11 @@ pub fn run_cli() -> ExitCode {
                 kind,
                 ErrorKind::DisplayHelp | ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
             ) {
-                return write_help(clap_theme::present_help(
+                let rendered = clap_theme::present_help(
                     error.render().ansi().to_string(),
                     selection.presentation(),
-                ));
+                );
+                return write_help(rendered);
             }
             let code = if kind == ErrorKind::DisplayVersion {
                 0
@@ -69,7 +69,42 @@ pub fn run_cli() -> ExitCode {
                 2
             };
             let _ = error.print();
-            ExitCode::from(code)
+            return ExitCode::from(code);
+        }
+    };
+
+    run(cli)
+}
+
+fn run(cli: cli::Cli) -> ExitCode {
+    let format = cli.format();
+    let visual = cli.visual().selection();
+    if !terminal::visual_options_are_compatible(
+        visual,
+        if format == cli::OutputFormat::Json {
+            OutputKind::Machine
+        } else {
+            OutputKind::Human
+        },
+    ) {
+        let error = error::ToolError::Usage(
+            "--color and --presentation cannot be combined with machine-readable output".to_owned(),
+        );
+        output::write_error(&error, format, &Theme::plain());
+        return ExitCode::from(error.exit_code());
+    }
+    let theme = Theme::resolve(visual.palette(), visual.presentation());
+    match operations::execute(cli) {
+        Ok(report) => {
+            if let Err(error) = output::write_report(&report, format, &theme) {
+                eprintln!("error: {error}");
+                return ExitCode::from(error.exit_code());
+            }
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            output::write_error(&error, format, &theme);
+            ExitCode::from(error.exit_code())
         }
     }
 }
@@ -82,32 +117,28 @@ fn write_help(rendered: String) -> ExitCode {
     {
         ExitCode::SUCCESS
     } else {
-        ExitCode::from(4)
+        ExitCode::from(5)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Cli;
+    use super::cli::Cli;
     use clap::{error::ErrorKind, Parser};
 
     #[test]
-    fn shell_exposes_only_identity_and_shared_visual_options() {
+    fn exposes_complete_tool_grammar() {
         assert_eq!(
             Cli::try_parse_from(["liknon-tool"]).unwrap_err().kind(),
             ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
         );
-        assert!(Cli::try_parse_from([
-            "liknon-tool",
-            "--color=standard",
-            "--presentation=low-vision"
-        ])
-        .is_ok());
-        assert_eq!(
-            Cli::try_parse_from(["liknon-tool", "show"])
-                .unwrap_err()
-                .kind(),
-            ErrorKind::UnknownArgument
-        );
+        for command in ["catalog", "search", "show", "resolve", "context"] {
+            let result = Cli::try_parse_from(["liknon-tool", command, "--help"]);
+            assert_eq!(
+                result.unwrap_err().kind(),
+                ErrorKind::DisplayHelp,
+                "{command}"
+            );
+        }
     }
 }

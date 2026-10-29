@@ -2,10 +2,10 @@
 
 ## Status
 
-`Provisional`. Blocked by B03.1 and the relevant C01 authority contract.
-
-Operation labels in this document are placeholders for the exact grammar
-selected by B03.0; they are not independently approved commands.
+`Repository implementation complete` for bounded context assembly, explicit
+instruction boundaries, local limits, and non-mutating resource consumption.
+Bootstrap authority and governed-agent integration evidence remain pending C01
+and D01.
 
 [Back to the Tool CLI plan](README.md)
 

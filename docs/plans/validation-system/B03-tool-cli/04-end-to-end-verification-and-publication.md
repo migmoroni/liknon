@@ -2,12 +2,11 @@
 
 ## Status
 
-`Provisional`. Blocked by B03.3, local B02/B03 interoperability evidence, and
-explicit human candidate approval. B06 coordinates the first public invocation
-of the retained Tool workflow.
-
-Operation labels in this document are placeholders for the exact grammar
-selected by B03.0.
+`Repository verification paths in place; production execution pending`.
+Contract-valid fixtures, local Manager-to-Tool interoperability, source
+rehearsal, and semantic smoke coverage exist. Signed candidate creation,
+explicit human approval, external publication, public readback, and bootstrap
+verification remain pending B06, external authorities, and C01 respectively.
 
 [Back to the Tool CLI plan](README.md)
 

@@ -248,7 +248,7 @@ require B03, E01, B02.5, publication, or public B06 readback.
       through the same dependency and trust contracts used later by AI-Tool.
 - [x] Manager contains no branch for an official resource ID, process name, or
       workflow shape.
-- [ ] Tool can consume Manager-produced state without invoking Manager.
+- [x] Tool can consume Manager-produced state without invoking Manager.
 - [x] Resource publication does not rebuild any CLI.
 - [ ] The crates.io package resolves only published supporting crates.
 - [ ] The site offers Manager separately; any complete suite is owned by B04

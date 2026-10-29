@@ -2,12 +2,18 @@
 
 ## Status And Relationship To Other Tracks
 
-`Decision gate` at B03.0. The product role, offline/non-mutating boundary,
-bootstrap-projection capability, and distribution-channel categories are
-approved. Command grammar, projection envelope, and policy/persistence
-inspection are not approved until B03.0 exits. The A02 terminal prerequisite
-is satisfied: Tool's structural shell already consumes `liknon-cli-ui` without
-adding a Tool operation or resource behavior. B03.1-B03.4 are `Provisional`.
+Repository implementation is in place for the approved store-backed command
+surface: `catalog`, `search`, `show`, `resolve`, and `context`. B03.1 and the
+resource-facing part of B03.2 are implemented and covered by local fixtures,
+including Manager-produced state. The B03.3 product profile, semantic smoke
+tests, source-package rehearsal, and release workflow are present in the
+repository. External candidate creation, publication, public readback, and the
+B03.4 production evidence remain pending.
+
+The program-owned bootstrap projection remains blocked by the C01 governance
+contract. No `bootstrap` command or substitute authority contract is claimed
+by the current implementation. Policy and persistence inspection likewise
+remain outside the implemented Tool surface.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only the Tool track.
@@ -76,11 +82,10 @@ B03 does not contact the Hub, mutate resource state, execute validation, conduct
 workflows, select models, grant instruction authority, or publish another
 Liknon product.
 
-## Candidate Command Families
+## Command Families
 
-B03.0 must approve the final grammar. The following operations are design
-inputs to evaluate, merge, rename, split, or reject rather than an approved
-command list:
+The store-backed command grammar is approved and implemented. `bootstrap`
+remains a deferred design input whose exact contract belongs to C01:
 
 | Operation | Responsibility |
 | --- | --- |
@@ -207,39 +212,39 @@ couple later Tool publication to Manager.
 
 ## Global Acceptance Criteria
 
-- [ ] `liknon-tool` and `likt` are equivalent entry points.
-- [ ] Tool works without network access and without Manager or Validation CLI
+- [x] `liknon-tool` and `likt` are equivalent entry points.
+- [x] Tool works without network access and without Manager or Validation CLI
       installed.
-- [ ] Tool consumes both Manager-produced and contract-valid fixture stores.
+- [x] Tool consumes both Manager-produced and contract-valid fixture stores.
 - [ ] `bootstrap` works without a workspace or resource store and returns the
       canonical contract bytes, version, and SHA-256 digest.
-- [ ] No Tool artifact embeds authored Hub resource payloads.
+- [x] No Tool artifact embeds authored Hub resource payloads.
 - [ ] The crates.io package resolves only published supporting crates.
-- [ ] Catalog and search do not load unrelated payload content.
-- [ ] Exact retrieval rejects modified, missing, unsafe, incompatible, and
+- [x] Catalog and search do not load unrelated payload content.
+- [x] Exact retrieval rejects modified, missing, unsafe, incompatible, and
       unsupported locked state.
-- [ ] Human and JSON output expose identity, version, origin, trust, integrity,
+- [x] Human and JSON output expose identity, version, origin, trust, integrity,
       and revocation state.
-- [ ] Tool uses `liknon-cli-ui` for palettes, presentation, help, `NO_COLOR`,
+- [x] Tool uses `liknon-cli-ui` for palettes, presentation, help, `NO_COLOR`,
       and neutral terminal styling without importing another product's domain
       renderer.
-- [ ] Tool contains no duplicate palette table, presentation profile, generic
+- [x] Tool contains no duplicate palette table, presentation profile, generic
       help renderer, or terminal-color policy.
-- [ ] Tool never executes or activates returned instructions.
+- [x] Tool never executes or activates returned instructions.
 - [ ] Tool presents the bootstrap contract as program authority below superior
       system, host, repository, and human instructions, while every installed
       resource remains untrusted content.
-- [ ] A selected knowledge item, skill, collection, and dependency closure are
+- [x] A selected knowledge item, skill, collection, and dependency closure are
       returned deterministically.
-- [ ] Project-controlled conformance and external workflow graphs, profiles,
+- [x] Project-controlled conformance and external workflow graphs, profiles,
       and dependency closures are returned through identical commands and
       schemas; later official workflows require no Tool branch.
-- [ ] Tool contains no routing branch for an official workflow, skill, tool,
+- [x] Tool contains no routing branch for an official workflow, skill, tool,
       node, action, transition, or agent-profile ID.
-- [ ] Resource-only updates require no Tool release.
+- [x] Resource-only updates require no Tool release.
 - [ ] Bootstrap-contract changes require an explicit compatible Tool release;
       ordinary resource changes do not.
-- [ ] Tool uses the shared release mechanisms without inheriting Validation,
+- [x] Tool uses the shared release mechanisms without inheriting Validation,
       Manager, or suite identities, candidates, namespaces, or credentials.
 - [ ] Every Tool source and native channel resolves to one package-derived
       version, exact signed tag, full commit, and immutable provenance record.
