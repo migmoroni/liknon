@@ -1,51 +1,69 @@
-//! Identity-only shell for the future Liknon resource manager.
+//! Authenticated acquisition and transactional state management for Liknon resources.
 
-use clap::Parser;
+mod cli;
+mod error;
+mod hub;
+mod operations;
+mod output;
+mod resolver;
+mod store;
+mod workspace;
+
 use std::process::ExitCode;
 
-#[derive(Debug, Parser)]
-#[command(
-    name = "liknon-manager",
-    version,
-    about = "Manages installed Liknon resources (commands are not available yet)",
-    arg_required_else_help = true
-)]
-struct Cli {}
+use clap::Parser as _;
 
-/// Parses the identity-only Manager shell and returns success.
+/// Parses process arguments, executes one Manager operation, and returns its stable exit status.
 pub fn run_cli() -> ExitCode {
-    let _ = Cli::parse();
-    ExitCode::SUCCESS
+    run(cli::Cli::parse())
+}
+
+fn run(cli: cli::Cli) -> ExitCode {
+    let format = cli.format();
+    match operations::execute(cli) {
+        Ok(report) => {
+            if let Err(error) = output::write_report(&report, format) {
+                eprintln!("error: {error}");
+                return ExitCode::from(error.exit_code());
+            }
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            output::write_error(&error, format);
+            ExitCode::from(error.exit_code())
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Cli;
+    use super::cli::Cli;
     use clap::{error::ErrorKind, Parser};
 
     #[test]
-    fn shell_exposes_only_identity_help_and_version() {
+    fn exposes_complete_manager_grammar() {
         assert_eq!(
             Cli::try_parse_from(["liknon-manager"]).unwrap_err().kind(),
             ErrorKind::DisplayHelpOnMissingArgumentOrSubcommand
         );
-        assert_eq!(
-            Cli::try_parse_from(["liknon-manager", "--help"])
-                .unwrap_err()
-                .kind(),
-            ErrorKind::DisplayHelp
-        );
-        assert_eq!(
-            Cli::try_parse_from(["liknon-manager", "--version"])
-                .unwrap_err()
-                .kind(),
-            ErrorKind::DisplayVersion
-        );
-        assert_eq!(
-            Cli::try_parse_from(["liknon-manager", "install"])
-                .unwrap_err()
-                .kind(),
-            ErrorKind::UnknownArgument
-        );
+        for command in [
+            "init",
+            "search",
+            "info",
+            "install",
+            "update",
+            "remove",
+            "list",
+            "verify",
+            "materialize",
+            "schema",
+        ] {
+            let result = Cli::try_parse_from(["liknon-manager", command, "--help"]);
+            assert_eq!(
+                result.unwrap_err().kind(),
+                ErrorKind::DisplayHelp,
+                "{command}"
+            );
+        }
     }
 }

@@ -21,15 +21,15 @@ The repository is a Cargo workspace with explicit application boundaries:
 | Package | Executables | Current responsibility |
 | --- | --- | --- |
 | `liknon-validator` | `liknon-validator`, `likv` | Complete validation CLI |
-| `liknon-manager` | `liknon-manager`, `likm` | Identity-only shell; resource commands are planned |
+| `liknon-manager` | `liknon-manager`, `likm` | Authenticated resource discovery, resolution, installation, verification, and materialization |
 | `liknon-tool` | `liknon-tool`, `likt` | Identity-only shell; offline resource commands are planned |
 | `liknon-cli` | `liknon`, `likx`, and the six capability executables | Aggregate package and launcher shell |
 
 The `liknon` and `likx` launcher targets currently expose their identity and
 capability namespaces, but do not dispatch them yet. Invoke `liknon-validator`
-or `likv` for validation. Manager, Tool, Hub, resource, policy, persistence,
-and workflow behavior belongs to later plans and is not advertised as
-available.
+or `likv` for validation, and `liknon-manager` or `likm` for resource-state
+administration. Tool, unified routing, and governed workflow execution remain
+separate incomplete tracks.
 
 The `liknon-validator` package owns both the terminal-independent validation
 modules and their CLI adaptation. This internal Rust surface is not a promised
@@ -45,6 +45,9 @@ git clone https://github.com/migmoroni/liknon.git
 cd liknon
 cargo install --path apps/liknon-validator --locked --force
 liknon-validator --version
+
+cargo install --path apps/liknon-manager --locked --force
+liknon-manager --version
 ```
 
 Rust 1.87 or newer is required. Cargo normally writes the executables to
@@ -54,17 +57,44 @@ modifying the source.
 
 ## Release Distribution
 
-The repository contains the B01 release foundation for three Validation CLI
-channels: signed GitHub source tags, the `liknon-validator` crates.io source
-package, and authenticated target-native archives on a project-controlled
-Cloudflare domain. The registry and native channels are not advertised as live
-until their first protected release completes; local source installation above
-remains the current development path.
+The repository contains product-isolated release profiles for Validation and
+Manager across signed GitHub source tags, crates.io source packages, and
+authenticated target-native archives on a project-controlled Cloudflare
+domain. Registry and native channels are not advertised as live until their
+first protected releases complete; local source installation above remains the
+current development path.
 
 The complete installation, update, uninstall, platform, and trust contract is
 documented in
 [`docs/distribution/validation-cli.md`](docs/distribution/validation-cli.md).
 GitHub Releases intentionally carry metadata only and no Liknon binaries.
+Manager distribution is documented in
+[`docs/distribution/manager-cli.md`](docs/distribution/manager-cli.md).
+
+## Resource Manager
+
+Manager creates and maintains the consumer-owned `.liknon/resources/` store.
+It authenticates signed Hub catalogs against a separately obtained trust root,
+resolves semantic-version dependency graphs, retains exact catalog evidence for
+offline verification, and applies resource-store and materialization changes
+as one recoverable transaction.
+
+```sh
+liknon-manager init
+liknon-manager search <query> \
+  --hub <https-origin> \
+  --trust-root <verified-trust-root.json>
+liknon-manager install 'knowledge:<namespace>/<name>@^1' \
+  --hub <https-origin> \
+  --trust-root <verified-trust-root.json> \
+  --dry-run
+liknon-manager verify --offline
+```
+
+Manager never executes resource content or activates workflows. No production
+Hub origin is advertised before protected publication and public readback have
+passed. The protocol, Hub layout, trust model, and complete operating contract
+start at [`docs/resources/README.md`](docs/resources/README.md).
 
 ## Quick Start
 
@@ -301,9 +331,9 @@ The committed root `Cargo.lock` is the reproducible dependency graph. The root
 workspace owns formatting, lint, tests, doctests, and package-boundary checks;
 nested fixtures remain excluded workspace inputs.
 
-Release maintainers use the reviewed product profile under
-[`distribution/cli/validation`](distribution/cli/validation) and the
-[Validation release runbook](docs/distribution/releasing-validation-cli.md).
+Release maintainers use the reviewed product profiles under
+[`distribution/cli`](distribution/cli) and the Validation and Manager release
+runbooks under [`docs/distribution`](docs/distribution).
 Generated release candidates remain below `target/distribution/`.
 
 Liknon is licensed under the [MIT License](LICENSE).

@@ -1,0 +1,106 @@
+{
+  "$defs": {
+    "SignatureAlgorithm": {
+      "description": "Signature algorithm supported by the version 1 trust contract.",
+      "oneOf": [
+        {
+          "const": "ed25519",
+          "description": "Strict Ed25519 verification.",
+          "type": "string"
+        }
+      ]
+    },
+    "TrustKey": {
+      "additionalProperties": false,
+      "description": "One public key in a separately distributed trust root.",
+      "properties": {
+        "algorithm": {
+          "$ref": "#/$defs/SignatureAlgorithm",
+          "description": "Cryptographic algorithm."
+        },
+        "keyId": {
+          "description": "Stable key identifier.",
+          "type": "string"
+        },
+        "notAfterUnix": {
+          "description": "Last authenticated Unix second when signatures are accepted.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "notBeforeUnix": {
+          "description": "First authenticated Unix second when signatures are accepted.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "publicKey": {
+          "description": "Standard Base64-encoded 32-byte Ed25519 public key.",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TrustKeyStatus",
+          "description": "Key lifecycle state."
+        }
+      },
+      "required": [
+        "keyId",
+        "algorithm",
+        "publicKey",
+        "notBeforeUnix",
+        "notAfterUnix",
+        "status"
+      ],
+      "type": "object"
+    },
+    "TrustKeyStatus": {
+      "description": "Lifecycle state of one trusted metadata-signing key.",
+      "oneOf": [
+        {
+          "const": "active",
+          "description": "May sign current metadata.",
+          "type": "string"
+        },
+        {
+          "const": "retired",
+          "description": "May verify historical metadata signed during its validity interval.",
+          "type": "string"
+        },
+        {
+          "const": "revoked",
+          "description": "Must never authenticate metadata.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Independently established Hub metadata trust root.",
+  "properties": {
+    "authority": {
+      "description": "Unique Hub authority name.",
+      "type": "string"
+    },
+    "keys": {
+      "description": "Trusted keys sorted by key ID.",
+      "items": {
+        "$ref": "#/$defs/TrustKey"
+      },
+      "type": "array"
+    },
+    "schemaVersion": {
+      "description": "Exact trust-root schema version.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "authority",
+    "keys"
+  ],
+  "title": "TrustRoot",
+  "type": "object"
+}

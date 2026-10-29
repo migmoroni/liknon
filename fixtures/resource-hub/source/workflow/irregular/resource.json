@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "kind": "workflow",
+    "namespace": "official",
+    "name": "irregular-review"
+  },
+  "version": "1.0.0",
+  "title": "Irregular Review Workflow Fixture",
+  "summary": "Exercises a nonnumeric, branching graph through generic resource references.",
+  "authors": ["Liknon fixture authors"],
+  "license": "MIT",
+  "source": {
+    "repository": "https://github.com/migmoroni/liknon",
+    "revision": "fixture-workflow-1.0.0",
+    "path": "fixtures/resource-hub/source/workflow/irregular"
+  },
+  "trust": {
+    "class": "official",
+    "publisher": "Liknon fixture publisher",
+    "review": "reviewed",
+    "evidence": "fixture-review:workflow-1.0.0"
+  },
+  "compatibility": {
+    "resourceSchema": "^1",
+    "manager": ">=0.5, <0.6",
+    "tool": ">=0.5, <0.6"
+  },
+  "dependencies": [
+    {
+      "identity": {
+        "kind": "skill",
+        "namespace": "official",
+        "name": "review"
+      },
+      "requirement": "^1"
+    },
+    {
+      "identity": {
+        "kind": "agent-profile",
+        "namespace": "official",
+        "name": "reviewer"
+      },
+      "requirement": "^1"
+    },
+    {
+      "identity": {
+        "kind": "tool",
+        "namespace": "official",
+        "name": "validation"
+      },
+      "requirement": "^1"
+    }
+  ],
+  "capabilities": ["workflow.branching", "workflow.validation"],
+  "payloads": [
+    {
+      "path": "workflow.md",
+      "source": "workflow.md",
+      "mediaType": "text/markdown"
+    }
+  ],
+  "workflow": {
+    "entryNodes": ["seed"],
+    "terminalNodes": ["publish", "stop"],
+    "nodes": [
+      {
+        "id": "seed",
+        "action": "scope",
+        "agentProfiles": [
+          {
+            "kind": "agent-profile",
+            "namespace": "official",
+            "name": "reviewer"
+          }
+        ]
+      },
+      {
+        "id": "inspect",
+        "action": "inspect",
+        "agentProfiles": [
+          {
+            "kind": "agent-profile",
+            "namespace": "official",
+            "name": "reviewer"
+          }
+        ],
+        "toolOperations": ["validation.inspect"],
+        "effects": ["workspace.read"],
+        "requiredCapabilities": ["validation.inspect"]
+      },
+      {
+        "id": "publish",
+        "action": "report"
+      },
+      {
+        "id": "stop",
+        "action": "stop"
+      }
+    ],
+    "transitions": [
+      {
+        "id": "begin-inspection",
+        "from": "seed",
+        "to": "inspect",
+        "continuationEligible": true
+      },
+      {
+        "id": "evidence-ready",
+        "from": "inspect",
+        "to": "publish",
+        "precondition": "evidence-available"
+      },
+      {
+        "id": "evidence-blocked",
+        "from": "inspect",
+        "to": "stop",
+        "precondition": "evidence-unavailable"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "review-report",
+        "node": "publish",
+        "action": "report",
+        "schema": "liknon.fixture.review-report.v1",
+        "storage": ".liknon/persistence/reports/review.json",
+        "sensitivity": "workspace",
+        "maxBytes": 1048576,
+        "repositoryTreatment": "local-ignored"
+      }
+    ]
+  }
+}

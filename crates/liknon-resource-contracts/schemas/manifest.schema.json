@@ -1,0 +1,166 @@
+{
+  "$defs": {
+    "RequestedSource": {
+      "description": "Origin selected for one desired resource.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "description": "Resolve through an authenticated Hub catalog.",
+          "properties": {
+            "kind": {
+              "const": "hub",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Resolve from an explicitly supplied local resource directory.",
+          "properties": {
+            "kind": {
+              "const": "local",
+              "type": "string"
+            },
+            "path": {
+              "description": "Consumer-relative or absolute source path supplied explicitly.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "path"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "ResourceIdentity": {
+      "additionalProperties": false,
+      "description": "Kind, publisher namespace, and stable name of one resource.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ResourceKind",
+          "description": "Singular protocol kind."
+        },
+        "name": {
+          "description": "Stable resource name inside the namespace and kind.",
+          "type": "string"
+        },
+        "namespace": {
+          "description": "Publisher-controlled namespace.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "namespace",
+        "name"
+      ],
+      "type": "object"
+    },
+    "ResourceKind": {
+      "description": "Stable singular resource kinds understood by the version 1 protocol.",
+      "oneOf": [
+        {
+          "const": "knowledge",
+          "description": "Explanatory or reference knowledge.",
+          "type": "string"
+        },
+        {
+          "const": "skill",
+          "description": "Reusable AI operational guidance.",
+          "type": "string"
+        },
+        {
+          "const": "workflow",
+          "description": "A generic graph of externally conducted actions.",
+          "type": "string"
+        },
+        {
+          "const": "agent-profile",
+          "description": "An AI role, posture, scope, and constraint declaration.",
+          "type": "string"
+        },
+        {
+          "const": "tool",
+          "description": "A descriptor for externally supplied application capabilities.",
+          "type": "string"
+        },
+        {
+          "const": "prompt",
+          "description": "Reusable prompt content.",
+          "type": "string"
+        },
+        {
+          "const": "guide",
+          "description": "Human- or agent-oriented procedural guidance.",
+          "type": "string"
+        },
+        {
+          "const": "template",
+          "description": "A reusable authored file template.",
+          "type": "string"
+        },
+        {
+          "const": "collection",
+          "description": "A dependency-only grouping of resources.",
+          "type": "string"
+        }
+      ]
+    },
+    "ResourceRequest": {
+      "additionalProperties": false,
+      "description": "Human-maintained desired state for one resource identity.",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/ResourceIdentity",
+          "description": "Stable requested identity."
+        },
+        "requirement": {
+          "description": "Accepted semantic versions.",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/RequestedSource",
+          "default": {
+            "kind": "hub"
+          },
+          "description": "Explicit source selection."
+        }
+      },
+      "required": [
+        "identity",
+        "requirement"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Human-readable desired resource state.",
+  "properties": {
+    "resources": {
+      "description": "Requested roots sorted by identity.",
+      "items": {
+        "$ref": "#/$defs/ResourceRequest"
+      },
+      "type": "array"
+    },
+    "schemaVersion": {
+      "description": "Exact desired-state schema version.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "resources"
+  ],
+  "title": "ResourceManifest",
+  "type": "object"
+}

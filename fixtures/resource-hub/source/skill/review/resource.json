@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "kind": "skill",
+    "namespace": "official",
+    "name": "review"
+  },
+  "version": "1.0.0",
+  "title": "Review Skill Fixture",
+  "summary": "A neutral multi-file operational skill used to exercise dependency resolution.",
+  "authors": ["Liknon fixture authors"],
+  "license": "MIT",
+  "source": {
+    "repository": "https://github.com/migmoroni/liknon",
+    "revision": "fixture-review-1.0.0",
+    "path": "fixtures/resource-hub/source/skill/review"
+  },
+  "trust": {
+    "class": "official",
+    "publisher": "Liknon fixture publisher",
+    "review": "reviewed",
+    "evidence": "fixture-review:review-1.0.0"
+  },
+  "compatibility": {
+    "resourceSchema": "^1",
+    "manager": ">=0.5, <0.6"
+  },
+  "dependencies": [
+    {
+      "identity": {
+        "kind": "knowledge",
+        "namespace": "official",
+        "name": "evidence"
+      },
+      "requirement": "^1"
+    }
+  ],
+  "payloads": [
+    {
+      "path": "SKILL.md",
+      "source": "SKILL.md",
+      "mediaType": "text/markdown"
+    },
+    {
+      "path": "templates/checklist.md",
+      "source": "checklist.md",
+      "mediaType": "text/markdown"
+    }
+  ]
+}

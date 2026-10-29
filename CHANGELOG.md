@@ -10,10 +10,11 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - Cargo workspace boundaries for the Validation CLI and its engine modules,
-  Manager shell, Tool shell, aggregate launcher package, and private knowledge
+  Manager application, Tool shell, aggregate launcher package, and private knowledge
   maintenance tool.
-- Direct validation executables `liknon-validator` and `likv`, identity-only
-  Manager and Tool executables, and launcher-only `liknon` and `likx` shells.
+- Direct validation executables `liknon-validator` and `likv`, authenticated
+  resource-management executables `liknon-manager` and `likm`, identity-only
+  Tool executables, and launcher-only `liknon` and `likx` shells.
 - Product-neutral native CLI release contracts, deterministic manifests,
   authenticated installers, immutable Cloudflare publication and recovery
   scripts, and reusable credential-free workflows, with Validation as the
@@ -21,6 +22,16 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Independent `liknon-validator` source packaging for crates.io and exact
   release provenance derived from Cargo metadata, signed tag, commit, and
   committed lockfile.
+- Public resource, catalog, trust, manifest, and lock contracts with generated
+  JSON Schemas; deterministic signed static-Hub assembly; and neutral resource
+  fixtures covering collections, dependencies, workflows, community content,
+  and revocation.
+- Deterministic Manager resolution, authenticated online and offline
+  verification, explicit local sources, content-addressed caching, complete
+  dry-run planning, transactional installation and materialization, concurrent
+  mutation exclusion, and interrupted-operation recovery.
+- An isolated Manager distribution profile and release preparation contract
+  built on the shared product-neutral CLI distribution foundation.
 
 ### Changed
 

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "kind": "collection",
+    "namespace": "official",
+    "name": "starter"
+  },
+  "version": "1.0.0",
+  "title": "Starter Collection Fixture",
+  "summary": "Selects a focused graph without copying member payloads.",
+  "authors": ["Liknon fixture authors"],
+  "license": "MIT",
+  "source": {
+    "repository": "https://github.com/migmoroni/liknon",
+    "revision": "fixture-collection-1.0.0",
+    "path": "fixtures/resource-hub/source/collection/starter"
+  },
+  "trust": {
+    "class": "official",
+    "publisher": "Liknon fixture publisher",
+    "review": "reviewed",
+    "evidence": "fixture-review:collection-1.0.0"
+  },
+  "compatibility": {
+    "resourceSchema": "^1",
+    "manager": ">=0.5, <0.6"
+  },
+  "collectionMembers": [
+    {
+      "identity": {
+        "kind": "knowledge",
+        "namespace": "official",
+        "name": "evidence"
+      },
+      "requirement": "^1"
+    },
+    {
+      "identity": {
+        "kind": "skill",
+        "namespace": "official",
+        "name": "review"
+      },
+      "requirement": "^1"
+    },
+    {
+      "identity": {
+        "kind": "tool",
+        "namespace": "official",
+        "name": "validation"
+      },
+      "requirement": "^1"
+    }
+  ]
+}

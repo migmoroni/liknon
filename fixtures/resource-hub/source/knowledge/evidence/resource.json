@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "kind": "knowledge",
+    "namespace": "official",
+    "name": "evidence"
+  },
+  "version": "1.0.0",
+  "title": "Validation Evidence",
+  "summary": "Neutral guidance for evaluating the quality of validation evidence.",
+  "authors": ["Liknon fixture authors"],
+  "license": "MIT",
+  "source": {
+    "repository": "https://github.com/migmoroni/liknon",
+    "revision": "fixture-evidence-1.0.0",
+    "path": "fixtures/resource-hub/source/knowledge/evidence"
+  },
+  "trust": {
+    "class": "official",
+    "publisher": "Liknon fixture publisher",
+    "review": "reviewed",
+    "evidence": "fixture-review:evidence-1.0.0"
+  },
+  "compatibility": {
+    "resourceSchema": "^1",
+    "manager": ">=0.5, <0.6"
+  },
+  "payloads": [
+    {
+      "path": "docs/evidence.md",
+      "source": "evidence.md",
+      "mediaType": "text/markdown"
+    }
+  ]
+}

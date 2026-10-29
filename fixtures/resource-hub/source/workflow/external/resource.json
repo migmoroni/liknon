@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "kind": "workflow",
+    "namespace": "example-labs",
+    "name": "external-triage"
+  },
+  "version": "1.0.0",
+  "title": "External Triage Workflow Fixture",
+  "summary": "A community workflow with an unrelated graph and no namespace privilege.",
+  "authors": ["Example Labs fixture"],
+  "license": "MIT",
+  "source": {
+    "repository": "https://example.invalid/example-labs/workflows",
+    "revision": "fixture-external-1.0.0",
+    "path": "external-triage"
+  },
+  "trust": {
+    "class": "community",
+    "publisher": "Example Labs fixture",
+    "review": "unreviewed"
+  },
+  "compatibility": {
+    "resourceSchema": "^1",
+    "manager": ">=0.5, <0.6"
+  },
+  "payloads": [
+    {
+      "path": "workflow.md",
+      "source": "workflow.md",
+      "mediaType": "text/markdown"
+    }
+  ],
+  "workflow": {
+    "entryNodes": ["arrive"],
+    "terminalNodes": ["archive"],
+    "nodes": [
+      {
+        "id": "arrive",
+        "action": "classify"
+      },
+      {
+        "id": "archive",
+        "action": "archive"
+      }
+    ],
+    "transitions": [
+      {
+        "id": "classified",
+        "from": "arrive",
+        "to": "archive"
+      }
+    ]
+  }
+}

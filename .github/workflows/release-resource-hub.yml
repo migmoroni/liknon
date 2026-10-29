@@ -1,0 +1,296 @@
+name: Release Resource Hub Snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Signed annotated liknon-hub-v<SNAPSHOT> source tag
+        required: true
+        type: string
+      source_path:
+        description: Reviewed repository-relative authored resource directory
+        required: true
+        type: string
+      sequence:
+        description: Positive monotonic catalog sequence
+        required: true
+        type: string
+      published_at:
+        description: Reproducible publication Unix second
+        required: true
+        type: string
+      expires_at:
+        description: Authenticated expiry Unix second
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-resource-hub-${{ inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RELEASE_TOOLCHAIN: 1.87.0
+  TRUST_ROOT: distribution/resource-hub/trust-root.json
+
+jobs:
+  contract:
+    name: Validate exact Hub source
+    runs-on: ubuntu-24.04
+    outputs:
+      snapshot: ${{ steps.identity.outputs.snapshot }}
+    steps:
+      - name: Checkout exact signed source tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Validate source identity and boundaries
+        id: identity
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          SOURCE_PATH: ${{ inputs.source_path }}
+        run: |
+          git cat-file -e "$RELEASE_TAG^{tag}"
+          git verify-tag "$RELEASE_TAG"
+          case "$RELEASE_TAG" in
+            liknon-hub-v*) snapshot=${RELEASE_TAG#liknon-hub-v} ;;
+            *) printf '%s\n' "Hub tag must use liknon-hub-v<SNAPSHOT>" >&2; exit 1 ;;
+          esac
+          [ -n "$snapshot" ]
+          case "$SOURCE_PATH" in
+            ""|/*|..|../*|*/../*|*/..) printf '%s\n' "unsafe source_path" >&2; exit 1 ;;
+          esac
+          [ -d "$SOURCE_PATH" ]
+          [ -f "$TRUST_ROOT" ]
+          [ "${{ inputs.sequence }}" -gt 0 ]
+          [ "${{ inputs.published_at }}" -lt "${{ inputs.expires_at }}" ]
+          printf 'snapshot=%s\n' "$snapshot" >> "$GITHUB_OUTPUT"
+      - name: Install exact release toolchain
+        run: rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
+      - name: Prove Hub contracts and neutral assembly
+        run: |
+          cargo "+$RELEASE_TOOLCHAIN" test -p liknon-resource-contracts --all-targets --locked
+          cargo "+$RELEASE_TOOLCHAIN" test -p liknon-resource-hub-maintenance --all-targets --locked
+      - name: Retain source inventory
+        shell: bash
+        env:
+          SOURCE_PATH: ${{ inputs.source_path }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/hub-contract"
+          find "$SOURCE_PATH" -type f -print0 | sort -z | \
+            xargs -0 sha256sum > "$RUNNER_TEMP/hub-contract/source.sha256"
+          sha256sum "$TRUST_ROOT" > "$RUNNER_TEMP/hub-contract/trust-root.sha256"
+          git rev-parse HEAD > "$RUNNER_TEMP/hub-contract/commit.txt"
+      - name: Upload source contract
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: resource-hub-source-contract
+          path: ${{ runner.temp }}/hub-contract
+          if-no-files-found: error
+          retention-days: 90
+
+  sign:
+    name: Assemble and sign immutable candidate
+    needs: contract
+    runs-on: ubuntu-24.04
+    environment: sign-liknon-hub
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact signed source tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install exact release toolchain
+        run: rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
+      - name: Assemble and verify signed Hub candidate
+        shell: bash
+        env:
+          HUB_SIGNING_SEED_BASE64: ${{ secrets.HUB_SIGNING_SEED_BASE64 }}
+          HUB_SIGNING_KEY_ID: ${{ vars.HUB_SIGNING_KEY_ID }}
+          SOURCE_PATH: ${{ inputs.source_path }}
+          SNAPSHOT: ${{ needs.contract.outputs.snapshot }}
+        run: |
+          [ -n "$HUB_SIGNING_SEED_BASE64" ]
+          [ -n "$HUB_SIGNING_KEY_ID" ]
+          umask 077
+          printf '%s' "$HUB_SIGNING_SEED_BASE64" > "$RUNNER_TEMP/hub-seed.txt"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked \
+            -p liknon-resource-hub-maintenance -- assemble \
+            --source "$SOURCE_PATH" \
+            --output "$RUNNER_TEMP/hub" \
+            --private-key "$RUNNER_TEMP/hub-seed.txt" \
+            --key-id "$HUB_SIGNING_KEY_ID" \
+            --snapshot "$SNAPSHOT" \
+            --sequence "${{ inputs.sequence }}" \
+            --published-at "${{ inputs.published_at }}" \
+            --expires-at "${{ inputs.expires_at }}"
+          rm -f "$RUNNER_TEMP/hub-seed.txt"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked \
+            -p liknon-resource-hub-maintenance -- verify \
+            --hub "$RUNNER_TEMP/hub" \
+            --trust-root "$TRUST_ROOT" \
+            --now "${{ inputs.published_at }}"
+          find "$RUNNER_TEMP/hub" -type f -print0 | sort -z | \
+            xargs -0 sha256sum > "$RUNNER_TEMP/hub-files.sha256"
+      - name: Upload signed Hub candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: resource-hub-signed-candidate
+          path: |
+            ${{ runner.temp }}/hub
+            ${{ runner.temp }}/hub-files.sha256
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+  approval:
+    name: Human Hub publication approval
+    needs: sign
+    runs-on: ubuntu-24.04
+    environment: hub-release-approval
+    steps:
+      - run: printf '%s\n' "Approved immutable Hub candidate ${{ inputs.tag }}"
+
+  publish:
+    name: Publish, read back, and advance Hub pointer
+    needs: [contract, approval]
+    runs-on: ubuntu-24.04
+    environment: publish-liknon-hub
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact signed source tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+      - name: Download signed Hub candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: resource-hub-signed-candidate
+          path: ${{ runner.temp }}/candidate
+      - name: Install exact release toolchain and pinned Cloudflare client
+        env:
+          AWS_CLI_VERSION: ${{ vars.AWS_CLI_VERSION }}
+          AWS_CLI_ZIP_SHA256: ${{ vars.AWS_CLI_ZIP_SHA256 }}
+        run: |
+          rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
+          distribution/cli/common/scripts/install-aws-cli.sh \
+            "$AWS_CLI_VERSION" "$AWS_CLI_ZIP_SHA256" "$RUNNER_TEMP/aws"
+          printf '%s\n' "$RUNNER_TEMP/aws/bin" >> "$GITHUB_PATH"
+      - name: Publish immutable bytes and recover stable pointer on failure
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_ENDPOINT_URL: ${{ vars.R2_ENDPOINT_URL }}
+          R2_HUB_PREFIX: ${{ vars.R2_HUB_PREFIX }}
+          LIKNON_HUB_BASE_URL: ${{ vars.LIKNON_HUB_BASE_URL }}
+        run: |
+          set -eu
+          hub="$RUNNER_TEMP/candidate/hub"
+          prefix=${R2_HUB_PREFIX#/}
+          prefix=${prefix%/}
+          base=${LIKNON_HUB_BASE_URL%/}
+          [ -n "$R2_BUCKET" ] && [ -n "$R2_ENDPOINT_URL" ] && [ -n "$base" ]
+          remote() { printf 's3://%s/%s/%s' "$R2_BUCKET" "$prefix" "$1"; }
+          readback() {
+            relative=$1
+            output=$2
+            curl --fail --silent --show-error --location \
+              --proto '=https' --proto-redir '=https' --tlsv1.2 \
+              --output "$output" "$base/$relative"
+          }
+          publish_immutable() {
+            relative=$1
+            local_file="$hub/$relative"
+            if aws s3api head-object --bucket "$R2_BUCKET" --key "$prefix/$relative" \
+              --endpoint-url "$R2_ENDPOINT_URL" > /dev/null 2>&1; then
+              aws s3 cp "$(remote "$relative")" "$RUNNER_TEMP/existing" \
+                --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors
+              cmp "$local_file" "$RUNNER_TEMP/existing" \
+                || { printf '%s\n' "immutable Hub object differs: $relative" >&2; exit 1; }
+            else
+              aws s3 cp "$local_file" "$(remote "$relative")" \
+                --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors \
+                --cache-control 'public,max-age=31536000,immutable'
+            fi
+            readback "$relative" "$RUNNER_TEMP/readback"
+            cmp "$local_file" "$RUNNER_TEMP/readback"
+          }
+          while IFS= read -r -d '' file; do
+            relative=${file#"$hub/"}
+            case "$relative" in
+              stable.json|stable.json.sig.json) ;;
+              *) publish_immutable "$relative" ;;
+            esac
+          done < <(find "$hub" -type f -print0 | sort -z)
+          old_pointer=false
+          old_signature=false
+          if aws s3 cp "$(remote stable.json)" "$RUNNER_TEMP/old-stable.json" \
+            --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors 2>/dev/null; then old_pointer=true; fi
+          if aws s3 cp "$(remote stable.json.sig.json)" "$RUNNER_TEMP/old-stable.json.sig.json" \
+            --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors 2>/dev/null; then old_signature=true; fi
+          restore_pointer() {
+            if [ "$old_signature" = true ]; then
+              aws s3 cp "$RUNNER_TEMP/old-stable.json.sig.json" "$(remote stable.json.sig.json)" \
+                --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors --cache-control 'no-cache,max-age=0'
+            else
+              aws s3 rm "$(remote stable.json.sig.json)" --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors || true
+            fi
+            if [ "$old_pointer" = true ]; then
+              aws s3 cp "$RUNNER_TEMP/old-stable.json" "$(remote stable.json)" \
+                --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors --cache-control 'no-cache,max-age=0'
+            else
+              aws s3 rm "$(remote stable.json)" --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors || true
+            fi
+          }
+          trap restore_pointer EXIT
+          aws s3 cp "$hub/stable.json.sig.json" "$(remote stable.json.sig.json)" \
+            --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors --cache-control 'no-cache,max-age=0'
+          aws s3 cp "$hub/stable.json" "$(remote stable.json)" \
+            --endpoint-url "$R2_ENDPOINT_URL" --only-show-errors --cache-control 'no-cache,max-age=0'
+          readback stable.json "$RUNNER_TEMP/public-stable.json"
+          readback stable.json.sig.json "$RUNNER_TEMP/public-stable.json.sig.json"
+          cmp "$hub/stable.json" "$RUNNER_TEMP/public-stable.json"
+          cmp "$hub/stable.json.sig.json" "$RUNNER_TEMP/public-stable.json.sig.json"
+          public_hub="$RUNNER_TEMP/public-hub"
+          mkdir -p "$public_hub"
+          cp "$RUNNER_TEMP/public-stable.json" "$public_hub/stable.json"
+          cp "$RUNNER_TEMP/public-stable.json.sig.json" "$public_hub/stable.json.sig.json"
+          while IFS= read -r -d '' file; do
+            relative=${file#"$hub/"}
+            case "$relative" in
+              stable.json|stable.json.sig.json) continue ;;
+            esac
+            mkdir -p "$public_hub/$(dirname "$relative")"
+            readback "$relative" "$public_hub/$relative"
+          done < <(find "$hub" -type f -print0 | sort -z)
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked \
+            -p liknon-resource-hub-maintenance -- verify \
+            --hub "$public_hub" \
+            --trust-root "$TRUST_ROOT" \
+            --now "${{ inputs.published_at }}"
+          trap - EXIT
+      - name: Retain publication evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: resource-hub-publication-evidence
+          path: |
+            ${{ runner.temp }}/candidate/hub-files.sha256
+            ${{ runner.temp }}/public-stable.json
+            ${{ runner.temp }}/public-stable.json.sig.json
+          if-no-files-found: warn
+          retention-days: 90

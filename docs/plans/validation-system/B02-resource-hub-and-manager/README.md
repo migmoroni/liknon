@@ -2,10 +2,11 @@
 
 ## Status And Relationship To Other Tracks
 
-`Decision gate` at B02.0. The product role and distribution-channel categories
-are approved. Command grammar, public resource schemas, Hub behavior, trust,
-and recovery are not approved until B02.0 exits. B02.1-B02.5 are
-`Provisional`.
+The repository-side B02 implementation is in place. B02.0-B02.4 are exercised
+against deterministic local Hub and workspace fixtures. Product acceptance
+still requires the human-owned external setup, exact signed release inputs,
+retained native candidates, and public-channel readback described by B02.5 and
+coordinated for the first release through B06.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only the Hub, resource protocol,

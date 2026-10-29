@@ -1,0 +1,29 @@
+[package]
+name = "liknon-resource-hub-maintenance"
+version = "0.5.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Private deterministic assembler for Liknon Resource Hub snapshots"
+
+[dependencies]
+base64.workspace = true
+clap.workspace = true
+liknon-resource-contracts = { workspace = true, features = ["signing"] }
+semver.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[[bin]]
+name = "liknon-resource-hub-maintenance"
+path = "src/main.rs"
+doc = false

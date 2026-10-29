@@ -39,6 +39,7 @@ by a selected publication job.
 | Purpose | Isolated authority |
 | --- | --- |
 | Manager release workflow | `.github/workflows/release-manager.yml` |
+| Resource-contract source package | `.github/workflows/release-resource-contracts.yml` |
 | Manager and required supporting-crate publication | `publish-crates-manager` |
 | Manager GitHub metadata release | `publish-github-manager` |
 | Manager native artifacts | `publish-cloudflare-manager` |

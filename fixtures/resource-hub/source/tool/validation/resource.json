@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "kind": "tool",
+    "namespace": "official",
+    "name": "validation"
+  },
+  "version": "1.0.0",
+  "title": "Validation Tool Descriptor Fixture",
+  "summary": "Describes neutral validation capabilities without embedding an executable.",
+  "authors": ["Liknon fixture authors"],
+  "license": "MIT",
+  "source": {
+    "repository": "https://github.com/migmoroni/liknon",
+    "revision": "fixture-tool-1.0.0",
+    "path": "fixtures/resource-hub/source/tool/validation"
+  },
+  "trust": {
+    "class": "official",
+    "publisher": "Liknon fixture publisher",
+    "review": "reviewed",
+    "evidence": "fixture-review:tool-1.0.0"
+  },
+  "compatibility": {
+    "resourceSchema": "^1",
+    "manager": ">=0.5, <0.6",
+    "tool": ">=0.5, <0.6"
+  },
+  "capabilities": ["validation.inspect", "validation.run"],
+  "payloads": [
+    {
+      "path": "tool.json",
+      "source": "tool.json",
+      "mediaType": "application/json"
+    }
+  ]
+}

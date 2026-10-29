@@ -1,0 +1,52 @@
+{
+  "$defs": {
+    "SignatureAlgorithm": {
+      "description": "Signature algorithm supported by the version 1 trust contract.",
+      "oneOf": [
+        {
+          "const": "ed25519",
+          "description": "Strict Ed25519 verification.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Detached signature over exact metadata bytes and authenticated context.",
+  "properties": {
+    "algorithm": {
+      "$ref": "#/$defs/SignatureAlgorithm",
+      "description": "Cryptographic algorithm."
+    },
+    "keyId": {
+      "description": "Trust-root key identifier.",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "description": "Exact detached-signature schema version.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "signature": {
+      "description": "Standard Base64-encoded detached signature.",
+      "type": "string"
+    },
+    "signedAtUnix": {
+      "description": "Authenticated signing time used for key-lifecycle checks.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "keyId",
+    "algorithm",
+    "signedAtUnix",
+    "signature"
+  ],
+  "title": "DetachedSignature",
+  "type": "object"
+}

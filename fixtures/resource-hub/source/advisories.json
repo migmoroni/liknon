@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "advisories": [
+    {
+      "id": "fixture-2026-001",
+      "identity": {
+        "kind": "knowledge",
+        "namespace": "official",
+        "name": "revoked-example"
+      },
+      "affected": "=1.0.0",
+      "summary": "Fixture revocation used to test fail-closed resolution.",
+      "revoked": true
+    }
+  ]
+}

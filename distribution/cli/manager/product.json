@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "id": "manager",
+    "ownerPlan": "B02",
+    "cargoPackage": "liknon-manager",
+    "cargoManifest": "apps/liknon-manager/Cargo.toml",
+    "canonicalCommand": "liknon-manager",
+    "aliases": [
+      "likm"
+    ],
+    "tagPrefix": "liknon-manager-v",
+    "releaseRustToolchain": "1.87.0",
+    "repository": "migmoroni/liknon",
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  "distribution": {
+    "cratesRegistry": "crates-io",
+    "releasePrefix": "releases/liknon-manager",
+    "stablePointer": "channels/liknon-manager/stable.json",
+    "manifestSigningKeyId": "liknon-manager-release-v1",
+    "environments": {
+      "approval": "manager-release-approval",
+      "crates": "publish-crates-manager",
+      "detachedSigning": "sign-manager-release",
+      "windowsSigning": "sign-manager-windows",
+      "github": "publish-github-manager",
+      "cloudflare": "publish-cloudflare-manager"
+    }
+  },
+  "targets": [
+    {
+      "rustTarget": "x86_64-unknown-linux-gnu",
+      "runner": "ubuntu-24.04",
+      "operatingSystem": "linux",
+      "architecture": "x86-64",
+      "libc": "gnu",
+      "archiveFormat": "tar-gz",
+      "executableSuffix": "",
+      "authenticity": "metadata-signature",
+      "runtimeBaseline": "glibc 2.39 or newer"
+    },
+    {
+      "rustTarget": "x86_64-unknown-linux-musl",
+      "runner": "ubuntu-24.04",
+      "operatingSystem": "linux",
+      "architecture": "x86-64",
+      "libc": "musl",
+      "archiveFormat": "tar-gz",
+      "executableSuffix": "",
+      "authenticity": "metadata-signature",
+      "runtimeBaseline": "statically linked MUSL on Linux kernel 4.18 or newer"
+    },
+    {
+      "rustTarget": "aarch64-unknown-linux-gnu",
+      "runner": "ubuntu-24.04-arm",
+      "operatingSystem": "linux",
+      "architecture": "aarch64",
+      "libc": "gnu",
+      "archiveFormat": "tar-gz",
+      "executableSuffix": "",
+      "authenticity": "metadata-signature",
+      "runtimeBaseline": "glibc 2.39 or newer"
+    },
+    {
+      "rustTarget": "aarch64-unknown-linux-musl",
+      "runner": "ubuntu-24.04-arm",
+      "operatingSystem": "linux",
+      "architecture": "aarch64",
+      "libc": "musl",
+      "archiveFormat": "tar-gz",
+      "executableSuffix": "",
+      "authenticity": "metadata-signature",
+      "runtimeBaseline": "statically linked MUSL on Linux kernel 4.18 or newer"
+    },
+    {
+      "rustTarget": "x86_64-apple-darwin",
+      "runner": "macos-15-intel",
+      "operatingSystem": "macos",
+      "architecture": "x86-64",
+      "archiveFormat": "tar-gz",
+      "executableSuffix": "",
+      "authenticity": "ad-hoc",
+      "runtimeBaseline": "macOS 15 or newer; ad hoc signed and not notarized"
+    },
+    {
+      "rustTarget": "aarch64-apple-darwin",
+      "runner": "macos-15",
+      "operatingSystem": "macos",
+      "architecture": "aarch64",
+      "archiveFormat": "tar-gz",
+      "executableSuffix": "",
+      "authenticity": "ad-hoc",
+      "runtimeBaseline": "macOS 15 or newer; ad hoc signed and not notarized"
+    },
+    {
+      "rustTarget": "x86_64-pc-windows-msvc",
+      "runner": "windows-2025",
+      "operatingSystem": "windows",
+      "architecture": "x86-64",
+      "archiveFormat": "zip",
+      "executableSuffix": ".exe",
+      "authenticity": "self-signed-authenticode",
+      "runtimeBaseline": "Windows 10 x64 or newer; project self-signed Authenticode"
+    }
+  ]
+}

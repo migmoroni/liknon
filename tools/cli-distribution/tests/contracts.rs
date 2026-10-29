@@ -19,6 +19,10 @@ fn descriptor() -> PathBuf {
     repository_root().join("distribution/cli/validation/product.json")
 }
 
+fn manager_descriptor() -> PathBuf {
+    repository_root().join("distribution/cli/manager/product.json")
+}
+
 fn run(arguments: &[&str]) -> std::process::Output {
     Command::new(binary())
         .args(arguments)
@@ -92,6 +96,38 @@ fn cargo_inspection_derives_validation_identity() {
     assert_eq!(
         value["binaryTargets"],
         serde_json::json!(["liknon-validator", "likv"])
+    );
+}
+
+#[test]
+fn cargo_inspection_derives_isolated_manager_identity() {
+    let temporary = TempDir::new().unwrap();
+    let identity = temporary.path().join("identity.json");
+    let output = run(&[
+        "inspect",
+        "--descriptor",
+        manager_descriptor().to_str().unwrap(),
+        "--workspace",
+        repository_root().to_str().unwrap(),
+        "--output",
+        identity.to_str().unwrap(),
+    ]);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let value: Value = serde_json::from_slice(&fs::read(identity).unwrap()).unwrap();
+    assert_eq!(value["product"], "manager");
+    assert_eq!(value["package"], "liknon-manager");
+    assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(
+        value["tag"],
+        format!("liknon-manager-v{}", env!("CARGO_PKG_VERSION"))
+    );
+    assert_eq!(
+        value["binaryTargets"],
+        serde_json::json!(["likm", "liknon-manager"])
     );
 }
 
@@ -184,6 +220,10 @@ fn reusable_workflows_contain_no_validation_product_identity() {
             "validation-native",
             "distribution/cli/validation",
             "apps/liknon-validator",
+            "liknon-manager",
+            "manager-native",
+            "distribution/cli/manager",
+            "apps/liknon-manager",
         ] {
             assert!(
                 !content.contains(product_value),

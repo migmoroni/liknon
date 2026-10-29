@@ -57,7 +57,8 @@ jobs:
         run: |
           for script in distribution/cli/common/scripts/*.sh \
             distribution/cli/common/installers/install.sh.in \
-            distribution/cli/validation/smoke/verify.sh; do
+            distribution/cli/validation/smoke/verify.sh \
+            distribution/cli/manager/smoke/verify.sh; do
             sh -n "$script"
           done
       - name: Run Clippy
@@ -79,6 +80,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Install Windows cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-mingw-w64-x86-64
       - name: Install Rust 1.87
         run: rustup toolchain install 1.87.0 --profile minimal --no-self-update
       - name: Install Windows target for Rust 1.87
@@ -127,6 +132,7 @@ jobs:
         run: rustup default stable
       - name: List application package contents
         run: |
+          cargo package --list --locked -p liknon-resource-contracts
           cargo package --list --locked -p liknon-validator
           cargo package --list --locked -p liknon-manager
           cargo package --list --locked -p liknon-tool
@@ -152,6 +158,9 @@ jobs:
             "$validator_root/bin/likv"
           "$manager_root/bin/liknon-manager" --version
           "$manager_root/bin/likm" --help > /dev/null
+          sh distribution/cli/manager/smoke/verify.sh \
+            "$manager_root/bin/liknon-manager" \
+            "$manager_root/bin/likm"
           "$tool_root/bin/liknon-tool" --version
           "$tool_root/bin/likt" --help > /dev/null
           "$aggregate_root/bin/liknon" --version

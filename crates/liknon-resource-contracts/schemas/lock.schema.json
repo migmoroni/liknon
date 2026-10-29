@@ -1,0 +1,935 @@
+{
+  "$defs": {
+    "ArtifactDeclaration": {
+      "additionalProperties": false,
+      "description": "Declared artifact output from one workflow action.",
+      "properties": {
+        "action": {
+          "description": "Producing action identifier.",
+          "type": "string"
+        },
+        "id": {
+          "description": "Stable declaration identifier.",
+          "type": "string"
+        },
+        "maxBytes": {
+          "description": "Maximum serialized size.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "node": {
+          "description": "Producing workflow node.",
+          "type": "string"
+        },
+        "repositoryTreatment": {
+          "$ref": "#/$defs/RepositoryTreatment",
+          "description": "Repository treatment for the produced artifact."
+        },
+        "schema": {
+          "description": "Stable payload-schema identifier or URI.",
+          "type": "string"
+        },
+        "sensitivity": {
+          "description": "Sensitivity label interpreted by the external host policy.",
+          "type": "string"
+        },
+        "storage": {
+          "description": "Bounded relative storage template.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "node",
+        "action",
+        "schema",
+        "storage",
+        "sensitivity",
+        "maxBytes",
+        "repositoryTreatment"
+      ],
+      "type": "object"
+    },
+    "CatalogSnapshotIdentity": {
+      "additionalProperties": false,
+      "description": "Stable identity and monotonic order of one catalog snapshot.",
+      "properties": {
+        "expiresAtUnix": {
+          "description": "Authenticated Unix timestamp after which online resolution fails closed.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "id": {
+          "description": "Immutable snapshot identifier.",
+          "type": "string"
+        },
+        "publishedAtUnix": {
+          "description": "Authenticated Unix timestamp when the snapshot was published.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sequence": {
+          "description": "Monotonic sequence used for rollback detection.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "sequence",
+        "publishedAtUnix",
+        "expiresAtUnix"
+      ],
+      "type": "object"
+    },
+    "Compatibility": {
+      "additionalProperties": false,
+      "description": "Compatibility requirements declared by one resource version.",
+      "properties": {
+        "aiBootstrap": {
+          "description": "Accepted program-owned AI bootstrap contract versions.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "decisionPolicy": {
+          "description": "Accepted human-owned AI decision-policy contract versions.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "manager": {
+          "description": "Accepted Manager versions.",
+          "type": "string"
+        },
+        "resourceSchema": {
+          "description": "Accepted resource-contract schema versions.",
+          "type": "string"
+        },
+        "tool": {
+          "description": "Accepted Tool versions when the resource is consumed by Tool.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "validator": {
+          "description": "Accepted Validation CLI versions when relevant.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "resourceSchema",
+        "manager"
+      ],
+      "type": "object"
+    },
+    "LockedCatalog": {
+      "additionalProperties": false,
+      "description": "Authenticated catalog identity retained by one lock.",
+      "properties": {
+        "catalogPath": {
+          "description": "Retained authenticated catalog bytes below `.liknon/resources/`.",
+          "type": "string"
+        },
+        "catalogSignaturePath": {
+          "description": "Detached catalog signature below `.liknon/resources/`.",
+          "type": "string"
+        },
+        "origin": {
+          "description": "Hub origin used for resolution.",
+          "type": "string"
+        },
+        "sha256": {
+          "description": "Exact catalog digest.",
+          "type": "string"
+        },
+        "signingKeyId": {
+          "description": "Signing key that authenticated the snapshot.",
+          "type": "string"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/CatalogSnapshotIdentity",
+          "description": "Exact authenticated catalog snapshot."
+        },
+        "trustAuthority": {
+          "description": "Trust-root authority that authenticated the snapshot.",
+          "type": "string"
+        },
+        "trustRootPath": {
+          "description": "Separately established trust root retained for offline verification.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "origin",
+        "snapshot",
+        "sha256",
+        "trustAuthority",
+        "signingKeyId",
+        "catalogPath",
+        "catalogSignaturePath",
+        "trustRootPath"
+      ],
+      "type": "object"
+    },
+    "LockedCompatibility": {
+      "additionalProperties": false,
+      "description": "Compatibility facts retained for offline inspection.",
+      "properties": {
+        "activatable": {
+          "description": "Whether the resource may be represented as activatable by a conforming host.",
+          "type": "boolean"
+        },
+        "activationBlockers": {
+          "default": [],
+          "description": "Stable reasons preventing activation.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "aiBootstrapDeclared": {
+          "description": "Whether a governed workflow declares an AI bootstrap contract.",
+          "type": "boolean"
+        },
+        "decisionPolicyDeclared": {
+          "description": "Whether a governed workflow declares a decision-policy contract.",
+          "type": "boolean"
+        },
+        "manager": {
+          "description": "Whether the local Manager supported the resource during resolution.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "manager",
+        "aiBootstrapDeclared",
+        "decisionPolicyDeclared",
+        "activatable"
+      ],
+      "type": "object"
+    },
+    "LockedEdge": {
+      "additionalProperties": false,
+      "description": "Locked edge to an exact dependency or collection member.",
+      "properties": {
+        "collectionMember": {
+          "description": "Whether the edge originates from collection membership.",
+          "type": "boolean"
+        },
+        "identity": {
+          "$ref": "#/$defs/ResourceIdentity",
+          "description": "Exact target identity."
+        },
+        "version": {
+          "description": "Exact selected semantic version.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identity",
+        "version",
+        "collectionMember"
+      ],
+      "type": "object"
+    },
+    "LockedResource": {
+      "additionalProperties": false,
+      "description": "Exact installed state for one resource version.",
+      "properties": {
+        "compatibility": {
+          "$ref": "#/$defs/LockedCompatibility",
+          "description": "Compatibility facts evaluated during resolution."
+        },
+        "dependencies": {
+          "default": [],
+          "description": "Exact resolved graph edges.",
+          "items": {
+            "$ref": "#/$defs/LockedEdge"
+          },
+          "type": "array"
+        },
+        "installPath": {
+          "description": "Relative installation directory below `.liknon/resources/`.",
+          "type": "string"
+        },
+        "manifestSha256": {
+          "description": "Digest of canonical resource metadata.",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/LockedResourceOrigin",
+          "description": "Exact acquisition origin."
+        },
+        "resource": {
+          "$ref": "#/$defs/ResourceVersion",
+          "description": "Complete authenticated immutable resource metadata."
+        }
+      },
+      "required": [
+        "resource",
+        "manifestSha256",
+        "origin",
+        "installPath",
+        "compatibility"
+      ],
+      "type": "object"
+    },
+    "LockedResourceOrigin": {
+      "description": "Acquisition origin retained for one exact locked resource.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "description": "Immutable object paths are relative to this authenticated Hub origin.",
+          "properties": {
+            "kind": {
+              "const": "hub",
+              "type": "string"
+            },
+            "origin": {
+              "description": "Authenticated Hub base origin.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "origin"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Payload paths are relative to one explicitly selected local directory.",
+          "properties": {
+            "kind": {
+              "const": "local",
+              "type": "string"
+            },
+            "path": {
+              "description": "Canonical local resource directory.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "path"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Materialization": {
+      "additionalProperties": false,
+      "description": "Recorded projection of one locked resource file outside the resource store.",
+      "properties": {
+        "destination": {
+          "description": "Consumer-workspace-relative destination.",
+          "type": "string"
+        },
+        "identity": {
+          "$ref": "#/$defs/ResourceIdentity",
+          "description": "Stable source resource identity."
+        },
+        "payloadPath": {
+          "description": "Payload path within the locked resource.",
+          "type": "string"
+        },
+        "sha256": {
+          "description": "Exact projected byte digest.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Exact source resource version.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identity",
+        "version",
+        "payloadPath",
+        "destination",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "PayloadMetadata": {
+      "additionalProperties": false,
+      "description": "One payload file declared by immutable metadata.",
+      "properties": {
+        "executable": {
+          "default": false,
+          "description": "Whether the payload represents executable content as data.",
+          "type": "boolean"
+        },
+        "length": {
+          "description": "Exact byte length.",
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "mediaType": {
+          "description": "Declared media type.",
+          "type": "string"
+        },
+        "object": {
+          "description": "Immutable object path relative to the authenticated Hub origin.",
+          "type": "string"
+        },
+        "path": {
+          "description": "Relative installed path below the resource version directory.",
+          "type": "string"
+        },
+        "sha256": {
+          "description": "Lower-case hexadecimal SHA-256 digest.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "object",
+        "mediaType",
+        "length",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "RepositoryTreatment": {
+      "description": "Repository treatment declared for a workflow artifact.",
+      "oneOf": [
+        {
+          "const": "local-ignored",
+          "description": "The artifact is private local state expected to be ignored.",
+          "type": "string"
+        },
+        {
+          "const": "consumer-selected",
+          "description": "The consumer explicitly decides whether and where it is tracked.",
+          "type": "string"
+        }
+      ]
+    },
+    "ResourceDependency": {
+      "additionalProperties": false,
+      "description": "Required or optional edge in the resource dependency graph.",
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/ResourceIdentity",
+          "description": "Stable dependency identity."
+        },
+        "optional": {
+          "default": false,
+          "description": "Whether omission is permitted when no caller selects the dependency.",
+          "type": "boolean"
+        },
+        "requirement": {
+          "description": "Accepted dependency versions.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "identity",
+        "requirement"
+      ],
+      "type": "object"
+    },
+    "ResourceIdentity": {
+      "additionalProperties": false,
+      "description": "Kind, publisher namespace, and stable name of one resource.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ResourceKind",
+          "description": "Singular protocol kind."
+        },
+        "name": {
+          "description": "Stable resource name inside the namespace and kind.",
+          "type": "string"
+        },
+        "namespace": {
+          "description": "Publisher-controlled namespace.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "namespace",
+        "name"
+      ],
+      "type": "object"
+    },
+    "ResourceKind": {
+      "description": "Stable singular resource kinds understood by the version 1 protocol.",
+      "oneOf": [
+        {
+          "const": "knowledge",
+          "description": "Explanatory or reference knowledge.",
+          "type": "string"
+        },
+        {
+          "const": "skill",
+          "description": "Reusable AI operational guidance.",
+          "type": "string"
+        },
+        {
+          "const": "workflow",
+          "description": "A generic graph of externally conducted actions.",
+          "type": "string"
+        },
+        {
+          "const": "agent-profile",
+          "description": "An AI role, posture, scope, and constraint declaration.",
+          "type": "string"
+        },
+        {
+          "const": "tool",
+          "description": "A descriptor for externally supplied application capabilities.",
+          "type": "string"
+        },
+        {
+          "const": "prompt",
+          "description": "Reusable prompt content.",
+          "type": "string"
+        },
+        {
+          "const": "guide",
+          "description": "Human- or agent-oriented procedural guidance.",
+          "type": "string"
+        },
+        {
+          "const": "template",
+          "description": "A reusable authored file template.",
+          "type": "string"
+        },
+        {
+          "const": "collection",
+          "description": "A dependency-only grouping of resources.",
+          "type": "string"
+        }
+      ]
+    },
+    "ResourceVersion": {
+      "additionalProperties": false,
+      "description": "Complete immutable metadata for one resource version.",
+      "properties": {
+        "authors": {
+          "description": "Human or organizational authors.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "capabilities": {
+          "default": [],
+          "description": "Declared generic capabilities.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "collectionMembers": {
+          "default": [],
+          "description": "Collection membership represented as graph edges without copied payloads.",
+          "items": {
+            "$ref": "#/$defs/ResourceDependency"
+          },
+          "type": "array"
+        },
+        "compatibility": {
+          "$ref": "#/$defs/Compatibility",
+          "description": "Consumer compatibility requirements."
+        },
+        "containsExecutableContent": {
+          "default": false,
+          "description": "Whether any content may represent executable instructions or bytes.",
+          "type": "boolean"
+        },
+        "dependencies": {
+          "default": [],
+          "description": "Required and optional resource edges.",
+          "items": {
+            "$ref": "#/$defs/ResourceDependency"
+          },
+          "type": "array"
+        },
+        "deprecated": {
+          "default": false,
+          "description": "Whether a newer replacement is recommended.",
+          "type": "boolean"
+        },
+        "identity": {
+          "$ref": "#/$defs/ResourceIdentity",
+          "description": "Stable resource identity."
+        },
+        "license": {
+          "description": "SPDX license expression.",
+          "type": "string"
+        },
+        "payloads": {
+          "default": [],
+          "description": "Complete immutable payload inventory.",
+          "items": {
+            "$ref": "#/$defs/PayloadMetadata"
+          },
+          "type": "array"
+        },
+        "revoked": {
+          "default": false,
+          "description": "Whether this version is security-revoked and cannot be resolved.",
+          "type": "boolean"
+        },
+        "schemaVersion": {
+          "description": "Exact resource-manifest schema version.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source": {
+          "$ref": "#/$defs/SourceMetadata",
+          "description": "Authored-source provenance."
+        },
+        "summary": {
+          "description": "Concise discovery summary.",
+          "type": "string"
+        },
+        "title": {
+          "description": "Human-facing title.",
+          "type": "string"
+        },
+        "trust": {
+          "$ref": "#/$defs/TrustMetadata",
+          "description": "Trust and review facts."
+        },
+        "version": {
+          "description": "Exact semantic resource version.",
+          "type": "string"
+        },
+        "workflow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WorkflowMetadata"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Generic workflow graph, present only for workflow resources."
+        },
+        "yanked": {
+          "default": false,
+          "description": "Whether new resolution should avoid this version.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "identity",
+        "version",
+        "title",
+        "summary",
+        "authors",
+        "license",
+        "source",
+        "trust",
+        "compatibility"
+      ],
+      "type": "object"
+    },
+    "ReviewState": {
+      "description": "Review state attached to one immutable resource version.",
+      "oneOf": [
+        {
+          "const": "unreviewed",
+          "description": "The resource has not completed a review process.",
+          "type": "string"
+        },
+        {
+          "const": "pending",
+          "description": "Review is actively in progress.",
+          "type": "string"
+        },
+        {
+          "const": "reviewed",
+          "description": "Review evidence has been accepted.",
+          "type": "string"
+        },
+        {
+          "const": "withdrawn",
+          "description": "Previously accepted review evidence has been withdrawn.",
+          "type": "string"
+        }
+      ]
+    },
+    "SourceMetadata": {
+      "additionalProperties": false,
+      "description": "Authorship and source provenance for one resource version.",
+      "properties": {
+        "path": {
+          "description": "Publisher-controlled path within the source.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repository": {
+          "description": "Canonical source repository or publication location.",
+          "type": "string"
+        },
+        "revision": {
+          "description": "Exact source revision when one exists.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "repository"
+      ],
+      "type": "object"
+    },
+    "TrustClass": {
+      "description": "Publisher trust classification exposed without granting instruction authority.",
+      "oneOf": [
+        {
+          "const": "official",
+          "description": "Published by the Liknon project.",
+          "type": "string"
+        },
+        {
+          "const": "verified",
+          "description": "Publisher identity and review evidence satisfy the Hub process.",
+          "type": "string"
+        },
+        {
+          "const": "community",
+          "description": "Listed without Liknon endorsement.",
+          "type": "string"
+        },
+        {
+          "const": "local",
+          "description": "Supplied explicitly outside the public Hub.",
+          "type": "string"
+        }
+      ]
+    },
+    "TrustMetadata": {
+      "additionalProperties": false,
+      "description": "Trust and review facts for one resource version.",
+      "properties": {
+        "class": {
+          "$ref": "#/$defs/TrustClass",
+          "description": "Public trust classification."
+        },
+        "evidence": {
+          "description": "Stable review-evidence reference when applicable.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "publisher": {
+          "description": "Publisher identity shown to consumers.",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/ReviewState",
+          "description": "Review state for this exact version."
+        }
+      },
+      "required": [
+        "class",
+        "publisher",
+        "review"
+      ],
+      "type": "object"
+    },
+    "WorkflowMetadata": {
+      "additionalProperties": false,
+      "description": "Generic workflow graph metadata carried as untrusted resource data.",
+      "properties": {
+        "artifacts": {
+          "default": [],
+          "description": "Declared artifacts.",
+          "items": {
+            "$ref": "#/$defs/ArtifactDeclaration"
+          },
+          "type": "array"
+        },
+        "entryNodes": {
+          "description": "Entry node identifiers.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "nodes": {
+          "description": "Declared nodes.",
+          "items": {
+            "$ref": "#/$defs/WorkflowNode"
+          },
+          "type": "array"
+        },
+        "terminalNodes": {
+          "description": "Terminal node identifiers.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "transitions": {
+          "description": "Declared transitions.",
+          "items": {
+            "$ref": "#/$defs/WorkflowTransition"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "entryNodes",
+        "terminalNodes",
+        "nodes",
+        "transitions"
+      ],
+      "type": "object"
+    },
+    "WorkflowNode": {
+      "additionalProperties": false,
+      "description": "Generic workflow node declaration.",
+      "properties": {
+        "action": {
+          "description": "Stable action identifier scoped to the workflow.",
+          "type": "string"
+        },
+        "agentProfiles": {
+          "default": [],
+          "description": "Referenced agent-profile resource identities.",
+          "items": {
+            "$ref": "#/$defs/ResourceIdentity"
+          },
+          "type": "array"
+        },
+        "effects": {
+          "default": [],
+          "description": "Potential externally observable effects.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "description": "Stable node identifier scoped to the workflow.",
+          "type": "string"
+        },
+        "requiredCapabilities": {
+          "default": [],
+          "description": "Required host capabilities.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "toolOperations": {
+          "default": [],
+          "description": "Referenced operation IDs declared by tool resources.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "action"
+      ],
+      "type": "object"
+    },
+    "WorkflowTransition": {
+      "additionalProperties": false,
+      "description": "Generic directed workflow transition.",
+      "properties": {
+        "continuationEligible": {
+          "default": false,
+          "description": "Whether the decision-policy continuation setting applies to this edge.",
+          "type": "boolean"
+        },
+        "from": {
+          "description": "Source node identifier.",
+          "type": "string"
+        },
+        "id": {
+          "description": "Stable transition identifier scoped to the workflow.",
+          "type": "string"
+        },
+        "precondition": {
+          "description": "Declarative precondition label interpreted by the external host.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to": {
+          "description": "Destination node identifier.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "from",
+        "to"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Exact complete resolution installed in one consumer workspace.",
+  "properties": {
+    "catalog": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LockedCatalog"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Authenticated catalog used for Hub-backed resources."
+    },
+    "materializations": {
+      "default": [],
+      "description": "Explicit materializations sorted by destination.",
+      "items": {
+        "$ref": "#/$defs/Materialization"
+      },
+      "type": "array"
+    },
+    "resources": {
+      "description": "Exact resources sorted by identity.",
+      "items": {
+        "$ref": "#/$defs/LockedResource"
+      },
+      "type": "array"
+    },
+    "schemaVersion": {
+      "description": "Exact lock schema version.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "resources"
+  ],
+  "title": "ResourceLock",
+  "type": "object"
+}

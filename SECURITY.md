@@ -35,11 +35,25 @@ is not a sandbox, permission boundary, malware scanner, or complete record of
 filesystem and network side effects. Review third-party configuration before
 execution and use operating-system isolation when the source is not trusted.
 
+`liknon-manager` treats Hub metadata and resource payloads as untrusted input.
+It authenticates exact catalog bytes against a separately established Ed25519
+trust root, enforces monotonic snapshots and bounded HTTPS behavior, verifies
+every installed payload digest, and rejects unsafe paths and links. TLS alone
+is not artifact identity. Installing content does not execute it, activate a
+workflow, or grant it AI-policy authority.
+
+Local resources are an explicit consumer trust decision and are not signed by
+the public Hub. Community resources require explicit selection. Report forged
+metadata, malicious resource content, namespace compromise, signing-key
+compromise, or missing revocation coverage through the private advisory channel.
+
 ## Release Distribution Trust
 
-Validation CLI releases bind one package-derived version to a signed annotated
-Git tag, exact source commit, committed lockfile, source package, and native
-artifact hashes. GitHub Releases contain metadata only. Native archives are
+Validation and Manager CLI releases each bind one package-derived version to a
+signed annotated Git tag, exact source commit, committed lockfile, source
+package, and native artifact hashes. Their identities, candidates, credentials,
+object prefixes, and stable pointers remain product-specific. GitHub Releases
+contain metadata only. Native archives are
 served through the project-controlled download domain and authenticated by a
 detached RSA/SHA-256 signature over the exact public manifest.
 

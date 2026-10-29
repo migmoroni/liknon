@@ -6,11 +6,30 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-publish = false
-description = "Structural shell for the future Liknon resource manager"
+publish = ["crates-io"]
+description = "Authenticated resource acquisition and workspace state manager for Liknon"
+readme = "README.md"
+keywords = ["liknon", "resources", "cli", "workspace"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 clap.workspace = true
+fs2.workspace = true
+liknon-resource-contracts.workspace = true
+reqwest.workspace = true
+schemars.workspace = true
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+base64.workspace = true
+ed25519-dalek.workspace = true
+jsonschema.workspace = true
+liknon-resource-contracts = { workspace = true, features = ["signing"] }
+tempfile.workspace = true
 
 [[bin]]
 name = "liknon-manager"
