@@ -118,6 +118,18 @@ E01 does not replace B02 Hub ownership or any B01-B04 release authority. It
 keeps the human site independent from the machine Hub while making their public
 identities and verified metadata discoverable together.
 
+### F: Toolchain Modernization
+
+| Plan | Status | Owns |
+| --- | --- | --- |
+| [F01 Rust 1.90 MSRV Modernization](F01-rust-1.90-msrv-modernization/README.md) | `Future`; begins only after the current roadmap and B06 closure | One reviewed Rust 1.87-to-1.90 compatibility transition, opportunity ledger, standard-library adoption, toolchain/release cutover, and post-transition evidence |
+
+F01 is deliberately outside the current implementation and first-release
+sequence. It does not change today's Rust 1.87 contract. It provides one place
+to accumulate concrete 1.88-1.90 opportunities discovered during the active
+plans without applying them prematurely or turning the MSRV into a moving
+target.
+
 ## Dependency Graph
 
 ```text
@@ -166,6 +178,9 @@ B01-B05 release-ready candidates + selected D01 evidence
                                   |
                                   v
                   B06 coordinated first public release
+                                  |
+                                  v
+                  F01 Rust 1.90 MSRV modernization
 ```
 
 Distribution readiness remains product-specific. `D01` may verify an
@@ -231,6 +246,14 @@ and recovery owners. A changed candidate or destination invalidates that
 approval. B06 does not publish a placeholder for a B05 ecosystem whose
 activation gate has not passed.
 
+### F01.0: Rust 1.90 Activation
+
+Do not change the current Rust 1.87 declaration while the active roadmap or
+first public release is still being completed. After B06 closure, freeze the
+exact package, release, target, and documentation inventory; approve the first
+versions that require Rust 1.90; and select only modernizations with concrete
+Liknon consumers and verification evidence.
+
 ## Execution Order
 
 1. A01 has implemented the structural cutover in buildable units; complete its
@@ -257,6 +280,10 @@ activation gate has not passed.
    evidence. B06 publishes supporting crates in dependency order, activates the
    complete set, verifies public readback, promotes stable pointers, and
    revokes bootstrap credentials.
+10. After the current roadmap has reached a terminal state and B06 has closed
+    the first public release, activate F01 as one deliberate Rust 1.90
+    compatibility transition. Reinventory the completed system before changing
+    any MSRV declaration.
 
 Each plan owns its own detailed handoff and acceptance criteria. Completion of
 one plan never implicitly marks another plan complete.
@@ -279,6 +306,8 @@ one plan never implicitly marks another plan complete.
 - Integrated conformance and agent evaluation belong to D01.
 - Public documentation may summarize these contracts but must not redefine
   them independently.
+- Post-roadmap Rust MSRV and toolchain modernization belong to F01; active
+  product plans continue to use Rust 1.87 until that transition is activated.
 - Generated documentation must identify its canonical source.
 - Archived plans are evidence, never normative dependencies.
 
