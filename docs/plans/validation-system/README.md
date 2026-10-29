@@ -93,6 +93,16 @@ D01 does not publish products. Product publication and recovery remain in
 B01-B05. B06 coordinates their first public activation without taking over
 those authorities.
 
+### E: Public Web And Delivery Surfaces
+
+| Plan | Status | Owns |
+| --- | --- | --- |
+| [E01 Liknon Public Site And Hub Delivery](E01-public-site-and-hub-delivery/README.md) | `Decision gate` | `liknon.org`, `apps/liknon-site`, the human resource catalog, public domain topology, and verified presentation of Hub and product-release outputs |
+
+E01 does not replace B02 Hub ownership or any B01-B04 release authority. It
+keeps the human site independent from the machine Hub while making their public
+identities and verified metadata discoverable together.
+
 ## Dependency Graph
 
 ```text
@@ -130,6 +140,7 @@ B05 programmatic APIs and language bindings: future, independently activated
                                   |
                                   v
 B01-B05 release-ready candidates + selected D01 evidence
+          + E01 site/Hub delivery candidate
                                   |
                                   v
                   B06 coordinated first public release

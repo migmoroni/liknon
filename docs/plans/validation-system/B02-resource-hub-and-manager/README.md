@@ -22,6 +22,9 @@ and the independent Manager application created by
 complete-suite composition. [B05](../B05-programmatic-api-and-language-bindings/README.md)
 may later expose justified programmatic APIs. None of those tracks replaces
 Manager as the canonical networked resource-state mutator.
+[E01](../E01-public-site-and-hub-delivery/README.md) owns the human-facing site,
+public domain topology, and verified catalog presentation without replacing
+the B02-owned Hub origin, protocol, signing, publication, or recovery.
 
 ## Dependencies
 

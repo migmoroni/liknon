@@ -2,8 +2,9 @@
 
 ## Status
 
-`Future`. Blocked until B01 through B05 have completed the release-readiness
-work applicable to the products selected for the first public release.
+`Future`. Blocked until B01 through B05 and E01 have completed the
+release-readiness work applicable to the products and public surfaces selected
+for the first public release.
 
 [Back to the validation-system roadmap](../README.md)
 
@@ -31,6 +32,7 @@ The release set may contain:
 | B03 | `liknon-tool` / `likt` | Verified source and native candidates |
 | B04 | `liknon-cli`, `liknon` / `likx`, and complete suites | Verified aggregate source and native candidates |
 | B05 | Activated programmatic APIs and language packages | Verified candidates only for ecosystems whose activation gate passed |
+| E01 | `liknon.org` site and public Hub delivery surface | Verified site candidate, domain topology, trust-root delivery, and exact B02 Hub identity |
 
 An unimplemented B05 ecosystem is explicitly excluded. B06 never publishes a
 placeholder package merely to reserve a name or make the release set appear
@@ -41,6 +43,8 @@ complete.
 - B01-B05 own product versions, tags, package contents, target matrices,
   candidates, destination-specific workflows, credentials, recovery rules, and
   recurring release trains.
+- E01 owns the site candidate, site deployment identity, public-domain
+  topology, and verified human presentation of B02 and product-release outputs.
 - B06 owns the frozen first-release ledger, dependency order, coordinated human
   approval, cross-product rehearsal, public activation record, integrated
   readback, and closure evidence.
@@ -85,6 +89,8 @@ The operational prerequisites are consolidated in
 ## Entry Criteria
 
 - B01-B04 have produced release-ready candidates and destination workflows.
+- E01 has produced a release-ready site candidate and verified public domain,
+  Hub, trust-root, and site-delivery inputs selected for the release.
 - Every B05 ecosystem included in the release set has passed its own activation
   gate and produced a real programmatic API candidate.
 - D01 has completed every integrated scenario designated as blocking for the
