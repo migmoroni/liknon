@@ -232,6 +232,11 @@ may use the same contracts independently.
 
 ## Global Acceptance Criteria
 
+Checked items below are satisfied by the credential-free repository
+implementation and its conformance fixtures. Unchecked items still require
+external setup, retained release candidates, publication, or public B06
+readback.
+
 - [ ] All channels use the exact same version and commit.
 - [ ] The signed tag and metadata-only GitHub Release contain no native binary
       assets.
@@ -243,21 +248,21 @@ may use the same contracts independently.
 - [ ] Both command names are equivalent through every channel.
 - [ ] Exactly one final native payload is retained per target.
 - [ ] Linux x64 and arm64 each have separate GNU and MUSL artifacts.
-- [ ] Windows and macOS claims describe their actual trust modes.
-- [ ] Every archive and installer is authenticated by signed metadata and
+- [x] Windows and macOS claims describe their actual trust modes.
+- [x] Every archive and installer is authenticated by signed metadata and
       exact hashes.
-- [ ] Direct installation succeeds without Rust or elevated privileges.
-- [ ] Unsupported or unverifiable environments fail before installation.
+- [x] Direct installation succeeds without Rust or elevated privileges.
+- [x] Unsupported or unverifiable environments fail before installation.
 - [ ] Publication credentials are isolated by destination.
-- [ ] Failed installation preserves the previous commands.
+- [x] Failed installation preserves the previous commands.
 - [ ] Public documentation reproduces all tested installation paths.
-- [ ] Generated distribution state leaves tracked files unchanged.
-- [ ] No application artifact contains knowledge or AI resources.
-- [ ] Shared release primitives accept a validated product descriptor and
+- [x] Generated distribution state leaves tracked files unchanged.
+- [x] No application artifact contains knowledge or AI resources.
+- [x] Shared release primitives accept a validated product descriptor and
       contain no Validation-specific behavior or publication authority.
-- [ ] The Validation orchestrator is thin and all Validation-specific values
+- [x] The Validation orchestrator is thin and all Validation-specific values
       are explicit in its profile, tests, or protected environments.
-- [ ] Shared-foundation fixture tests prove another product identity cannot
+- [x] Shared-foundation fixture tests prove another product identity cannot
       read, overwrite, or publish Validation state.
 
 ## Normative References

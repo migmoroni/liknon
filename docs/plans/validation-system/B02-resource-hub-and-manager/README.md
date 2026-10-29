@@ -219,39 +219,43 @@ public activation occurs through B06.
 
 ## Global Acceptance Criteria
 
-- [ ] `liknon-manager` and `likm` are equivalent entry points.
-- [ ] Manager is the only Liknon CLI that contacts the Hub or mutates installed
+Checked items below are satisfied by the B02.0-B02.4 repository implementation
+and deterministic local Hub and workspace fixtures. Unchecked items still
+require B03, E01, B02.5, publication, or public B06 readback.
+
+- [x] `liknon-manager` and `likm` are equivalent entry points.
+- [x] Manager is the only Liknon CLI that contacts the Hub or mutates installed
       resource state.
-- [ ] Knowledge can be installed individually, by focused collection, or by an
+- [x] Knowledge can be installed individually, by focused collection, or by an
       optional complete collection.
-- [ ] One manifest and lock deterministically reproduce the selected resource
+- [x] One manifest and lock deterministically reproduce the selected resource
       graph.
-- [ ] Every installed byte is covered by authenticated metadata and an exact
+- [x] Every installed byte is covered by authenticated metadata and an exact
       digest.
-- [ ] Installation, update, removal, and materialization are preflighted,
+- [x] Installation, update, removal, and materialization are preflighted,
       path-safe, transactional, and recoverable.
-- [ ] Installing a resource never executes it or activates it implicitly.
-- [ ] Project-controlled conformance workflows and external workflows use the
+- [x] Installing a resource never executes it or activates it implicitly.
+- [x] Project-controlled conformance workflows and external workflows use the
       same graph, dependency, capability, effect, and agent-profile reference
       contracts; later official workflows require no application branch.
-- [ ] A workflow with absent or incompatible decision-policy compatibility may
+- [x] A workflow with absent or incompatible decision-policy compatibility may
       be installed and inspected but is never reported as activatable.
-- [ ] A workflow with absent or incompatible AI bootstrap compatibility follows
+- [x] A workflow with absent or incompatible AI bootstrap compatibility follows
       the same installable-but-not-activatable behavior.
-- [ ] No catalog entry or installed resource can replace or shadow the
+- [x] No catalog entry or installed resource can replace or shadow the
       program-owned AI bootstrap contract.
-- [ ] Neutral operational-skill fixtures and compatible alternatives resolve
+- [x] Neutral operational-skill fixtures and compatible alternatives resolve
       through the same dependency and trust contracts used later by AI-Tool.
-- [ ] Manager contains no branch for an official resource ID, process name, or
+- [x] Manager contains no branch for an official resource ID, process name, or
       workflow shape.
 - [ ] Tool can consume Manager-produced state without invoking Manager.
-- [ ] Resource publication does not rebuild any CLI.
+- [x] Resource publication does not rebuild any CLI.
 - [ ] The crates.io package resolves only published supporting crates.
 - [ ] The site offers Manager separately; any complete suite is owned by B04
       and consumes this plan's verified candidate unchanged.
-- [ ] Manager uses the shared release mechanisms without inheriting Validation,
+- [x] Manager uses the shared release mechanisms without inheriting Validation,
       Tool, or suite identities, candidates, namespaces, or credentials.
-- [ ] Manager uses `liknon-cli-ui` for shared terminal behavior while retaining
+- [x] Manager uses `liknon-cli-ui` for shared terminal behavior while retaining
       its own commands, human content, JSON schema, errors, and exit codes.
 - [ ] Every Manager source and native channel resolves to one package-derived
       version, exact signed tag, full commit, and immutable provenance record.
