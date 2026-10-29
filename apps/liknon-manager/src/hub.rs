@@ -1,3 +1,5 @@
+//! Authenticated Hub loading, bounded transport, caching, and rollback protection.
+
 use std::{
     fs,
     io::{Read as _, Write as _},
@@ -26,12 +28,14 @@ use crate::{
 const MAX_METADATA_BYTES: u64 = 32 * 1024 * 1024;
 
 #[derive(Debug, Clone)]
+/// Normalized local or HTTPS source for Hub objects.
 enum HubOrigin {
     Local(PathBuf),
     Https(Url),
 }
 
 impl HubOrigin {
+    /// Parses an origin while requiring HTTPS for every network source.
     fn parse(value: &str) -> Result<Self, ManagerError> {
         if value.starts_with("https://")
             || value.starts_with("http://")
@@ -56,6 +60,7 @@ impl HubOrigin {
         Ok(Self::Local(PathBuf::from(value)))
     }
 
+    /// Returns the stable identity used to partition rollback state and evidence.
     fn identity(&self) -> String {
         match self {
             Self::Local(path) => format!("file://{}", path.display()),
@@ -65,30 +70,43 @@ impl HubOrigin {
 }
 
 #[derive(Debug)]
+/// Authenticated catalog snapshot together with its fetch capability and evidence.
 pub(crate) struct HubSnapshot {
+    /// Validated immutable catalog contents.
     pub(crate) catalog: CatalogSnapshot,
+    /// Normalized origin from which the snapshot was obtained.
     pub(crate) origin: String,
+    /// Digest authenticated by the stable catalog pointer.
     pub(crate) catalog_sha256: String,
+    /// Trust-root authority that authenticated the snapshot.
     pub(crate) trust_authority: String,
+    /// Key that signed the immutable catalog.
     pub(crate) signing_key_id: String,
+    /// Exact metadata retained for later offline verification.
     pub(crate) evidence: AuthenticatedCatalogEvidence,
     client: HubClient,
 }
 
 #[derive(Debug, Clone)]
+/// Exact catalog, signature, and trust root needed for offline verification.
 pub(crate) struct AuthenticatedCatalogEvidence {
+    /// Original immutable catalog bytes.
     pub(crate) catalog_bytes: Vec<u8>,
+    /// Detached signature over the catalog bytes.
     pub(crate) catalog_signature: DetachedSignature,
+    /// Separately supplied trust root used for verification.
     pub(crate) trust_root: TrustRoot,
 }
 
 impl HubSnapshot {
+    /// Fetches and verifies one payload declared by this catalog.
     pub(crate) fn payload(&self, payload: &PayloadMetadata) -> Result<Vec<u8>, ManagerError> {
         self.client.fetch_payload(payload)
     }
 }
 
 #[derive(Debug)]
+/// Bounded transport whose cache remains subordinate to authenticated metadata.
 struct HubClient {
     origin: HubOrigin,
     cache: PathBuf,
@@ -96,6 +114,7 @@ struct HubClient {
 }
 
 impl HubClient {
+    /// Builds a transport with same-origin redirects and bounded request time.
     fn new(origin: HubOrigin, cache: PathBuf, timeout: Duration) -> Result<Self, ManagerError> {
         let http = match &origin {
             HubOrigin::Local(_) => None,
@@ -134,6 +153,8 @@ impl HubClient {
             .join("objects/sha256")
             .join(&payload.sha256[..2])
             .join(&payload.sha256);
+        // Cache entries are never trusted by location alone. Every hit is
+        // rechecked against the authenticated length and digest.
         if let Some(bytes) = read_cache_file(&self.cache, &cache_path)? {
             if bytes.len() as u64 == payload.length && sha256_bytes(&bytes) == payload.sha256 {
                 return Ok(bytes);
@@ -180,6 +201,8 @@ impl HubClient {
             .as_ref()
             .expect("HTTPS origin always has a client");
         let mut last_error = None;
+        // Only transport errors and transient server responses are retried;
+        // malformed or oversized authenticated data fails immediately.
         for attempt in 0..3 {
             match client.get(url.clone()).send() {
                 Ok(response) if response.status().is_server_error() && attempt < 2 => {
@@ -210,12 +233,18 @@ impl HubClient {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+/// Highest catalog sequence previously accepted for one Hub origin.
 struct RollbackState {
     schema_version: u32,
     sequence: u64,
     snapshot: String,
 }
 
+/// Loads and authenticates the Hub pointer, catalog, and retained evidence.
+///
+/// Trust is established from the caller-supplied trust root outward: the
+/// mutable pointer is verified first, rollback is checked before accepting its
+/// target, and the immutable catalog is independently verified and validated.
 pub(crate) fn load(args: &HubArgs) -> Result<HubSnapshot, ManagerError> {
     let origin_value = args.hub.as_deref().ok_or_else(|| {
         ManagerError::Usage(
@@ -234,6 +263,8 @@ pub(crate) fn load(args: &HubArgs) -> Result<HubSnapshot, ManagerError> {
     let trust_root: TrustRoot = read_integrity_json_file(trust_path, "Hub trust root")?;
     validate_trust_root(&trust_root)?;
 
+    // The small mutable pointer chooses one immutable catalog. It must be
+    // authenticated before any path, digest, or publication time is trusted.
     let pointer_bytes = client.fetch_metadata("stable.json")?;
     let pointer_signature: DetachedSignature = parse_hub_json(
         "stable.json.sig.json",
@@ -266,6 +297,8 @@ pub(crate) fn load(args: &HubArgs) -> Result<HubSnapshot, ManagerError> {
     }
     enforce_rollback(&cache, &origin_identity, &pointer)?;
 
+    // The pointer authenticates the immutable object's identity; the catalog's
+    // own signature then authenticates the exact bytes retained by the lock.
     validate_relative_path(&pointer.catalog_path)?;
     validate_relative_path(&pointer.catalog_signature_path)?;
     validate_sha256(&pointer.catalog_sha256)?;
@@ -294,6 +327,8 @@ pub(crate) fn load(args: &HubArgs) -> Result<HubSnapshot, ManagerError> {
             "catalog snapshot identity differs from the stable pointer".to_owned(),
         ));
     }
+    // Rollback state advances only after the complete catalog trust chain has
+    // succeeded, so failed candidates cannot poison future observations.
     record_rollback(&cache, &origin_identity, &pointer)?;
     cache_catalog(&cache, &origin_identity, &catalog, &catalog_bytes)?;
 
@@ -361,6 +396,8 @@ fn read_local(root: &Path, relative: &str, maximum: u64) -> Result<Vec<u8>, Mana
     }
     let root = fs::canonicalize(root).at(root)?;
     let mut current = root.clone();
+    // Lexical validation happens before this call, but every existing
+    // component is inspected as well to prevent a local symlink escape.
     for component in Path::new(relative).components() {
         current.push(component);
         let metadata = fs::symlink_metadata(&current).at(&current)?;

@@ -1,3 +1,5 @@
+//! Versioned Manager reports and their human and JSON renderers.
+
 use std::io::{self, Write};
 
 use liknon_cli_ui::{SemanticRole, Theme};
@@ -17,6 +19,7 @@ const REPORT_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// Complete response envelope emitted by one Manager command.
 pub(crate) struct ManagerReport {
     schema_version: u32,
     command: String,
@@ -29,137 +32,214 @@ pub(crate) struct ManagerReport {
 
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "kebab-case")]
+/// Whether a successful command observed or committed its proposed state.
 enum Outcome {
+    /// The requested operation completed, including any approved mutation.
     Completed,
+    /// A dry run produced a plan without committing it.
     Planned,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "resultType", rename_all = "kebab-case")]
+/// Command-specific body carried by a Manager report.
 pub(crate) enum ReportPayload {
+    /// The workspace resource store was initialized.
     Initialized,
+    /// Authenticated catalog resources matched a search.
     Search {
+        /// Catalog snapshot against which the search ran.
         snapshot: CatalogSnapshotIdentity,
+        /// Matching immutable resource versions.
         results: Vec<ResourceVersion>,
     },
+    /// Administrative metadata for one resource version.
     Info {
+        /// Selected resource metadata.
         resource: Box<ResourceVersion>,
+        /// Whether the version came from installed state.
         installed: bool,
     },
+    /// Desired, locked, installed, and materialized workspace state.
     State {
+        /// State rows for requested or locked resources.
         resources: Vec<ResourceState>,
+        /// State rows for explicit materializations.
         materializations: Vec<MaterializationState>,
     },
+    /// Result of integrity verification.
     Verification {
+        /// Number of verified locked resources.
         verified_resources: usize,
+        /// Number of verified payload files.
         verified_payloads: usize,
+        /// Whether current Hub metadata was also inspected.
         online: bool,
+        /// Non-fatal differences from current Hub state.
         warnings: Vec<String>,
     },
+    /// Complete proposed or committed mutation.
     Mutation {
+        /// Auditable mutation plan.
         plan: Box<MutationPlan>,
     },
+    /// Generated public JSON Schema.
     Schema {
+        /// Schema document written without terminal decoration.
         schema: serde_json::Value,
     },
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// Auditable description of every consequence of one workspace mutation.
 pub(crate) struct MutationPlan {
+    /// Operation that produced the plan.
     pub(crate) operation: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Authenticated catalog snapshot selected by the resolution.
     pub(crate) snapshot: Option<CatalogSnapshotIdentity>,
+    /// Resource-version changes.
     pub(crate) changes: Vec<PlannedChange>,
+    /// Resulting desired roots.
     pub(crate) requests: Vec<PlannedRequest>,
+    /// Resulting exact dependency edges.
     pub(crate) dependencies: Vec<PlannedDependency>,
+    /// Managed and materialized filesystem changes.
     pub(crate) files: Vec<PlannedFile>,
+    /// Declared capabilities and effects requiring review.
     pub(crate) effects: Vec<PlannedEffect>,
+    /// Explicit decisions needed to approve the complete plan.
     pub(crate) decisions: Vec<String>,
+    /// Conflicts that prevent application.
     pub(crate) conflicts: Vec<String>,
+    /// Number of Hub payloads requiring download.
     pub(crate) downloads: usize,
+    /// Total bytes requiring download.
     pub(crate) download_bytes: u64,
+    /// Total payload bytes covered by resulting integrity checks.
     pub(crate) verified_bytes: u64,
+    /// Exact resource set after application.
     pub(crate) resulting_resources: Vec<ExactResource>,
+    /// Human-readable rollback guarantee.
     pub(crate) rollback: String,
+    /// Whether the plan was durably committed.
     pub(crate) committed: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// One desired root retained by the resulting manifest.
 pub(crate) struct PlannedRequest {
+    /// Requested resource identity.
     pub(crate) identity: ResourceIdentity,
+    /// Accepted semantic-version requirement.
     pub(crate) requirement: String,
+    /// Selected acquisition source.
     pub(crate) source: RequestedSource,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// One exact edge retained by the resulting lock.
 pub(crate) struct PlannedDependency {
+    /// Resource declaring the edge.
     pub(crate) from: ResourceIdentity,
+    /// Required resource identity.
     pub(crate) to: ResourceIdentity,
+    /// Exact selected target version.
     pub(crate) version: String,
+    /// Whether collection membership introduced the edge.
     pub(crate) collection_member: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// Planned state transition for one managed filesystem path.
 pub(crate) struct PlannedFile {
+    /// Filesystem action.
     pub(crate) action: FileAction,
+    /// Consumer-workspace-relative path.
     pub(crate) path: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Digest before the mutation when known.
     pub(crate) from_sha256: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Digest after the mutation when known.
     pub(crate) to_sha256: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Resulting or prior byte length when known.
     pub(crate) bytes: Option<u64>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
+/// Filesystem transition represented in a mutation plan.
 pub(crate) enum FileAction {
+    /// A new managed path is created.
     Add,
+    /// Existing managed bytes are replaced.
     Replace,
+    /// A previously managed path is removed.
     Remove,
+    /// Existing bytes remain unchanged.
     Retain,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// Resource-declared capability or side effect surfaced for review.
 pub(crate) struct PlannedEffect {
+    /// Resource declaring the effect.
     pub(crate) identity: ResourceIdentity,
+    /// Stable effect description.
     pub(crate) effect: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// Exact resource identity and version selected by resolution.
 pub(crate) struct ExactResource {
+    /// Stable resource identity.
     pub(crate) identity: ResourceIdentity,
+    /// Exact semantic version.
     pub(crate) version: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// Version transition for one resource identity.
 pub(crate) struct PlannedChange {
+    /// Kind of resource transition.
     pub(crate) action: ChangeAction,
+    /// Affected resource identity.
     pub(crate) identity: ResourceIdentity,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Previously locked version, if any.
     pub(crate) from_version: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Resulting locked version, if any.
     pub(crate) to_version: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
+/// Resource-level transition represented in a mutation plan.
 pub(crate) enum ChangeAction {
+    /// A resource enters the lock.
     Add,
+    /// A resource changes exact version.
     Update,
+    /// A resource leaves the lock.
     Remove,
+    /// A resource remains at the same version.
     Retain,
+    /// A payload gains an explicit workspace projection.
     Materialize,
 }
 
 impl ManagerReport {
+    /// Builds a report for an operation that completed its requested effects.
     pub(crate) fn completed(
         command: impl Into<String>,
         workspace: Option<String>,
@@ -174,6 +254,7 @@ impl ManagerReport {
         }
     }
 
+    /// Builds a report for a dry-run plan that was not committed.
     pub(crate) fn planned(
         command: impl Into<String>,
         workspace: Option<String>,
@@ -189,6 +270,7 @@ impl ManagerReport {
     }
 }
 
+/// Writes a successful response in the selected output format.
 pub(crate) fn write_report(
     report: &ManagerReport,
     format: OutputFormat,
@@ -208,6 +290,7 @@ pub(crate) fn write_report(
     Ok(())
 }
 
+/// Writes a stable human or machine-readable error response.
 pub(crate) fn write_error(error: &ManagerError, format: OutputFormat, theme: &Theme) {
     match format {
         OutputFormat::Human => {

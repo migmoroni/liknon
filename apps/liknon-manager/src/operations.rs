@@ -1,3 +1,5 @@
+//! Command orchestration from parsed intent to reports and transactional storage.
+
 use std::{
     collections::{BTreeMap, BTreeSet},
     io::{self, IsTerminal as _, Write as _},
@@ -25,6 +27,7 @@ use crate::{
     workspace::{self, Workspace},
 };
 
+/// Dispatches one parsed command without mixing rendering into domain work.
 pub(crate) fn execute(cli: Cli) -> Result<ManagerReport, ManagerError> {
     let format = cli.format();
     match cli.command {
@@ -435,6 +438,9 @@ fn mutate_resolved(
     mutation: MutationArgs,
     format: OutputFormat,
 ) -> Result<ManagerReport, ManagerError> {
+    // Resolve and expose the complete effect before downloading payloads or
+    // entering the transactional store. Dry runs therefore exercise the same
+    // selection and planning logic as committed operations.
     let available = available_resources(&workspace, &manifest, hub.as_ref())?;
     let resolution = resolver::resolve(
         &manifest,
@@ -455,6 +461,8 @@ fn mutate_resolved(
         return Ok(planned_report(operation, &workspace, plan));
     }
     confirm(&plan, mutation.yes, format)?;
+    // Potentially expensive and remote payload acquisition begins only after
+    // the complete mutation has been approved.
     let payloads = collect_payloads(&workspace, &current, &lock, hub.as_ref())?;
     let evidence = hub.as_ref().and_then(|hub| {
         lock.catalog
@@ -481,6 +489,8 @@ fn available_resources(
     manifest: &ResourceManifest,
     hub: Option<&HubSnapshot>,
 ) -> Result<Vec<AvailableResource>, ManagerError> {
+    // Hub candidates are already authenticated by HubSnapshot. Local roots are
+    // explicit user selections and are validated by the same resource contract.
     let mut available = hub
         .into_iter()
         .flat_map(|hub| {
@@ -524,6 +534,8 @@ fn resolved_lock(
     resources: Vec<LockedResource>,
     hub: Option<&HubSnapshot>,
 ) -> Result<ResourceLock, ManagerError> {
+    // Preserve only materializations whose exact source version survives the
+    // new resolution; stale projections cannot silently change ownership.
     for resolved in &resources {
         let previous = current.resources.iter().find(|previous| {
             previous.resource.identity == resolved.resource.identity
@@ -612,6 +624,8 @@ fn collect_payloads(
     lock: &ResourceLock,
     hub: Option<&HubSnapshot>,
 ) -> Result<PayloadBytes, ManagerError> {
+    // Reuse verified installed bytes for unchanged exact versions. Every other
+    // payload must come from the source retained by resolution.
     let existing = current
         .lock
         .resources
@@ -676,6 +690,8 @@ fn mutation_plan(
     current: &ResourceLock,
     proposed: &ResourceLock,
 ) -> Result<MutationPlan, ManagerError> {
+    // BTree collections make every externally visible plan deterministic,
+    // which is required for human review and machine comparison.
     let current_map = current
         .resources
         .iter()
@@ -788,6 +804,7 @@ fn mutation_plan(
 }
 
 #[derive(Debug, Clone)]
+/// Comparable identity and optional display metadata for one planned file.
 struct FileDescriptor {
     comparison: String,
     sha256: Option<String>,
@@ -904,6 +921,8 @@ fn planned_file_map(
 }
 
 fn planned_effects(lock: &ResourceLock) -> Vec<PlannedEffect> {
+    // Effects are descriptive evidence only. Manager never executes resource
+    // content while planning or installing it.
     let mut effects = BTreeSet::new();
     for locked in &lock.resources {
         let identity = &locked.resource.identity;
@@ -974,6 +993,8 @@ fn confirm(plan: &MutationPlan, approved: bool, format: OutputFormat) -> Result<
         return Ok(());
     }
     if format == OutputFormat::Json || !io::stdin().is_terminal() || !io::stderr().is_terminal() {
+        // Machine and redirected execution cannot infer human consent from an
+        // unreadable prompt; explicit --yes is the only approval mechanism.
         return Err(ManagerError::Blocked(
             "mutation requires --yes outside an interactive human terminal".to_owned(),
         ));

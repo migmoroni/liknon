@@ -1,3 +1,5 @@
+//! Deterministic resource dependency resolution and compatibility filtering.
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use liknon_resource_contracts::{
@@ -10,23 +12,38 @@ use semver::{Version, VersionReq};
 use crate::error::ManagerError;
 
 #[derive(Debug, Clone)]
+/// One authenticated or explicit local resource available to the solver.
 pub(crate) struct AvailableResource {
+    /// Immutable resource metadata.
     pub(crate) resource: ResourceVersion,
+    /// Exact source retained if this candidate is selected.
     pub(crate) origin: LockedResourceOrigin,
 }
 
 #[derive(Debug)]
+/// Exact, dependency-closed resource set selected by the solver.
 pub(crate) struct Resolution {
+    /// Locked resources sorted by stable identity.
     pub(crate) resources: Vec<LockedResource>,
 }
 
 #[derive(Debug, Clone, Default)]
+/// Backtracking state for one partial dependency solution.
 struct SolveState {
+    /// Candidate currently selected for each constrained identity.
     selected: BTreeMap<ResourceIdentity, AvailableResource>,
+    /// All semantic-version requirements accumulated for each identity.
     constraints: BTreeMap<ResourceIdentity, Vec<String>>,
+    /// Required dependency and collection edges introduced by selections.
     edges: BTreeMap<ResourceIdentity, Vec<(ResourceIdentity, bool)>>,
 }
 
+/// Resolves desired roots into an exact, compatible, acyclic lock graph.
+///
+/// Existing locked versions are preferences, not hidden constraints. Explicit
+/// updates disable that preference for the selected identities while all
+/// candidates continue to obey source, trust, revocation, and compatibility
+/// rules.
 pub(crate) fn resolve(
     manifest: &ResourceManifest,
     available: Vec<AvailableResource>,
@@ -55,6 +72,8 @@ pub(crate) fn resolve(
         }
     }
     for candidates in pool.values_mut() {
+        // Candidate order is deterministic so equivalent catalogs produce the
+        // same lock independently from input iteration order.
         candidates.sort_by(|left, right| {
             let left = Version::parse(&left.resource.version).expect("validated resource version");
             let right =
@@ -146,6 +165,8 @@ fn solve(
     update: &BTreeSet<ResourceIdentity>,
     allow_community: bool,
 ) -> Option<SolveState> {
+    // Reject a branch as soon as newly accumulated constraints invalidate an
+    // already selected candidate.
     for (identity, selected) in &state.selected {
         if !requirements_match(
             &selected.resource.version,
@@ -174,6 +195,8 @@ fn solve(
         .get(&identity)
         .cloned()
         .unwrap_or_default();
+    // Clone-on-branch keeps rollback explicit and makes failed alternatives
+    // unable to leak constraints into the next candidate.
     for candidate in candidates {
         if !candidate_allowed(
             &candidate,
@@ -279,6 +302,8 @@ fn candidate_allowed(
         return false;
     }
     if resource.yanked && (updating || preferred.is_none_or(|value| value != &resource.version)) {
+        // A yanked version may remain locked for reproducibility, but it cannot
+        // be newly selected or selected during an explicit update.
         return false;
     }
     match resource.trust.class {
@@ -338,6 +363,8 @@ fn locked_compatibility(resource: &ResourceVersion) -> LockedCompatibility {
 fn reject_cycles(
     edges: &BTreeMap<ResourceIdentity, Vec<(ResourceIdentity, bool)>>,
 ) -> Result<(), ManagerError> {
+    // Resolution is iterative in its result, but cycle reporting retains the
+    // active path so diagnostics identify the complete offending chain.
     let mut visited = BTreeSet::new();
     let mut active = BTreeSet::new();
     for identity in edges.keys() {

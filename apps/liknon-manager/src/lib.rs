@@ -1,5 +1,7 @@
 //! Authenticated acquisition and transactional state management for Liknon resources.
 
+#![warn(missing_docs)]
+
 mod cli;
 mod error;
 mod hub;

@@ -1,3 +1,5 @@
+//! Transactional resource storage, integrity verification, and crash recovery.
+
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
@@ -30,21 +32,30 @@ const MANIFEST_FILE: &str = "manifest.json";
 const LOCK_FILE: &str = "lock.json";
 
 #[derive(Debug, Clone)]
+/// Validated desired and exact state loaded from one resource store.
 pub(crate) struct StoreState {
+    /// Human-maintained desired roots.
     pub(crate) manifest: ResourceManifest,
+    /// Exact resolved resources and materializations.
     pub(crate) lock: ResourceLock,
 }
 
 #[derive(Debug, Clone, Default)]
+/// Counts and warnings produced by complete store verification.
 pub(crate) struct Verification {
+    /// Number of authenticated locked resources verified.
     pub(crate) resources: usize,
+    /// Number of exact payload files verified.
     pub(crate) payloads: usize,
+    /// Non-fatal verification observations.
     pub(crate) warnings: Vec<String>,
 }
 
+/// Verified payload bytes keyed by identity, exact version, and installed path.
 pub(crate) type PayloadBytes = BTreeMap<(ResourceIdentity, String, String), Vec<u8>>;
 
 #[derive(Debug, Clone)]
+/// Prepared change to one explicit projection outside the resource store.
 pub(crate) struct ProjectionMutation {
     destination: PathBuf,
     expected_sha256: Option<String>,
@@ -52,6 +63,7 @@ pub(crate) struct ProjectionMutation {
 }
 
 #[derive(Debug, Clone)]
+/// Resulting operation for one projection destination.
 enum ProjectionAction {
     Write(Vec<u8>),
     Remove,
@@ -59,6 +71,7 @@ enum ProjectionAction {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+/// Durable recovery record spanning the resource-store swap and projections.
 struct TransactionJournal {
     schema_version: u32,
     phase: TransactionPhase,
@@ -70,6 +83,7 @@ struct TransactionJournal {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+/// Recovery metadata for one projection participating in a transaction.
 struct JournalProjection {
     destination: String,
     temporary: Option<String>,
@@ -80,12 +94,17 @@ struct JournalProjection {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+/// Last durable boundary reached by a workspace mutation.
 enum TransactionPhase {
+    /// New state and projections are durable but the live store is unchanged.
     Prepared,
+    /// The previous resource store has been moved to its recovery location.
     BackedUp,
+    /// The new store and projections are authoritative.
     Committed,
 }
 
+/// Initializes an empty resource store through a durable directory swap.
 pub(crate) fn initialize(workspace: &Workspace) -> Result<(), ManagerError> {
     match fs::symlink_metadata(&workspace.liknon_root) {
         Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
@@ -137,6 +156,8 @@ pub(crate) fn initialize(workspace: &Workspace) -> Result<(), ManagerError> {
     let staging = workspace
         .liknon_root
         .join(format!(".resources-init-{}", transaction_id()?));
+    // Build the complete initial store away from its canonical path so a
+    // partial initialization is never observable as valid state.
     fs::create_dir(&staging).at(&staging)?;
     let result = initialize_staging(&staging);
     if let Err(error) = result {
@@ -194,6 +215,7 @@ fn initialize_staging(staging: &Path) -> Result<(), ManagerError> {
     sync_tree(staging)
 }
 
+/// Loads and validates the manifest-lock pair at one workspace boundary.
 pub(crate) fn load(workspace: &Workspace) -> Result<StoreState, ManagerError> {
     validate_resource_root(workspace)?;
     let manifest_path = workspace.resources.join(MANIFEST_FILE);
@@ -204,6 +226,7 @@ pub(crate) fn load(workspace: &Workspace) -> Result<StoreState, ManagerError> {
     Ok(StoreState { manifest, lock })
 }
 
+/// Computes administrative state for every desired or locked resource.
 pub(crate) fn state_rows(
     workspace: &Workspace,
     state: &StoreState,
@@ -251,6 +274,7 @@ pub(crate) fn state_rows(
     Ok(rows)
 }
 
+/// Verifies and classifies every projection retained by the lock.
 pub(crate) fn materialization_rows(
     workspace: &Workspace,
     state: &StoreState,
@@ -279,6 +303,7 @@ pub(crate) fn materialization_rows(
         .collect()
 }
 
+/// Verifies contracts, retained trust evidence, resources, payloads, and projections.
 pub(crate) fn verify(
     workspace: &Workspace,
     state: &StoreState,
@@ -397,6 +422,11 @@ fn verify_catalog_evidence(workspace: &Workspace, lock: &ResourceLock) -> Result
     Ok(())
 }
 
+/// Atomically commits a complete resource state and its external projections.
+///
+/// The workspace mutation lock serializes writers. A durable journal records
+/// each store-swap boundary so a later invocation can either restore the
+/// previous complete state or finish an already committed transaction.
 pub(crate) fn apply(
     workspace: &Workspace,
     manifest: &ResourceManifest,
@@ -420,6 +450,7 @@ pub(crate) fn apply(
             "another Manager process holds the workspace mutation lock".to_owned(),
         )
     })?;
+    // Recovery always precedes a new mutation while holding the same lock.
     recover_locked(workspace)?;
 
     let transaction_id = transaction_id()?;
@@ -427,6 +458,8 @@ pub(crate) fn apply(
     fs::create_dir_all(&transactions).at(&transactions)?;
     let staging = transactions.join(format!("{transaction_id}-resources"));
     let backup = transactions.join(format!("{transaction_id}-backup"));
+    // Construct and sync the entire replacement before publishing a journal or
+    // moving the live resource store.
     copy_tree(&workspace.resources, &staging)?;
     remove_owned_payloads(&staging, &load(workspace)?.lock)?;
     install_payloads(&staging, lock, payloads)?;
@@ -455,6 +488,7 @@ pub(crate) fn apply(
         fs::remove_dir_all(&staging).at(&staging)?;
         return Err(error);
     }
+    // From this point onward the journal is the source of truth for recovery.
     fs::rename(&workspace.resources, &backup).at(&workspace.resources)?;
     journal.phase = TransactionPhase::BackedUp;
     write_journal(workspace, &journal)?;
@@ -466,6 +500,8 @@ pub(crate) fn apply(
         });
     }
     if let Err(error) = commit_projections(&journal.projections) {
+        // Store and projections form one logical transaction. A projection
+        // failure restores both to their exact prior state.
         rollback_projections(workspace, &journal.projections)?;
         fs::remove_dir_all(&workspace.resources).at(&workspace.resources)?;
         fs::rename(&backup, &workspace.resources).at(&backup)?;
@@ -477,6 +513,8 @@ pub(crate) fn apply(
     }
     journal.phase = TransactionPhase::Committed;
     write_journal(workspace, &journal)?;
+    // Cleanup happens only after the committed phase is durable; interruption
+    // here is completed safely by recover_locked.
     fs::remove_dir_all(&backup).at(&backup)?;
     cleanup_projection_backups(&journal.projections)?;
     fs::remove_file(journal_path(workspace)).at(journal_path(workspace))?;
@@ -484,6 +522,7 @@ pub(crate) fn apply(
     Ok(())
 }
 
+/// Recovers an interrupted mutation while excluding concurrent writers.
 pub(crate) fn recover(workspace: &Workspace) -> Result<(), ManagerError> {
     fs::create_dir_all(&workspace.manager_state).at(&workspace.manager_state)?;
     let lock_file_path = workspace.manager_state.join("manager.lock");
@@ -504,6 +543,7 @@ pub(crate) fn recover(workspace: &Workspace) -> Result<(), ManagerError> {
     result
 }
 
+/// Loads and verifies an explicitly selected local resource directory.
 pub(crate) fn load_local_resource(path: &Path) -> Result<AvailableResource, ManagerError> {
     let supplied_metadata = fs::symlink_metadata(path).at(path)?;
     if supplied_metadata.file_type().is_symlink() || !supplied_metadata.is_dir() {
@@ -540,6 +580,7 @@ pub(crate) fn load_local_resource(path: &Path) -> Result<AvailableResource, Mana
     })
 }
 
+/// Reads one exact payload from an explicit local resource.
 pub(crate) fn local_payload(
     root: &Path,
     object: &str,
@@ -548,6 +589,7 @@ pub(crate) fn local_payload(
     read_local_payload(root, object, expected_length)
 }
 
+/// Reads and verifies one payload from an installed locked resource.
 pub(crate) fn installed_payload(
     workspace: &Workspace,
     locked: &LockedResource,
@@ -579,6 +621,7 @@ pub(crate) fn installed_payload(
     Ok(bytes)
 }
 
+/// Prepares a write projection after proving ownership of its destination.
 pub(crate) fn prepare_materialization(
     workspace: &Workspace,
     state: &StoreState,
@@ -659,6 +702,7 @@ pub(crate) fn prepare_materialization(
     ))
 }
 
+/// Prepares removals for projections no longer retained by the proposed lock.
 pub(crate) fn removed_materializations(
     workspace: &Workspace,
     current: &ResourceLock,
@@ -1179,6 +1223,8 @@ fn prepare_projections(
                 )));
             }
             workspace::validate_existing_ancestors(&workspace.root, &projection.destination)?;
+            // Existing bytes may be replaced or removed only when their digest
+            // proves they are still the projection previously owned by Liknon.
             match (&projection.expected_sha256, projection.destination.exists()) {
                 (Some(expected), true) => {
                     let bytes = fs::read(&projection.destination).at(&projection.destination)?;
@@ -1286,6 +1332,8 @@ fn rollback_projections(
     workspace: &Workspace,
     projections: &[JournalProjection],
 ) -> Result<(), ManagerError> {
+    // Reverse order mirrors the commit sequence and minimizes the observable
+    // interval in which dependent projections disagree.
     for projection in projections.iter().rev() {
         validate_journal_projection(workspace, projection)?;
         let destination = Path::new(&projection.destination);
@@ -1429,6 +1477,8 @@ fn recover_locked(workspace: &Workspace) -> Result<(), ManagerError> {
             "transaction journal paths escape Manager state".to_owned(),
         ));
     }
+    // Each phase has one authoritative side of the directory swap. Recovery
+    // never guesses when the journal and filesystem disagree.
     match journal.phase {
         TransactionPhase::Prepared => {
             if backup.exists() {

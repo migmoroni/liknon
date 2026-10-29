@@ -1,3 +1,5 @@
+//! Workspace discovery and path-containment enforcement.
+
 use std::{
     env, fs,
     path::{Path, PathBuf},
@@ -8,10 +10,15 @@ use liknon_resource_contracts::RESOURCE_ROOT_RELATIVE;
 use crate::error::{IoResultExt as _, ManagerError};
 
 #[derive(Debug, Clone)]
+/// Canonical paths owned by one initialized Liknon consumer workspace.
 pub(crate) struct Workspace {
+    /// Canonical consumer workspace boundary.
     pub(crate) root: PathBuf,
+    /// Workspace-local Liknon control directory.
     pub(crate) liknon_root: PathBuf,
+    /// Managed resource store below the control directory.
     pub(crate) resources: PathBuf,
+    /// Private transaction and locking state.
     pub(crate) manager_state: PathBuf,
 }
 
@@ -26,11 +33,13 @@ impl Workspace {
         }
     }
 
+    /// Returns the workspace boundary in a human-readable form.
     pub(crate) fn display(&self) -> String {
         self.root.display().to_string()
     }
 }
 
+/// Discovers the nearest initialized workspace or validates an explicit boundary.
 pub(crate) fn discover(explicit: Option<&Path>) -> Result<Workspace, ManagerError> {
     let start =
         canonical_directory(explicit.unwrap_or(&env::current_dir().at("current directory")?))?;
@@ -48,6 +57,7 @@ pub(crate) fn discover(explicit: Option<&Path>) -> Result<Workspace, ManagerErro
     }
 }
 
+/// Selects the boundary used by initialization, including an uninitialized root.
 pub(crate) fn for_init(explicit: Option<&Path>) -> Result<Workspace, ManagerError> {
     let start =
         canonical_directory(explicit.unwrap_or(&env::current_dir().at("current directory")?))?;
@@ -64,6 +74,7 @@ pub(crate) fn for_init(explicit: Option<&Path>) -> Result<Workspace, ManagerErro
     Ok(Workspace::from_root(start))
 }
 
+/// Resolves the explicit or platform-appropriate Manager cache directory.
 pub(crate) fn cache_root(explicit: Option<&Path>) -> Result<PathBuf, ManagerError> {
     if let Some(path) = explicit {
         return absolute_or_current(path);
@@ -82,6 +93,7 @@ pub(crate) fn cache_root(explicit: Option<&Path>) -> Result<PathBuf, ManagerErro
     Ok(env::temp_dir().join("liknon-manager-cache"))
 }
 
+/// Resolves a portable materialization destination without permitting control-dir access.
 pub(crate) fn contained_destination(
     workspace: &Workspace,
     relative: &Path,
@@ -108,6 +120,7 @@ pub(crate) fn contained_destination(
     Ok(destination)
 }
 
+/// Rejects existing symlink components and escapes below a filesystem boundary.
 pub(crate) fn validate_existing_ancestors(
     boundary: &Path,
     destination: &Path,
@@ -124,6 +137,8 @@ pub(crate) fn validate_existing_ancestors(
     for component in relative.components() {
         current.push(component);
         if !current.exists() {
+            // A later atomic write creates missing components below the last
+            // verified ancestor; only existing nodes can conceal a symlink.
             continue;
         }
         let metadata = fs::symlink_metadata(&current).at(&current)?;

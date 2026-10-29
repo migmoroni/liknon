@@ -1,3 +1,5 @@
+//! Command-line grammar and Manager-specific argument applicability.
+
 use std::path::PathBuf;
 
 use clap::{Arg, Args, Parser, Subcommand, ValueEnum};
@@ -5,12 +7,16 @@ use liknon_cli_ui::VisualOptions;
 use liknon_resource_contracts::{ResourceKind, TrustClass};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+/// Serialization format selected for a Manager response.
 pub(crate) enum OutputFormat {
+    /// Accessible, terminal-oriented output.
     Human,
+    /// Stable machine-readable JSON output.
     Json,
 }
 
 #[derive(Debug, Clone, Args)]
+/// Workspace boundary shared by commands that inspect or mutate local state.
 pub(crate) struct WorkspaceArgs {
     /// Uses this exact consumer workspace boundary instead of discovery.
     #[arg(long, value_name = "PATH")]
@@ -18,6 +24,7 @@ pub(crate) struct WorkspaceArgs {
 }
 
 #[derive(Debug, Clone, Args)]
+/// Authenticated Hub connection and cache settings.
 pub(crate) struct HubArgs {
     /// Authenticated HTTPS Hub origin, file:// URL, or local test path.
     #[arg(long, env = "LIKNON_HUB_URL", value_name = "ORIGIN")]
@@ -34,6 +41,7 @@ pub(crate) struct HubArgs {
 }
 
 #[derive(Debug, Clone, Args)]
+/// Safety controls shared by commands that can mutate a workspace.
 pub(crate) struct MutationArgs {
     /// Resolves and prints the complete plan without changing the workspace.
     #[arg(long)]
@@ -51,6 +59,7 @@ pub(crate) struct MutationArgs {
     arg_required_else_help = true,
     disable_help_subcommand = true
 )]
+/// Parsed Manager invocation.
 pub(crate) struct Cli {
     #[command(flatten)]
     pub(crate) visual: VisualOptions,
@@ -62,16 +71,19 @@ pub(crate) struct Cli {
 }
 
 impl Cli {
+    /// Returns the requested response format.
     pub(crate) const fn format(&self) -> OutputFormat {
         self.format
     }
 
+    /// Returns the shared visual options applied to human output.
     pub(crate) const fn visual(&self) -> VisualOptions {
         self.visual
     }
 }
 
 #[derive(Debug, Subcommand)]
+/// Operations exposed by the resource Manager.
 pub(crate) enum Command {
     /// Creates an empty resource manifest and lock at one workspace boundary.
     Init {
@@ -189,12 +201,19 @@ pub(crate) enum Command {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+/// Public resource contract whose JSON Schema can be emitted.
 pub(crate) enum SchemaContract {
+    /// Immutable resource-version metadata.
     Resource,
+    /// Authenticated Hub catalog snapshots.
     Catalog,
+    /// Human-maintained desired resource state.
     Manifest,
+    /// Exact resolved and installed resource state.
     Lock,
+    /// Trusted signing authority and key lifecycle.
     TrustRoot,
+    /// Detached metadata signature.
     Signature,
 }
 
