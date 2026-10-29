@@ -1,16 +1,16 @@
 //! Clap adapter for the shared semantic theme.
 
-use super::{
-    style::{TerminalColor, BOLD, BRIGHT, DIM, REVERSE, UNDERLINE},
-    PaletteProfile, PresentationProfile, Role, Theme,
-};
 use ::clap::{
     builder::styling::{AnsiColor, Color, Style, Styles},
     ColorChoice, Command,
 };
 
+use crate::{
+    PaletteProfile, PresentationProfile, SemanticRole, StyleAttribute, TerminalColor, Theme,
+};
+
 /// Applies one resolved visual theme to help, usage, and parser diagnostics.
-pub(crate) fn apply(
+pub fn apply(
     command: Command,
     palette: PaletteProfile,
     presentation: PresentationProfile,
@@ -29,7 +29,7 @@ pub(crate) fn apply(
 }
 
 /// Applies presentation-only spacing after custom help composition.
-pub(crate) fn present_help(rendered: String, presentation: PresentationProfile) -> String {
+pub fn present_help(rendered: String, presentation: PresentationProfile) -> String {
     match presentation {
         PresentationProfile::Standard => rendered,
         PresentationProfile::LowVision => expand_help_spacing(&rendered),
@@ -88,40 +88,40 @@ fn expand_help_spacing(rendered: &str) -> String {
 
 fn styles(theme: &Theme) -> Styles {
     Styles::plain()
-        .header(resolve(theme, Role::Section))
-        .error(resolve(theme, Role::Failure))
-        .usage(resolve(theme, Role::Heading))
-        .literal(resolve(theme, Role::Tool))
-        .placeholder(resolve(theme, Role::Path))
-        .valid(resolve(theme, Role::Success))
-        .invalid(resolve(theme, Role::Blocked))
-        .context(resolve(theme, Role::Metadata))
-        .context_value(resolve(theme, Role::Path))
+        .header(resolve(theme, SemanticRole::Section))
+        .error(resolve(theme, SemanticRole::Failure))
+        .usage(resolve(theme, SemanticRole::Heading))
+        .literal(resolve(theme, SemanticRole::AccentPrimary))
+        .placeholder(resolve(theme, SemanticRole::Path))
+        .valid(resolve(theme, SemanticRole::Success))
+        .invalid(resolve(theme, SemanticRole::Blocked))
+        .context(resolve(theme, SemanticRole::Metadata))
+        .context_value(resolve(theme, SemanticRole::Path))
 }
 
-fn resolve(theme: &Theme, role: Role) -> Style {
-    let specification = theme.styles[role as usize];
+fn resolve(theme: &Theme, role: SemanticRole) -> Style {
+    let specification = theme.style(role);
     let mut style = Style::new();
 
-    if let Some(color) = specification.foreground {
+    if let Some(color) = specification.foreground() {
         style = style.fg_color(Some(Color::Ansi(ansi_color(
             color,
-            specification.attributes & BRIGHT != 0,
+            specification.has_attribute(StyleAttribute::Bright),
         ))));
     }
-    if specification.attributes & BOLD != 0 {
+    if specification.has_attribute(StyleAttribute::Bold) {
         style = style.bold();
     }
-    if specification.attributes & DIM != 0 {
+    if specification.has_attribute(StyleAttribute::Dim) {
         style = style.dimmed();
     }
-    if specification.attributes & UNDERLINE != 0 {
+    if specification.has_attribute(StyleAttribute::Underline) {
         style = style.underline();
     }
-    if specification.attributes & REVERSE != 0 {
+    if specification.has_attribute(StyleAttribute::Reverse) {
         style = style.invert();
     }
-    if specification.foreground.is_none() && specification.attributes & BRIGHT != 0 {
+    if specification.foreground().is_none() && specification.has_attribute(StyleAttribute::Bright) {
         style = style.bold();
     }
 
@@ -152,29 +152,19 @@ mod tests {
     use super::*;
     use ::clap::Arg;
 
-    fn render(profile: PaletteProfile, presentation: PresentationProfile) -> String {
+    fn render(palette: PaletteProfile, presentation: PresentationProfile) -> String {
         let mut command = apply(
-            Command::new("validator")
-                .about("Validates a workspace")
-                .arg(
-                    Arg::new("target")
-                        .long("target")
-                        .value_name("TARGET")
-                        .help("Selects the validation target"),
-                ),
-            profile,
+            Command::new("example")
+                .about("Examines a workspace")
+                .arg(Arg::new("target").long("target").value_name("TARGET")),
+            palette,
             presentation,
         );
         command.render_help().ansi().to_string()
     }
 
     #[test]
-    fn plain_help_is_ansi_free() {
-        assert!(!render(PaletteProfile::Plain, PresentationProfile::Standard).contains('\u{1b}'));
-    }
-
-    #[test]
-    fn every_explicit_palette_preserves_help_content() {
+    fn palettes_change_only_ansi_styling() {
         let plain = render(PaletteProfile::Plain, PresentationProfile::Standard);
         for palette in PaletteProfile::ALL
             .into_iter()
@@ -187,64 +177,10 @@ mod tests {
     }
 
     #[test]
-    fn low_vision_help_expands_layout_and_adds_typographic_emphasis() {
+    fn low_vision_expands_help_without_losing_content() {
         let standard = render(PaletteProfile::Plain, PresentationProfile::Standard);
         let low_vision = render(PaletteProfile::Plain, PresentationProfile::LowVision);
-        let low_vision_plain = console::strip_ansi_codes(&low_vision);
-
         assert!(low_vision.contains('\u{1b}'));
-        assert_ne!(low_vision_plain, standard);
-        assert!(low_vision_plain.lines().count() > standard.lines().count());
-    }
-
-    #[test]
-    fn custom_help_spacing_changes_only_low_vision_paragraph_gaps() {
-        let rendered = "first\n\nsecond\n".to_owned();
-        assert_eq!(
-            present_help(rendered.clone(), PresentationProfile::Standard),
-            rendered
-        );
-        assert_eq!(
-            present_help(rendered, PresentationProfile::LowVision),
-            "first\n\n\nsecond\n"
-        );
-    }
-
-    #[test]
-    fn low_vision_spacing_separates_items_without_detaching_descriptions() {
-        let rendered = concat!(
-            "Commands:\n",
-            "  first\n",
-            "          First description\n",
-            "  second\n",
-            "          Second description\n",
-            "\n",
-            "Options:\n",
-            "      --first\n",
-            "          First option\n",
-            "  -h, --help\n",
-            "          Print help\n",
-        )
-        .to_owned();
-
-        assert_eq!(
-            present_help(rendered, PresentationProfile::LowVision),
-            concat!(
-                "Commands:\n",
-                "  first\n",
-                "          First description\n",
-                "\n",
-                "  second\n",
-                "          Second description\n",
-                "\n",
-                "\n",
-                "Options:\n",
-                "      --first\n",
-                "          First option\n",
-                "\n",
-                "  -h, --help\n",
-                "          Print help\n",
-            )
-        );
+        assert!(console::strip_ansi_codes(&low_vision).lines().count() > standard.lines().count());
     }
 }

@@ -5,11 +5,9 @@
 `Decision gate` at B03.0. The product role, offline/non-mutating boundary,
 bootstrap-projection capability, and distribution-channel categories are
 approved. Command grammar, projection envelope, and policy/persistence
-inspection are not approved until B03.0 exits. B03.0 is blocked by completion
-of A02 so its terminal contract starts from the shared implementation.
-A02 may wire the existing structural shell to product-neutral UI primitives,
-but it may not add a Tool operation or resource behavior. B03.1-B03.4 are
-`Provisional`.
+inspection are not approved until B03.0 exits. The A02 terminal prerequisite
+is satisfied: Tool's structural shell already consumes `liknon-cli-ui` without
+adding a Tool operation or resource behavior. B03.1-B03.4 are `Provisional`.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only the Tool track.

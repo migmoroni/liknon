@@ -5,7 +5,7 @@ use std::{fs, process::Command};
 use std::{os::fd::OwnedFd, os::unix::net::UnixStream, process::Stdio};
 use tempfile::TempDir;
 
-const ASCII_LOGO: &str = include_str!("../assets/branding/liknon-ascii.txt");
+const ASCII_LOGO: &str = liknon_cli_ui::LIKNON_ASCII_LOGO;
 
 fn ascii_logo() -> &'static str {
     ASCII_LOGO.trim_end_matches(['\r', '\n'])

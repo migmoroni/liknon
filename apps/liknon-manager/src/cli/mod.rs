@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use clap::{Args, Parser, Subcommand, ValueEnum};
+use clap::{Arg, Args, Parser, Subcommand, ValueEnum};
+use liknon_cli_ui::VisualOptions;
 use liknon_resource_contracts::{ResourceKind, TrustClass};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
@@ -51,6 +52,8 @@ pub(crate) struct MutationArgs {
     disable_help_subcommand = true
 )]
 pub(crate) struct Cli {
+    #[command(flatten)]
+    pub(crate) visual: VisualOptions,
     /// Selects human-readable or versioned machine-readable output.
     #[arg(long, global = true, default_value = "human", value_name = "FORMAT")]
     format: OutputFormat,
@@ -61,6 +64,10 @@ pub(crate) struct Cli {
 impl Cli {
     pub(crate) const fn format(&self) -> OutputFormat {
         self.format
+    }
+
+    pub(crate) const fn visual(&self) -> VisualOptions {
+        self.visual
     }
 }
 
@@ -189,4 +196,43 @@ pub(crate) enum SchemaContract {
     Lock,
     TrustRoot,
     Signature,
+}
+
+/// Applies Manager-owned execution applicability to shared visual arguments.
+pub(crate) fn configure(command: clap::Command) -> clap::Command {
+    let visual_arguments = ["color", "presentation"].map(|id| {
+        command
+            .get_arguments()
+            .find(|argument| argument.get_id() == id)
+            .unwrap_or_else(|| panic!("root visual argument `{id}` is undefined"))
+            .clone()
+    });
+
+    command.mut_subcommands(|subcommand| {
+        let supports_human_execution = subcommand.get_name() != "schema";
+        visual_arguments
+            .iter()
+            .cloned()
+            .fold(subcommand, |subcommand, argument| {
+                if supports_human_execution {
+                    subcommand.arg(execution_argument(argument))
+                } else {
+                    subcommand.arg(argument.hide(true))
+                }
+            })
+    })
+}
+
+fn execution_argument(argument: Arg) -> Arg {
+    match argument.get_id().as_str() {
+        "color" => argument
+            .help("Styles human Manager output with ANSI color")
+            .long_help("Styles human Manager output with ANSI color. See root --help for palettes and rendering behavior.")
+            .hide_possible_values(true),
+        "presentation" => argument
+            .help("Selects the layout and emphasis of human Manager output")
+            .long_help("Selects the layout and emphasis of human Manager output. See root --help for presentation modes and rendering behavior.")
+            .hide_possible_values(true),
+        id => panic!("unsupported visual argument `{id}`"),
+    }
 }

@@ -2,11 +2,11 @@
 
 ## Status
 
-`Decision gate` at B04.0. No launcher, aggregate package, native suite, or
-publication behavior begins until the contract is approved. A02 may adapt the
-existing structural shell to product-neutral help/theme primitives, but it may
-not implement discovery, dispatch, compatibility, aggregate composition, or
-any other B04-owned behavior.
+`Decision gate` at B04.0. No functional dispatch, aggregate native suite, or
+publication behavior begins until the contract is approved. A02 has adapted
+the existing structural launcher shell to product-neutral help/theme
+primitives without implementing discovery, dispatch, compatibility, aggregate
+composition, or any other B04-owned behavior.
 
 The [validation-system roadmap](../README.md) owns cross-track order. This plan
 is the sole owner of the unified launcher, aggregate Cargo package, and complete

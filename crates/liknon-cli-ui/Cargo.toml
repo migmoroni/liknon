@@ -1,0 +1,18 @@
+[package]
+name = "liknon-cli-ui"
+version = "0.5.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = ["crates-io"]
+description = "Accessible terminal presentation primitives for Liknon command-line applications"
+readme = "README.md"
+keywords = ["liknon", "cli", "accessibility", "terminal"]
+categories = ["command-line-interface", "development-tools"]
+include = ["src/**", "assets/**", "README.md"]
+
+[dependencies]
+clap.workspace = true
+console.workspace = true

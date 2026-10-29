@@ -1,6 +1,6 @@
 mod common;
 
-use std::fs;
+use std::{fs, process::Command};
 
 use liknon_resource_contracts::{
     ResourceDependency, ResourceIdentity, ResourceKind, TrustClass, WorkflowMetadata, WorkflowNode,
@@ -18,6 +18,89 @@ fn both_entry_points_expose_the_same_package_version() {
     assert_success(&primary);
     assert_success(&alias);
     assert_eq!(primary.stdout, alias.stdout);
+}
+
+#[test]
+fn shared_visual_contract_styles_help_and_rejects_machine_output() {
+    let plain = run_manager(&["--help".to_owned()]);
+    assert_success(&plain);
+    assert!(!plain.stdout.contains(&0x1b));
+
+    let plain_text = String::from_utf8(plain.stdout.clone()).unwrap();
+    for palette in [
+        "standard",
+        "high-contrast",
+        "protanopia",
+        "deuteranopia",
+        "tritanopia",
+        "achromatopsia",
+    ] {
+        let colored = Command::new(env!("CARGO_BIN_EXE_liknon-manager"))
+            .args([format!("--color={palette}"), "--help".to_owned()])
+            .env("NO_COLOR", "1")
+            .output()
+            .unwrap();
+        assert_success(&colored);
+        assert!(colored.stdout.contains(&0x1b), "{palette}");
+        assert_eq!(
+            console::strip_ansi_codes(&String::from_utf8(colored.stdout).unwrap()),
+            plain_text,
+            "{palette}"
+        );
+    }
+
+    let colored = Command::new(env!("CARGO_BIN_EXE_liknon-manager"))
+        .args(["--color=standard", "--help"])
+        .env("NO_COLOR", "1")
+        .output()
+        .unwrap();
+
+    let low_vision = run_manager(&["--presentation=low-vision".to_owned(), "--help".to_owned()]);
+    assert_success(&low_vision);
+    assert!(low_vision.stdout.contains(&0x1b));
+
+    let focused_plain = run_manager(&["init".to_owned(), "--help".to_owned()]);
+    let focused_colored = run_manager(&[
+        "init".to_owned(),
+        "--help".to_owned(),
+        "--color=standard".to_owned(),
+    ]);
+    assert_success(&focused_plain);
+    assert_success(&focused_colored);
+    assert!(focused_colored.stdout.contains(&0x1b));
+    assert_eq!(
+        console::strip_ansi_codes(&String::from_utf8(focused_colored.stdout).unwrap()),
+        String::from_utf8(focused_plain.stdout).unwrap()
+    );
+
+    let malformed = run_manager(&["--color=unknown".to_owned(), "--help".to_owned()]);
+    assert_eq!(malformed.status.code(), Some(2));
+    assert!(!malformed.stderr.contains(&0x1b));
+
+    let incompatible = run_manager(&[
+        "schema".to_owned(),
+        "resource".to_owned(),
+        "--format=json".to_owned(),
+        "--color=standard".to_owned(),
+    ]);
+    assert_eq!(incompatible.status.code(), Some(3));
+    assert!(!incompatible.stdout.contains(&0x1b));
+    let error: serde_json::Value = serde_json::from_slice(&incompatible.stdout).unwrap();
+    assert_eq!(error["error"]["class"], "usage");
+
+    let alias = run_alias(&["--color=standard", "--help"]);
+    assert_success(&alias);
+    assert_eq!(alias.stdout, colored.stdout);
+
+    let fixture = Fixture::new();
+    let mut colored_init = vec!["init".to_owned(), "--color=standard".to_owned()];
+    colored_init.extend(fixture.workspace_arguments());
+    let colored_init = run_manager(&colored_init);
+    assert_success(&colored_init);
+    assert!(colored_init.stdout.contains(&0x1b));
+    assert!(
+        !console::strip_ansi_codes(&String::from_utf8(colored_init.stdout).unwrap()).is_empty()
+    );
 }
 
 #[test]
@@ -143,11 +226,14 @@ fn assert_human_and_json(arguments: &[String]) {
     let human = run_manager(arguments);
     assert_success(&human);
     assert!(!human.stdout.is_empty());
+    assert!(!human.stdout.contains(&0x1b));
 
     let mut json_arguments = arguments.to_vec();
     json_arguments.push("--format=json".to_owned());
     let json = run_manager(&json_arguments);
     assert_success(&json);
+    assert!(!json.stdout.contains(&0x1b));
+    assert!(!json.stderr.contains(&0x1b));
     let value: serde_json::Value = serde_json::from_slice(&json.stdout).unwrap();
     assert_eq!(value["schemaVersion"], 1);
 }

@@ -25,15 +25,24 @@ The repository is a Cargo workspace with explicit application boundaries:
 | `liknon-tool` | `liknon-tool`, `likt` | Identity-only shell; offline resource commands are planned |
 | `liknon-cli` | `liknon`, `likx`, and the six capability executables | Aggregate package and launcher shell |
 
+Two supporting libraries preserve boundaries between those applications:
+
+| Package | Current responsibility |
+| --- | --- |
+| `liknon-cli-ui` | Product-neutral palettes, presentation, terminal policy, Clap styling, and generic help composition |
+| `liknon-resource-contracts` | Resource, catalog, trust, manifest, lock, and signature contracts |
+
 The `liknon` and `likx` launcher targets currently expose their identity and
 capability namespaces, but do not dispatch them yet. Invoke `liknon-validator`
 or `likv` for validation, and `liknon-manager` or `likm` for resource-state
 administration. Tool, unified routing, and governed workflow execution remain
 separate incomplete tracks.
 
-The `liknon-validator` package owns both the terminal-independent validation
-modules and their CLI adaptation. This internal Rust surface is not a promised
-programmatic integration API.
+The applications share the terminal-facing foundation documented in
+[`docs/cli-experience.md`](docs/cli-experience.md), while retaining their own
+commands, domain renderers, machine contracts, errors, and exit codes. The
+`liknon-validator` package owns the validation engine and its CLI adaptation;
+that internal Rust surface is not a promised programmatic integration API.
 
 ## Install From Source
 

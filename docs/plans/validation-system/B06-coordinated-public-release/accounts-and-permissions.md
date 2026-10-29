@@ -14,6 +14,7 @@ permissions, and recovery procedures.
 | Area | Required readiness | Owning plan | State |
 | --- | --- | --- | --- |
 | Canonical GitHub repository | Protected default branch, Actions enabled, signed-tag policy, immutable-release settings, environment reviewers, artifact retention | B01-B05 | Pending |
+| Shared CLI UI crates.io package | `liknon-cli-ui` ownership, `cli-ui-release-approval`, and `publish-crates-cli-ui` trusted publisher or scoped bootstrap token | A02 | Pending |
 | Validation crates.io package | `liknon-validator` ownership and trusted publisher or scoped bootstrap token | B01 | Pending |
 | Manager crates.io package | `liknon-manager` plus required supporting-crate ownership and publisher | B02 | Pending |
 | Tool crates.io package | `liknon-tool` plus required supporting-crate ownership and publisher | B03 | Pending |

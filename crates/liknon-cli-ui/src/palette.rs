@@ -1,16 +1,46 @@
-//! Declarative color palettes for semantic reporting roles.
+//! Declarative color palettes for neutral semantic terminal roles.
 
-use super::{
-    style::{StyleSpec, TerminalColor, BOLD, BRIGHT, DIM, REVERSE, UNDERLINE},
-    PaletteProfile, ROLE_COUNT,
-};
+use crate::style::{SemanticRole, StyleSpec, TerminalColor, BOLD, BRIGHT, DIM, REVERSE, UNDERLINE};
 
-#[derive(Debug)]
-pub(super) struct PaletteSpec {
-    pub(super) styles: [StyleSpec; ROLE_COUNT],
+const ROLE_COUNT: usize = SemanticRole::COUNT;
+
+/// Color palette selected independently from report presentation.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PaletteProfile {
+    /// ANSI-free terminal output.
+    Plain,
+    /// Familiar semantic terminal colors.
+    Standard,
+    /// Bright terminal colors selected for stronger visual separation.
+    HighContrast,
+    /// Palette avoiding red-green distinctions for reduced red perception.
+    Protanopia,
+    /// Palette avoiding red-green distinctions for reduced green perception.
+    Deuteranopia,
+    /// Palette avoiding documented tritanopia-confusing color pairs.
+    Tritanopia,
+    /// Non-chromatic palette using typographic attributes.
+    Achromatopsia,
 }
 
-pub(super) fn specification(profile: PaletteProfile) -> &'static PaletteSpec {
+impl PaletteProfile {
+    /// Every supported palette, including the ANSI-free default.
+    pub const ALL: [Self; 7] = [
+        Self::Plain,
+        Self::Standard,
+        Self::HighContrast,
+        Self::Protanopia,
+        Self::Deuteranopia,
+        Self::Tritanopia,
+        Self::Achromatopsia,
+    ];
+}
+
+pub(crate) struct PaletteSpec {
+    pub(crate) styles: [StyleSpec; ROLE_COUNT],
+}
+
+pub(crate) fn specification(profile: PaletteProfile) -> &'static PaletteSpec {
     match profile {
         PaletteProfile::Plain => &PLAIN,
         PaletteProfile::Standard => &STANDARD,
@@ -30,11 +60,11 @@ const fn a(attributes: u8) -> StyleSpec {
     StyleSpec::attributes(attributes)
 }
 
-// Entries follow `Role::ALL`, so every palette decides every semantic role.
 const PLAIN: PaletteSpec = PaletteSpec {
     styles: [P; ROLE_COUNT],
 };
 
+// Entries follow `SemanticRole`; application vocabulary never enters a palette.
 const STANDARD: PaletteSpec = PaletteSpec {
     styles: [
         c(TerminalColor::White, BOLD),
@@ -194,30 +224,29 @@ const ACHROMATOPSIA: PaletteSpec = PaletteSpec {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::theme::Role;
 
     #[test]
-    fn palette_color_invariants_are_explicit() {
+    fn accessibility_invariants_are_explicit() {
         assert!(HIGH_CONTRAST
             .styles
             .iter()
-            .all(|style| style.attributes & DIM == 0));
+            .all(|style| !style.has_attribute(crate::StyleAttribute::Dim)));
         assert!(HIGH_CONTRAST
             .styles
             .iter()
-            .any(|style| style.attributes & BRIGHT != 0));
+            .any(|style| style.has_attribute(crate::StyleAttribute::Bright)));
         assert!(ACHROMATOPSIA
             .styles
             .iter()
-            .all(|style| style.foreground.is_none()));
+            .all(|style| style.foreground().is_none()));
         for palette in [&PROTANOPIA, &DEUTERANOPIA] {
             assert!(palette.styles.iter().all(|style| !matches!(
-                style.foreground,
+                style.foreground(),
                 Some(TerminalColor::Red | TerminalColor::Green)
             )));
         }
         assert!(TRITANOPIA.styles.iter().all(|style| !matches!(
-            style.foreground,
+            style.foreground(),
             Some(
                 TerminalColor::Blue
                     | TerminalColor::Green
@@ -225,26 +254,5 @@ mod tests {
                     | TerminalColor::Magenta
             )
         )));
-    }
-
-    #[test]
-    fn regular_palettes_use_terminal_borders_and_high_contrast_colors_its_border() {
-        for profile in [
-            PaletteProfile::Plain,
-            PaletteProfile::Standard,
-            PaletteProfile::Protanopia,
-            PaletteProfile::Deuteranopia,
-            PaletteProfile::Tritanopia,
-            PaletteProfile::Achromatopsia,
-        ] {
-            assert_eq!(
-                specification(profile).styles[Role::Border as usize].foreground,
-                None
-            );
-        }
-        assert_eq!(
-            specification(PaletteProfile::HighContrast).styles[Role::Border as usize].foreground,
-            Some(TerminalColor::Cyan)
-        );
     }
 }

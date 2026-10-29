@@ -2,7 +2,7 @@
 
 ## Status
 
-`Current-state record`, atualizado apos a conclusao estrutural do A01.
+`Current-state record`, atualizado apos a implementacao do A02.
 
 ## 1. Finalidade
 
@@ -24,32 +24,39 @@ funcionalidade ja existe.
 ## 2. Resumo Executivo
 
 O Liknon atual e um workspace Cargo virtual na versao `0.5.0`, com MSRV Rust
-1.87. Ele possui quatro pacotes de aplicacao e uma ferramenta privada de
-manutencao:
+1.87. Ele possui quatro pacotes de aplicacao, duas bibliotecas compartilhadas e
+tres ferramentas privadas de manutencao:
 
 | Pacote | Estado atual |
 | --- | --- |
 | `liknon-validator` | Aplicacao de validacao completa, biblioteca interna e binarios `liknon-validator` / `likv` |
-| `liknon-manager` | Shell de identidade para o futuro Manager, sem comandos de recursos |
+| `liknon-manager` | Manager funcional para descoberta, resolucao, instalacao, verificacao e materializacao autenticada de recursos |
 | `liknon-tool` | Shell de identidade para o futuro Tool, sem comandos de consulta |
 | `liknon-cli` | Pacote agregado e shell do launcher `liknon` / `likx`; ainda nao despacha capacidades |
+| `liknon-cli-ui` | Biblioteca publicavel com perfis visuais, estilos semanticos neutros, integracao Clap, ajuda e politica de terminal compartilhadas |
+| `liknon-resource-contracts` | Biblioteca publicavel com contratos de recursos, catalogo, confianca, manifest, lock e assinaturas |
+| `liknon-cli-distribution` | Ferramenta privada para contratos e candidatos de distribuicao nativa das CLIs |
 | `liknon-knowledge-maintenance` | Ferramenta privada que verifica o conteudo autorado no repositorio |
+| `liknon-resource-hub-maintenance` | Ferramenta privada para montar e verificar snapshots assinados do Hub |
 
-O produto funcional implementado e o Validation CLI. Ele valida a
+O Validation CLI e o Manager sao os produtos funcionais implementados. O
+Validation CLI valida a
 configuracao completa antes de executar processos, resolve grupos, suites e
 checks, verifica ferramentas, executa vetores de argumentos sem shell
 implicito, controla timeout e cancelamento, detecta mutacoes visiveis ao Git e
 produz relatorios humanos ou JSON.
 
-Manager, Tool e launcher possuem somente seus limites de pacote, binarios,
-ajuda e versao. Hub, aquisicao e consulta de recursos, policy, persistencia,
-workflows instalaveis e despacho agregado continuam planejados.
+Manager autentica catalogos e payloads, resolve dependencias, mantem o estado
+de recursos em `.liknon/resources/` e suporta verificacao offline. Tool e
+launcher ainda possuem apenas seus limites estruturais. Hub publico, consulta
+offline por Tool, policy, persistencia de workflows e despacho agregado
+continuam planejados ou dependentes de ativacao externa.
 
 ## 3. Produto De Validacao Implementado
 
 O pacote `apps/liknon-validator` possui uma unica implementacao de validacao. A
-separacao entre semantica e terminal ocorre por modulos internos, nao por um
-segundo pacote:
+semantica de validacao permanece local, enquanto a experiencia generica de
+terminal vem de `crates/liknon-cli-ui`:
 
 | Area | Implementacao atual |
 | --- | --- |
@@ -60,7 +67,8 @@ segundo pacote:
 | Evidencia de repositorio | `apps/liknon-validator/src/repository/` |
 | Relatorios e apresentacao | `apps/liknon-validator/src/reporting/` |
 | CLI e ajuda | `apps/liknon-validator/src/cli/` |
-| Temas acessiveis | `apps/liknon-validator/src/theme/` |
+| Adaptacao de papeis e metricas de validacao | `apps/liknon-validator/src/theme/` |
+| Perfis, estilos e ajuda genericos | `crates/liknon-cli-ui/` |
 | Inicializacao | `apps/liknon-validator/src/initialization.rs` |
 | Schemas | `apps/liknon-validator/schemas/` |
 
@@ -138,9 +146,13 @@ Validation CLI.
 
 ## 6. Demais Aplicacoes Implementadas
 
-`liknon-manager` / `likm` e `liknon-tool` / `likt` aceitam somente as
-superficies de identidade, ajuda e versao. Eles nao fingem possuir operacoes
-futuras.
+`liknon-manager` / `likm` implementam `init`, `search`, `info`, `install`,
+`update`, `remove`, `list`, `verify`, `materialize` e `schema`. O Manager nao
+executa recursos nem workflows; ele termina na administracao autenticada e
+transacional dos bytes e do estado instalado.
+
+`liknon-tool` / `likt` continuam como shells estruturais e nao fingem possuir
+operacoes futuras.
 
 O pacote `liknon-cli` instala:
 
@@ -151,6 +163,11 @@ Os launchers reconhecem os namespaces `validate`, `manager` e `tool`, mas
 encerram com diagnostico explicito porque o despacho ainda nao foi
 implementado. A validacao deve ser chamada diretamente por
 `liknon-validator` ou `likv`.
+
+Validator, Manager, Tool e launcher usam `liknon-cli-ui` para perfis visuais,
+ajuda, diagnosticos Clap e politica ANSI. Cada aplicacao mantem localmente sua
+gramatica, apresentacao de dominio, contratos de maquina, erros e codigos de
+saida.
 
 ## 7. Conhecimento E Apoio A IA
 
@@ -169,23 +186,33 @@ aplica policy de decisao e nao administra recursos de IA.
 
 ## 8. Empacotamento E Distribuicao
 
-O workspace ainda nao anuncia uma versao publica. Os quatro pacotes de
-aplicacao possuem `publish = false`; a ferramenta de manutencao tambem e
-privada.
+O workspace ainda nao anuncia uma versao publica. `liknon-validator`,
+`liknon-manager`, `liknon-cli-ui` e `liknon-resource-contracts` possuem
+metadados de pacote publicavel; Tool, launcher agregado e ferramentas de
+manutencao permanecem privados. Workflows protegidos preparam candidatos, mas
+nenhum canal deve ser anunciado como ativo antes da publicacao e do readback.
 
-O caminho funcional documentado instala o Validation CLI a partir do clone:
+Os caminhos funcionais documentados instalam as CLIs implementadas a partir do
+clone:
 
 ```sh
 cargo install --path apps/liknon-validator --locked --force
+cargo install --path apps/liknon-manager --locked --force
 ```
 
-O pacote `liknon-validator` inclui motor, adaptacao CLI, schemas, branding,
-exemplo e testes. Ele nao inclui o corpus de conhecimento, skills, planos,
-avaliacoes, fixtures externas ou ferramentas editoriais. Seu build nao depende
-de outro pacote Liknon.
+O pacote `liknon-validator` inclui motor, adaptacao CLI, schemas, exemplo e
+testes. Ele nao inclui o corpus de conhecimento, skills, planos, avaliacoes,
+fixtures externas ou ferramentas editoriais. Sua experiencia generica de
+terminal depende da versao exata de `liknon-cli-ui`; o branding ASCII necessario
+ao help pertence ao pacote compartilhado.
 
-Publicacao em crates.io, binarios nativos em Cloudflare, distribuicao das
-outras aplicacoes e suite agregada pertencem aos planos B01-B04.
+`liknon-cli-ui` possui workflow proprio de candidato, atestacao, aprovacao,
+publicacao e readback. Os workflows de Validator e Manager ensaiam seus
+pacotes contra as crates compartilhadas exatas e exigem que essas dependencias
+ja estejam publicadas com os mesmos bytes antes de publicar a aplicacao.
+Publicacao efetiva em crates.io, binarios nativos em Cloudflare, Hub publico,
+distribuicao das outras aplicacoes e suite agregada pertencem a B01-B06
+conforme seus respectivos pacotes e canais.
 
 ## 9. Evidencia De Qualidade Existente
 
@@ -210,7 +237,8 @@ origem, inventario de pacote e instalacao isolada. Ela nao publica artefatos.
 
 | Limite atual | Consequencia |
 | --- | --- |
-| Manager e Tool sao shells | Aquisicao e consulta de recursos ainda nao existem |
+| Tool ainda e shell | Consulta offline e projecao de recursos ainda nao existem |
+| Manager nao possui Hub publico | Operacoes remotas oficiais aguardam autoridade e publicacao externas |
 | O launcher nao despacha | A suite agregada ainda nao oferece a ergonomia final |
 | Conhecimento permanece no repositorio | Nao ha instalacao, catalogo local ou consulta por Tool |
 | A skill nao esta ativa | Nao ha um contrato operacional de IA distribuido |

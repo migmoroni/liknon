@@ -1,8 +1,9 @@
 //! Declarative command-line contract and value mappings.
 
 use super::help;
-use crate::theme::{PaletteProfile, PresentationProfile};
 use clap::{Parser, Subcommand, ValueEnum};
+use liknon_cli_ui::VisualOptions;
+pub(super) use liknon_cli_ui::{PaletteArgument as ColorPaletteArgument, PresentationArgument};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -12,29 +13,8 @@ use std::path::PathBuf;
     about = help::root::ABOUT
 )]
 pub(super) struct Cli {
-    #[arg(
-        long,
-        global = true,
-        value_enum,
-        num_args = 0..=1,
-        default_missing_value = "standard",
-        require_equals = true,
-        value_name = "PALETTE",
-        help = help::root::COLOR,
-        long_help = help::root::COLOR_LONG
-    )]
-    pub(super) color: Option<ColorPaletteArgument>,
-
-    #[arg(
-        long,
-        global = true,
-        value_enum,
-        require_equals = true,
-        value_name = "MODE",
-        help = help::root::PRESENTATION,
-        long_help = help::root::PRESENTATION_LONG
-    )]
-    pub(super) presentation: Option<PresentationArgument>,
+    #[command(flatten)]
+    pub(super) visual: VisualOptions,
 
     #[command(subcommand)]
     pub(super) command: Command,
@@ -188,92 +168,6 @@ pub(super) enum Format {
 
     #[value(help = help::values::FORMAT_JSON)]
     Json,
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-pub(super) enum ColorPaletteArgument {
-    #[value(help = help::values::COLOR_STANDARD)]
-    Standard,
-
-    #[value(help = help::values::COLOR_HIGH_CONTRAST)]
-    HighContrast,
-
-    #[value(help = help::values::COLOR_PROTANOPIA)]
-    Protanopia,
-
-    #[value(help = help::values::COLOR_DEUTERANOPIA)]
-    Deuteranopia,
-
-    #[value(help = help::values::COLOR_TRITANOPIA)]
-    Tritanopia,
-
-    #[value(help = help::values::COLOR_ACHROMATOPSIA)]
-    Achromatopsia,
-}
-
-/// Resolves the explicit palette early enough to style Clap's own output.
-pub(super) fn requested_palette(arguments: &[std::ffi::OsString]) -> PaletteProfile {
-    arguments
-        .iter()
-        .skip(1)
-        .take_while(|argument| *argument != "--")
-        .find_map(|argument| {
-            let argument = argument.to_str()?;
-            if argument == "--color" {
-                return Some(ColorPaletteArgument::Standard.into());
-            }
-            let value = argument.strip_prefix("--color=")?;
-            ColorPaletteArgument::from_str(value, true)
-                .ok()
-                .map(Into::into)
-        })
-        .unwrap_or(PaletteProfile::Plain)
-}
-
-/// Resolves the explicit presentation before Clap renders help or diagnostics.
-pub(super) fn requested_presentation(arguments: &[std::ffi::OsString]) -> PresentationProfile {
-    arguments
-        .iter()
-        .skip(1)
-        .take_while(|argument| *argument != "--")
-        .find_map(|argument| {
-            let value = argument.to_str()?.strip_prefix("--presentation=")?;
-            PresentationArgument::from_str(value, true)
-                .ok()
-                .map(Into::into)
-        })
-        .unwrap_or(PresentationProfile::Standard)
-}
-
-#[derive(Clone, Copy, ValueEnum)]
-pub(super) enum PresentationArgument {
-    #[value(help = help::values::PRESENTATION_STANDARD)]
-    Standard,
-
-    #[value(help = help::values::PRESENTATION_LOW_VISION)]
-    LowVision,
-}
-
-impl From<ColorPaletteArgument> for PaletteProfile {
-    fn from(value: ColorPaletteArgument) -> Self {
-        match value {
-            ColorPaletteArgument::Standard => Self::Standard,
-            ColorPaletteArgument::HighContrast => Self::HighContrast,
-            ColorPaletteArgument::Protanopia => Self::Protanopia,
-            ColorPaletteArgument::Deuteranopia => Self::Deuteranopia,
-            ColorPaletteArgument::Tritanopia => Self::Tritanopia,
-            ColorPaletteArgument::Achromatopsia => Self::Achromatopsia,
-        }
-    }
-}
-
-impl From<PresentationArgument> for PresentationProfile {
-    fn from(value: PresentationArgument) -> Self {
-        match value {
-            PresentationArgument::Standard => Self::Standard,
-            PresentationArgument::LowVision => Self::LowVision,
-        }
-    }
 }
 
 #[derive(Clone, Copy, ValueEnum)]

@@ -5,6 +5,7 @@ members = [
   "apps/liknon-manager",
   "apps/liknon-tool",
   "apps/liknon-validator",
+  "crates/liknon-cli-ui",
   "crates/liknon-resource-contracts",
   "tools/cli-distribution",
   "tools/knowledge",
@@ -45,6 +46,7 @@ windows-sys = { version = "0.61.2", features = [
 ] }
 
 liknon-manager = { version = "=0.5.0", path = "apps/liknon-manager" }
+liknon-cli-ui = { version = "=0.5.0", path = "crates/liknon-cli-ui" }
 liknon-resource-contracts = { version = "=0.5.0", path = "crates/liknon-resource-contracts" }
 liknon-tool = { version = "=0.5.0", path = "apps/liknon-tool" }
 liknon-validator = { version = "=0.5.0", path = "apps/liknon-validator" }

@@ -11,9 +11,13 @@ description = "Aggregate package and unified launcher shell for the Liknon CLI s
 
 [dependencies]
 clap.workspace = true
+liknon-cli-ui.workspace = true
 liknon-manager.workspace = true
 liknon-tool.workspace = true
 liknon-validator.workspace = true
+
+[dev-dependencies]
+console.workspace = true
 
 [[bin]]
 name = "liknon"

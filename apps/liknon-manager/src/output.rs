@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 
+use liknon_cli_ui::{SemanticRole, Theme};
 use liknon_resource_contracts::{
     CatalogSnapshotIdentity, MaterializationState, RequestedSource, ResourceIdentity,
     ResourceState, ResourceVersion,
@@ -9,6 +10,7 @@ use serde::Serialize;
 use crate::{
     cli::OutputFormat,
     error::{IoResultExt as _, ManagerError},
+    theme::ManagerTheme,
 };
 
 const REPORT_SCHEMA_VERSION: u32 = 1;
@@ -190,6 +192,7 @@ impl ManagerReport {
 pub(crate) fn write_report(
     report: &ManagerReport,
     format: OutputFormat,
+    theme: &Theme,
 ) -> Result<(), ManagerError> {
     let stdout = io::stdout();
     let mut output = stdout.lock();
@@ -200,14 +203,21 @@ pub(crate) fn write_report(
             })?;
             writeln!(output).at("stdout")?;
         }
-        OutputFormat::Human => write_human(&mut output, report)?,
+        OutputFormat::Human => write_human(&mut output, report, &ManagerTheme::new(theme.clone()))?,
     }
     Ok(())
 }
 
-pub(crate) fn write_error(error: &ManagerError, format: OutputFormat) {
+pub(crate) fn write_error(error: &ManagerError, format: OutputFormat, theme: &Theme) {
     match format {
-        OutputFormat::Human => eprintln!("error: {error}"),
+        OutputFormat::Human => {
+            let theme = ManagerTheme::new(theme.clone());
+            eprintln!(
+                "{}: {}",
+                theme.paint(SemanticRole::Failure, "error"),
+                theme.paint(SemanticRole::DiagnosticContent, error)
+            );
+        }
         OutputFormat::Json => {
             let value = serde_json::json!({
                 "schemaVersion": REPORT_SCHEMA_VERSION,
@@ -225,7 +235,11 @@ pub(crate) fn write_error(error: &ManagerError, format: OutputFormat) {
     }
 }
 
-fn write_human(output: &mut impl Write, report: &ManagerReport) -> Result<(), ManagerError> {
+fn write_human(
+    output: &mut impl Write,
+    report: &ManagerReport,
+    theme: &ManagerTheme,
+) -> Result<(), ManagerError> {
     if let ReportPayload::Schema { schema } = &report.payload {
         serde_json::to_writer_pretty(&mut *output, schema).map_err(|source| {
             ManagerError::Internal(format!("could not serialize JSON Schema: {source}"))
@@ -234,24 +248,51 @@ fn write_human(output: &mut impl Write, report: &ManagerReport) -> Result<(), Ma
         return Ok(());
     }
 
-    writeln!(output, "{}: {:?}", report.command, report.outcome).at("stdout")?;
+    let outcome_role = match report.outcome {
+        Outcome::Completed => SemanticRole::Complete,
+        Outcome::Planned => SemanticRole::Active,
+    };
+    writeln!(
+        output,
+        "{}: {}",
+        theme.paint(SemanticRole::AccentPrimary, &report.command),
+        theme.paint(outcome_role, format!("{:?}", report.outcome))
+    )
+    .at("stdout")?;
     if let Some(workspace) = &report.workspace {
-        writeln!(output, "Workspace: {workspace}").at("stdout")?;
+        writeln!(
+            output,
+            "{}: {}",
+            theme.paint(SemanticRole::Metadata, "Workspace"),
+            theme.paint(SemanticRole::Path, workspace)
+        )
+        .at("stdout")?;
     }
+    write_gap(output, theme.section_gap())?;
     match &report.payload {
         ReportPayload::Initialized => {
             writeln!(output, "Resource manifest and lock are ready.").at("stdout")?;
         }
         ReportPayload::Search { snapshot, results } => {
-            writeln!(output, "Catalog: {} ({})", snapshot.id, snapshot.sequence).at("stdout")?;
+            writeln!(
+                output,
+                "{}: {} ({})",
+                theme.paint(SemanticRole::Metadata, "Catalog"),
+                theme.paint(SemanticRole::Reference, &snapshot.id),
+                snapshot.sequence
+            )
+            .at("stdout")?;
             if results.is_empty() {
                 writeln!(output, "No matching resources.").at("stdout")?;
             }
-            for resource in results {
+            for (index, resource) in results.iter().enumerate() {
+                if index > 0 {
+                    write_gap(output, theme.item_gap())?;
+                }
                 writeln!(
                     output,
                     "{}@{}  [{:?}/{:?}]\n  {}",
-                    resource.identity,
+                    theme.paint(SemanticRole::AccentPrimary, &resource.identity),
                     resource.version,
                     resource.trust.class,
                     resource.trust.review,
@@ -264,7 +305,13 @@ fn write_human(output: &mut impl Write, report: &ManagerReport) -> Result<(), Ma
             resource,
             installed,
         } => {
-            writeln!(output, "{}@{}", resource.identity, resource.version).at("stdout")?;
+            writeln!(
+                output,
+                "{}@{}",
+                theme.paint(SemanticRole::AccentPrimary, &resource.identity),
+                resource.version
+            )
+            .at("stdout")?;
             writeln!(output, "Title: {}", resource.title).at("stdout")?;
             writeln!(output, "Trust: {:?}", resource.trust.class).at("stdout")?;
             writeln!(output, "Review: {:?}", resource.trust.review).at("stdout")?;
@@ -280,11 +327,14 @@ fn write_human(output: &mut impl Write, report: &ManagerReport) -> Result<(), Ma
             if resources.is_empty() {
                 writeln!(output, "No resources are requested or locked.").at("stdout")?;
             }
-            for resource in resources {
+            for (index, resource) in resources.iter().enumerate() {
+                if index > 0 {
+                    write_gap(output, theme.item_gap())?;
+                }
                 writeln!(
                     output,
                     "{:?}  {}  desired={} locked={} trust={} activatable={}",
-                    resource.state,
+                    theme.paint(SemanticRole::Metadata, format!("{:?}", resource.state)),
                     resource.identity,
                     resource.desired.as_deref().unwrap_or("-"),
                     resource.locked.as_deref().unwrap_or("-"),
@@ -296,11 +346,17 @@ fn write_human(output: &mut impl Write, report: &ManagerReport) -> Result<(), Ma
                 )
                 .at("stdout")?;
             }
-            for materialization in materializations {
+            for (index, materialization) in materializations.iter().enumerate() {
+                if index > 0 || !resources.is_empty() {
+                    write_gap(output, theme.item_gap())?;
+                }
                 writeln!(
                     output,
                     "{:?}  {}@{}:{} -> {}",
-                    materialization.state,
+                    theme.paint(
+                        SemanticRole::Metadata,
+                        format!("{:?}", materialization.state)
+                    ),
                     materialization.identity,
                     materialization.version,
                     materialization.payload_path,
@@ -321,25 +377,49 @@ fn write_human(output: &mut impl Write, report: &ManagerReport) -> Result<(), Ma
             )
             .at("stdout")?;
             for warning in warnings {
-                writeln!(output, "Warning: {warning}").at("stdout")?;
+                writeln!(
+                    output,
+                    "{}: {warning}",
+                    theme.paint(SemanticRole::Warning, "Warning")
+                )
+                .at("stdout")?;
             }
         }
-        ReportPayload::Mutation { plan } => write_plan(output, plan)?,
+        ReportPayload::Mutation { plan } => write_plan(output, plan, theme)?,
         ReportPayload::Schema { .. } => unreachable!(),
     }
     Ok(())
 }
 
-fn write_plan(output: &mut impl Write, plan: &MutationPlan) -> Result<(), ManagerError> {
-    writeln!(output, "Operation: {}", plan.operation).at("stdout")?;
+fn write_plan(
+    output: &mut impl Write,
+    plan: &MutationPlan,
+    theme: &ManagerTheme,
+) -> Result<(), ManagerError> {
+    writeln!(
+        output,
+        "{}: {}",
+        theme.paint(SemanticRole::Metadata, "Operation"),
+        theme.paint(SemanticRole::AccentPrimary, &plan.operation)
+    )
+    .at("stdout")?;
     if let Some(snapshot) = &plan.snapshot {
         writeln!(output, "Catalog: {} ({})", snapshot.id, snapshot.sequence).at("stdout")?;
     }
-    for change in &plan.changes {
+    for (index, change) in plan.changes.iter().enumerate() {
+        if index > 0 {
+            write_gap(output, theme.item_gap())?;
+        }
+        let role = match change.action {
+            ChangeAction::Add => SemanticRole::Success,
+            ChangeAction::Update | ChangeAction::Materialize => SemanticRole::AccentPrimary,
+            ChangeAction::Remove => SemanticRole::Failure,
+            ChangeAction::Retain => SemanticRole::Complete,
+        };
         writeln!(
             output,
             "{:?}  {}  {} -> {}",
-            change.action,
+            theme.paint(role, format!("{:?}", change.action)),
             change.identity,
             change.from_version.as_deref().unwrap_or("-"),
             change.to_version.as_deref().unwrap_or("-")
@@ -379,7 +459,12 @@ fn write_plan(output: &mut impl Write, plan: &MutationPlan) -> Result<(), Manage
         writeln!(output, "Decision  {decision}").at("stdout")?;
     }
     for conflict in &plan.conflicts {
-        writeln!(output, "Conflict  {conflict}").at("stdout")?;
+        writeln!(
+            output,
+            "{}  {conflict}",
+            theme.paint(SemanticRole::Blocked, "Conflict")
+        )
+        .at("stdout")?;
     }
     writeln!(
         output,
@@ -396,5 +481,12 @@ fn write_plan(output: &mut impl Write, plan: &MutationPlan) -> Result<(), Manage
     .at("stdout")?;
     writeln!(output, "Rollback: {}", plan.rollback).at("stdout")?;
     writeln!(output, "Committed: {}", plan.committed).at("stdout")?;
+    Ok(())
+}
+
+fn write_gap(output: &mut impl Write, lines: usize) -> Result<(), ManagerError> {
+    for _ in 0..lines {
+        writeln!(output).at("stdout")?;
+    }
     Ok(())
 }

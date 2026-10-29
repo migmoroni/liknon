@@ -1,0 +1,196 @@
+name: Release CLI UI Crate
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Signed annotated liknon-cli-ui-v<VERSION> tag
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-cli-ui-${{ inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RELEASE_TOOLCHAIN: 1.87.0
+  PACKAGE: liknon-cli-ui
+
+jobs:
+  candidate:
+    name: Inspect source-package candidate
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Install exact release toolchain
+        run: |
+          rustup toolchain install "$RELEASE_TOOLCHAIN" \
+            --profile minimal \
+            --component rustfmt,clippy \
+            --no-self-update
+
+      - name: Verify signed package tag and version
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          git cat-file -e "$RELEASE_TAG^{tag}"
+          git verify-tag "$RELEASE_TAG"
+          version=$(cargo metadata --no-deps --format-version 1 | \
+            jq -r '.packages[] | select(.name == "liknon-cli-ui") | .version')
+          [ "$RELEASE_TAG" = "liknon-cli-ui-v$version" ]
+          printf '%s\n' "$version" > "$RUNNER_TEMP/version.txt"
+          git rev-parse HEAD > "$RUNNER_TEMP/commit.txt"
+
+      - name: Run package gates
+        run: |
+          cargo "+$RELEASE_TOOLCHAIN" fmt --all -- --check
+          cargo "+$RELEASE_TOOLCHAIN" clippy -p "$PACKAGE" --all-targets --locked -- -D warnings
+          cargo "+$RELEASE_TOOLCHAIN" test -p "$PACKAGE" --all-targets --locked
+          cargo "+$RELEASE_TOOLCHAIN" test -p "$PACKAGE" --doc --locked
+
+      - name: Build and inspect exact source package
+        shell: bash
+        run: |
+          version=$(cat "$RUNNER_TEMP/version.txt")
+          cargo "+$RELEASE_TOOLCHAIN" package --locked -p "$PACKAGE"
+          cargo "+$RELEASE_TOOLCHAIN" package --list --locked -p "$PACKAGE" \
+            > "$RUNNER_TEMP/package-inventory.txt"
+          if rg '^(apps/|docs/|skills/|evals/|fixtures/|distribution/|tools/)' \
+            "$RUNNER_TEMP/package-inventory.txt"; then
+            printf '%s\n' "source package contains repository-only material" >&2
+            exit 1
+          fi
+          crate="target/package/$PACKAGE-$version.crate"
+          [ -f "$crate" ]
+          rg '^assets/branding/liknon-ascii\.txt$' "$RUNNER_TEMP/package-inventory.txt"
+          mkdir -p "$RUNNER_TEMP/candidate"
+          cp "$crate" "$RUNNER_TEMP/candidate/"
+          cp "$RUNNER_TEMP/version.txt" "$RUNNER_TEMP/candidate/"
+          cp "$RUNNER_TEMP/commit.txt" "$RUNNER_TEMP/candidate/"
+          cp "$RUNNER_TEMP/package-inventory.txt" "$RUNNER_TEMP/candidate/"
+          openssl dgst -sha256 -r "$crate" > "$RUNNER_TEMP/candidate/crate.sha256"
+
+      - name: Verify candidate preparation leaves source unchanged
+        shell: bash
+        run: |
+          git diff --exit-code
+          [ -z "$(git status --short --untracked-files=all)" ] \
+            || { git status --short --untracked-files=all >&2; exit 1; }
+
+      - name: Upload exact candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cli-ui-crate-candidate
+          path: ${{ runner.temp }}/candidate
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+  attest:
+    name: Attest source-package candidate
+    needs: candidate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Download exact candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-ui-crate-candidate
+          path: ${{ runner.temp }}/candidate
+      - name: Publish build provenance
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: ${{ runner.temp }}/candidate/*.crate
+
+  approval:
+    name: Human CLI UI approval
+    needs: attest
+    runs-on: ubuntu-24.04
+    environment: cli-ui-release-approval
+    steps:
+      - run: printf '%s\n' "Approved ${{ inputs.tag }}"
+
+  publish:
+    name: Publish or verify immutable crates.io version
+    needs: approval
+    runs-on: ubuntu-24.04
+    environment: publish-crates-cli-ui
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout exact release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Download exact candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-ui-crate-candidate
+          path: ${{ runner.temp }}/candidate
+      - name: Install exact release toolchain
+        run: rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
+      - name: Authenticate with crates.io trusted publishing
+        id: crates-auth
+        continue-on-error: true
+        uses: rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18 # v1.0.5
+      - name: Publish exact retained package
+        shell: bash
+        env:
+          TRUSTED_PUBLISHING_TOKEN: ${{ steps.crates-auth.outputs.token }}
+          BOOTSTRAP_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          version=$(cat "$RUNNER_TEMP/candidate/version.txt")
+          candidate="$RUNNER_TEMP/candidate/$PACKAGE-$version.crate"
+          [ "$(cat "$RUNNER_TEMP/candidate/commit.txt")" = "$(git rev-parse HEAD)" ]
+          cargo "+$RELEASE_TOOLCHAIN" package --locked -p "$PACKAGE"
+          cmp "$candidate" "target/package/$PACKAGE-$version.crate"
+          status=$(curl --silent --show-error --location \
+            --proto '=https' --proto-redir '=https' --tlsv1.2 \
+            --output "$RUNNER_TEMP/version.json" \
+            --write-out '%{http_code}' \
+            "https://crates.io/api/v1/crates/$PACKAGE/$version")
+          if [ "$status" = 404 ]; then
+            if [ -n "$TRUSTED_PUBLISHING_TOKEN" ]; then
+              CARGO_REGISTRY_TOKEN=$TRUSTED_PUBLISHING_TOKEN
+            elif [ -n "$BOOTSTRAP_TOKEN" ]; then
+              CARGO_REGISTRY_TOKEN=$BOOTSTRAP_TOKEN
+            else
+              printf '%s\n' "no crates.io publication credential is available" >&2
+              exit 1
+            fi
+            export CARGO_REGISTRY_TOKEN
+            cargo "+$RELEASE_TOOLCHAIN" publish --locked -p "$PACKAGE"
+          elif [ "$status" != 200 ]; then
+            printf '%s\n' "unexpected crates.io response: HTTP $status" >&2
+            exit 1
+          fi
+          downloaded=false
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error --location \
+              --proto '=https' --proto-redir '=https' --tlsv1.2 \
+              --output "$RUNNER_TEMP/published.crate" \
+              "https://crates.io/api/v1/crates/$PACKAGE/$version/download"; then
+              downloaded=true
+              break
+            fi
+            sleep 10
+          done
+          [ "$downloaded" = true ]
+          cmp "$candidate" "$RUNNER_TEMP/published.crate"

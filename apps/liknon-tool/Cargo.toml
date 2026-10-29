@@ -11,6 +11,10 @@ description = "Structural shell for the future Liknon offline resource tool"
 
 [dependencies]
 clap.workspace = true
+liknon-cli-ui.workspace = true
+
+[dev-dependencies]
+console.workspace = true
 
 [[bin]]
 name = "liknon-tool"

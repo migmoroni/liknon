@@ -2,8 +2,8 @@
 
 ## Status
 
-`Planned`. Blocked by a verified A02.1 crate and behavior-preserving Validation
-migration.
+`Implemented`. Manager, Tool's structural shell, and launcher-owned surfaces
+consume the shared foundation while retaining their product boundaries.
 
 [Back to Plan A02](README.md)
 
@@ -149,14 +149,14 @@ identical. Product-specific assertions remain in product test suites.
 
 ## Exit Criteria
 
-- [ ] Manager uses the shared implementation and has no local palette,
+- [x] Manager uses the shared implementation and has no local palette,
       presentation, or generic Clap-style copy.
-- [ ] Manager's human output is accessible and its JSON contract is unchanged
+- [x] Manager's human output is accessible and its JSON contract is unchanged
       and ANSI-free.
-- [ ] Tool's structural shell depends on the shared crate before B03 begins.
-- [ ] B03 can add domain renderers without defining terminal policy.
-- [ ] Launcher-owned help uses the shared foundation without consuming or
+- [x] Tool's structural shell depends on the shared crate before B03 begins.
+- [x] B03 can add domain renderers without defining terminal policy.
+- [x] Launcher-owned help uses the shared foundation without consuming or
       restyling delegated capability output.
-- [ ] Every direct and compact command has equivalent visual behavior.
-- [ ] No application invokes another capability or gains a new domain
+- [x] Every direct and compact command has equivalent visual behavior.
+- [x] No application invokes another capability or gains a new domain
       dependency as a result of UI sharing.

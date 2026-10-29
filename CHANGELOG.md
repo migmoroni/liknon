@@ -9,6 +9,12 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- A publishable `liknon-cli-ui` supporting crate for product-neutral
+  accessible palettes, presentation profiles, terminal policy, Clap styling,
+  complete help composition, and canonical terminal branding.
+- Shared terminal adoption by Validator, Manager, Tool, and launcher-owned
+  surfaces, with application-local command grammars and domain renderers.
+- A canonical cross-application CLI experience contract.
 - Cargo workspace boundaries for the Validation CLI and its engine modules,
   Manager application, Tool shell, aggregate launcher package, and private knowledge
   maintenance tool.

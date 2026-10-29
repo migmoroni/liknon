@@ -102,14 +102,16 @@ jobs:
         shell: bash
         run: |
           version=$(jq -r '.version' "$RUNNER_TEMP/identity.json")
-          support_version=$(cargo metadata --no-deps --format-version 1 | \
+          ui_version=$(cargo metadata --no-deps --format-version 1 | \
+            jq -r '.packages[] | select(.name == "liknon-cli-ui") | .version')
+          contracts_version=$(cargo metadata --no-deps --format-version 1 | \
             jq -r '.packages[] | select(.name == "liknon-resource-contracts") | .version')
-          [ -n "$support_version" ] && [ "$support_version" != null ]
-          curl --fail --silent --show-error --location \
-            --proto '=https' --proto-redir '=https' --tlsv1.2 \
-            --output "$RUNNER_TEMP/liknon-resource-contracts-$support_version.crate" \
-            "https://crates.io/api/v1/crates/liknon-resource-contracts/$support_version/download"
-          cargo "+$RELEASE_TOOLCHAIN" package --locked -p liknon-manager
+          [ -n "$ui_version" ] && [ "$ui_version" != null ]
+          [ -n "$contracts_version" ] && [ "$contracts_version" != null ]
+          export LIKNON_SOURCE_REHEARSAL_ROOT="$RUNNER_TEMP/source-rehearsal"
+          RUSTUP_TOOLCHAIN="$RELEASE_TOOLCHAIN" \
+            distribution/cli/common/scripts/rehearse-source-packages.sh \
+              liknon-cli-ui liknon-resource-contracts -- liknon-manager
           cargo "+$RELEASE_TOOLCHAIN" package --list --locked -p liknon-manager \
             > "$RUNNER_TEMP/package-inventory-manager.txt"
           if rg '^(docs/|skills/|evals/|fixtures/|distribution/)' \
@@ -119,11 +121,15 @@ jobs:
           fi
           package_dir="target/package/liknon-manager-$version"
           manager_crate="target/package/liknon-manager-$version.crate"
-          support_crate="$RUNNER_TEMP/liknon-resource-contracts-$support_version.crate"
+          ui_crate="target/package/liknon-cli-ui-$ui_version.crate"
+          contracts_crate="target/package/liknon-resource-contracts-$contracts_version.crate"
           [ -d "$package_dir" ]
           [ -f "$manager_crate" ]
-          [ -f "$support_crate" ]
+          [ -f "$ui_crate" ]
+          [ -f "$contracts_crate" ]
           cargo "+$RELEASE_TOOLCHAIN" install \
+            --config 'source.crates-io.replace-with="liknon-rehearsal"' \
+            --config "source.liknon-rehearsal.directory='$LIKNON_SOURCE_REHEARSAL_ROOT/vendor'" \
             --path "$package_dir" \
             --locked \
             --root "$RUNNER_TEMP/package-install"
@@ -134,13 +140,22 @@ jobs:
           cp "$RUNNER_TEMP/identity.json" "$RUNNER_TEMP/contract/"
           cp "$RUNNER_TEMP/package-inventory-manager.txt" "$RUNNER_TEMP/contract/"
           cp "$manager_crate" "$RUNNER_TEMP/contract/"
+          cp "$ui_crate" "$RUNNER_TEMP/contract/"
+          cp "$contracts_crate" "$RUNNER_TEMP/contract/"
           openssl dgst -sha256 -r "$manager_crate" > "$RUNNER_TEMP/contract/manager-crate.sha256"
-          openssl dgst -sha256 -r "$support_crate" > "$RUNNER_TEMP/contract/contracts-crate.sha256"
+          openssl dgst -sha256 -r "$ui_crate" > "$RUNNER_TEMP/contract/ui-crate.sha256"
+          openssl dgst -sha256 -r "$contracts_crate" > "$RUNNER_TEMP/contract/contracts-crate.sha256"
           jq -n \
-            --arg package liknon-resource-contracts \
-            --arg version "$support_version" \
-            --arg sha256 "$(openssl dgst -sha256 -r "$support_crate" | awk '{print $1}')" \
-            '{schemaVersion: 1, packages: [{package: $package, version: $version, sha256: $sha256}]}' \
+            --arg ui_package liknon-cli-ui \
+            --arg ui_version "$ui_version" \
+            --arg ui_sha256 "$(openssl dgst -sha256 -r "$ui_crate" | awk '{print $1}')" \
+            --arg contracts_package liknon-resource-contracts \
+            --arg contracts_version "$contracts_version" \
+            --arg contracts_sha256 "$(openssl dgst -sha256 -r "$contracts_crate" | awk '{print $1}')" \
+            '{schemaVersion: 1, packages: [
+              {package: $ui_package, version: $ui_version, sha256: $ui_sha256},
+              {package: $contracts_package, version: $contracts_version, sha256: $contracts_sha256}
+            ]}' \
             > "$RUNNER_TEMP/contract/supporting-packages.json"
 
       - name: Verify release preparation leaves source unchanged
@@ -701,6 +716,27 @@ jobs:
               exit 1
             fi
           }
+          while IFS=$'\t' read -r package package_version; do
+            candidate="$RUNNER_TEMP/contract/$package-$package_version.crate"
+            [ -f "$candidate" ]
+            status=$(curl --silent --show-error --location \
+              --proto '=https' --proto-redir '=https' --tlsv1.2 \
+              --output "$RUNNER_TEMP/$package-support-version.json" \
+              --write-out '%{http_code}' \
+              "https://crates.io/api/v1/crates/$package/$package_version")
+            [ "$status" = 200 ] || {
+              printf '%s %s must be published before liknon-manager\n' \
+                "$package" "$package_version" >&2
+              exit 1
+            }
+            curl --fail --silent --show-error --location \
+              --proto '=https' --proto-redir '=https' --tlsv1.2 \
+              --output "$RUNNER_TEMP/$package-support-published.crate" \
+              "https://crates.io/api/v1/crates/$package/$package_version/download"
+            cmp "$candidate" "$RUNNER_TEMP/$package-support-published.crate" \
+              || { printf '%s\n' "$package published bytes differ from the retained dependency" >&2; exit 1; }
+          done < <(jq -r '.packages[] | [.package, .version] | @tsv' \
+            "$RUNNER_TEMP/contract/supporting-packages.json")
           check_registry liknon-manager "$version"
 
   preflight-github:

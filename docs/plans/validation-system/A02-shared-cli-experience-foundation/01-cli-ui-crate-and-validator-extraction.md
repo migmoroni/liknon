@@ -2,7 +2,8 @@
 
 ## Status
 
-`Planned`. Blocked by the approved A02.0 inventory and behavior baseline.
+`Implemented`. `liknon-cli-ui` is packageable independently and Validation now
+uses it through a validation-owned adapter.
 
 [Back to Plan A02](README.md)
 
@@ -187,14 +188,14 @@ runtime file.
 
 ## Exit Criteria
 
-- [ ] `liknon-cli-ui` builds, tests, documents, and packages independently.
-- [ ] Its public API and dependency graph contain no application or resource
+- [x] `liknon-cli-ui` builds, tests, documents, and packages independently.
+- [x] Its public API and dependency graph contain no application or resource
       domain.
-- [ ] Validation uses the crate for every shared profile, style, and help
+- [x] Validation uses the crate for every shared profile, style, and help
       primitive.
-- [ ] Validation-specific roles and renderers remain local.
-- [ ] No duplicate generic theme or help implementation remains in Validation.
-- [ ] Existing Validator unit, CLI, fixture, doctest, and package tests pass.
-- [ ] ANSI-free, low-vision, help, JSON, stream, signal, and exit behavior are
+- [x] Validation-specific roles and renderers remain local.
+- [x] No duplicate generic theme or help implementation remains in Validation.
+- [x] Existing Validator unit, CLI, fixture, doctest, and package tests pass.
+- [x] ANSI-free, low-vision, help, JSON, stream, signal, and exit behavior are
       preserved.
-- [ ] Both Validation binary targets remain equivalent.
+- [x] Both Validation binary targets remain equivalent.

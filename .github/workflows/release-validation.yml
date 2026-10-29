@@ -104,7 +104,13 @@ jobs:
         shell: bash
         run: |
           version=$(jq -r '.version' "$RUNNER_TEMP/identity.json")
-          cargo "+$RELEASE_TOOLCHAIN" package --locked -p liknon-validator
+          ui_version=$(cargo metadata --no-deps --format-version 1 | \
+            jq -r '.packages[] | select(.name == "liknon-cli-ui") | .version')
+          [ -n "$ui_version" ] && [ "$ui_version" != null ]
+          export LIKNON_SOURCE_REHEARSAL_ROOT="$RUNNER_TEMP/source-rehearsal"
+          RUSTUP_TOOLCHAIN="$RELEASE_TOOLCHAIN" \
+            distribution/cli/common/scripts/rehearse-source-packages.sh \
+              liknon-cli-ui -- liknon-validator
           cargo "+$RELEASE_TOOLCHAIN" package --list --locked -p liknon-validator \
             > "$RUNNER_TEMP/package-inventory.txt"
           if rg '^(docs/validation|docs/plans|skills/|evals/|fixtures/|distribution/)' \
@@ -114,9 +120,13 @@ jobs:
           fi
           package_dir="target/package/liknon-validator-$version"
           crate="target/package/liknon-validator-$version.crate"
+          ui_crate="target/package/liknon-cli-ui-$ui_version.crate"
           [ -d "$package_dir" ]
           [ -f "$crate" ]
+          [ -f "$ui_crate" ]
           cargo "+$RELEASE_TOOLCHAIN" install \
+            --config 'source.crates-io.replace-with="liknon-rehearsal"' \
+            --config "source.liknon-rehearsal.directory='$LIKNON_SOURCE_REHEARSAL_ROOT/vendor'" \
             --path "$package_dir" \
             --locked \
             --root "$RUNNER_TEMP/package-install"
@@ -127,7 +137,15 @@ jobs:
           cp "$RUNNER_TEMP/identity.json" "$RUNNER_TEMP/contract/"
           cp "$RUNNER_TEMP/package-inventory.txt" "$RUNNER_TEMP/contract/"
           cp "$crate" "$RUNNER_TEMP/contract/"
+          cp "$ui_crate" "$RUNNER_TEMP/contract/"
           openssl dgst -sha256 -r "$crate" > "$RUNNER_TEMP/contract/crate.sha256"
+          openssl dgst -sha256 -r "$ui_crate" > "$RUNNER_TEMP/contract/ui-crate.sha256"
+          jq -n \
+            --arg package liknon-cli-ui \
+            --arg version "$ui_version" \
+            --arg sha256 "$(openssl dgst -sha256 -r "$ui_crate" | awk '{print $1}')" \
+            '{schemaVersion: 1, packages: [{package: $package, version: $version, sha256: $sha256}]}' \
+            > "$RUNNER_TEMP/contract/supporting-packages.json"
 
       - name: Verify release preparation leaves source unchanged
         shell: bash
@@ -659,8 +677,29 @@ jobs:
           BOOTSTRAP_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
           version=$(jq -r '.version' "$RUNNER_TEMP/contract/identity.json")
-          candidate=$(find "$RUNNER_TEMP/contract" -maxdepth 1 -name '*.crate' -print -quit)
-          [ -n "$candidate" ] && [ -f "$candidate" ]
+          candidate="$RUNNER_TEMP/contract/liknon-validator-$version.crate"
+          [ -f "$candidate" ]
+          ui_version=$(jq -r \
+            '.packages[] | select(.package == "liknon-cli-ui") | .version' \
+            "$RUNNER_TEMP/contract/supporting-packages.json")
+          ui_candidate="$RUNNER_TEMP/contract/liknon-cli-ui-$ui_version.crate"
+          [ -n "$ui_version" ] && [ "$ui_version" != null ] && [ -f "$ui_candidate" ]
+          ui_status=$(curl --silent --show-error --location \
+            --proto '=https' --proto-redir '=https' --tlsv1.2 \
+            --output "$RUNNER_TEMP/liknon-cli-ui-version.json" \
+            --write-out '%{http_code}' \
+            "https://crates.io/api/v1/crates/liknon-cli-ui/$ui_version")
+          [ "$ui_status" = 200 ] || {
+            printf '%s\n' \
+              "liknon-cli-ui $ui_version must be published before liknon-validator" >&2
+            exit 1
+          }
+          curl --fail --silent --show-error --location \
+            --proto '=https' --proto-redir '=https' --tlsv1.2 \
+            --output "$RUNNER_TEMP/liknon-cli-ui-published.crate" \
+            "https://crates.io/api/v1/crates/liknon-cli-ui/$ui_version/download"
+          cmp "$ui_candidate" "$RUNNER_TEMP/liknon-cli-ui-published.crate" \
+            || { printf '%s\n' "published liknon-cli-ui bytes differ from the retained dependency" >&2; exit 1; }
           status=$(curl --silent --show-error --location \
             --proto '=https' --proto-redir '=https' --tlsv1.2 \
             --output "$RUNNER_TEMP/crates-version.json" \
@@ -798,8 +837,8 @@ jobs:
           BOOTSTRAP_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
           version=$(jq -r '.version' "$RUNNER_TEMP/contract/identity.json")
-          candidate=$(find "$RUNNER_TEMP/contract" -maxdepth 1 -name '*.crate' -print -quit)
-          [ -n "$candidate" ] && [ -f "$candidate" ]
+          candidate="$RUNNER_TEMP/contract/liknon-validator-$version.crate"
+          [ -f "$candidate" ]
           cargo "+$RELEASE_TOOLCHAIN" package --locked -p liknon-validator
           cmp "$candidate" "target/package/liknon-validator-$version.crate" \
             || { printf '%s\n' "publication checkout does not reproduce the retained crate" >&2; exit 1; }

@@ -2,8 +2,8 @@
 
 ## Status
 
-`Planned`. This phase records the exact extraction boundary and freezes current
-observable behavior before files move.
+`Implemented`. The inventory is reflected in the shared crate, local product
+adapters, conformance tests, and the canonical CLI experience reference.
 
 [Back to Plan A02](README.md)
 
@@ -112,7 +112,7 @@ roles. The exact public names are finalized in A02.1, but the model must cover:
 - heading and section emphasis;
 - borders and separators;
 - metadata, paths, values, and subdued text;
-- primary, secondary, and tertiary accents;
+- primary, secondary, tertiary, and quaternary accents;
 - success, failure, blocked, warning, skipped, active, complete, and pending
   states; and
 - diagnostic labels and diagnostic content.
@@ -169,11 +169,11 @@ formatting that the project does not intend to own.
 
 ## Exit Criteria
 
-- [ ] Every current Validator theme/help component has one target owner.
-- [ ] Manager requirements are represented without importing Manager domain
+- [x] Every current Validator theme/help component has one target owner.
+- [x] Manager requirements are represented without importing Manager domain
       types into the shared design.
-- [ ] B03 requirements can be fulfilled without adding a second theme system.
-- [ ] The contract preserves current Validation behavior intentionally.
-- [ ] No proposed shared API exists only for an imagined future consumer.
-- [ ] The extraction can proceed in a buildable sequence with no duplicate
+- [x] B03 requirements can be fulfilled without adding a second theme system.
+- [x] The contract preserves current Validation behavior intentionally.
+- [x] No proposed shared API exists only for an imagined future consumer.
+- [x] The extraction proceeded in a buildable sequence with no duplicate
       long-term source of truth.

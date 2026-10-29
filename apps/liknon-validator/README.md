@@ -5,6 +5,11 @@ validates declarative pipelines for heterogeneous workspaces, executes programs
 without an implicit shell, and emits accessible human output or a versioned
 JSON report.
 
+Human output, help, accessible palettes, `NO_COLOR`, and low-vision behavior
+follow the shared
+[CLI experience contract](../../docs/cli-experience.md). Validation keeps its
+report hierarchy, progress behavior, JSON schema, errors, and exit codes local.
+
 The package installs two equivalent commands:
 
 - `liknon-validator`, the explicit command;

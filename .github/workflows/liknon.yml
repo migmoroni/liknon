@@ -59,7 +59,11 @@ jobs:
             distribution/cli/common/installers/install.sh.in \
             distribution/cli/validation/smoke/verify.sh \
             distribution/cli/manager/smoke/verify.sh; do
-            sh -n "$script"
+            if head -n 1 "$script" | grep -q 'bash'; then
+              bash -n "$script"
+            else
+              sh -n "$script"
+            fi
           done
       - name: Run Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -132,11 +136,19 @@ jobs:
         run: rustup default stable
       - name: List application package contents
         run: |
+          cargo package --list --locked -p liknon-cli-ui
           cargo package --list --locked -p liknon-resource-contracts
           cargo package --list --locked -p liknon-validator
           cargo package --list --locked -p liknon-manager
           cargo package --list --locked -p liknon-tool
           cargo package --list --locked -p liknon-cli
+      - name: Verify shared CLI UI source package
+        run: cargo package --locked -p liknon-cli-ui
+      - name: Rehearse dependent source packages without workspace paths
+        run: |
+          distribution/cli/common/scripts/rehearse-source-packages.sh \
+            liknon-cli-ui liknon-resource-contracts -- \
+            liknon-validator liknon-manager
       - name: Install and smoke-test local applications
         shell: bash
         run: |

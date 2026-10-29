@@ -19,3 +19,13 @@ Generated candidates belong under `target/distribution/<product>/` and are not
 tracked. Production public keys, signing keys, certificates, registry tokens,
 and Cloudflare credentials are provisioned through protected release
 environments; no placeholder credential is committed here.
+
+`scripts/rehearse-source-packages.sh` packages supporting workspace crates,
+injects their exact archives into a temporary Cargo directory source, and then
+packages dependent applications with crates.io replaced by that isolated
+source. This proves that source candidates resolve versioned package bytes
+rather than workspace paths before any supporting crate is publicly available.
+By default, the temporary source is deleted after the rehearsal. A workflow may
+set `LIKNON_SOURCE_REHEARSAL_ROOT` to retain it inside ephemeral runner storage
+while assembling dependent source contracts. It is never a publication
+destination.

@@ -17,6 +17,7 @@ clap.workspace = true
 console.workspace = true
 ctrlc.workspace = true
 indicatif.workspace = true
+liknon-cli-ui.workspace = true
 schemars.workspace = true
 semver.workspace = true
 serde.workspace = true

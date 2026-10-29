@@ -5,6 +5,10 @@ versioned Liknon resource ecosystem. It discovers and authenticates Hub
 metadata, resolves exact dependency graphs, and transactionally maintains the
 `.liknon/resources/` store selected by a consumer workspace.
 
+Human output and help use the shared
+[CLI experience contract](../../docs/cli-experience.md). Manager retains its
+resource-state vocabulary, JSON envelopes, error classes, and exit codes.
+
 In practical terms, it is a package manager for validation and AI-assistance
 resources rather than executable programs. A workspace can use it to discover,
 install, update, inspect, verify, materialize, and remove resources without
@@ -96,6 +100,11 @@ Use `--workspace <path>` to select an exact consumer boundary. Otherwise,
 existing-state commands discover the nearest ancestor containing `.liknon/`.
 Mutations accept `--dry-run` and `--yes`; machine output is selected globally
 with `--format=json`.
+
+Human operations accept `--color[=<palette>]` and
+`--presentation=<standard|low-vision>`. These options also style requested
+help. They cannot be combined with JSON or schema output, which remains
+ANSI-free and presentation-independent.
 
 `--dry-run` and committed execution use the same resolved plan. A mutation is
 journaled across the store, manifest, lock, retained evidence, and any declared

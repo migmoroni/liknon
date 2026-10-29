@@ -2,9 +2,11 @@
 
 ## Status
 
-`Design direction approved; implementation planned`. This plan must complete
-before B03 implementation begins and before B01, B02, B03, or B04 produces a
-final crates.io candidate that depends on the shared CLI surface.
+`Repository implementation complete; hosted verification and public readback
+pending`. The shared crate, application adoption, source-package rehearsals,
+and release workflows are implemented. B03 may now rely on this terminal
+foundation. Protected hosted execution and the first public crates.io readback
+remain coordinated by B06.
 
 The [validation-system roadmap](../README.md) owns cross-track order. This plan
 owns the product-neutral terminal experience and the supporting
@@ -174,32 +176,32 @@ for a knowingly broken intermediate state.
 
 ## Global Acceptance Criteria
 
-- [ ] `liknon-cli-ui` is the only product-neutral implementation of Liknon
+- [x] `liknon-cli-ui` is the only product-neutral implementation of Liknon
       palettes, presentation profiles, Clap styling, and generic help layout.
-- [ ] The crate contains no product command name, domain role, report schema,
+- [x] The crate contains no product command name, domain role, report schema,
       resource contract, process execution, network access, or mutation logic.
-- [ ] Validation retains its existing command grammar, report semantics,
+- [x] Validation retains its existing command grammar, report semantics,
       visual profiles, help behavior, and exit codes after extraction.
-- [ ] Validation-specific roles and progress behavior remain inside
+- [x] Validation-specific roles and progress behavior remain inside
       `liknon-validator`.
-- [ ] Manager uses the shared visual options and help system while retaining
+- [x] Manager uses the shared visual options and help system while retaining
       its command, JSON, error, and exit contracts.
-- [ ] Tool consumes the shared crate from the first B03 implementation unit.
-- [ ] The launcher consumes shared presentation without absorbing capability
+- [x] Tool consumes the shared crate before the first B03 implementation unit.
+- [x] The launcher consumes shared presentation without absorbing capability
       help or execution behavior.
-- [ ] Plain/default output and every JSON output are ANSI-free.
-- [ ] `NO_COLOR`, explicit palettes, standard presentation, and low-vision
+- [x] Plain/default output and every JSON output are ANSI-free.
+- [x] `NO_COLOR`, explicit palettes, standard presentation, and low-vision
       presentation behave consistently across every adopted CLI.
-- [ ] Status, hierarchy, trust, and integrity remain understandable without
+- [x] Status, hierarchy, trust, and integrity remain understandable without
       color.
-- [ ] Root and focused `-h`/`--help` behavior follows one documented contract
+- [x] Root and focused `-h`/`--help` behavior follows one documented contract
       without duplicating product help content.
-- [ ] Every crates.io application candidate resolves `liknon-cli-ui` from a
+- [x] Every current crates.io application candidate resolves `liknon-cli-ui` from a
       controlled registry rehearsal with no unpublished path dependency, and
       B06 records crates.io publication/readback before dependent packages.
-- [ ] Formatting, Clippy, tests, doctests, package inspection, and MSRV pass for
+- [x] Formatting, Clippy, tests, doctests, package inspection, and MSRV pass for
       the complete workspace and extracted package.
-- [ ] Active B01-B04 and B06 plans refer to this foundation consistently before
+- [x] Active B01-B04 and B06 plans refer to this foundation consistently before
       B03 implementation begins.
 
 ## Result

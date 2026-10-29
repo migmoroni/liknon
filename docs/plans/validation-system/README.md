@@ -37,7 +37,7 @@ detail, but it may not silently contradict either document.
 | Plan | Status | Owns |
 | --- | --- | --- |
 | [A01 Product And Repository Separation](A01-product-and-repository-separation/README.md) | `Implementation complete`; hosted verification pending | Current-to-target inventory, package boundaries, source ownership, repository layout, and structural cutover |
-| [A02 Shared CLI Experience Foundation](A02-shared-cli-experience-foundation/README.md) | `Design direction approved; implementation planned` | Publishable `liknon-cli-ui` crate, accessible terminal policy, generic help presentation, existing-CLI adoption, and B03 runtime-UI handoff |
+| [A02 Shared CLI Experience Foundation](A02-shared-cli-experience-foundation/README.md) | Repository implementation complete; hosted verification pending | Publishable `liknon-cli-ui` crate, accessible terminal policy, generic help presentation, existing-CLI adoption, and B03 runtime-UI handoff |
 
 A01 established independent application boundaries and deliberately retained
 Validation presentation until a second implemented consumer demonstrated a
@@ -50,7 +50,7 @@ foundation.
 
 | Plan | Status | Owns |
 | --- | --- | --- |
-| [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | `Provisional`; blocked by final A01.5 hosted verification | Source-package and native distribution of `liknon-validator` / `likv` |
+| [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | Repository release implementation in place; external/public completion pending | Source-package and native distribution of `liknon-validator` / `likv` |
 | [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | Repository implementation in place; B02.5 external/public completion pending | Resource protocol, Hub, Manager behavior, and Manager distribution |
 | [B03 Tool CLI](B03-tool-cli/README.md) | `Decision gate` at B03.0 | Offline resource consumption, agent-facing retrieval, and Tool distribution |
 | [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, launcher commands `liknon` / `likx`, aggregate Cargo installation, and complete native suites |
@@ -238,11 +238,10 @@ activation gate has not passed.
 2. Continue B01 delivery work and C01 contract work from the verified A01
    boundary. B01 establishes the shared distribution primitives and its
    Validation profile; this does not publish or version another product.
-3. Treat the repository-side B02.0-B02.4 implementation as the second concrete
-   CLI surface and execute A02. A02 extracts `liknon-cli-ui`, migrates
-   Validator and Manager, and establishes Tool and launcher consumption
-   boundaries before B03 implementation or final B01/B02 source candidates.
-4. Resolve B03.0 only against the completed A02 terminal contract, then
+3. The repository-side B02.0-B02.4 implementation supplied the second concrete
+   CLI surface and A02 extracted `liknon-cli-ui`, migrated Validator and
+   Manager, and established Tool and launcher consumption boundaries.
+4. Resolve B03.0 against the completed A02 terminal contract, then
    implement B03.1-B03.4 without creating another theme or help system.
 5. Resolve B04.0 after A02 and the capability command contracts are stable;
    build the launcher through both shared foundations and compose native suites

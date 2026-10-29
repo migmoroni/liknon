@@ -2,8 +2,10 @@
 
 ## Status
 
-`Planned`. Blocked by shared-crate adoption in every currently implemented CLI
-surface covered by A02.2.
+`Repository implementation complete; hosted verification pending`. Local
+conformance, MSRV, source-package closure, documentation, and plan alignment
+are implemented. Protected hosted jobs and public registry readback require a
+committed release input and remain external completion evidence.
 
 [Back to Plan A02](README.md)
 
@@ -187,8 +189,9 @@ cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 cargo test --doc --locked
 cargo package -p liknon-cli-ui --locked
-cargo package -p liknon-validator --locked
-cargo package -p liknon-manager --locked
+distribution/cli/common/scripts/rehearse-source-packages.sh \
+  liknon-cli-ui liknon-resource-contracts -- \
+  liknon-validator liknon-manager
 ```
 
 Also run the ignored outcome fixtures because Validation reporting and terminal
@@ -204,19 +207,21 @@ complete.
 
 ## Handoff Criteria
 
-- [ ] All A02 global acceptance criteria pass.
-- [ ] The shared package is independently packageable and has one release
+- [x] All repository-verifiable A02 global acceptance criteria pass.
+- [x] The shared package is independently packageable and has one release
       owner.
-- [ ] Validator and Manager consume the same implementation without sharing
+- [x] Validator and Manager consume the same implementation without sharing
       domain renderers.
-- [ ] Tool is structurally bound to the shared foundation before B03.0 begins.
-- [ ] Launcher-owned help has a defined shared dependency without changing
+- [x] Tool is structurally bound to the shared foundation before B03.0 begins.
+- [x] Launcher-owned help has a defined shared dependency without changing
       dispatch semantics.
-- [ ] B01, B02, B03, B04, B06, D01, the roadmap, and the target summary agree
+- [x] B01, B02, B03, B04, B06, D01, the roadmap, and the target summary agree
       on ownership and dependency order.
-- [ ] Current-state documentation is updated only after implementation.
-- [ ] B03 has no unresolved theme, help, ANSI, or low-vision architecture
+- [x] Current-state documentation is updated only after implementation.
+- [x] B03 has no unresolved theme, help, ANSI, or low-vision architecture
       decision that duplicates A02.
+- [ ] Hosted Linux, macOS, Windows, and protected publication/readback jobs pass
+      from the committed release revision.
 
 ## Result
 

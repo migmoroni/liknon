@@ -15,6 +15,7 @@ categories = ["command-line-utilities", "development-tools"]
 [dependencies]
 clap.workspace = true
 fs2.workspace = true
+liknon-cli-ui.workspace = true
 liknon-resource-contracts.workspace = true
 reqwest.workspace = true
 schemars.workspace = true
@@ -26,6 +27,7 @@ thiserror.workspace = true
 
 [dev-dependencies]
 base64.workspace = true
+console.workspace = true
 ed25519-dalek.workspace = true
 jsonschema.workspace = true
 liknon-resource-contracts = { workspace = true, features = ["signing"] }

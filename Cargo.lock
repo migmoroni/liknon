@@ -946,6 +946,8 @@ name = "liknon-cli"
 version = "0.5.0"
 dependencies = [
  "clap",
+ "console",
+ "liknon-cli-ui",
  "liknon-manager",
  "liknon-tool",
  "liknon-validator",
@@ -963,6 +965,14 @@ dependencies = [
  "sha2",
  "tempfile",
  "thiserror",
+]
+
+[[package]]
+name = "liknon-cli-ui"
+version = "0.5.0"
+dependencies = [
+ "clap",
+ "console",
 ]
 
 [[package]]
@@ -985,9 +995,11 @@ version = "0.5.0"
 dependencies = [
  "base64 0.22.1",
  "clap",
+ "console",
  "ed25519-dalek",
  "fs2",
  "jsonschema",
+ "liknon-cli-ui",
  "liknon-resource-contracts",
  "reqwest",
  "schemars",
@@ -1036,6 +1048,8 @@ name = "liknon-tool"
 version = "0.5.0"
 dependencies = [
  "clap",
+ "console",
+ "liknon-cli-ui",
 ]
 
 [[package]]
@@ -1047,6 +1061,7 @@ dependencies = [
  "ctrlc",
  "indicatif",
  "jsonschema",
+ "liknon-cli-ui",
  "schemars",
  "semver",
  "serde",

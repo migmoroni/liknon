@@ -5,8 +5,8 @@ mod help;
 mod inspection;
 
 use arguments::{
-    requested_palette, requested_presentation, Cli, ColorPaletteArgument, Command, ConfigCommand,
-    Contract, ExplainTarget, Format, PresentationArgument,
+    Cli, ColorPaletteArgument, Command, ConfigCommand, Contract, ExplainTarget, Format,
+    PresentationArgument,
 };
 
 use crate::{
@@ -23,6 +23,7 @@ use crate::{
     ValidatorError,
 };
 use clap::{error::ErrorKind, CommandFactory, FromArgMatches, ValueEnum};
+use liknon_cli_ui::{arguments::has_detached_named_value, VisualSelection};
 use schemars::schema_for;
 use std::{
     fmt::Write as _,
@@ -42,8 +43,9 @@ use std::{
 /// interrupted validation.
 pub fn run_cli() -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
-    let palette = requested_palette(&arguments);
-    let presentation = requested_presentation(&arguments);
+    let visual = VisualSelection::from_args(&arguments);
+    let palette = visual.palette();
+    let presentation = visual.presentation();
     let command = theme::clap::apply(help::root::configure(Cli::command()), palette, presentation);
     if help::root::requested(&arguments) {
         let mut stdout = std::io::stdout().lock();
@@ -115,8 +117,8 @@ fn execute(
     stdout: &mut impl Write,
     stderr: &mut impl Write,
 ) -> Result<i32, (ValidatorError, u8)> {
-    let color = cli.color;
-    let presentation = cli.presentation;
+    let color = cli.visual.color;
+    let presentation = cli.visual.presentation;
     let supports_visual_output = matches!(
         &cli.command,
         Command::Validate { .. } | Command::Check { .. }
@@ -399,19 +401,13 @@ fn write_stderr(message: &str) {
 }
 
 fn color_value_without_equals(arguments: &[std::ffi::OsString]) -> bool {
-    arguments.windows(2).any(|pair| {
-        pair[0] == "--color"
-            && pair[1]
-                .to_str()
-                .is_some_and(|value| ColorPaletteArgument::from_str(value, true).is_ok())
+    has_detached_named_value(arguments, "--color", |value| {
+        ColorPaletteArgument::from_str(value, true).is_ok()
     })
 }
 
 fn presentation_value_without_equals(arguments: &[std::ffi::OsString]) -> bool {
-    arguments.windows(2).any(|pair| {
-        pair[0] == "--presentation"
-            && pair[1]
-                .to_str()
-                .is_some_and(|value| PresentationArgument::from_str(value, true).is_ok())
+    has_detached_named_value(arguments, "--presentation", |value| {
+        PresentationArgument::from_str(value, true).is_ok()
     })
 }
