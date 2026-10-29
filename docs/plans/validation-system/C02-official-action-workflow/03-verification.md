@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Execution depends on implemented C01, B02, B03, and Validation
-contracts.
+`Provisional`. Execution depends on implemented C01 and its focused B03
+bootstrap follow-up. Existing B02/B03 local contracts and the B04 suite
+topology are fixed inputs.
 
 [Back to Plan C02](README.md)
 
@@ -19,6 +20,19 @@ Version fixtures must prove that:
 - no CLI branches on official workflow, skill, profile, or operation IDs;
 - an external compatible operational skill can replace AI-Tool;
 - successive bounded requests do not inherit authority or hidden state.
+
+## CLI Suite Binding
+
+Fixtures must also prove that:
+
+- every Validator, Manager, or Tool capability used by the workflow is
+  semantically equivalent through its direct executable and corresponding
+  `liknon validator`, `liknon manager`, or `liknon tool` route;
+- every bound executable reports the same exact suite version and expected
+  component identity;
+- a missing, substituted, or version-incompatible sibling executable fails
+  before policy-controlled work, resource mutation, or validation begins;
+- no descriptor treats `liknon` as a separate capability or operation owner.
 
 ## Forward Agent Trials
 

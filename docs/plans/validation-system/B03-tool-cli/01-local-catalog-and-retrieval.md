@@ -15,10 +15,10 @@ locked resource store.
 
 ## Store Loading
 
-The bootstrap projection operation selected by B03.0 bypasses store loading
-and returns the program-owned entry contract through the approved source
-boundary. Every ordinary resource operation requires the explicit or
-discovered store contract.
+The bootstrap projection operation selected by C01 and implemented through the
+focused B03 follow-up bypasses store loading and returns the program-owned entry
+contract through the approved source boundary. Every ordinary resource
+operation requires the explicit or discovered store contract.
 
 Tool discovers or receives one workspace root, parses the resource manifest and
 lock, validates schema compatibility, and builds a local immutable index for

@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Implementation is blocked by C01.0, B02.0, and B03.0 and by
-the corresponding implemented product contracts.
+`Provisional`. The B02/B03 local product contracts and B04 suite topology are
+implemented inputs. Workflow implementation waits for the C01 governance
+contracts and the focused B03 bootstrap projection selected by C01.
 
 ## Objective
 
@@ -30,9 +31,11 @@ ID.
   persistence contracts.
 - B02 defines how resources are acquired, locked, updated, and removed.
 - B03 defines how installed resources are discovered and returned offline.
-- The Validation CLI remains the only validation executor. A host may invoke
-  it directly through `liknon-validator` or, when B04 is installed, through
-  `liknon validate`; the launcher adds no workflow capability or authority.
+- B04 supplies one exact `liknon-cli` suite containing all capability
+  executables and the capability-free launcher.
+- Validator remains the only validation executor. A host may invoke the same
+  sibling executable directly through `liknon-validator` or through
+  `liknon validator`; the launcher adds no workflow capability or authority.
 
 ## Exclusions
 
@@ -48,6 +51,10 @@ product publication.
 - [ ] No invocation mutates policy or creates engineering persistence.
 - [ ] Missing resources stop without implicit Manager or network activity.
 - [ ] A compatible external operational skill can replace AI-Tool.
+- [ ] Every capability binding records the exact B04 suite and component
+      identity rather than treating direct and routed forms as separate tools.
+- [ ] Direct and routed calls are semantically equivalent, while a missing or
+      version-incompatible sibling component stops before workflow work.
 
 ## Exit Criterion
 

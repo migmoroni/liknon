@@ -17,10 +17,13 @@ tests, source-package rehearsal, and release workflow are present in the
 repository as focused evidence. B04 consumes that evidence for the suite;
 B03.4 no longer publishes a standalone Tool product.
 
-The program-owned bootstrap projection remains blocked by the C01 governance
-contract. No `bootstrap` command or substitute authority contract is claimed
-by the current implementation. Policy and persistence inspection likewise
-remain outside the implemented Tool surface.
+The program-owned bootstrap projection awaits the C01 governance decision. C01
+owns its exact semantics, operation name, and machine contract; B03 has no
+reciprocal design gate. After that decision, a focused B03 follow-up implements
+the projection in the existing `liknon-tool` executable without adding another
+binary or release identity. No `bootstrap` command or substitute authority
+contract is claimed by the current implementation. Policy and persistence
+inspection likewise remain outside the implemented Tool surface.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only the Tool track.
@@ -40,8 +43,9 @@ distribution.
 
 B03 depends on A01 product boundaries, the completed
 [A02 shared CLI experience foundation](../A02-shared-cli-experience-foundation/README.md),
-the B02.0 local resource-state contract, and the C01 governance baseline for
-any bootstrap, policy, or persistence inspection selected by B03.0. Tool uses
+the implemented B02 local resource-state contract, the B04 suite topology, and
+the C01 governance baseline for
+any bootstrap, policy, or persistence inspection selected by C01. Tool uses
 `liknon-cli-ui` from its first implementation unit and does not define a second
 palette, presentation, help, or terminal-policy implementation. Distribution
 phases additionally depend on the
@@ -60,8 +64,8 @@ descriptors, prompts, guides, templates, and collections. It does not privilege 
 special embedded corpus.
 
 Tool exposes the program-owned AI bootstrap entry point. Its exact operation
-name and envelope are decided jointly by C01 and B03.0, and the contract
-remains separate from the installed resource corpus.
+name and envelope are selected by C01 and implemented through a focused B03
+follow-up. The contract remains separate from the installed resource corpus.
 
 ## Product Boundary
 
@@ -91,8 +95,8 @@ Liknon product.
 
 ## Command Families
 
-The store-backed command grammar is approved and implemented. `bootstrap`
-remains a deferred design input whose exact contract belongs to C01:
+The store-backed command grammar is approved and implemented. `bootstrap` is a
+reserved candidate label whose exact contract belongs to C01:
 
 | Operation | Responsibility |
 | --- | --- |
@@ -107,11 +111,11 @@ Tool operations describe and return content. Manager `list` and `info`
 remain administrative views of desired, locked, installed, update, and
 integrity state.
 
-The operation selected by C01 and B03.0 returns the program-owned contract and
-canonical metadata without consulting or classifying either as part of
-`.liknon/resources/`. Its source path is selected by A01/C01 rather than fixed
-by this plan in advance. `bootstrap` is the candidate label used below until
-that gate selects the final grammar.
+The operation selected by C01 and implemented by the focused B03 follow-up
+returns the program-owned contract and canonical metadata without consulting or
+classifying either as part of `.liknon/resources/`. Its source path is selected
+by A01/C01 rather than fixed by this plan in advance. `bootstrap` is the
+candidate label used below until C01 selects the final grammar.
 
 For workflows, Tool returns the exact declared graph and resolved resource
 closure. It does not interpret transitions, instantiate an agent profile,

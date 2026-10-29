@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Exact operation ownership and resource contracts are blocked by
-C01.0, B02.0, and B03.0.
+`Provisional`. Exact operation ownership waits for C01.0 and the focused B03
+bootstrap follow-up. The B02/B03 local resource contracts and B04 suite
+topology are fixed inputs.
 
 [Back to Plan C03](README.md)
 
@@ -42,8 +43,9 @@ branches in Manager, Tool, or Validation.
 
 C01 provides bootstrap, decision-policy, artifact, and generic workflow
 contracts. C02 provides the official operational resources that these nodes
-compose. B02 and B03 provide approved resource acquisition and retrieval
-interfaces. Installed source-backed knowledge supplies validation context. This
+compose. B02 and B03 provide implemented local resource acquisition and
+retrieval interfaces, and B04 fixes their suite identity and invocation paths.
+Installed source-backed knowledge supplies validation context. This
 phase does not create an agent runtime or duplicate generic contracts in the
 workflow.
 

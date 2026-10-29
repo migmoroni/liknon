@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Exact manifests, paths, and retrieval calls depend on A01,
-B02.0, B03.0, and C01.3.
+`Provisional`. A01 ownership and the implemented B02/B03 interfaces are fixed
+inputs. Exact manifests, paths, and bootstrap-aware retrieval calls depend on
+C01.3 and the remaining B02 public resource decisions.
 
 [Back to Plan C02](README.md)
 

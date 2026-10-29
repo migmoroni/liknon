@@ -2,7 +2,8 @@
 
 ## Status
 
-`Decision gate`. Generic authority, policy, workflow, resource, and persistence
+`Decision gate`. B02/B03 local product contracts and the B04 suite topology are
+fixed inputs. Generic authority, policy, workflow, resource, and persistence
 semantics are defined here, but C01 is not implementation-ready until product
 ownership for policy and persistence operations is approved.
 
@@ -17,12 +18,18 @@ assigning future behavior to a CLI by accident.
 - [Current-State Assessment](../avaliacao-estado-atual.md)
 - [Target-State Summary](../resumo-estado-alvo.md)
 - [A01 Product And Repository Separation](../A01-product-and-repository-separation/README.md)
-- approved B02/B03 product boundaries where a generic contract needs a CLI
-  capability
+- [B02 Resource Hub And Manager](../B02-resource-hub-and-manager/README.md)
+  local resource-state and Manager contracts
+- [B03 Tool CLI](../B03-tool-cli/README.md) store-backed read-only contracts
+- [B04 Unified Launcher And CLI Suite](../B04-unified-launcher-and-cli-suite/README.md)
+  executable topology, routing, and exact suite-version contract
 
-C01 may define product-neutral semantics before B02/B03 implementation. It may
-not finalize command syntax or package ownership that their decision gates have
-not approved.
+C01 allocates new deterministic operations only within the existing capability
+processes, supporting libraries used by those processes, or the external host.
+If the bootstrap contract requires a new Tool operation, C01 selects its exact
+semantics and machine contract and a focused B03 follow-up implements it in
+`liknon-tool`. C01 cannot add another executable, public CLI package, release
+identity, or launcher-owned capability.
 
 ## Ownership
 
@@ -79,8 +86,8 @@ Before C01 becomes implementation-ready, approve:
 2. the product that exposes deterministic artifact/report persistence
    operations, if any CLI owns them;
 3. the exact boundary between those operations and external-host orchestration;
-4. the bootstrap-projection semantics that B03.0 must realize through its
-   approved operation and envelope;
+4. the exact bootstrap-projection operation and envelope that a focused B03
+   follow-up must implement in the existing `liknon-tool` executable;
 5. which shared package owns the machine contracts selected by A01;
 6. which policy and artifact schemas are public compatibility surfaces;
 7. the minimum pre-policy read-only operations required to evaluate policy
@@ -109,6 +116,11 @@ Before C01 becomes implementation-ready, approve:
 12. Policy decision outcomes combine restrictively.
 13. Every completed persistent workflow result is append-only and separately
     identifiable; no mutable state or integrity registry is introduced.
+14. Deterministic operations use `liknon-validator`, `liknon-manager`,
+    `liknon-tool`, a supporting library behind one of those applications, or an
+    explicit external-host responsibility; C01 creates no fifth executable.
+15. Direct capability invocation and the corresponding `liknon` launcher
+    namespace reach the same sibling executable from one exact suite version.
 
 ## Acceptance Criteria
 
@@ -124,6 +136,10 @@ Before C01 becomes implementation-ready, approve:
       profiles, alternate skills, composed workflows, and restrictive policy
       combination.
 - [ ] No C01 document claims an unresolved CLI command exists.
+- [ ] C01 adds no executable, package, release identity, or operation owned by
+      the capability-free launcher.
+- [ ] Direct and routed capability forms produce equivalent semantic results
+      and reject a missing or version-incompatible sibling suite component.
 - [ ] C02 and C03 can consume C01 without receiving special platform branches.
 
 ## Result

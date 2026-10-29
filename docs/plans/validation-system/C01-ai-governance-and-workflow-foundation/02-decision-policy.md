@@ -3,8 +3,8 @@
 ## Status
 
 `Provisional`. Policy semantics are defined here; deterministic operation
-ownership and public command forms are blocked by C01.0 and the relevant B
-track decision gates.
+ownership and public command forms remain C01.0 decisions constrained by the
+implemented B02/B03 capability boundaries and B04 executable topology.
 
 [Back to Plan C01](README.md)
 

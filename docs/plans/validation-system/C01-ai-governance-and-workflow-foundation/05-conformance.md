@@ -2,7 +2,8 @@
 
 ## Status
 
-`Provisional`. Blocked by C01.0-C01.4 and approved B02/B03 contracts.
+`Provisional`. Blocked by C01.0-C01.4 and the focused B03 bootstrap follow-up;
+the B02/B03 local contracts and B04 suite topology are fixed inputs.
 
 [Back to Plan C01](README.md)
 
@@ -14,7 +15,10 @@ independent from official resource identities.
 ## Required Scenario Matrix
 
 - bootstrap loaded directly from its canonical source;
-- Tool bootstrap projection through the operation approved by B03.0;
+- Tool bootstrap projection through the operation approved by C01 and
+  implemented by the focused B03 follow-up;
+- equivalent direct and launcher-routed invocation of every capability used;
+- missing, substituted, or version-incompatible sibling suite executables;
 - missing, modified, unsupported, and incompatible bootstrap inputs;
 - absent, malformed, unsupported, and manually changed policy;
 - global policy values with no workflow override;
@@ -41,13 +45,17 @@ independent from official resource identities.
 - Manager installation never activates content.
 - Tool retrieval never executes content.
 - The external host, not a CLI, conducts workflow cognition.
+- The launcher forwards only and owns no governance or workflow operation.
+- Every selected capability belongs to the exact recorded B04 suite version;
+  direct and routed forms produce equivalent semantic results.
 - Every persisted result has a unique UUIDv7 and immutable history.
 - No integrity/state registry is required for conformance.
 
 ## Evidence
 
 Record structured fixtures, exact inputs, contract versions, digests, expected
-decisions, observed outputs, and negative results. Model-based evaluation
+decisions, suite/component identities, direct and routed invocation forms,
+observed outputs, and negative results. Model-based evaluation
 belongs to D01; C01 conformance itself must be deterministic and runnable
 without an AI provider.
 

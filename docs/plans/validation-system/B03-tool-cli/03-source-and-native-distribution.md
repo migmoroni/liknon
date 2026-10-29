@@ -22,7 +22,7 @@ Record:
 - direct command `liknon-tool`;
 - launcher routes `liknon tool` and `liknon t`;
 - absence of a physical `likt` target;
-- implemented command grammar and deferred bootstrap surface;
+- implemented command grammar and C01-governed pending bootstrap surface;
 - human and machine output schemas;
 - errors and exit codes;
 - offline and read-only effect contract;

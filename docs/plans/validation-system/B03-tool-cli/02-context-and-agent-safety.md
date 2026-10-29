@@ -69,8 +69,8 @@ sends no query, payload, or usage telemetry to the Hub or another service.
 ## AI Flow Integration
 
 For governed use, the human first directs the external host to the
-B03.0-approved bootstrap projection operation or the canonical source file.
-The host records the supported contract version and digest before requesting
+C01-approved bootstrap projection operation or the canonical source file. The
+host records the supported contract version and digest before requesting
 installed workflow, skill, profile, tool, or knowledge content.
 
 Any compatible AI workflow may use Tool as its resource interface. Neutral

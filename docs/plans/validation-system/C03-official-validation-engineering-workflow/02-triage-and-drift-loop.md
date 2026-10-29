@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Exact operation ownership and resource contracts are blocked by
-C01.0, B02.0, and B03.0.
+`Provisional`. Exact operation ownership waits for C01.0 and the focused B03
+bootstrap follow-up. The B02/B03 local resource contracts and B04 suite
+topology are fixed inputs.
 
 [Back to Plan C03](README.md)
 

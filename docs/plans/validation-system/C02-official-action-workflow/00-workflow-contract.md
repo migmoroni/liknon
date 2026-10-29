@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. The resource contract is blocked by the generic C01 contracts
-and the approved B02/B03 resource interfaces.
+`Provisional`. The implemented B02/B03 resource interfaces and B04 suite
+topology are fixed inputs. The resource contract waits for the generic C01
+contracts and focused Tool bootstrap follow-up.
 
 [Back to Plan C02](README.md)
 
@@ -25,6 +26,11 @@ The resource must declare:
 - no continuation-eligible edge;
 - no analytical artifact declarations;
 - no implicit dependency acquisition or workflow activation.
+
+Application references identify logical Validator, Manager, and Tool
+capabilities. Runtime evidence binds each reference to an exact sibling
+executable in one B04 suite; a launcher namespace is only an alternate route to
+that same process.
 
 The exact resource ID and manifest grammar are selected by B02.0 and C01.3.
 They must not be embedded as special cases in any CLI.

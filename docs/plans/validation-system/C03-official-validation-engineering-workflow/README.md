@@ -2,9 +2,10 @@
 
 ## Status
 
-`Provisional`. Implementation is blocked by C01.0, B02.0, B03.0, the resulting
-product implementations, and the official action resources used as declared
-dependencies.
+`Provisional`. The B02/B03 local product contracts and B04 suite topology are
+implemented inputs. Workflow implementation waits for C01 governance, the
+focused B03 bootstrap follow-up selected by C01, and the official C02 action
+resources declared as dependencies.
 
 ## Objective
 
@@ -14,14 +15,16 @@ generic C01 policy and persistence contracts.
 
 ## Dependencies
 
-C03 depends on implemented C01 governance, approved and implemented B02/B03
-resource contracts, the Validation CLI, and the C02 operational resources it
-declares. D01 is a downstream evaluator, not a prerequisite.
+C03 depends on implemented C01 governance, the implemented B02/B03 local
+resource contracts, the focused Tool bootstrap follow-up, the B04 suite, and
+the C02 operational resources it declares. D01 is a downstream evaluator, not
+a prerequisite.
 
-The workflow may bind the direct capability commands or their explicit B04
-launcher namespaces. `liknon-validator <args>` and
-`liknon validate <args>` reach the same validation capability; launcher use
-does not change policy, operation ownership, or the workflow graph.
+The workflow binds logical capabilities to exact sibling executables in one
+B04 suite. `liknon-validator <args>` and `liknon validator <args>` reach the
+same Validator process; equivalent direct and routed forms apply to Manager and
+Tool. Launcher use does not change policy, operation ownership, component
+version, or the workflow graph.
 
 ## Deliverables
 
@@ -49,6 +52,10 @@ installation, model hosting, product publication, or cross-model scoring.
 - [ ] No CLI contains official node, transition, profile, or skill IDs in
       control flow.
 - [ ] A neutral workflow with a different graph passes the same contracts.
+- [ ] Every capability binding records one exact B04 suite/component identity,
+      and direct and routed forms are semantically equivalent.
+- [ ] Missing or version-incompatible suite siblings stop before process work or
+      persistence.
 
 ## Exit Criterion
 

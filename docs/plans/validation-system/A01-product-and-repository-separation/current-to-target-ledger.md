@@ -150,8 +150,8 @@ them as the consumer-facing `liknon` API.
 
 | Current command | A01 decision |
 | --- | --- |
-| `liknon init` | Preserve behavior as `liknon-validator init` and `likv init`; change destination atomically in A01.3. |
-| `liknon validate`, `check`, `config validate`, `list`, `explain *`, `schema *` | Preserve semantics under `liknon-validator` and `likv`. |
+| `liknon init` | Preserve behavior as direct `liknon-validator init` and routed `liknon validator init`; change destination atomically in A01.3. |
+| `liknon validate`, `check`, `config validate`, `list`, `explain *`, `schema *` | Preserve semantics under direct `liknon-validator` and routed `liknon validator`; no physical compact alias is created. |
 | global color, presentation, help, version, stream, signal, and exit behavior | Preserve in `liknon-validator`; adapt displayed executable names. |
 | `liknon knowledge catalog` and `liknon knowledge show` | Remove from the Validation CLI in A01.2 after preserving authored sources and maintenance evidence. No compatibility route is created. |
 | current validation behavior reached through executable `liknon` | Replace in A01.3. `liknon` becomes only the B04-owned launcher shell and does not inherit validation subcommands implicitly. |

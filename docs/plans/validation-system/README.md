@@ -25,10 +25,18 @@ Read these documents in order before using an implementation plan:
    - `Historical` completed documentation meta-plan
 5. [Unified Launcher, CLI Suite, And Command Plan Realignment](A00.1-unified-launcher-plan-realignment/README.md)
    - `Historical` completed documentation meta-plan
+6. [Launcher-Primary CLI Interface Realignment](A00.2-launcher-primary-interface-realignment/README.md)
+   - `Approved target; implementation pending` to make `liknon` the primary
+     interface while preserving all three independent capability executables
 
 The current-state assessment answers what exists. The target summary answers
 what has been approved and what remains undecided. A subordinate plan may add
 detail, but it may not silently contradict either document.
+
+Until A00.2 is implemented, its interface-priority decision supersedes active
+target text that promotes direct capability commands and launcher routes as
+equivalent onboarding choices. The four-executable suite topology, sibling
+dispatch, source package, and native archive contracts remain unchanged.
 
 ## Plan Tracks
 
@@ -53,7 +61,7 @@ foundation.
 | [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | Validator behavior and reusable release foundation implemented; standalone publication superseded by B04 | Validator behavior, contracts, and focused release evidence consumed by the suite |
 | [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | Repository implementation in place; Hub authority and suite integration pending | Resource protocol, Hub publication, Manager behavior, and focused release evidence consumed by the suite |
 | [B03 Tool CLI](B03-tool-cli/README.md) | Store-backed repository implementation in place; C01 bootstrap and suite integration pending | Offline resource consumption, agent-facing retrieval, and focused release evidence consumed by the suite |
-| [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, executables `liknon`, `liknon-validator`, `liknon-manager`, and `liknon-tool`, plus one native suite archive per target |
+| [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | Implemented locally; candidate production and public activation pending | Package `liknon-cli`, executables `liknon`, `liknon-validator`, `liknon-manager`, and `liknon-tool`, plus one native suite archive per target |
 | [B05 Programmatic APIs And Language Bindings](B05-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate programmatic APIs and explicit workspace integrations with demonstrated consumers |
 | [B06 Coordinated Public Release](B06-coordinated-public-release/README.md) | `Future`; blocked by B04 suite, B02 Hub, E01 site, D01 evidence, and selected B05 inputs | Frozen first-release set, external authority, coordinated public activation, readback, and closure |
 
@@ -87,14 +95,20 @@ version and CLI publication authority.
 
 | Plan | Status | Owns |
 | --- | --- | --- |
-| [C01 AI Governance And Workflow Foundation](C01-ai-governance-and-workflow-foundation/README.md) | `Decision gate` | Generic bootstrap, authority, policy, workflow/resource distinctions, persistence envelopes, and cross-product ownership |
-| [C02 Official Action Workflow](C02-official-action-workflow/README.md) | `Provisional`, blocked by C01 and B02/B03 contracts | Replaceable official workflow for bounded assisted operations |
-| [C03 Official Validation-Engineering Workflow](C03-official-validation-engineering-workflow/README.md) | `Provisional`, blocked by C01 and B02/B03 contracts | Replaceable official workflow for domain, coverage, incident, and drift work |
+| [C01 AI Governance And Workflow Foundation](C01-ai-governance-and-workflow-foundation/README.md) | `Decision gate`; B02/B03 local contracts and B04 suite topology are fixed inputs | Generic bootstrap, authority, policy, workflow/resource distinctions, persistence envelopes, and cross-product ownership |
+| [C02 Official Action Workflow](C02-official-action-workflow/README.md) | `Provisional`, blocked by C01 and its focused Tool bootstrap follow-up | Replaceable official workflow for bounded assisted operations |
+| [C03 Official Validation-Engineering Workflow](C03-official-validation-engineering-workflow/README.md) | `Provisional`, blocked by C01, its focused Tool bootstrap follow-up, and C02 resources | Replaceable official workflow for domain, coverage, incident, and drift work |
 
 C01 defines platform-neutral contracts. C02 and C03 define ordinary official
 resources that consume those contracts. Process numbers, node names, selected
 profiles, and selected skills remain local to their workflow resources and are
 not platform constants.
+
+The implemented B04 topology is a fixed boundary for every C plan: one exact
+`liknon-cli` suite exposes `liknon`, `liknon-validator`, `liknon-manager`, and
+`liknon-tool`. Direct capability commands and explicit launcher namespaces
+reach the same sibling executables; no C plan may introduce a fifth CLI,
+separate capability version, or launcher-owned operation.
 
 ### D: Integrated Conformance And Evaluation
 
@@ -166,7 +180,7 @@ current-state assessment + approved target summary
                            v
           B04 liknon-cli package and one suite archive per target
 
- C01 + B02/B03 contracts --> C02/C03 official workflows
+ C01 + B02/B03 contracts + B04 suite topology --> C02/C03 official workflows
  B01-B04 + C01-C03 evidence --> D01 integrated conformance
 
 B05 programmatic APIs and language bindings: future, independently activated
@@ -207,27 +221,18 @@ Before AI-governance implementation, decide:
 - how these operations remain generic and independent from official workflow
   identities.
 
+The implemented B03 store-backed Tool contract and B04 executable topology are
+fixed inputs to this decision. C01 may select a narrow read-only bootstrap
+projection for the existing `liknon-tool`; the resulting B03 follow-up cannot
+create another executable, public package, release identity, or launcher-owned
+capability.
+
 ### B02.5: Manager, Hub, And Suite Handoff Readiness
 
 The repository-side Manager and Hub contracts are implemented. Before B02
 release readiness closes, complete the human-owned external setup, public Hub
 authority, A02 Manager presentation adoption, focused Manager evidence for
 B04, and clean Hub readback defined by B02.5 and B06.
-
-### B03.0: Tool Contract
-
-Before Tool implementation, approve local discovery, read-only behavior,
-command grammar, machine outputs, integrity handling, the bootstrap projection
-interface, and the policy/persistence inspection boundary. Existing command
-names in B03 are candidates until this gate passes.
-
-### B04.0: Launcher And Suite Contract
-
-Before launcher implementation or suite publication, approve executable
-resolution, compatibility, process forwarding, four-target package ownership,
-one-archive-per-target composition, transactional installation, help, version,
-provenance, publication, and recovery contracts. The four physical executables
-and `validator|v`, `manager|m`, and `tool|t` namespaces are fixed inputs.
 
 ### B05.0: Programmatic API Activation
 
@@ -264,11 +269,12 @@ Liknon consumers and verification evidence.
 3. The repository-side B02.0-B02.4 implementation supplied the second concrete
    CLI surface and A02 extracted `liknon-cli-ui`, migrated Validator and
    Manager, and established Tool and launcher consumption boundaries.
-4. Complete the remaining C01-dependent B03 contract and the B03.3-B03.4 Tool
-   handoff evidence without creating another theme or help system.
-5. Resolve B04.0 after A02 and the capability command contracts are stable;
-   move executable ownership to `liknon-cli`, remove physical compact aliases,
-   and build one authenticated four-executable archive per target.
+4. Treat the locally implemented B04 package, launcher grammar, four-executable
+   topology, and exact suite version as fixed inputs; target-native candidate
+   production and public activation remain later distribution work.
+5. Resolve C01 ownership and bootstrap contracts, then implement only the
+   resulting focused read-only projection in the existing `liknon-tool` and
+   attach its evidence to the exact B04 suite candidate.
 6. Implement C02 and C03 as resources over approved generic contracts.
 7. Execute the D01 integrated conformance and agent evaluation required before
    public release, including cross-CLI experience checks from A02.

@@ -2,9 +2,11 @@
 
 ## Status
 
-`Provisional`. The authority and loading-order semantics belong to C01. The
-canonical package owner and exact Tool projection operation and envelope remain
-blocked by C01.0, A01, and B03.0.
+`Provisional`. The authority and loading-order semantics belong to C01. A01
+package boundaries, the implemented B03 Tool boundary, and the B04 suite
+topology are fixed inputs. C01.0 must select the canonical supporting package
+and exact Tool projection operation and envelope; a focused B03 follow-up then
+implements that decision in the existing `liknon-tool` executable.
 
 [Back to Plan C01](README.md)
 
@@ -14,13 +16,19 @@ Define the program-owned contract that a human supplies as the first Liknon
 instruction to an AI. This contract establishes how a conforming external AI
 host discovers the workspace, loads governance, selects a workflow, retrieves
 resources, binds application capabilities, uses the three capability CLIs
-directly or through explicit launcher namespaces, and records evidence.
+from one exact B04 suite directly or through explicit launcher namespaces, and
+records evidence.
 
 The contract provides a stable root for every governed AI interaction without
 turning Liknon into an AI runtime or coupling the applications to one model,
 provider, agent framework, workflow, or skill.
 
 ## 2. Product Boundary
+
+The installed CLI suite contains exactly `liknon`, `liknon-validator`,
+`liknon-manager`, and `liknon-tool`. A launcher namespace reaches the same
+sibling capability executable as direct invocation; it does not identify a
+second application or independently versioned capability.
 
 The unified launcher adds no AI runtime or capability. Liknon does not ship a
 model host, conversation manager, or workflow executor. The human chooses an
@@ -66,10 +74,11 @@ manifest never hashes itself. Its schema and the Tool JSON envelope are
 independently versioned.
 
 The source checkout exposes the file directly. Tool also projects the exact
-bytes without requiring a workspace or installed resource store. C01.0 defines
-the projection semantics and supporting ownership boundary; B03.0 owns the
-operation name and result envelope. No command silently writes a copy into a
-consumer workspace.
+bytes without requiring a workspace or installed resource store. C01.0 selects
+the projection semantics, supporting ownership boundary, operation name, and
+machine contract. A focused B03 follow-up realizes that contract through the
+existing Tool command grammar and result envelope. No command silently writes
+a copy into a consumer workspace.
 A later explicit materialization feature may
 project the exact bytes only if it records the source version and digest and
 never creates a second editable source.
@@ -92,15 +101,17 @@ pre-existing authority, the entry point requires this order:
    standalone skill operation when no workflow is active;
 5. resolve the exact locked graph and dependency-closure metadata through Tool
    without activating or obeying resource instructions;
-6. verify bootstrap, policy-contract, application, workflow, profile, skill,
-   tool, knowledge, and artifact-contract compatibility;
+6. verify the exact B04 suite version and sibling-component coherence plus
+   bootstrap, policy-contract, application, workflow, profile, skill, tool,
+   knowledge, and artifact-contract compatibility;
 7. retrieve and load the exact declared policy-boundary guide;
 8. validate the existing human-owned `.liknon/ai/policy.json` through the
    program contract, except for the narrowly read-only policy-guidance route;
 9. evaluate the exact Tool-verified root-to-leaf workflow stack, or the empty
    stack for a standalone skill operation;
-10. bind declared tool operations to separately installed application
-   capabilities through the external host;
+10. bind declared tool operations to the exact verified capability executables
+    in the installed `liknon-cli` suite through the external host, using either
+    the direct executable or its explicit launcher namespace;
 11. load only the remaining resources required by the selected node or bounded
    operation;
 12. classify every proposed effect under the effective policy before acting;
@@ -178,7 +189,9 @@ must expose or retain, as applicable:
 - bootstrap-contract version and digest;
 - selected workspace, workflow stack, entry node, and resource-lock digest;
 - selected agent-profile and tool-operation identities;
-- application capability and version evidence;
+- `liknon-cli` suite version, selected capability identity, resolved executable
+  path, sibling-component coherence result, and any provenance or digest
+  evidence supplied by the installed distribution;
 - policy path, schema version, digest, effective source, and decision outcomes;
 - traversed transitions, performed actions, outputs, and artifact references;
 - every stop, human-decision request, incompatibility, and unresolved input.
@@ -192,8 +205,10 @@ same conformance scenarios against each adapter.
 - A01/C01 select one package-contained canonical instruction source and adjacent
   identity manifest.
 - C01 owns bootstrap identity, authority, version, digest, and compatibility
-  semantics.
-- B03.0 defines Tool's read-only projection operation and machine result.
+  semantics, and C01.0 selects the read-only projection operation and machine
+  contract.
+- A focused B03 follow-up implements that selected operation in `liknon-tool`
+  without changing the B04 suite topology or release identity.
 - Manager may resolve workflow-declared compatibility but cannot replace or
   mutate the program contract.
 - C01.0 assigns policy and persistence operations without making the Validation
@@ -221,8 +236,12 @@ retained as a fallback.
       content is loaded.
 - [ ] One adjacent metadata manifest defines its schema version, SemVer contract
       version, media type, path, and digest over exact raw entry bytes.
-- [ ] The B03.0-approved Tool projection returns exact bytes, version, and
-      digest without a workspace, network access, or installed resource.
+- [ ] The C01-approved Tool projection returns exact bytes, version, and digest
+      without a workspace, network access, or installed resource.
+- [ ] Direct `liknon-tool` invocation and `liknon tool` routing return equivalent
+      semantic results from the same exact suite component.
+- [ ] Missing or version-incompatible sibling executables stop before governed
+      work and produce no partial policy or workflow activation.
 - [ ] No Hub resource can replace, shadow, or raise its authority above the
       bootstrap contract.
 - [ ] The contract contains no branch for an official workflow, skill, profile,

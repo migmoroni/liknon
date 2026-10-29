@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Execution depends on implemented A01, B02, B03, C01, and C02
-contracts.
+`Provisional`. Execution depends on implemented C01, its focused B03 bootstrap
+follow-up, and C02 resources. A01, the B02/B03 local contracts, and the B04
+suite topology are fixed inputs.
 
 [Back to Plan C03](README.md)
 
@@ -22,6 +23,20 @@ Version fixtures must cover:
 - partial remediation authority and narrow proof before a final gate;
 - policy changes that invalidate cached decisions without rewriting evidence;
 - missing resources that stop without implicit Manager or network activity.
+
+## CLI Suite Binding
+
+The verification matrix must also prove that:
+
+- direct and launcher-routed Validator, Manager, and Tool calls used by the
+  workflow reach the same sibling executables and produce equivalent semantic
+  results;
+- every process records the exact B04 suite version, selected component
+  identity, resolved executable path, coherence result, and available
+  distribution provenance required by C01;
+- a missing, substituted, or version-incompatible sibling stops before node
+  execution, continuation, validation, mutation, or artifact persistence;
+- no workflow resource assigns capability or authority to the launcher itself.
 
 ## Genericity Proof
 

@@ -2,7 +2,9 @@
 
 ## Status
 
-`Provisional`. Blocked by C01.0 and the B02.0 public resource contract.
+`Provisional`. Blocked by C01.0 and the remaining B02 public Hub/resource
+contract. The implemented B03 read-only interface and B04 suite topology are
+fixed application inputs.
 
 [Back to Plan C01](README.md)
 

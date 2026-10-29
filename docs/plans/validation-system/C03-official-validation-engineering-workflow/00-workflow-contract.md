@@ -2,8 +2,9 @@
 
 ## Status
 
-`Provisional`. Exact manifests and operations depend on C01.0, C01.3, B02.0,
-and B03.0.
+`Provisional`. The implemented B02/B03 local contracts and B04 suite topology
+are fixed inputs. Exact manifests and operations depend on C01.0, C01.3, the
+focused B03 bootstrap follow-up, and remaining B02 public resource decisions.
 
 [Back to Plan C03](README.md)
 
@@ -25,6 +26,11 @@ Process 2: Incident --eligible----> Process 3: Drift
 The two sequences do not imply automatic startup. A human selects an entry
 node. `processContinuation` applies only after an eligible source node has
 completed, its artifact has been persisted, and the target preconditions pass.
+
+Workflow tool descriptors reference logical capabilities, not transport
+aliases. At runtime, the external host records the exact B04 suite/component
+identity and may invoke either the direct executable or its explicit launcher
+namespace, both of which reach the same sibling process.
 
 ## Host And Application Boundaries
 

@@ -8,8 +8,9 @@
 
 `Partially implemented`. A02 is complete, and the offline store-backed grammar
 (`catalog`, `search`, `show`, `resolve`, and `context`) is approved and
-implemented. The program-owned bootstrap projection remains blocked by C01;
-its command name, source, and envelope are not implemented or inferred here.
+implemented. The program-owned bootstrap projection awaits C01; after C01
+selects its command name, source, and envelope, a focused B03 follow-up
+implements that contract without changing the B04 executable topology.
 
 [Back to the Tool CLI plan](README.md)
 
@@ -20,10 +21,10 @@ failure classes, and safety boundaries before implementation.
 
 ## Required Decisions
 
-- Confirm Cargo package `liknon-tool` and commands `liknon-tool` and
-  `likt`.
-- Evaluate `bootstrap`, `catalog`, `search`, `show`, `resolve`, and `context`
-  as candidate operations, then approve the exact grammar actually needed.
+- Preserve direct command `liknon-tool` and launcher namespaces `liknon tool`
+  and `liknon t`; no physical `likt` executable exists.
+- Preserve the implemented `catalog`, `search`, `show`, `resolve`, and `context`
+  grammar, then implement the exact bootstrap projection selected by C01.
 - Define workspace discovery and explicit-root behavior.
 - Define human and versioned JSON output contracts.
 - Define stable ordering, text matching, output-size, file-count, and binary
@@ -54,11 +55,11 @@ No option may turn a read operation into installation or execution.
 
 ## Command Semantics
 
-If B03.0 retains the candidate label `bootstrap`, that operation verifies the
-exact canonical program contract selected by A01/C01 and returns its content
-and approved metadata. It must work without `.liknon/`, perform no resource
-lookup, and never load a workflow or skill. The exact result envelope is a
-B03.0 decision.
+If C01 retains the candidate label `bootstrap`, the focused B03 follow-up
+implements an operation that verifies the exact canonical program contract
+selected by A01/C01 and returns its content and approved metadata. It must work
+without `.liknon/`, perform no resource lookup, and never load a workflow or
+skill. C01 selects the exact result contract within the existing Tool envelope.
 
 `catalog` and `search` are discovery operations. `show` retrieves an exact
 resource or declared file. `resolve` returns an exact locked closure.
