@@ -5,7 +5,11 @@
 `Decision gate` at B03.0. The product role, offline/non-mutating boundary,
 bootstrap-projection capability, and distribution-channel categories are
 approved. Command grammar, projection envelope, and policy/persistence
-inspection are not approved until B03.0 exits. B03.1-B03.4 are `Provisional`.
+inspection are not approved until B03.0 exits. B03.0 is blocked by completion
+of A02 so its terminal contract starts from the shared implementation.
+A02 may wire the existing structural shell to product-neutral UI primitives,
+but it may not add a Tool operation or resource behavior. B03.1-B03.4 are
+`Provisional`.
 
 The [validation-system index](../README.md) owns cross-track order, milestone
 gates, and contract ownership. This plan owns only the Tool track.
@@ -22,9 +26,13 @@ owns unified routing and complete-suite composition.
 
 ## Dependencies
 
-B03 depends on A01 product boundaries, the B02.0 local resource-state contract,
-and the C01 governance baseline for any bootstrap, policy, or persistence
-inspection selected by B03.0. Distribution phases additionally depend on the
+B03 depends on A01 product boundaries, the completed
+[A02 shared CLI experience foundation](../A02-shared-cli-experience-foundation/README.md),
+the B02.0 local resource-state contract, and the C01 governance baseline for
+any bootstrap, policy, or persistence inspection selected by B03.0. Tool uses
+`liknon-cli-ui` from its first implementation unit and does not define a second
+palette, presentation, help, or terminal-policy implementation. Distribution
+phases additionally depend on the
 [shared CLI distribution foundation](../cli-distribution-foundation.md), its
 credential-free implementation and conformance harness established by B01, and
 the [B03 external-readiness runbook](accounts-and-permissions.md). B03 does not
@@ -54,6 +62,11 @@ Tool reads the nearest valid `.liknon/resources/` store or an explicit
 workspace. It performs no Hub request, download, installation, update, removal,
 materialization, validation execution, AI-policy mutation, or resource-provided
 command execution.
+
+Tool consumes `liknon-cli-ui` for product-neutral terminal behavior. Tool owns
+its resource-specific human presentation, JSON contracts, errors, and exit
+codes; the shared crate grants no resource capability and introduces no runtime
+dependency on another Liknon executable.
 
 After B04 exists, `liknon tool <args>` is the unified form of
 `liknon-tool <args>`. Tool neither depends on nor invokes that launcher; its
@@ -181,7 +194,7 @@ release train.
 
 | Phase | Document | Depends on | Primary result |
 | ---: | --- | --- | --- |
-| B03.0 | [Product And Command Contract](00-product-and-command-contract.md) | A01.4, B02.0, and the C01 generic governance baseline | Approved identity, commands, outputs, and non-mutation boundary |
+| B03.0 | [Product And Command Contract](00-product-and-command-contract.md) | A01.4, A02, B02.0, and the C01 generic governance baseline | Approved identity, commands, outputs, shared terminal adoption, and non-mutation boundary |
 | B03.1 | [Local Catalog And Retrieval](01-local-catalog-and-retrieval.md) | B03.0 | Deterministic offline discovery and exact payload retrieval |
 | B03.2 | [Context And Agent Safety](02-context-and-agent-safety.md) | B03.1 | Bounded progressive disclosure and safe machine consumption |
 | B03.3 | [Source And Native Distribution](03-source-and-native-distribution.md) | B03.2 | Independently installable Tool candidates |
@@ -209,6 +222,11 @@ couple later Tool publication to Manager.
       unsupported locked state.
 - [ ] Human and JSON output expose identity, version, origin, trust, integrity,
       and revocation state.
+- [ ] Tool uses `liknon-cli-ui` for palettes, presentation, help, `NO_COLOR`,
+      and neutral terminal styling without importing another product's domain
+      renderer.
+- [ ] Tool contains no duplicate palette table, presentation profile, generic
+      help renderer, or terminal-color policy.
 - [ ] Tool never executes or activates returned instructions.
 - [ ] Tool presents the bootstrap contract as program authority below superior
       system, host, repository, and human instructions, while every installed

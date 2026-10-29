@@ -128,6 +128,10 @@ advance.
 
 - B01 may begin after hosted CI verifies the consolidated Validation CLI
   package boundary implemented by A01.5.
+- [A02](../A02-shared-cli-experience-foundation/README.md) is the later owner
+  of the now-demonstrated shared terminal boundary. It extracts that boundary
+  from the A01 result without changing A01's historical decision to avoid a
+  speculative crate before Manager existed.
 - C01 begins from the stable A01 workspace/product boundary.
 - B02.0 and B03.0 consume structural shells and shared primitives without
   inheriting speculative command grammars from A01.

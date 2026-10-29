@@ -48,8 +48,10 @@ The default branch is never presented as a reproducible released version.
 The crates.io channel publishes source package `liknon-validator` with both
 approved binary targets. The package builds from its own accepted contents,
 the locked registry dependency graph selected by the installer, and no
-unpublished workspace or path dependency. It does not require another Liknon
-package. Every accepted package version is immutable.
+unpublished workspace or path dependency. Its accepted registry closure may
+include the exact published `liknon-cli-ui` supporting package established by
+A02, but no other Liknon application package or executable. Every accepted
+package version is immutable.
 
 ### Cloudflare Direct
 

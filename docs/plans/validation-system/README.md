@@ -37,13 +37,21 @@ detail, but it may not silently contradict either document.
 | Plan | Status | Owns |
 | --- | --- | --- |
 | [A01 Product And Repository Separation](A01-product-and-repository-separation/README.md) | `Implementation complete`; hosted verification pending | Current-to-target inventory, package boundaries, source ownership, repository layout, and structural cutover |
+| [A02 Shared CLI Experience Foundation](A02-shared-cli-experience-foundation/README.md) | `Design direction approved; implementation planned` | Publishable `liknon-cli-ui` crate, accessible terminal policy, generic help presentation, existing-CLI adoption, and B03 runtime-UI handoff |
+
+A01 established independent application boundaries and deliberately retained
+Validation presentation until a second implemented consumer demonstrated a
+shared boundary. A02 now extracts that demonstrated boundary from the current
+Validator and Manager surfaces. It is a runtime experience foundation, not a
+capability application and not a replacement for the shared release
+foundation.
 
 ### B: Product Implementation And Distribution
 
 | Plan | Status | Owns |
 | --- | --- | --- |
 | [B01 Validation CLI Distribution](B01-validation-cli-distribution/README.md) | `Provisional`; blocked by final A01.5 hosted verification | Source-package and native distribution of `liknon-validator` / `likv` |
-| [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | `Decision gate` at B02.0 | Resource protocol, Hub, Manager behavior, and Manager distribution |
+| [B02 Resource Hub And Manager](B02-resource-hub-and-manager/README.md) | Repository implementation in place; B02.5 external/public completion pending | Resource protocol, Hub, Manager behavior, and Manager distribution |
 | [B03 Tool CLI](B03-tool-cli/README.md) | `Decision gate` at B03.0 | Offline resource consumption, agent-facing retrieval, and Tool distribution |
 | [B04 Unified Launcher And CLI Suite](B04-unified-launcher-and-cli-suite/README.md) | `Decision gate` at B04.0 | Package `liknon-cli`, launcher commands `liknon` / `likx`, aggregate Cargo installation, and complete native suites |
 | [B05 Programmatic APIs And Language Bindings](B05-programmatic-api-and-language-bindings/README.md) | `Future` | Deliberate programmatic APIs and explicit workspace integrations with demonstrated consumers |
@@ -69,6 +77,13 @@ publication, and recovery mechanisms. B01 implements those mechanisms first
 with Validation as the first product profile. B02 and B03 instantiate them for
 independent products. B04 uses them to build the launcher and then composes
 exact verified B01-B03 native candidates without rebuilding capability CLIs.
+
+[A02](A02-shared-cli-experience-foundation/README.md) separately defines the
+runtime terminal experience shared by those applications: palettes,
+presentation, help styling, `NO_COLOR`, low-vision behavior, and neutral
+semantic style primitives. Product command grammars, domain renderers, machine
+schemas, errors, exit codes, versions, and publication authority remain with
+their owning B plans.
 
 ### C: AI Governance And Official Workflows
 
@@ -115,23 +130,30 @@ current-state assessment + approved target summary
  B01 Validation profile +       C01 generic AI/workflow
  shared distribution            governance contracts
  foundation implementation              |
-             |                    +------+------+
-             |                    v             v
-             |               B02.0 Hub/     B03.0 Tool
-             |               Manager        contract
-             |                    |             |
-             +--------------------+-------------+
-                                  |
-                     B02/B03 product implementation
-                     and independent distribution
-                                  |
-                    stable contracts and candidates
-                                  |
-                                  v
-                    B04.0 launcher/suite contract
-                                  |
-                                  v
-                   B04 launcher and native suites
+             |                           v
+             +------------------> B02.0-B02.4 Hub/Manager
+                                      local implementation
+             |                           |
+             +-------------+-------------+
+                           v
+                A02 shared CLI experience
+              (Validator + Manager evidence)
+                           |
+                  +--------+--------+
+                  v                 v
+          B01/B02 release       B03.0-B03.4 Tool
+          closure               implementation/distribution
+                  |                 |
+                  +--------+--------+
+                           |
+                    stable contracts
+                    and candidates
+                           |
+                           v
+                 B04.0 launcher/suite contract
+                           |
+                           v
+                B04 launcher and native suites
 
  C01 + B02/B03 contracts --> C02/C03 official workflows
  B01-B04 + C01-C03 evidence --> D01 integrated conformance
@@ -170,12 +192,12 @@ Before AI-governance implementation, decide:
 - how these operations remain generic and independent from official workflow
   identities.
 
-### B02.0: Manager And Hub Contract
+### B02.5: Manager And Hub External Readiness
 
-Before Manager implementation, approve resource identity, Hub behavior,
-manifest/lock ownership, command grammar, machine outputs, trust, recovery, and
-publication boundaries. Existing command names in B02 are candidates until
-this gate passes.
+The repository-side Manager and Hub contracts are implemented. Before B02
+release readiness closes, complete the human-owned external setup, public Hub
+authority, exact source/native candidates, A02 Manager presentation adoption,
+and clean public-channel readback defined by B02.5 and B06.
 
 ### B03.0: Tool Contract
 
@@ -213,25 +235,29 @@ activation gate has not passed.
 
 1. A01 has implemented the structural cutover in buildable units; complete its
    final hosted verification.
-2. Begin B01 delivery work and C01 contract work from the verified A01 boundary.
-   B01 first establishes the shared distribution primitives and its Validation
-   profile; this does not publish or version another product.
-3. Resolve B02.0 and B03.0; only then implement their provisional phases.
-   Their distribution phases instantiate the shared foundation under separate
-   identities, tests, credentials, and approval.
-4. Resolve B04.0 after A01 boundaries and component command contracts are
-   stable; build the launcher through the shared foundation and implement
-   native-suite composition only from verified B01-B03 release candidates.
-5. Implement C02 and C03 as resources over approved generic contracts.
-6. Execute the D01 integrated conformance and agent evaluation required before
-   public release.
-7. Activate the future B05 programmatic-API phases only through their
+2. Continue B01 delivery work and C01 contract work from the verified A01
+   boundary. B01 establishes the shared distribution primitives and its
+   Validation profile; this does not publish or version another product.
+3. Treat the repository-side B02.0-B02.4 implementation as the second concrete
+   CLI surface and execute A02. A02 extracts `liknon-cli-ui`, migrates
+   Validator and Manager, and establishes Tool and launcher consumption
+   boundaries before B03 implementation or final B01/B02 source candidates.
+4. Resolve B03.0 only against the completed A02 terminal contract, then
+   implement B03.1-B03.4 without creating another theme or help system.
+5. Resolve B04.0 after A02 and the capability command contracts are stable;
+   build the launcher through both shared foundations and compose native suites
+   only from verified B01-B03 release candidates.
+6. Implement C02 and C03 as resources over approved generic contracts.
+7. Execute the D01 integrated conformance and agent evaluation required before
+   public release, including cross-CLI experience checks from A02.
+8. Activate the future B05 programmatic-API phases only through their
    independent consumer-driven gates and prepare candidates for every language
    ecosystem selected for the first public release.
-8. Execute B06 only after B01-B05 have handed off the selected exact candidates
-   and D01 has produced the designated blocking evidence. B06 rehearses and
-   activates the complete set, verifies public readback, promotes stable
-   pointers, and revokes bootstrap credentials.
+9. Execute B06 only after A02 and B01-B05 have handed off the selected exact
+   source/native candidates and D01 has produced the designated blocking
+   evidence. B06 publishes supporting crates in dependency order, activates the
+   complete set, verifies public readback, promotes stable pointers, and
+   revokes bootstrap credentials.
 
 Each plan owns its own detailed handoff and acceptance criteria. Completion of
 one plan never implicitly marks another plan complete.
@@ -242,6 +268,8 @@ one plan never implicitly marks another plan complete.
   current-state assessment.
 - Approved target direction belongs to the target summary.
 - Product behavior and distribution belong to A/B plans.
+- Shared runtime terminal experience and the `liknon-cli-ui` supporting package
+  belong to A02; application-specific presentation remains with its product.
 - Cross-product release mechanisms belong to the shared CLI distribution
   foundation; product releases and authorities remain in B01-B04.
 - Programmatic package releases and registry authorities remain in B05.
@@ -274,6 +302,8 @@ This roadmap is coherent when:
 - product release work remains separate from integrated-system evaluation;
 - shared release mechanisms are implemented once while every product keeps an
   independent release identity and authority;
+- shared terminal behavior is implemented once without merging product command
+  grammars, reports, machine schemas, errors, or exit codes;
 - first public activation is coordinated by B06 from exact product-owned
   candidates without creating a permanent coupled release train;
 - all active links resolve and the next executable step is unambiguous.

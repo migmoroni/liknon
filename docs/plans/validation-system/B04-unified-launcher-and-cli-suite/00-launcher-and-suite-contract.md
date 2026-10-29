@@ -22,6 +22,9 @@ rebuild the suite or receive B04 credentials.
 ## Required Inputs
 
 - the approved A01 package and dependency graph;
+- the completed
+  [A02 shared CLI experience foundation](../A02-shared-cli-experience-foundation/README.md)
+  and its launcher-owned help conformance evidence;
 - the [shared CLI distribution foundation](../cli-distribution-foundation.md)
   and its credential-free conformance evidence;
 - stable direct command contracts from B01-B03;
@@ -139,7 +142,9 @@ Decide only the details left open by the approved contract:
 - diagnostics for unavailable, incompatible, invalid, and unresponsive states.
 
 The gate may not expand root help into capability documentation, change the
-component list or ordering, or hide an inspection failure.
+component list or ordering, hide an inspection failure, or create a launcher-
+local replacement for `liknon-cli-ui`. The launcher applies shared presentation
+only to launcher-owned output and passes delegated streams through unchanged.
 
 ## Required Prototypes
 
@@ -170,6 +175,8 @@ approved for B04.1 or later.
 - Resolution never falls back silently to validation or another component.
 - Dispatch never reconstructs a command string.
 - Root help works without installed components.
+- Root help conforms to A02 and delegated component help remains byte-for-byte
+  component-owned.
 - Version inspection uses the normal trusted resolution contract.
 - Aggregate installation proves targets belong to `liknon-cli` itself.
 - Capability implementations remain independently buildable and installable.

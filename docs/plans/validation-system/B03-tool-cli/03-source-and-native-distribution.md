@@ -80,6 +80,12 @@ Package and inspect its complete supporting-crate closure. Publish and read
 back an exact supporting version before the application when it is not already
 available byte-for-byte in the registry.
 
+That closure includes the exact accepted `liknon-cli-ui` version established by
+A02. Package inspection proves Tool consumes the shared implementation rather
+than embedding a private palette, presentation profile, generic help renderer,
+or terminal-color policy. The supporting crate is a source dependency, not a
+second executable or runtime file in Tool's native archive.
+
 Package inspection proves absence of:
 
 - authored knowledge, skills, workflows, prompts, profiles, tool descriptors, guides, templates,
@@ -125,6 +131,8 @@ resource does not.
 
 - GitHub and crates.io source candidates install in isolated environments.
 - Both command names report the same version and behavior.
+- Both command names satisfy the A02 palette, presentation, help, `NO_COLOR`,
+  and ANSI-free machine-output conformance matrix.
 - GitHub source, crates.io source, and every native candidate agree on Tool's
   package-derived version, signed tag, full commit, and source closure.
 - Every native target runs catalog and retrieval fixtures offline.

@@ -25,6 +25,11 @@ runtime support matrix, a bridge strategy when native capabilities require one,
 and the
 [B05 registry-readiness runbook](accounts-and-permissions.md).
 
+B05 does not depend on `liknon-cli-ui` merely because CLI applications do.
+Terminal presentation is outside a programmatic API. A future concrete
+terminal consumer must justify that dependency explicitly rather than inheriting
+it through repository proximity.
+
 ## Relationship To Current Products
 
 - [B01](../B01-validation-cli-distribution/README.md) distributes the

@@ -10,6 +10,12 @@ This document is normative for B01-B04. Product plans own product behavior,
 release readiness, and publication. This contract owns only the release
 mechanisms they deliberately share.
 
+Runtime terminal behavior is outside this document. Palettes, presentation,
+help styling, `NO_COLOR`, and shared accessibility primitives belong to
+[A02 Shared CLI Experience Foundation](A02-shared-cli-experience-foundation/README.md).
+Sharing runtime experience does not merge the release identities or
+publication authorities defined here.
+
 ## Purpose
 
 Provide one maintained release foundation for four native delivery subjects:

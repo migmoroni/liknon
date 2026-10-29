@@ -3,7 +3,10 @@
 ## Status
 
 `Decision gate` at B04.0. No launcher, aggregate package, native suite, or
-publication work begins until the contract is approved.
+publication behavior begins until the contract is approved. A02 may adapt the
+existing structural shell to product-neutral help/theme primitives, but it may
+not implement discovery, dispatch, compatibility, aggregate composition, or
+any other B04-owned behavior.
 
 The [validation-system roadmap](../README.md) owns cross-track order. This plan
 is the sole owner of the unified launcher, aggregate Cargo package, and complete
@@ -14,6 +17,10 @@ of any capability CLI.
 
 - [A01](../A01-product-and-repository-separation/README.md) must establish the
   shared implementation boundaries and buildable application packages.
+- [A02](../A02-shared-cli-experience-foundation/README.md) must establish the
+  shared terminal experience before launcher-owned help is implemented. The
+  launcher consumes that crate without styling or reinterpreting delegated
+  capability output.
 - The [shared CLI distribution foundation](../cli-distribution-foundation.md)
   must have a proven credential-free implementation before native launcher or
   suite candidates are produced.
@@ -83,6 +90,12 @@ Root `--help` for `liknon` and `likx`:
 - shows the unified grammar;
 - directs the user to `liknon <namespace> --help`; and
 - remains available when a component is absent or invalid.
+
+Launcher-owned help and parser diagnostics use `liknon-cli-ui` for palette,
+presentation, `NO_COLOR`, low-vision, branding, and generic help behavior. B04
+still owns the brief launcher content above. Visual options forwarded after a
+selected namespace belong to that capability and are not consumed by the
+launcher.
 
 Capability-specific help is emitted by the selected component. The launcher
 does not merge or reproduce its command tree.
@@ -176,6 +189,9 @@ proceed through the independent B04 train.
 11. Launcher and suite identity is package-derived and each composed component
     retains its independently verified version, tag, commit, target, hash, and
     provenance.
+12. Shared terminal presentation is imported from `liknon-cli-ui`; launcher
+    code contains no private palette/help implementation and never restyles a
+    selected capability's streams.
 
 ## Decision Gate And Later Units
 
@@ -214,6 +230,8 @@ Future B04 implementation must prove:
 - [ ] Package `liknon` remains outside this plan and provides no launcher.
 - [ ] Every capability dispatch uses an explicit namespace.
 - [ ] Root help is launcher-focused and detailed help is delegated.
+- [ ] Launcher-owned help conforms to A02 while delegated capability output is
+      passed through unchanged.
 - [ ] Root version covers the launcher and every resolved capability.
 - [ ] Aggregate installation does not rely on dependency-owned executables.
 - [ ] Standalone products preserve independent release and operation.

@@ -16,7 +16,9 @@ behavior without transferring product publication ownership into this plan.
 D01 depends on the implemented product and workflow surfaces exercised by each
 scenario. A family may begin only when its own prerequisites exist; independent
 product release evidence is supplied by B01-B03, while launcher and complete-
-suite evidence is supplied by B04.
+suite evidence is supplied by B04. Cross-CLI help, palette, presentation,
+`NO_COLOR`, ANSI, and accessibility expectations come from A02; D01 verifies
+their integrated use without owning the shared crate.
 
 ## Deliverables
 
@@ -36,6 +38,8 @@ package, complete-suite, publication, recovery, and channel-readback gates.
 - [ ] All eight scenario shapes have versioned deterministic coverage.
 - [ ] Every direct long/compact command and unified launcher namespace has
       deterministic parity, isolation, help, version, and failure coverage.
+- [ ] Every applicable direct and unified surface passes the A02 shared CLI
+      experience matrix without merging product-specific output contracts.
 - [ ] The four agent families remain context-isolated and model-neutral.
 - [ ] Security and contract-isolation scenarios pass before scores are used.
 - [ ] Evidence attributes failures to the owning product, resource, or model

@@ -37,8 +37,13 @@ workflow or credentials.
 B01 depends on the approved A01 ledger, a stable Validation CLI package
 boundary, release-ready source, and the destination accounts and permissions
 listed in the [B01 external-readiness runbook](accounts-and-permissions.md). It
-also conforms to the shared CLI distribution foundation. It does not depend on
-C02, C03, or D01.
+also conforms to the shared CLI distribution foundation. Before producing its
+final crates.io candidate, B01 consumes the completed
+[A02 shared CLI experience foundation](../A02-shared-cli-experience-foundation/README.md)
+and the exact accepted `liknon-cli-ui` source candidate. Prepublication uses a
+controlled local-registry rehearsal; B06 publishes and reads back that
+supporting version before the dependent Validation package. B01 does not depend
+on C02, C03, or D01.
 
 ## Objective
 
@@ -80,8 +85,10 @@ B01 includes:
 - user-local installation without elevated privileges;
 - public verification, publication recovery, and documentation.
 
-The application contains the generic validation engine, CLI presentation, core
-schemas, and generic `.liknon/validation/` initialization. It does not contain:
+The application contains the generic validation engine, Validation-specific CLI
+presentation, core schemas, and generic `.liknon/validation/` initialization.
+It consumes product-neutral terminal presentation from `liknon-cli-ui` without
+transferring Validation behavior to that crate. It does not contain:
 
 - `liknon-manager`, `liknon-tool`, the resource Hub, or installed resources;
 - knowledge, skills, workflows, agent profiles, tool descriptors, prompts,
@@ -231,6 +238,8 @@ may use the same contracts independently.
 - [ ] GitHub and crates.io source installations pass in isolated environments.
 - [ ] The crates.io candidate has no unpublished workspace package or
       repository-local path dependency.
+- [ ] The exact `liknon-cli-ui` dependency passes local-registry rehearsal, and
+      B06 publishes and reads it back before publishing the Validation package.
 - [ ] Both command names are equivalent through every channel.
 - [ ] Exactly one final native payload is retained per target.
 - [ ] Linux x64 and arm64 each have separate GNU and MUSL artifacts.

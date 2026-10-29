@@ -2,9 +2,9 @@
 
 ## Status
 
-`Future`. Blocked until B01 through B05 and E01 have completed the
-release-readiness work applicable to the products and public surfaces selected
-for the first public release.
+`Future`. Blocked until A02, B01 through B05, and E01 have completed the
+release-readiness work applicable to the supporting package, products, and
+public surfaces selected for the first public release.
 
 [Back to the validation-system roadmap](../README.md)
 
@@ -27,6 +27,7 @@ The release set may contain:
 
 | Owner | Product or channel | B06 input |
 | --- | --- | --- |
+| A02 | `liknon-cli-ui` supporting crate | Verified source-package candidate required by selected CLI packages |
 | B01 | `liknon-validator` / `likv` | Verified source and native candidates |
 | B02 | Resource Hub and `liknon-manager` / `likm` | Verified Hub objects plus Manager candidates |
 | B03 | `liknon-tool` / `likt` | Verified source and native candidates |
@@ -40,9 +41,10 @@ complete.
 
 ## Ownership Boundary
 
-- B01-B05 own product versions, tags, package contents, target matrices,
-  candidates, destination-specific workflows, credentials, recovery rules, and
-  recurring release trains.
+- A02 owns its supporting-crate source release, while B01-B05 own product
+  versions, tags, package contents, target matrices, candidates,
+  destination-specific workflows, credentials, recovery rules, and recurring
+  release trains.
 - E01 owns the site candidate, site deployment identity, public-domain
   topology, and verified human presentation of B02 and product-release outputs.
 - B06 owns the frozen first-release ledger, dependency order, coordinated human
@@ -50,6 +52,9 @@ complete.
   readback, and closure evidence.
 - The shared CLI distribution foundation owns reusable mechanisms, not a
   product release or credential.
+- A02 owns the `liknon-cli-ui` package version, crates.io candidate,
+  publication authority, and recurring supporting-crate release train; B06
+  only coordinates its first publication before dependent application crates.
 - D01 may consume the released system for evaluation but does not publish it.
 
 There is no universal publication credential. The B06 coordinator invokes each
@@ -89,6 +94,9 @@ The operational prerequisites are consolidated in
 ## Entry Criteria
 
 - B01-B04 have produced release-ready candidates and destination workflows.
+- A02 has produced a release-ready `liknon-cli-ui` source candidate whenever a
+  selected application package depends on a version not already public and
+  byte-identical.
 - E01 has produced a release-ready site candidate and verified public domain,
   Hub, trust-root, and site-delivery inputs selected for the release.
 - Every B05 ecosystem included in the release set has passed its own activation

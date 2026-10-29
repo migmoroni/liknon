@@ -2,8 +2,9 @@
 
 ## Status
 
-`Decision gate`. The command names and semantics below are candidate design
-material. They become normative only through an explicit approved exit record.
+`Decision gate`. Blocked by completion of A02. The command names and semantics
+below are candidate design material. They become normative only through an
+explicit approved exit record.
 
 [Back to the Tool CLI plan](README.md)
 
@@ -26,7 +27,8 @@ failure classes, and safety boundaries before implementation.
 - Define behavior for absent, partial, unsupported, and manually populated
   resource stores.
 - Define stdin, stdout, stderr, exit-status, color, presentation, and
-  `NO_COLOR` behavior.
+  `NO_COLOR` behavior by instantiating the A02 `liknon-cli-ui` contract rather
+  than redefining its palettes, help system, or terminal policy.
 - Confirm Tool has no network or mutation capability.
 
 ## Hard Boundaries
@@ -83,7 +85,9 @@ Prototype:
 - incompatible and revoked resources;
 - text and binary files;
 - output-limit truncation;
-- human, JSON, colored, plain, standard, and low-vision presentation.
+- human, JSON, colored, plain, standard, and low-vision presentation;
+- direct evidence that Tool consumes `liknon-cli-ui` and contains no local copy
+  of the product-neutral visual profiles or help renderer;
 - bootstrap output with no workspace, a malformed workspace, and an unrelated
   installed resource claiming to be an entry point.
 
@@ -92,4 +96,5 @@ Prototype:
 Tool behavior is completely defined as exact program-bootstrap projection plus
 local verified resource consumption, with no ambiguity between program
 contracts, administrative Manager operations, and content-oriented Tool
-operations.
+operations. Its terminal behavior conforms to A02 while its resource-specific
+human and JSON presentation remains B03-owned.

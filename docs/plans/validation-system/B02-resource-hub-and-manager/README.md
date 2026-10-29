@@ -33,9 +33,12 @@ capability, effect, and policy-compatibility requirements needed by B02.0. Its
 distribution phases additionally depend on the
 [shared CLI distribution foundation](../cli-distribution-foundation.md), its
 credential-free implementation and conformance harness established by B01, and
-the [B02 external-readiness runbook](accounts-and-permissions.md). B02 does not
-depend on publication of a Validation release. C02 and C03 are consumers, not
-prerequisites for B02.0.
+the [B02 external-readiness runbook](accounts-and-permissions.md). Manager's
+final terminal presentation and B02.5 source-package closure additionally
+depend on the completed
+[A02 shared CLI experience foundation](../A02-shared-cli-experience-foundation/README.md).
+B02 does not depend on publication of a Validation release. C02 and C03 are
+consumers, not prerequisites for B02.0.
 
 ## Objective
 
@@ -206,7 +209,7 @@ releases remain independent B02 release trains.
 | B02.2 | [Manager Workspace And Commands](02-manager-workspace-and-commands.md) | B02.0 | Local state, discovery, inspection, and stable human/JSON interfaces |
 | B02.3 | [Resolution, Locking, And Installation](03-resolution-locking-and-installation.md) | B02.1-B02.2 | Deterministic dependency resolution and transactional resource lifecycle |
 | B02.4 | [Security, Trust, And Recovery](04-security-trust-and-recovery.md) | B02.3 | Fail-closed verification, rollback, and adversarial coverage |
-| B02.5 | [Distribution And End-To-End Verification](05-distribution-and-end-to-end-verification.md) | B02.4 and the credential-free shared distribution foundation | Independent Manager and Hub candidates, product-owned publication workflows, and verified Hub-to-workspace behavior ready for B06 |
+| B02.5 | [Distribution And End-To-End Verification](05-distribution-and-end-to-end-verification.md) | B02.4, A02, and the credential-free shared distribution foundation | Independent Manager and Hub candidates, product-owned publication workflows, and verified Hub-to-workspace behavior ready for B06 |
 
 B02.0-B02.4 establish local implementation readiness. Together with B03.2 they
 provide the neutral interoperability evidence required before C02 or C03
@@ -248,6 +251,8 @@ public activation occurs through B06.
       and consumes this plan's verified candidate unchanged.
 - [ ] Manager uses the shared release mechanisms without inheriting Validation,
       Tool, or suite identities, candidates, namespaces, or credentials.
+- [ ] Manager uses `liknon-cli-ui` for shared terminal behavior while retaining
+      its own commands, human content, JSON schema, errors, and exit codes.
 - [ ] Every Manager source and native channel resolves to one package-derived
       version, exact signed tag, full commit, and immutable provenance record.
 - [ ] Every supported Manager target has one retained final payload and native

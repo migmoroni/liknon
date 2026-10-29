@@ -62,8 +62,10 @@ Planning performs no partial workspace mutation.
 
 Human output explains the requested operation and exact resulting state.
 Versioned JSON output exposes typed records suitable for agents and automation.
-JSON uses stdout, diagnostics use stderr, and neither contains terminal styling
-unless the human format explicitly requests it.
+JSON uses stdout, diagnostics use stderr, and machine-readable output never
+contains terminal styling. After A02, explicitly requested human styling uses
+`liknon-cli-ui`; Manager retains the exact content and ordering of its domain
+records.
 
 Exit statuses distinguish usage/configuration failure, blocked or incompatible
 resolution, integrity/security failure, and completed mutation.
@@ -72,6 +74,8 @@ resolution, integrity/security failure, and completed mutation.
 
 - Discovery, explicit roots, nested workspaces, and missing roots are covered.
 - Every operation has human and JSON contract tests.
+- Shared help, palette, presentation, `NO_COLOR`, and ANSI behavior passes the
+  A02 conformance matrix without changing Manager's JSON schema or exit codes.
 - Read operations make no workspace mutation.
 - Dry-run and commit use the same resolved plan.
 - Interrupted output does not leave a partial manifest, lock, or payload.

@@ -33,7 +33,9 @@ From clean environments:
    collection, and dependency graph, then remove Manager from `PATH`;
 8. run Tool catalog, search, show, resolve, and context offline;
 9. reject modified, unsupported, revoked, unsafe, partial, and oversized state;
-10. verify human, JSON, color, standard, and low-vision output;
+10. run the complete A02 help, palette, presentation, `NO_COLOR`, ANSI-free
+    machine-output, and alias-equivalence matrix in addition to Tool-specific
+    human and JSON assertions;
 11. prove Validation CLI absence does not affect resource consumption;
 12. resolve and assemble context for project-controlled conformance and external
     workflows with different node identifiers, transitions, and agent profiles;
@@ -61,7 +63,8 @@ secret set; each Tool publication job receives only its destination-specific
 protected environment.
 
 crates.io publication follows dependency order: any required unpublished
-supporting-crate candidate is published and read back before `liknon-tool`.
+supporting-crate candidate, including the exact accepted `liknon-cli-ui`
+version, is published and read back before `liknon-tool`.
 
 The Tool stable pointer changes only after public readback and clean-environment
 installation pass for every supported channel and target.

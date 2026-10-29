@@ -36,9 +36,10 @@ rules conform to the
 retaining separate version, tag, package, artifact, and credential identities.
 
 The crates.io candidate includes no unpublished path dependency. Publish and
-read back any exact supporting-crate version in its dependency closure before
-publishing `liknon-manager`; reuse an already published byte-equivalent version
-rather than attempting to replace it.
+read back any exact supporting-crate version in its dependency closure,
+including the accepted A02 `liknon-cli-ui` version, before publishing
+`liknon-manager`; reuse an already published byte-equivalent version rather
+than attempting to replace it.
 
 The website offers Manager separately and may offer an installer selection or
 complete convenience bundle. Selecting the bundle does not make another CLI a

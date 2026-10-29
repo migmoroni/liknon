@@ -129,9 +129,13 @@ fronteiras semelhantes a:
 ```text
 apps/
 ├── liknon-cli/          # launcher e pacote agregado
-├── liknon-validator/     # engine, schemas, adaptacao CLI e binarios
+├── liknon-validator/     # engine, schemas, adaptacao de dominio e binarios
 ├── liknon-manager/
 └── liknon-tool/
+
+crates/
+├── liknon-cli-ui/        # experiencia de terminal compartilhada
+└── liknon-resource-contracts/ # contratos do ecossistema de recursos
 
 resources/
 ├── knowledge/
@@ -159,14 +163,24 @@ concede privilegio de execucao. Outras origens devem poder usar os mesmos
 contratos.
 
 `liknon-validator` concentra sua semantica de configuracao, planejamento,
-execucao, relatorios estruturados, schemas e adaptacao de terminal em modulos
-internos de um unico pacote. As tres CLIs de capacidade nao invocam umas as
-outras como subprocessos ocultos. Somente o launcher pode invocar a CLI
-selecionada, sem importar sua API para executar a capacidade.
+execucao, relatorios estruturados, schemas e apresentacao especifica de
+validacao em modulos internos de um unico pacote. `liknon-cli-ui` concentra
+somente paletas, apresentacoes acessiveis, integracao visual com Clap, ajuda
+generica e politica de terminal demonstravelmente comuns entre as CLIs. Formatos
+JSON, codigos de saida e renderizadores de dominio continuam pertencendo a cada
+aplicacao.
+
+As tres CLIs de capacidade nao invocam umas as outras como subprocessos
+ocultos. Somente o launcher pode invocar a CLI selecionada, sem importar sua
+API para executar a capacidade.
 
 Uma crate compartilhada so deve surgir quando mais de um produto implementado
-demonstrar essa necessidade. A fronteira de responsabilidade e mais importante
-que criar uma decomposicao especulativa.
+demonstrar essa necessidade. Validator e Manager demonstram a fronteira de
+experiencia de terminal de `liknon-cli-ui`; Manager e Tool demonstram a
+fronteira independente de `liknon-resource-contracts`. Nenhuma das duas crates
+deve se transformar num modulo generico de conveniencia. A fronteira de
+responsabilidade continua mais importante que criar decomposicoes
+especulativas.
 
 ## 5. Workspace Do Consumidor
 
