@@ -16,50 +16,49 @@ grain from chaff.
 
 ## Current Products
 
-The repository is a Cargo workspace with explicit application boundaries:
+The public command-line product is the `liknon-cli` suite. One package owns
+exactly four physical executables:
 
-| Package | Executables | Current responsibility |
-| --- | --- | --- |
-| `liknon-validator` | `liknon-validator`, `likv` | Complete validation CLI |
-| `liknon-manager` | `liknon-manager`, `likm` | Authenticated resource discovery, resolution, installation, verification, and materialization |
-| `liknon-tool` | `liknon-tool`, `likt` | Verified offline discovery, retrieval, resolution, and bounded context for installed resources |
-| `liknon-cli` | `liknon`, `likx`, and the six capability executables | Aggregate package and launcher shell |
+| Executable | Current responsibility |
+| --- | --- |
+| `liknon` | Capability-free launcher for one explicit suite namespace |
+| `liknon-validator` | Declarative workspace validation |
+| `liknon-manager` | Authenticated resource discovery, resolution, installation, verification, and materialization |
+| `liknon-tool` | Verified offline discovery, retrieval, resolution, and bounded context for installed resources |
 
-Two supporting libraries preserve boundaries between those applications:
+The capability executables remain independent processes and can be invoked
+directly. The launcher resolves only its sibling executables and routes the
+explicit namespaces `validator|v`, `manager|m`, and `tool|t`. The short forms
+are parser namespaces, not additional command files.
+
+Supporting crates preserve implementation boundaries without owning public
+executables:
 
 | Package | Current responsibility |
 | --- | --- |
+| `liknon-validator` | Validation engine and capability CLI composition |
+| `liknon-manager` | Resource acquisition and mutable workspace-state behavior |
+| `liknon-tool` | Read-only local resource consumption behavior |
 | `liknon-cli-ui` | Product-neutral palettes, presentation, terminal policy, Clap styling, and generic help composition |
 | `liknon-resource-contracts` | Resource, catalog, trust, manifest, lock, and signature contracts |
-
-The `liknon` and `likx` launcher targets currently expose their identity and
-capability namespaces, but do not dispatch them yet. Invoke `liknon-validator`
-or `likv` for validation, `liknon-manager` or `likm` for resource-state
-administration, and `liknon-tool` or `likt` for read-only local resource
-consumption. Unified routing and governed workflow execution remain separate
-incomplete tracks.
 
 The applications share the terminal-facing foundation documented in
 [`docs/cli-experience.md`](docs/cli-experience.md), while retaining their own
 commands, domain renderers, machine contracts, errors, and exit codes. The
-`liknon-validator` package owns the validation engine and its CLI adaptation;
-that internal Rust surface is not a promised programmatic integration API.
+internal Rust surfaces are not promised programmatic integration APIs.
 
 ## Install From Source
 
 No public package release is advertised at this stage. Clone the repository
-and install the functional validation application directly:
+and install the complete suite from one package:
 
 ```sh
 git clone https://github.com/migmoroni/liknon.git
 cd liknon
-cargo install --path apps/liknon-validator --locked --force
+cargo install --path apps/liknon-cli --locked --force
+liknon --version
 liknon-validator --version
-
-cargo install --path apps/liknon-manager --locked --force
 liknon-manager --version
-
-cargo install --path apps/liknon-tool --locked --force
 liknon-tool --version
 ```
 
@@ -70,21 +69,18 @@ modifying the source.
 
 ## Release Distribution
 
-The repository contains product-isolated release profiles for Validation,
-Manager, and Tool across signed GitHub source tags, crates.io source packages,
-and authenticated target-native archives on a project-controlled Cloudflare
-domain. Registry and native channels are not advertised as live until their
-first protected releases complete; local source installation above remains the
-current development path.
+The repository contains one release profile for the complete CLI suite across
+a signed GitHub source tag, one crates.io source package, and one authenticated
+target-native archive per supported target on a project-controlled Cloudflare
+domain. Every channel installs the same four executable roles at one version.
+Registry and native channels are not advertised as live until their protected
+release and public-readback gates complete.
 
-The complete installation, update, uninstall, platform, and trust contract is
-documented in
-[`docs/distribution/validation-cli.md`](docs/distribution/validation-cli.md).
+The installation, update, uninstall, platform, and trust contract is documented
+in [`docs/distribution/cli-suite.md`](docs/distribution/cli-suite.md). Candidate
+preparation and the later B06 publication handoff are documented in
+[`docs/distribution/releasing-cli-suite.md`](docs/distribution/releasing-cli-suite.md).
 GitHub Releases intentionally carry metadata only and no Liknon binaries.
-Manager distribution is documented in
-[`docs/distribution/manager-cli.md`](docs/distribution/manager-cli.md).
-Tool distribution is documented in
-[`docs/distribution/tool-cli.md`](docs/distribution/tool-cli.md).
 
 ## Resource Manager
 
@@ -202,16 +198,16 @@ Validate and install those exact bytes, inspect the resulting configuration,
 and run its default group:
 
 ```sh
-liknon-validator init --config validation.config.json
-liknon-validator config validate
-liknon-validator list --tree
-liknon-validator validate
+liknon validator init --config validation.config.json
+liknon validator config validate
+liknon validator list --tree
+liknon validator validate
 ```
 
 Use `--format=json` for a machine-readable report:
 
 ```sh
-liknon-validator validate --format=json
+liknon validator validate --format=json
 ```
 
 ## Configuration Model
@@ -256,6 +252,11 @@ liknon-validator schema config
 liknon-validator schema report
 ```
 
+The same commands are available through the launcher by inserting the
+`validator` namespace after `liknon`, for example
+`liknon validator validate --format=json`. Direct and routed execution select
+the same installed capability executable.
+
 Without `--config`, the CLI discovers the nearest
 `.liknon/validation/config.json` by walking from the current directory upward.
 `validate` without a target selects `defaultGroup`. `config validate`, `list`,
@@ -295,9 +296,9 @@ rejects visual options and emits only the version 4 `ValidationReport`.
 
 ```sh
 liknon-validator --color=high-contrast --help
-liknon-validator config --presentation=low-vision --help
-liknon-validator validate --color=deuteranopia --presentation=low-vision
-liknon-validator validate --format=json
+liknon validator config --presentation=low-vision --help
+liknon validator validate --color=deuteranopia --presentation=low-vision
+liknon validator validate --format=json
 ```
 
 ## Knowledge And AI Material
@@ -359,19 +360,19 @@ evaluation-only schemas live under [`evals/schemas`](evals/schemas).
 
 ## Repository Development
 
-Run the validation CLI directly from the workspace with:
+Run the suite launcher from the workspace with:
 
 ```sh
-cargo run -p liknon-validator --bin liknon-validator --locked -- <command>
+cargo run -p liknon-cli --bin liknon --locked -- validator <command>
 ```
 
 The committed root `Cargo.lock` is the reproducible dependency graph. The root
 workspace owns formatting, lint, tests, doctests, and package-boundary checks;
 nested fixtures remain excluded workspace inputs.
 
-Release maintainers use the reviewed product profiles under
-[`distribution/cli`](distribution/cli) and the Validation and Manager release
-runbooks under [`docs/distribution`](docs/distribution).
+Release maintainers use the reviewed suite profile under
+[`distribution/cli/suite`](distribution/cli/suite) and its runbook under
+[`docs/distribution`](docs/distribution).
 Generated release candidates remain below `target/distribution/`.
 
 Liknon is licensed under the [MIT License](LICENSE).

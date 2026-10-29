@@ -9,25 +9,53 @@ COMMIT='@@COMMIT@@'
 BASE_URL='@@BASE_URL@@'
 RELEASE_PREFIX='@@RELEASE_PREFIX@@'
 SIGNING_KEY_ID='@@SIGNING_KEY_ID@@'
-CANONICAL_COMMAND='@@CANONICAL_COMMAND@@'
-ALIAS_COMMAND='@@ALIAS_COMMAND@@'
+COMMANDS='@@POSIX_COMMANDS@@'
 PUBLIC_KEY_PEM='@@PUBLIC_KEY_PEM@@'
 
 install_dir=${HOME:+"$HOME/.local/bin"}
 requested_libc=
 base_url_override=
 uninstall=0
+tmp_dir=
+stage_dir=
+backup_dir=
+transaction_active=0
 
 fail() {
   printf '%s\n' "liknon installer: $*" >&2
   exit 1
 }
 
+restore_previous_suite() {
+  [ "$transaction_active" -eq 1 ] || return 0
+  for command_name in $COMMANDS; do
+    rm -f -- "$install_dir/$command_name"
+  done
+  if [ -n "$backup_dir" ] && [ -d "$backup_dir" ]; then
+    for command_name in $COMMANDS; do
+      if [ -e "$backup_dir/$command_name" ]; then
+        mv "$backup_dir/$command_name" "$install_dir/$command_name" || true
+      fi
+    done
+  fi
+  transaction_active=0
+}
+
+cleanup() {
+  restore_previous_suite
+  [ -z "$stage_dir" ] || rm -rf -- "$stage_dir"
+  [ -z "$backup_dir" ] || rm -rf -- "$backup_dir"
+  [ -z "$tmp_dir" ] || rm -rf -- "$tmp_dir"
+}
+
+trap cleanup EXIT
+trap 'cleanup; exit 130' HUP INT TERM
+
 usage() {
   cat <<EOF
 Usage: install.sh [--install-dir <path>] [--libc gnu|musl] [--base-url <url>] [--uninstall]
 
-Installs $CANONICAL_COMMAND and $ALIAS_COMMAND version $VERSION.
+Installs the complete $PACKAGE suite at version $VERSION.
 EOF
 }
 
@@ -72,8 +100,10 @@ esac
 [ -n "${install_dir:-}" ] || fail "HOME is unset; pass --install-dir"
 
 if [ "$uninstall" -eq 1 ]; then
-  rm -f -- "$install_dir/$CANONICAL_COMMAND" "$install_dir/$ALIAS_COMMAND"
-  printf '%s\n' "Removed $CANONICAL_COMMAND and $ALIAS_COMMAND from $install_dir"
+  for command_name in $COMMANDS; do
+    rm -f -- "$install_dir/$command_name"
+  done
+  printf '%s\n' "Removed $PACKAGE suite from $install_dir"
   exit 0
 fi
 
@@ -96,9 +126,6 @@ else
 fi
 
 tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/liknon-install.XXXXXX") || fail "cannot create temporary directory"
-cleanup() { rm -rf -- "$tmp_dir"; }
-trap cleanup EXIT HUP INT TERM
-
 release_url="$BASE_URL/$RELEASE_PREFIX/v$VERSION"
 manifest="$tmp_dir/manifest.json"
 manifest_signature="$tmp_dir/manifest.sig"
@@ -109,7 +136,7 @@ download "$release_url/manifest.sig" "$manifest_signature" || fail "cannot downl
 openssl dgst -sha256 -verify "$public_key" -signature "$manifest_signature" "$manifest" >/dev/null 2>&1 \
   || fail "manifest signature is invalid for key $SIGNING_KEY_ID"
 
-[ "$(jq -r '.schemaVersion' "$manifest")" = 1 ] || fail "unsupported manifest schema"
+[ "$(jq -r '.schemaVersion' "$manifest")" = 2 ] || fail "unsupported manifest schema"
 [ "$(jq -r '.identity.product' "$manifest")" = "$PRODUCT" ] || fail "manifest product mismatch"
 [ "$(jq -r '.identity.package' "$manifest")" = "$PACKAGE" ] || fail "manifest package mismatch"
 [ "$(jq -r '.identity.version' "$manifest")" = "$VERSION" ] || fail "manifest version mismatch"
@@ -199,52 +226,50 @@ extract_dir="$tmp_dir/extracted"
 mkdir "$extract_dir" || fail "cannot create extraction directory"
 tar -xzf "$archive" -C "$extract_dir" || fail "cannot extract archive"
 
-for command_name in "$CANONICAL_COMMAND" "$ALIAS_COMMAND"; do
+expected_command_count=0
+for command_name in $COMMANDS; do
+  expected_command_count=$((expected_command_count + 1))
+  record_count=$(jq -r --arg target "$target" --arg name "$command_name" \
+    '[.artifacts[] | select(.target == $target) | .commands[] | select(.name == $name)] | length' "$manifest")
+  [ "$record_count" = 1 ] || fail "manifest command record is missing or duplicated: $command_name"
   expected_sha=$(jq -r --arg target "$target" --arg name "$command_name" \
     '.artifacts[] | select(.target == $target) | .commands[] | select(.name == $name) | .sha256' "$manifest")
-  [ -n "$expected_sha" ] && [ "$expected_sha" != null ] || fail "manifest command record is missing: $command_name"
   [ -f "$extract_dir/$command_name" ] || fail "archive command is missing: $command_name"
   actual_sha=$(openssl dgst -sha256 -r "$extract_dir/$command_name" | awk '{print $1}')
   [ "$actual_sha" = "$expected_sha" ] || fail "extracted command hash mismatch: $command_name"
+  if [ "$os" = Darwin ]; then
+    command -v codesign >/dev/null 2>&1 \
+      || fail "required macOS signature verifier is unavailable: codesign"
+    codesign --verify --strict --verbose=2 "$extract_dir/$command_name" \
+      || fail "$command_name has an invalid macOS code signature"
+  fi
 done
-
-if [ "$os" = Darwin ]; then
-  command -v codesign >/dev/null 2>&1 \
-    || fail "required macOS signature verifier is unavailable: codesign"
-  codesign --verify --strict --verbose=2 "$extract_dir/$CANONICAL_COMMAND" \
-    || fail "canonical command has an invalid macOS code signature"
-  codesign --verify --strict --verbose=2 "$extract_dir/$ALIAS_COMMAND" \
-    || fail "alias command has an invalid macOS code signature"
-fi
+manifest_command_count=$(jq -r --arg target "$target" \
+  '.artifacts[] | select(.target == $target) | .commands | length' "$manifest")
+[ "$manifest_command_count" = "$expected_command_count" ] || fail "manifest command inventory contains unexpected entries"
 
 mkdir -p -- "$install_dir" || fail "cannot create installation directory"
-canonical_new="$install_dir/.$CANONICAL_COMMAND.new.$$"
-alias_new="$install_dir/.$ALIAS_COMMAND.new.$$"
-canonical_backup="$install_dir/.$CANONICAL_COMMAND.backup.$$"
-alias_backup="$install_dir/.$ALIAS_COMMAND.backup.$$"
-cp "$extract_dir/$CANONICAL_COMMAND" "$canonical_new" || fail "cannot stage canonical command"
-cp "$extract_dir/$ALIAS_COMMAND" "$alias_new" || fail "cannot stage alias command"
-chmod 755 "$canonical_new" "$alias_new" || fail "cannot set executable permissions"
+stage_dir="$install_dir/.liknon-stage.$$"
+backup_dir="$install_dir/.liknon-backup.$$"
+mkdir "$stage_dir" "$backup_dir" || fail "cannot create transaction directories"
+for command_name in $COMMANDS; do
+  cp "$extract_dir/$command_name" "$stage_dir/$command_name" || fail "cannot stage $command_name"
+  chmod 755 "$stage_dir/$command_name" || fail "cannot set executable permissions on $command_name"
+done
 
-had_canonical=0
-had_alias=0
-if [ -e "$install_dir/$CANONICAL_COMMAND" ]; then
-  mv "$install_dir/$CANONICAL_COMMAND" "$canonical_backup" || fail "cannot back up canonical command"
-  had_canonical=1
-fi
-if [ -e "$install_dir/$ALIAS_COMMAND" ]; then
-  if ! mv "$install_dir/$ALIAS_COMMAND" "$alias_backup"; then
-    [ "$had_canonical" -eq 0 ] || mv "$canonical_backup" "$install_dir/$CANONICAL_COMMAND"
-    fail "cannot back up alias command"
+transaction_active=1
+for command_name in $COMMANDS; do
+  if [ -e "$install_dir/$command_name" ]; then
+    mv "$install_dir/$command_name" "$backup_dir/$command_name" \
+      || fail "cannot back up $command_name"
   fi
-  had_alias=1
-fi
-if ! mv "$canonical_new" "$install_dir/$CANONICAL_COMMAND" \
-  || ! mv "$alias_new" "$install_dir/$ALIAS_COMMAND"; then
-  rm -f -- "$install_dir/$CANONICAL_COMMAND" "$install_dir/$ALIAS_COMMAND"
-  [ "$had_canonical" -eq 0 ] || mv "$canonical_backup" "$install_dir/$CANONICAL_COMMAND"
-  [ "$had_alias" -eq 0 ] || mv "$alias_backup" "$install_dir/$ALIAS_COMMAND"
-  fail "transactional installation failed; previous commands were restored"
-fi
-rm -f -- "$canonical_backup" "$alias_backup"
-printf '%s\n' "Installed $CANONICAL_COMMAND and $ALIAS_COMMAND $VERSION in $install_dir"
+done
+for command_name in $COMMANDS; do
+  mv "$stage_dir/$command_name" "$install_dir/$command_name" \
+    || fail "transactional installation failed while replacing $command_name"
+done
+transaction_active=0
+rm -rf -- "$stage_dir" "$backup_dir"
+stage_dir=
+backup_dir=
+printf '%s\n' "Installed $PACKAGE $VERSION in $install_dir"

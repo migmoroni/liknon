@@ -6,8 +6,11 @@ rust-version.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-publish = false
-description = "Aggregate package and unified launcher shell for the Liknon CLI suite"
+publish = ["crates-io"]
+description = "Complete Liknon CLI suite with validation and resource tooling"
+readme = "README.md"
+keywords = ["validation", "cli", "workspace", "automation", "ai"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 clap.workspace = true
@@ -16,17 +19,20 @@ liknon-manager.workspace = true
 liknon-tool.workspace = true
 liknon-validator.workspace = true
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 [dev-dependencies]
 console.workspace = true
+liknon-resource-contracts = { workspace = true, features = ["signing"] }
+semver.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
 
 [[bin]]
 name = "liknon"
 path = "src/bin/liknon.rs"
-doc = false
-
-[[bin]]
-name = "likx"
-path = "src/bin/likx.rs"
 doc = false
 
 [[bin]]
@@ -35,26 +41,11 @@ path = "src/bin/liknon-validator.rs"
 doc = false
 
 [[bin]]
-name = "likv"
-path = "src/bin/likv.rs"
-doc = false
-
-[[bin]]
 name = "liknon-manager"
 path = "src/bin/liknon-manager.rs"
 doc = false
 
 [[bin]]
-name = "likm"
-path = "src/bin/likm.rs"
-doc = false
-
-[[bin]]
 name = "liknon-tool"
 path = "src/bin/liknon-tool.rs"
-doc = false
-
-[[bin]]
-name = "likt"
-path = "src/bin/likt.rs"
 doc = false

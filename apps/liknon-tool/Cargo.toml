@@ -7,10 +7,10 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 publish = ["crates-io"]
-description = "Offline, read-only access to installed Liknon resources"
+description = "Offline resource inspection engine for the Liknon CLI suite"
 readme = "README.md"
 keywords = ["liknon", "resources", "cli", "offline"]
-categories = ["command-line-utilities", "development-tools"]
+categories = ["development-tools"]
 
 [dependencies]
 base64.workspace = true
@@ -25,13 +25,3 @@ thiserror.workspace = true
 [dev-dependencies]
 console.workspace = true
 tempfile.workspace = true
-
-[[bin]]
-name = "liknon-tool"
-path = "src/bin/liknon-tool.rs"
-doc = false
-
-[[bin]]
-name = "likt"
-path = "src/bin/likt.rs"
-doc = false

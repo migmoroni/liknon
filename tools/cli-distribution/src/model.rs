@@ -10,7 +10,7 @@ use crate::{
     io::{safe_identifier, safe_relative_path},
 };
 
-pub(crate) const SCHEMA_VERSION: u32 = 1;
+pub(crate) const SCHEMA_VERSION: u32 = 2;
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -28,9 +28,8 @@ pub(crate) struct ProductIdentity {
     pub(crate) owner_plan: String,
     pub(crate) cargo_package: String,
     pub(crate) cargo_manifest: String,
-    pub(crate) canonical_command: String,
-    #[schemars(length(min = 1, max = 1))]
-    pub(crate) aliases: Vec<String>,
+    #[schemars(length(min = 1))]
+    pub(crate) commands: Vec<String>,
     pub(crate) tag_prefix: String,
     pub(crate) release_rust_toolchain: String,
     pub(crate) repository: String,
@@ -56,6 +55,7 @@ pub(crate) struct PublicationEnvironments {
     pub(crate) windows_signing: String,
     pub(crate) github: String,
     pub(crate) cloudflare: String,
+    pub(crate) stable: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
@@ -191,13 +191,18 @@ pub(crate) struct ReleaseIdentity {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub(crate) struct NativeArtifact {
     pub(crate) target: String,
-    pub(crate) payload_file: String,
-    pub(crate) payload_path: String,
-    pub(crate) size: u64,
-    pub(crate) sha256: String,
-    pub(crate) installed_commands: Vec<String>,
+    pub(crate) payloads: Vec<NativePayload>,
     pub(crate) consumer: String,
     pub(crate) platform_authenticity: AuthenticityEvidence,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub(crate) struct NativePayload {
+    pub(crate) name: String,
+    pub(crate) path: String,
+    pub(crate) size: u64,
+    pub(crate) sha256: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
@@ -224,7 +229,6 @@ pub(crate) struct InstalledCommandRecord {
     pub(crate) path: String,
     pub(crate) size: u64,
     pub(crate) sha256: String,
-    pub(crate) equals_canonical: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, JsonSchema)]
@@ -323,7 +327,6 @@ impl ProductDescriptor {
         }
         safe_identifier(&self.product.id, "product.id")?;
         safe_identifier(&self.product.cargo_package, "product.cargoPackage")?;
-        safe_identifier(&self.product.canonical_command, "product.canonicalCommand")?;
         safe_relative_path(&self.product.cargo_manifest, "product.cargoManifest")?;
         if self.product.owner_plan.trim().is_empty() {
             return Err(contract("product.ownerPlan must not be empty"));
@@ -355,15 +358,13 @@ impl ProductDescriptor {
                 "product.releaseRustToolchain must use canonical MAJOR.MINOR.PATCH form",
             ));
         }
-        if self.product.aliases.len() != 1 {
-            return Err(contract(
-                "product.aliases must contain exactly one compact command alias",
-            ));
+        if self.product.commands.is_empty() {
+            return Err(contract("product.commands must not be empty"));
         }
-        let mut commands = BTreeSet::from([self.product.canonical_command.as_str()]);
-        for alias in &self.product.aliases {
-            safe_identifier(alias, "product.aliases")?;
-            if !commands.insert(alias) {
+        let mut commands = BTreeSet::new();
+        for command in &self.product.commands {
+            safe_identifier(command, "product.commands")?;
+            if !commands.insert(command) {
                 return Err(contract("installed command names must be unique"));
             }
         }
@@ -408,6 +409,7 @@ impl ProductDescriptor {
             environments.windows_signing.as_str(),
             environments.github.as_str(),
             environments.cloudflare.as_str(),
+            environments.stable.as_str(),
         ];
         let mut unique = BTreeSet::new();
         for value in values {
@@ -463,8 +465,9 @@ impl ProductDescriptor {
     }
 
     pub(crate) fn installed_commands(&self, target: &TargetDescriptor) -> Vec<String> {
-        std::iter::once(&self.product.canonical_command)
-            .chain(self.product.aliases.iter())
+        self.product
+            .commands
+            .iter()
             .map(|command| format!("{command}{}", target.executable_suffix))
             .collect()
     }
@@ -592,9 +595,7 @@ impl ReleaseIdentity {
                 "release identity does not match product descriptor",
             ));
         }
-        let mut expected = std::iter::once(descriptor.product.canonical_command.clone())
-            .chain(descriptor.product.aliases.iter().cloned())
-            .collect::<Vec<_>>();
+        let mut expected = descriptor.product.commands.clone();
         expected.sort();
         let mut actual = self.binary_targets.clone();
         actual.sort();
@@ -614,27 +615,39 @@ impl NativeArtifact {
         root: Option<&std::path::Path>,
     ) -> Result<()> {
         let target = descriptor.target(&self.target)?;
-        let expected_payload = format!(
-            "{}{}",
-            descriptor.product.canonical_command, target.executable_suffix
-        );
-        if self.payload_file != expected_payload
-            || self.installed_commands != descriptor.installed_commands(target)
-            || self.consumer != format!("direct:{}", self.target)
-            || !is_sha256(&self.sha256)
-            || self.size == 0
-        {
+        let expected = descriptor.installed_commands(target);
+        let actual = self
+            .payloads
+            .iter()
+            .map(|payload| payload.name.clone())
+            .collect::<Vec<_>>();
+        if actual != expected || self.consumer != format!("direct:{}", self.target) {
             return Err(contract(format!(
                 "native artifact record for {} violates its target contract",
                 self.target
             )));
         }
-        safe_relative_path(&self.payload_path, "artifacts.payloadPath")?;
         self.platform_authenticity.validate_for(target)?;
-        if let Some(root) = root {
-            let path = root.join(&self.payload_path);
-            let (size, sha256) = crate::hash::sha256(&path)?;
-            if size != self.size || sha256 != self.sha256 {
+        for payload in &self.payloads {
+            safe_relative_path(&payload.path, "artifacts.payloads.path")?;
+            if payload.size == 0
+                || !is_sha256(&payload.sha256)
+                || std::path::Path::new(&payload.path)
+                    .file_name()
+                    .and_then(std::ffi::OsStr::to_str)
+                    != Some(payload.name.as_str())
+            {
+                return Err(contract(format!(
+                    "native payload {} violates its command contract",
+                    payload.name
+                )));
+            }
+            if let Some(root) = root {
+                let path = root.join(&payload.path);
+                let (size, sha256) = crate::hash::sha256(&path)?;
+                if size == payload.size && sha256 == payload.sha256 {
+                    continue;
+                }
                 return Err(contract(format!(
                     "native payload {} does not match its record",
                     path.display()
@@ -734,25 +747,14 @@ impl DirectManifest {
                 .collect::<Vec<_>>();
             if actual_commands != expected_commands
                 || artifact.commands.iter().any(|command| {
-                    !command.equals_canonical
-                        || command.size == 0
+                    command.size == 0
                         || !is_sha256(&command.sha256)
                         || safe_relative_path(&command.path, "commands.path").is_err()
+                        || command.path != command.name
                 })
             {
                 return Err(contract(format!(
                     "direct command inventory for {} is invalid",
-                    artifact.target
-                )));
-            }
-            let canonical_hash = &artifact.commands[0].sha256;
-            if artifact
-                .commands
-                .iter()
-                .any(|command| &command.sha256 != canonical_hash)
-            {
-                return Err(contract(format!(
-                    "direct aliases for {} are not byte-identical",
                     artifact.target
                 )));
             }
@@ -801,14 +803,13 @@ mod tests {
 
     fn descriptor() -> ProductDescriptor {
         ProductDescriptor {
-            schema_version: 1,
+            schema_version: SCHEMA_VERSION,
             product: ProductIdentity {
                 id: "example".into(),
                 owner_plan: "TEST".into(),
                 cargo_package: "example-cli".into(),
                 cargo_manifest: "apps/example/Cargo.toml".into(),
-                canonical_command: "example-cli".into(),
-                aliases: vec!["exc".into()],
+                commands: vec!["example-cli".into(), "example-helper".into()],
                 tag_prefix: "example-cli-v".into(),
                 release_rust_toolchain: "1.87.0".into(),
                 repository: "owner/repository".into(),
@@ -826,6 +827,7 @@ mod tests {
                     windows_signing: "example-windows".into(),
                     github: "example-github".into(),
                     cloudflare: "example-cloudflare".into(),
+                    stable: "example-stable".into(),
                 },
             },
             targets: vec![TargetDescriptor {
@@ -855,9 +857,9 @@ mod tests {
     }
 
     #[test]
-    fn rejects_more_than_one_compact_alias() {
+    fn rejects_duplicate_commands() {
         let mut value = descriptor();
-        value.product.aliases.push("example".into());
+        value.product.commands.push("example-cli".into());
         assert!(value.validate().is_err());
     }
 

@@ -24,15 +24,6 @@ on:
       package:
         required: true
         type: string
-      canonical_command:
-        required: true
-        type: string
-      alias_command:
-        required: true
-        type: string
-      executable_suffix:
-        required: true
-        type: string
       authenticity:
         required: true
         type: string
@@ -70,7 +61,7 @@ jobs:
           rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
           rustup target add --toolchain "$RELEASE_TOOLCHAIN" "$RELEASE_TARGET"
 
-      - name: Validate product contract and source identity
+      - name: Validate suite contract and source identity
         shell: bash
         env:
           RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
@@ -83,66 +74,66 @@ jobs:
             --output "$RUNNER_TEMP/identity.json"
           cmp "$RUNNER_TEMP/identity.json" "$RUNNER_TEMP/contract/identity.json"
 
-      - name: Build canonical payload once
+      - name: Build every suite executable
         shell: bash
         env:
           RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
           RELEASE_TARGET: ${{ inputs.target }}
           RELEASE_PACKAGE: ${{ inputs.package }}
-          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
         run: |
           cargo "+$RELEASE_TOOLCHAIN" build --release --locked \
             --target "$RELEASE_TARGET" \
             --package "$RELEASE_PACKAGE" \
-            --bin "$CANONICAL_COMMAND"
+            --bins
 
-      - name: Verify static MUSL payload
+      - name: Verify static MUSL payloads
         if: endsWith(inputs.target, '-musl')
         shell: bash
         env:
           RELEASE_TARGET: ${{ inputs.target }}
-          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
         run: |
-          payload="target/$RELEASE_TARGET/release/$CANONICAL_COMMAND"
-          readelf -l "$payload" > "$RUNNER_TEMP/program-headers.txt"
-          if grep -F 'Requesting program interpreter' "$RUNNER_TEMP/program-headers.txt"; then
-            printf '%s\n' "MUSL payload is dynamically linked" >&2
-            exit 1
-          fi
+          while IFS= read -r command_name; do
+            payload="target/$RELEASE_TARGET/release/$command_name"
+            readelf -l "$payload" > "$RUNNER_TEMP/$command_name-program-headers.txt"
+            if grep -F 'Requesting program interpreter' "$RUNNER_TEMP/$command_name-program-headers.txt"; then
+              printf '%s\n' "$command_name is dynamically linked" >&2
+              exit 1
+            fi
+          done < <(jq -r '.product.commands[]' "$DESCRIPTOR")
 
-      - name: Apply and verify macOS ad hoc signature
+      - name: Apply and verify macOS ad hoc signatures
         if: inputs.authenticity == 'ad-hoc'
         shell: bash
         env:
           RELEASE_TARGET: ${{ inputs.target }}
-          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
         run: |
-          payload="target/$RELEASE_TARGET/release/$CANONICAL_COMMAND"
-          codesign --force --sign - --timestamp=none "$payload"
-          codesign --verify --strict --verbose=2 "$payload"
+          while IFS= read -r command_name; do
+            payload="target/$RELEASE_TARGET/release/$command_name"
+            codesign --force --sign - --timestamp=none "$payload"
+            codesign --verify --strict --verbose=2 "$payload"
+          done < <(jq -r '.product.commands[]' "$DESCRIPTOR")
 
-      - name: Stage and smoke-test final payload
+      - name: Stage and smoke-test the complete suite
         shell: bash
         env:
           RELEASE_TARGET: ${{ inputs.target }}
-          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
-          ALIAS_COMMAND: ${{ inputs.alias_command }}
-          EXECUTABLE_SUFFIX: ${{ inputs.executable_suffix }}
+          DESCRIPTOR: ${{ inputs.descriptor }}
         run: |
-          payload="target/$RELEASE_TARGET/release/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX"
+          suffix=$(jq -r --arg target "$RELEASE_TARGET" \
+            '.targets[] | select(.rustTarget == $target) | .executableSuffix' "$DESCRIPTOR")
           payload_dir="$RUNNER_TEMP/native/payloads/$RELEASE_TARGET"
           mkdir -p "$payload_dir" "$RUNNER_TEMP/native/records"
-          cp "$payload" "$payload_dir/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX"
-          cp "$payload" "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX"
-          chmod 755 "$payload_dir/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" || true
-          chmod 755 "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX" || true
-          "$payload_dir/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" --version > "$RUNNER_TEMP/canonical-version.txt"
-          "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX" --version > "$RUNNER_TEMP/alias-version.txt"
-          cmp "$RUNNER_TEMP/canonical-version.txt" "$RUNNER_TEMP/alias-version.txt"
-          "$payload_dir/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" -h > "$RUNNER_TEMP/canonical-help.txt"
-          "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX" -h > "$RUNNER_TEMP/alias-help.txt"
-          cmp "$RUNNER_TEMP/canonical-help.txt" "$RUNNER_TEMP/alias-help.txt"
-          rm -f "$RUNNER_TEMP/$ALIAS_COMMAND$EXECUTABLE_SUFFIX"
+          while IFS= read -r command_name; do
+            payload="target/$RELEASE_TARGET/release/$command_name$suffix"
+            cp "$payload" "$payload_dir/$command_name$suffix"
+            chmod 755 "$payload_dir/$command_name$suffix" || true
+          done < <(jq -r '.product.commands[]' "$DESCRIPTOR")
+          while IFS= read -r command_name; do
+            "$payload_dir/$command_name$suffix" --version > "$RUNNER_TEMP/$command_name-version.txt"
+            "$payload_dir/$command_name$suffix" -h > "$RUNNER_TEMP/$command_name-help.txt"
+          done < <(jq -r '.product.commands[]' "$DESCRIPTOR")
 
       - name: Record Linux authenticity evidence
         if: inputs.authenticity == 'metadata-signature'
@@ -164,7 +155,7 @@ jobs:
           {
             "mode": "ad-hoc",
             "verified": true,
-            "method": "codesign --verify --strict",
+            "method": "codesign --verify --strict for every suite executable",
             "notarized": false
           }
           JSON
@@ -175,16 +166,13 @@ jobs:
         env:
           RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
           RELEASE_TARGET: ${{ inputs.target }}
-          CANONICAL_COMMAND: ${{ inputs.canonical_command }}
-          EXECUTABLE_SUFFIX: ${{ inputs.executable_suffix }}
           DESCRIPTOR: ${{ inputs.descriptor }}
         run: |
           cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
             native-record \
             --descriptor "$DESCRIPTOR" \
             --target "$RELEASE_TARGET" \
-            --payload "$RUNNER_TEMP/native/payloads/$RELEASE_TARGET/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" \
-            --payload-path "$RELEASE_TARGET/$CANONICAL_COMMAND$EXECUTABLE_SUFFIX" \
+            --payload-root "$RUNNER_TEMP/native/payloads" \
             --authenticity "$RUNNER_TEMP/authenticity.json" \
             --output "$RUNNER_TEMP/native/records/$RELEASE_TARGET.json"
 

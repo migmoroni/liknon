@@ -1,6 +1,6 @@
 # Liknon Manager
 
-`liknon-manager` (`likm`) is the networked administrative client for the
+`liknon-manager` is the networked administrative client for the
 versioned Liknon resource ecosystem. It discovers and authenticates Hub
 metadata, resolves exact dependency graphs, and transactionally maintains the
 `.liknon/resources/` store selected by a consumer workspace.
@@ -56,17 +56,20 @@ own contracts.
 
 ## Install From Source
 
-Until the first protected public release is activated, install the current
-checkout directly:
+Until the first protected public release is activated, install the complete
+suite from the current checkout:
 
 ```sh
-cargo install --path apps/liknon-manager --locked --force
+cargo install --path apps/liknon-cli --locked --force
 liknon-manager --version
-likm --version
+liknon manager --version
 ```
 
 Rust 1.87 or newer is required. Reinstall after changing or updating the
 checkout because Cargo installs a compiled copy rather than a link.
+
+The `liknon-manager` Rust package is a publishable implementation dependency of
+`liknon-cli`; it owns no public binary target.
 
 ## Commands
 

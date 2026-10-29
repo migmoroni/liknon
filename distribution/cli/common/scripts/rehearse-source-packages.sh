@@ -69,7 +69,10 @@ for package in "${supports[@]}"; do
     exit 1
   }
 
-  cargo package -p "$package" "${package_arguments[@]}"
+  cargo \
+    --config 'source.crates-io.replace-with="liknon-rehearsal"' \
+    --config "source.liknon-rehearsal.directory='$vendor'" \
+    package -p "$package" "${package_arguments[@]}"
   archive="$workspace/target/package/$package-$version.crate"
   package_directory="$vendor/$package-$version"
   [ -f "$archive" ] || {

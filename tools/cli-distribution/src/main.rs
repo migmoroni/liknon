@@ -53,9 +53,7 @@ enum Command {
         #[arg(long)]
         target: String,
         #[arg(long)]
-        payload: PathBuf,
-        #[arg(long)]
-        payload_path: String,
+        payload_root: PathBuf,
         #[arg(long)]
         authenticity: PathBuf,
         #[arg(long)]
@@ -209,20 +207,12 @@ fn run(cli: Cli) -> Result<()> {
         Command::NativeRecord {
             descriptor,
             target,
-            payload,
-            payload_path,
+            payload_root,
             authenticity,
             output,
         } => {
             let descriptor = read_json(&descriptor)?;
-            operations::native_record(
-                &descriptor,
-                &target,
-                &payload,
-                &payload_path,
-                &authenticity,
-                &output,
-            )
+            operations::native_record(&descriptor, &target, &payload_root, &authenticity, &output)
         }
         Command::BuildManifest {
             files,

@@ -13,8 +13,7 @@ $Tag = '@@TAG@@'
 $Commit = '@@COMMIT@@'
 $ReleasePrefix = '@@RELEASE_PREFIX@@'
 $SigningKeyId = '@@SIGNING_KEY_ID@@'
-$CanonicalCommand = '@@CANONICAL_COMMAND@@.exe'
-$AliasCommand = '@@ALIAS_COMMAND@@.exe'
+$Commands = @(@@POWERSHELL_COMMANDS@@)
 $PublicKeyPem = @'
 @@PUBLIC_KEY_PEM@@
 '@
@@ -28,9 +27,10 @@ if ($BaseUrl -notmatch '^https://' -and $BaseUrl -notmatch '^http://(127\.0\.0\.
 $BaseUrl = $BaseUrl.TrimEnd('/')
 
 if ($Uninstall) {
-    Remove-Item -LiteralPath (Join-Path $InstallDir $CanonicalCommand) -Force -ErrorAction SilentlyContinue
-    Remove-Item -LiteralPath (Join-Path $InstallDir $AliasCommand) -Force -ErrorAction SilentlyContinue
-    Write-Output "Removed $CanonicalCommand and $AliasCommand from $InstallDir"
+    foreach ($CommandName in $Commands) {
+        Remove-Item -LiteralPath (Join-Path $InstallDir $CommandName) -Force -ErrorAction SilentlyContinue
+    }
+    Write-Output "Removed $Package suite from $InstallDir"
     exit 0
 }
 
@@ -52,11 +52,9 @@ try {
     $Rsa = [System.Security.Cryptography.RSA]::Create()
     try {
         $Rsa.ImportFromPem($PublicKeyPem)
-        $ManifestBytes = [System.IO.File]::ReadAllBytes($ManifestPath)
-        $SignatureBytes = [System.IO.File]::ReadAllBytes($ManifestSignaturePath)
         $Verified = $Rsa.VerifyData(
-            $ManifestBytes,
-            $SignatureBytes,
+            [System.IO.File]::ReadAllBytes($ManifestPath),
+            [System.IO.File]::ReadAllBytes($ManifestSignaturePath),
             [System.Security.Cryptography.HashAlgorithmName]::SHA256,
             [System.Security.Cryptography.RSASignaturePadding]::Pkcs1
         )
@@ -69,7 +67,7 @@ try {
     }
 
     $Manifest = Get-Content -LiteralPath $ManifestPath -Raw | ConvertFrom-Json
-    if ($Manifest.schemaVersion -ne 1 -or
+    if ($Manifest.schemaVersion -ne 2 -or
         $Manifest.identity.product -ne $Product -or
         $Manifest.identity.package -ne $Package -or
         $Manifest.identity.version -ne $Version -or
@@ -92,7 +90,7 @@ try {
         [string]::IsNullOrWhiteSpace($Artifact.platformAuthenticity.certificateFingerprint)) {
         throw "Manifest contains incomplete Windows authenticity evidence."
     }
-    $ExpectedFingerprint = $Artifact.platformAuthenticity.certificateFingerprint
+
     $ArchivePath = Join-Path $TempDir $Artifact.archive.path
     Invoke-WebRequest -UseBasicParsing -MaximumRedirection 0 -Uri "$ReleaseUrl/$($Artifact.archive.path)" -OutFile $ArchivePath
     $ArchiveHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $ArchivePath).Hash.ToLowerInvariant()
@@ -102,10 +100,13 @@ try {
 
     $ExtractDir = Join-Path $TempDir "extracted"
     Expand-Archive -LiteralPath $ArchivePath -DestinationPath $ExtractDir
-    foreach ($CommandName in @($CanonicalCommand, $AliasCommand)) {
+    if (@($Artifact.commands).Count -ne $Commands.Count) {
+        throw "Manifest command inventory contains unexpected entries."
+    }
+    foreach ($CommandName in $Commands) {
         $Records = @($Artifact.commands | Where-Object { $_.name -eq $CommandName })
         if ($Records.Count -ne 1) {
-            throw "Manifest command record is missing: $CommandName"
+            throw "Manifest command record is missing or duplicated: $CommandName"
         }
         $CommandPath = Join-Path $ExtractDir $CommandName
         if (-not (Test-Path -LiteralPath $CommandPath -PathType Leaf)) {
@@ -118,7 +119,7 @@ try {
         $NativeSignature = Get-AuthenticodeSignature -LiteralPath $CommandPath
         if ($NativeSignature.Status -eq "NotSigned" -or
             $NativeSignature.Status -eq "HashMismatch" -or
-            $NativeSignature.SignerCertificate.Thumbprint -ne $ExpectedFingerprint -or
+            $NativeSignature.SignerCertificate.Thumbprint -ne $Artifact.platformAuthenticity.certificateFingerprint -or
             $null -eq $NativeSignature.TimeStamperCertificate) {
             throw "Native signature evidence mismatch: $CommandName"
         }
@@ -126,36 +127,39 @@ try {
 
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
     $Token = [guid]::NewGuid().ToString("N")
-    $CanonicalDestination = Join-Path $InstallDir $CanonicalCommand
-    $AliasDestination = Join-Path $InstallDir $AliasCommand
-    $CanonicalNew = Join-Path $InstallDir ".$CanonicalCommand.new.$Token"
-    $AliasNew = Join-Path $InstallDir ".$AliasCommand.new.$Token"
-    $CanonicalBackup = Join-Path $InstallDir ".$CanonicalCommand.backup.$Token"
-    $AliasBackup = Join-Path $InstallDir ".$AliasCommand.backup.$Token"
-    Copy-Item -LiteralPath (Join-Path $ExtractDir $CanonicalCommand) -Destination $CanonicalNew
-    Copy-Item -LiteralPath (Join-Path $ExtractDir $AliasCommand) -Destination $AliasNew
+    $StageDir = Join-Path $InstallDir ".liknon-stage-$Token"
+    $BackupDir = Join-Path $InstallDir ".liknon-backup-$Token"
+    New-Item -ItemType Directory -Path $StageDir, $BackupDir | Out-Null
+    foreach ($CommandName in $Commands) {
+        Copy-Item -LiteralPath (Join-Path $ExtractDir $CommandName) -Destination (Join-Path $StageDir $CommandName)
+    }
 
-    $HadCanonical = Test-Path -LiteralPath $CanonicalDestination
-    $HadAlias = Test-Path -LiteralPath $AliasDestination
     try {
-        if ($HadCanonical) { Move-Item -LiteralPath $CanonicalDestination -Destination $CanonicalBackup }
-        if ($HadAlias) { Move-Item -LiteralPath $AliasDestination -Destination $AliasBackup }
-        Move-Item -LiteralPath $CanonicalNew -Destination $CanonicalDestination
-        Move-Item -LiteralPath $AliasNew -Destination $AliasDestination
-        Remove-Item -LiteralPath $CanonicalBackup, $AliasBackup -Force -ErrorAction SilentlyContinue
+        foreach ($CommandName in $Commands) {
+            $Destination = Join-Path $InstallDir $CommandName
+            if (Test-Path -LiteralPath $Destination) {
+                Move-Item -LiteralPath $Destination -Destination (Join-Path $BackupDir $CommandName)
+            }
+        }
+        foreach ($CommandName in $Commands) {
+            Move-Item -LiteralPath (Join-Path $StageDir $CommandName) -Destination (Join-Path $InstallDir $CommandName)
+        }
     }
     catch {
-        Remove-Item -LiteralPath $CanonicalDestination, $AliasDestination -Force -ErrorAction SilentlyContinue
-        if ($HadCanonical -and (Test-Path -LiteralPath $CanonicalBackup)) {
-            Move-Item -LiteralPath $CanonicalBackup -Destination $CanonicalDestination
+        foreach ($CommandName in $Commands) {
+            Remove-Item -LiteralPath (Join-Path $InstallDir $CommandName) -Force -ErrorAction SilentlyContinue
+            $Backup = Join-Path $BackupDir $CommandName
+            if (Test-Path -LiteralPath $Backup) {
+                Move-Item -LiteralPath $Backup -Destination (Join-Path $InstallDir $CommandName)
+            }
         }
-        if ($HadAlias -and (Test-Path -LiteralPath $AliasBackup)) {
-            Move-Item -LiteralPath $AliasBackup -Destination $AliasDestination
-        }
-        throw "Transactional installation failed; previous commands were restored. $($_.Exception.Message)"
+        throw "Transactional installation failed; previous suite was restored. $($_.Exception.Message)"
+    }
+    finally {
+        Remove-Item -LiteralPath $StageDir, $BackupDir -Recurse -Force -ErrorAction SilentlyContinue
     }
 
-    Write-Output "Installed $CanonicalCommand and $AliasCommand $Version in $InstallDir"
+    Write-Output "Installed $Package $Version in $InstallDir"
 }
 finally {
     Remove-Item -LiteralPath $TempDir -Recurse -Force -ErrorAction SilentlyContinue

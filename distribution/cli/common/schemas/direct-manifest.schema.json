@@ -149,9 +149,6 @@
     "InstalledCommandRecord": {
       "type": "object",
       "properties": {
-        "equalsCanonical": {
-          "type": "boolean"
-        },
         "name": {
           "type": "string"
         },
@@ -172,8 +169,7 @@
         "name",
         "path",
         "size",
-        "sha256",
-        "equalsCanonical"
+        "sha256"
       ]
     },
     "InstallerPlatform": {

@@ -41,12 +41,16 @@ use std::{
 /// `1` for a failed result, `2` for a blocked or skipped result, `3` for usage
 /// or configuration errors, `4` for internal failures, and `130` for an
 /// interrupted validation.
-pub fn run_cli() -> ExitCode {
+pub fn run_cli_with_version(version: &'static str) -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
     let visual = VisualSelection::from_args(&arguments);
     let palette = visual.palette();
     let presentation = visual.presentation();
-    let command = theme::clap::apply(help::root::configure(Cli::command()), palette, presentation);
+    let command = theme::clap::apply(
+        help::root::configure(Cli::command().version(version)),
+        palette,
+        presentation,
+    );
     if help::root::requested(&arguments) {
         let mut stdout = std::io::stdout().lock();
         let rendered = help::root::render(command, palette, presentation);

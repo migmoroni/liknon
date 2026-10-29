@@ -60,7 +60,7 @@ fn verifies_only_annotated_tags_under_one_explicit_trust_root() {
     run(
         &repository,
         "git",
-        &["tag", "-s", "liknon-validator-v0.5.0", "-m", "release"],
+        &["tag", "-s", "liknon-cli-v0.5.0", "-m", "release"],
     );
     run(&repository, "git", &["tag", "lightweight"]);
 
@@ -79,7 +79,7 @@ fn verifies_only_annotated_tags_under_one_explicit_trust_root() {
     run(
         &repository,
         script.to_str().unwrap(),
-        &["liknon-validator-v0.5.0", trust.to_str().unwrap()],
+        &["liknon-cli-v0.5.0", trust.to_str().unwrap()],
     );
 
     let lightweight = Command::new(&script)
@@ -91,7 +91,7 @@ fn verifies_only_annotated_tags_under_one_explicit_trust_root() {
 
     fs::write(trust.join("tag-signing-public-key.asc"), "ambiguous\n").unwrap();
     let ambiguous = Command::new(&script)
-        .args(["liknon-validator-v0.5.0", trust.to_str().unwrap()])
+        .args(["liknon-cli-v0.5.0", trust.to_str().unwrap()])
         .current_dir(&repository)
         .output()
         .unwrap();

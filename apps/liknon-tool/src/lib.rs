@@ -23,12 +23,13 @@ use liknon_cli_ui::{
 const HELP: &str = "Print help at the root or after any command";
 const HELP_LONG: &str = "Prints help at the root or after any command.\n\nThe -h flag prints a compact summary; --help prints complete details.";
 
-/// Parses process arguments, executes one Tool operation, and returns its stable exit status.
-pub fn run_cli() -> ExitCode {
+/// Parses process arguments using the suite version, executes one Tool
+/// operation, and returns its stable exit status.
+pub fn run_cli_with_version(version: &'static str) -> ExitCode {
     let arguments = std::env::args_os().collect::<Vec<_>>();
     let selection = VisualSelection::from_args(&arguments);
     let command = clap_theme::apply(
-        shared_help::disable_help_subcommands(cli::configure(cli::Cli::command())),
+        shared_help::disable_help_subcommands(cli::configure(cli::Cli::command().version(version))),
         selection.palette(),
         selection.presentation(),
     );

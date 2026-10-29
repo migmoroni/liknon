@@ -57,9 +57,7 @@ jobs:
         run: |
           for script in distribution/cli/common/scripts/*.sh \
             distribution/cli/common/installers/install.sh.in \
-            distribution/cli/validation/smoke/verify.sh \
-            distribution/cli/manager/smoke/verify.sh \
-            distribution/cli/tool/smoke/verify.sh; do
+            distribution/cli/suite/smoke/verify.sh; do
             if head -n 1 "$script" | grep -q 'bash'; then
               bash -n "$script"
             else
@@ -75,7 +73,7 @@ jobs:
       - name: Check authored knowledge
         run: cargo run -p liknon-knowledge-maintenance --locked -- --check
       - name: Test intentional outcome fixtures
-        run: cargo test -p liknon-validator --test outcome_fixtures --locked -- --ignored
+        run: cargo test -p liknon-cli --test validator_outcome_fixtures --locked -- --ignored
 
   msrv:
     name: Rust 1.87
@@ -148,57 +146,29 @@ jobs:
       - name: Rehearse dependent source packages without workspace paths
         run: |
           distribution/cli/common/scripts/rehearse-source-packages.sh \
-            liknon-cli-ui liknon-resource-contracts -- \
-            liknon-validator liknon-manager liknon-tool
-      - name: Install and smoke-test local applications
+            liknon-cli-ui liknon-resource-contracts \
+            liknon-validator liknon-manager liknon-tool -- \
+            liknon-cli
+      - name: Install and smoke-test the local suite
         shell: bash
         run: |
-          validator_root="$RUNNER_TEMP/liknon-validator-install"
-          manager_root="$RUNNER_TEMP/liknon-manager-install"
-          tool_root="$RUNNER_TEMP/liknon-tool-install"
-          aggregate_root="$RUNNER_TEMP/liknon-cli-install"
+          suite_root="$RUNNER_TEMP/liknon-cli-install"
           smoke_dir="$RUNNER_TEMP/liknon-smoke"
 
-          cargo install --path apps/liknon-validator --root "$validator_root" --locked
-          cargo install --path apps/liknon-manager --root "$manager_root" --locked
-          cargo install --path apps/liknon-tool --root "$tool_root" --locked
-          cargo install --path apps/liknon-cli --root "$aggregate_root" --locked
-
-          "$validator_root/bin/liknon-validator" --version
-          "$validator_root/bin/likv" --help > /dev/null
-          sh distribution/cli/validation/smoke/verify.sh \
-            "$validator_root/bin/liknon-validator" \
-            "$validator_root/bin/likv"
-          "$manager_root/bin/liknon-manager" --version
-          "$manager_root/bin/likm" --help > /dev/null
-          sh distribution/cli/manager/smoke/verify.sh \
-            "$manager_root/bin/liknon-manager" \
-            "$manager_root/bin/likm"
-          "$tool_root/bin/liknon-tool" --version
-          "$tool_root/bin/likt" --help > /dev/null
-          sh distribution/cli/tool/smoke/verify.sh \
-            "$tool_root/bin/liknon-tool" \
-            "$tool_root/bin/likt"
-          "$aggregate_root/bin/liknon" --version
-          "$aggregate_root/bin/likx" --help > /dev/null
-          "$aggregate_root/bin/liknon-validator" --version
-          "$aggregate_root/bin/likv" --version
-          "$aggregate_root/bin/liknon-manager" --version
-          "$aggregate_root/bin/likm" --version
-          "$aggregate_root/bin/liknon-tool" --version
-          "$aggregate_root/bin/likt" --version
+          cargo install --path apps/liknon-cli --root "$suite_root" --locked
+          sh distribution/cli/suite/smoke/verify.sh "$suite_root/bin"
 
           interop_workspace="$RUNNER_TEMP/liknon-manager-tool-interop"
           mkdir -p "$interop_workspace"
-          "$manager_root/bin/liknon-manager" init \
+          "$suite_root/bin/liknon-manager" init \
             --workspace "$interop_workspace" \
             --format=json > /dev/null
-          "$manager_root/bin/liknon-manager" install \
-            --local distribution/cli/tool/smoke/source \
+          "$suite_root/bin/liknon-manager" install \
+            --local distribution/cli/suite/smoke/source \
             --workspace "$interop_workspace" \
             --yes \
             --format=json > /dev/null
-          "$tool_root/bin/liknon-tool" show knowledge:fixture/smoke \
+          "$suite_root/bin/liknon-tool" show knowledge:fixture/smoke \
             --workspace "$interop_workspace" \
             --format=json > "$RUNNER_TEMP/manager-tool-interop.json"
           grep -F 'Liknon Tool smoke payload.' \
@@ -258,7 +228,7 @@ jobs:
           }
           JSON
 
-          "$validator_root/bin/liknon-validator" schema config > /dev/null
-          "$validator_root/bin/liknon-validator" schema report > /dev/null
-          "$validator_root/bin/liknon-validator" config validate \
+          "$suite_root/bin/liknon-validator" schema config > /dev/null
+          "$suite_root/bin/liknon-validator" schema report > /dev/null
+          "$suite_root/bin/liknon-validator" config validate \
             --config "$smoke_dir/config.json"

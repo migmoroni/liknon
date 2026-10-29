@@ -62,14 +62,13 @@ fn shared_foundation_assembles_and_installs_an_isolated_product() {
     fs::write(
         &descriptor,
         serde_json::to_vec_pretty(&serde_json::json!({
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "product": {
                 "id": "fixture",
                 "ownerPlan": "TEST",
                 "cargoPackage": "fixture-cli",
                 "cargoManifest": "fixtures/fixture-cli/Cargo.toml",
-                "canonicalCommand": "fixture-cli",
-                "aliases": ["fix"],
+                "commands": ["fixture-cli", "fixture-helper"],
                 "tagPrefix": "fixture-cli-v",
                 "releaseRustToolchain": "1.87.0",
                 "repository": "example/fixture",
@@ -86,7 +85,8 @@ fn shared_foundation_assembles_and_installs_an_isolated_product() {
                     "detachedSigning": "fixture-signing",
                     "windowsSigning": "fixture-windows",
                     "github": "fixture-github",
-                    "cloudflare": "fixture-cloudflare"
+                    "cloudflare": "fixture-cloudflare",
+                    "stable": "fixture-stable"
                 }
             },
             "targets": [{
@@ -107,7 +107,7 @@ fn shared_foundation_assembles_and_installs_an_isolated_product() {
     fs::write(
         &identity,
         serde_json::to_vec_pretty(&serde_json::json!({
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "product": "fixture",
             "package": "fixture-cli",
             "packagePath": "fixtures/fixture-cli/Cargo.toml",
@@ -115,19 +115,24 @@ fn shared_foundation_assembles_and_installs_an_isolated_product() {
             "tag": "fixture-cli-v1.2.3",
             "commit": "1111111111111111111111111111111111111111",
             "cargoLockSha256": "2222222222222222222222222222222222222222222222222222222222222222",
-            "binaryTargets": ["fixture-cli", "fix"]
+            "binaryTargets": ["fixture-cli", "fixture-helper"]
         }))
         .unwrap(),
     )
     .unwrap();
 
     let payload_root = temporary.path().join("payloads");
-    let payload = payload_root.join(TARGET).join("fixture-cli");
-    fs::create_dir_all(payload.parent().unwrap()).unwrap();
-    fs::write(&payload, b"#!/bin/sh\nprintf '%s\\n' 'fixture 1.2.3'\n").unwrap();
-    let mut permissions = fs::metadata(&payload).unwrap().permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&payload, permissions).unwrap();
+    for (name, output) in [
+        ("fixture-cli", "fixture 1.2.3"),
+        ("fixture-helper", "fixture helper 1.2.3"),
+    ] {
+        let payload = payload_root.join(TARGET).join(name);
+        fs::create_dir_all(payload.parent().unwrap()).unwrap();
+        fs::write(&payload, format!("#!/bin/sh\nprintf '%s\\n' '{output}'\n")).unwrap();
+        let mut permissions = fs::metadata(&payload).unwrap().permissions();
+        permissions.set_mode(0o755);
+        fs::set_permissions(&payload, permissions).unwrap();
+    }
 
     let authenticity = temporary.path().join("authenticity.json");
     fs::write(
@@ -143,10 +148,8 @@ fn shared_foundation_assembles_and_installs_an_isolated_product() {
         descriptor.to_str().unwrap(),
         "--target",
         TARGET,
-        "--payload",
-        payload.to_str().unwrap(),
-        "--payload-path",
-        "x86_64-unknown-linux-gnu/fixture-cli",
+        "--payload-root",
+        payload_root.to_str().unwrap(),
         "--authenticity",
         authenticity.to_str().unwrap(),
         "--output",
@@ -339,13 +342,20 @@ fn shared_foundation_assembles_and_installs_an_isolated_product() {
         .status()
         .unwrap();
     assert!(status.success());
-    assert_eq!(
+    assert_ne!(
         fs::read(install.join("fixture-cli")).unwrap(),
-        fs::read(install.join("fix")).unwrap()
+        fs::read(install.join("fixture-helper")).unwrap()
     );
     assert!(!install.join("liknon-validator").exists());
     let output = Command::new(install.join("fixture-cli")).output().unwrap();
     assert_eq!(String::from_utf8(output.stdout).unwrap(), "fixture 1.2.3\n");
+    let output = Command::new(install.join("fixture-helper"))
+        .output()
+        .unwrap();
+    assert_eq!(
+        String::from_utf8(output.stdout).unwrap(),
+        "fixture helper 1.2.3\n"
+    );
 
     let stable = temporary.path().join("stable.json");
     run(&[

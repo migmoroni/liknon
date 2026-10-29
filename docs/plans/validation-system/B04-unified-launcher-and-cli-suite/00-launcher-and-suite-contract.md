@@ -152,18 +152,18 @@ The gate must define deterministic rejection for:
 
 ## Exit Criteria
 
-- [ ] Package ownership is fixed at exactly four binary targets.
-- [ ] Compact executable aliases are explicitly absent.
-- [ ] Launcher namespaces and process behavior are frozen.
-- [ ] Supporting-crate publication or consolidation is decided.
-- [ ] Help and version contracts are frozen.
-- [ ] Every supported target has one reviewed suite archive contract.
-- [ ] Installer atomicity and rollback are specified for all four files.
-- [ ] One suite release identity and stable pointer are approved.
-- [ ] Site target selection and R2 object layout are approved.
-- [ ] Required prototypes pass on the available platform and CI covers the
+- [x] Package ownership is fixed at exactly four binary targets.
+- [x] Compact executable aliases are explicitly absent.
+- [x] Launcher namespaces and process behavior are frozen.
+- [x] Supporting-crate publication or consolidation is decided.
+- [x] Help and version contracts are frozen.
+- [x] Every supported target has one reviewed suite archive contract.
+- [x] Installer atomicity and rollback are specified for all four files.
+- [x] One suite release identity and stable pointer are approved.
+- [x] Site target selection and R2 object layout are approved.
+- [x] Required prototypes pass on the available platform and CI covers the
   remaining supported targets.
-- [ ] B01, B02, B03, and B06 handoffs are explicit.
+- [x] B01, B02, B03, and B06 handoffs are explicit.
 
 ## Exit Evidence
 

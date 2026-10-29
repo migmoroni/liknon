@@ -53,7 +53,7 @@ fn assembles_signs_and_verifies_complete_direct_candidate() {
     }
 
     let root = repository_root();
-    let descriptor = root.join("distribution/cli/validation/product.json");
+    let descriptor = root.join("distribution/cli/suite/product.json");
     let temporary = TempDir::new().unwrap();
     let identity = temporary.path().join("identity.json");
     run(&[
@@ -73,10 +73,18 @@ fn assembles_signs_and_verifies_complete_direct_candidate() {
     for target in descriptor_value["targets"].as_array().unwrap() {
         let target_name = target["rustTarget"].as_str().unwrap();
         let suffix = target["executableSuffix"].as_str().unwrap();
-        let relative = format!("{target_name}/liknon-validator{suffix}");
-        let payload = payload_root.join(&relative);
-        fs::create_dir_all(payload.parent().unwrap()).unwrap();
-        fs::write(&payload, format!("fixture payload for {target_name}\n")).unwrap();
+        for command in descriptor_value["product"]["commands"].as_array().unwrap() {
+            let command = command.as_str().unwrap();
+            let payload = payload_root
+                .join(target_name)
+                .join(format!("{command}{suffix}"));
+            fs::create_dir_all(payload.parent().unwrap()).unwrap();
+            fs::write(
+                &payload,
+                format!("fixture payload for {command} on {target_name}\n"),
+            )
+            .unwrap();
+        }
         let authenticity = temporary.path().join(format!("{target_name}-auth.json"));
         let evidence = match target["authenticity"].as_str().unwrap() {
             "metadata-signature" => serde_json::json!({
@@ -107,10 +115,8 @@ fn assembles_signs_and_verifies_complete_direct_candidate() {
             descriptor.to_str().unwrap(),
             "--target",
             target_name,
-            "--payload",
-            payload.to_str().unwrap(),
-            "--payload-path",
-            &relative,
+            "--payload-root",
+            payload_root.to_str().unwrap(),
             "--authenticity",
             authenticity.to_str().unwrap(),
             "--output",
@@ -169,7 +175,7 @@ fn assembles_signs_and_verifies_complete_direct_candidate() {
     let identity_value: Value = serde_json::from_slice(&fs::read(&identity).unwrap()).unwrap();
     assert!(direct
         .join(format!(
-            "liknon-validator-v{}-x86_64-unknown-linux-gnu.tar.gz",
+            "liknon-cli-v{}-x86_64-unknown-linux-gnu.tar.gz",
             identity_value["version"].as_str().unwrap()
         ))
         .is_file());
@@ -396,7 +402,7 @@ fn assembles_signs_and_verifies_complete_direct_candidate() {
         stable.to_str().unwrap(),
     ]);
     let stable_value: Value = serde_json::from_slice(&fs::read(stable).unwrap()).unwrap();
-    assert_eq!(stable_value["product"], "validation");
+    assert_eq!(stable_value["product"], "cli-suite");
     assert!(stable_value["manifestPath"]
         .as_str()
         .unwrap()
@@ -504,10 +510,22 @@ fn exercise_posix_installer(
         .status()
         .unwrap();
     assert!(status.success());
-    let canonical = install_dir.join("liknon-validator");
-    let alias = install_dir.join("likv");
-    assert_eq!(fs::read(&canonical).unwrap(), fs::read(&alias).unwrap());
-    let previous = fs::read(&canonical).unwrap();
+    let commands = descriptor["product"]["commands"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|command| command.as_str().unwrap())
+        .collect::<Vec<_>>();
+    let previous = commands
+        .iter()
+        .map(|command| {
+            let path = install_dir.join(command);
+            assert!(path.is_file(), "missing installed command {command}");
+            ((*command).to_owned(), fs::read(path).unwrap())
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let distinct = previous.values().collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(distinct.len(), commands.len());
 
     let archive = descriptor["targets"]
         .as_array()
@@ -516,7 +534,7 @@ fn exercise_posix_installer(
         .find(|target| target["rustTarget"] == "x86_64-unknown-linux-gnu")
         .map(|target| {
             format!(
-                "liknon-validator-v{}-{}.tar.gz",
+                "liknon-cli-v{}-{}.tar.gz",
                 identity["version"].as_str().unwrap(),
                 target["rustTarget"].as_str().unwrap()
             )
@@ -532,8 +550,12 @@ fn exercise_posix_installer(
         .status()
         .unwrap();
     assert!(!status.success());
-    assert_eq!(fs::read(&canonical).unwrap(), previous);
-    assert_eq!(fs::read(&alias).unwrap(), previous);
+    for command in &commands {
+        assert_eq!(
+            fs::read(install_dir.join(command)).unwrap(),
+            previous[*command]
+        );
+    }
 
     let status = Command::new("sh")
         .arg(direct.join("install.sh"))
@@ -543,8 +565,9 @@ fn exercise_posix_installer(
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(!canonical.exists());
-    assert!(!alias.exists());
+    for command in commands {
+        assert!(!install_dir.join(command).exists());
+    }
     server.0.kill().unwrap();
     server.0.wait().unwrap();
 }

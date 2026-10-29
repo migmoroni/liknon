@@ -7,10 +7,10 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 publish = ["crates-io"]
-description = "Declarative, shell-free validation CLI for heterogeneous workspaces"
+description = "Validation engine and command surface for the Liknon CLI suite"
 readme = "README.md"
 keywords = ["validation", "cli", "workspace", "automation", "ci"]
-categories = ["command-line-utilities", "development-tools"]
+categories = ["development-tools"]
 
 [dependencies]
 clap.workspace = true
@@ -31,13 +31,3 @@ windows-sys.workspace = true
 [dev-dependencies]
 jsonschema.workspace = true
 tempfile.workspace = true
-
-[[bin]]
-name = "liknon-validator"
-path = "src/bin/liknon-validator.rs"
-doc = false
-
-[[bin]]
-name = "likv"
-path = "src/bin/likv.rs"
-doc = false

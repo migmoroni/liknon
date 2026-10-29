@@ -1,0 +1,676 @@
+name: Prepare CLI suite candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Signed annotated liknon-cli-v<VERSION> tag
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: candidate-cli-suite-${{ inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  PRODUCT_DESCRIPTOR: distribution/cli/suite/product.json
+  RELEASE_TOOLCHAIN: 1.87.0
+  RELEASE_ARTIFACT_PREFIX: cli-suite
+  IDENTITY_ARTIFACT: cli-suite-release-contract
+
+jobs:
+  contract:
+    name: Source contract and package candidate
+    runs-on: ubuntu-24.04
+    outputs:
+      native_matrix: ${{ steps.target-matrices.outputs.native_matrix }}
+      posix_matrix: ${{ steps.target-matrices.outputs.posix_matrix }}
+    steps:
+      - name: Checkout exact candidate tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Verify approved signed tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          distribution/cli/common/scripts/verify-release-tag.sh \
+            "$RELEASE_TAG" distribution/cli/suite/direct
+
+      - name: Install exact candidate toolchain
+        shell: bash
+        run: |
+          rustup toolchain install "$RELEASE_TOOLCHAIN" \
+            --profile minimal \
+            --component rustfmt,clippy \
+            --no-self-update
+
+      - name: Derive and validate suite identity
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          descriptor_toolchain=$(jq -r '.product.releaseRustToolchain' "$PRODUCT_DESCRIPTOR")
+          [ "$descriptor_toolchain" = "$RELEASE_TOOLCHAIN" ]
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            inspect \
+            --descriptor "$PRODUCT_DESCRIPTOR" \
+            --workspace . \
+            --output "$RUNNER_TEMP/identity.json" \
+            --release
+          [ "$(jq -r '.tag' "$RUNNER_TEMP/identity.json")" = "$RELEASE_TAG" ]
+          [ "$(jq -r '.commit' "$RUNNER_TEMP/identity.json")" = "$(git rev-parse HEAD)" ]
+
+      - name: Derive target matrices from the suite descriptor
+        id: target-matrices
+        shell: bash
+        run: |
+          native_matrix=$(jq -c '{include: [.targets[] | {
+            target: .rustTarget,
+            runner: .runner,
+            authenticity: .authenticity
+          }]}' "$PRODUCT_DESCRIPTOR")
+          posix_matrix=$(jq -c '{include: [.targets[] |
+            select(.operatingSystem != "windows") | {
+              target: .rustTarget,
+              runner: .runner,
+              operating_system: .operatingSystem,
+              libc: (.libc // "")
+            }]}' "$PRODUCT_DESCRIPTOR")
+          printf 'native_matrix=%s\n' "$native_matrix" >> "$GITHUB_OUTPUT"
+          printf 'posix_matrix=%s\n' "$posix_matrix" >> "$GITHUB_OUTPUT"
+
+      - name: Run repository gates
+        shell: bash
+        run: |
+          cargo "+$RELEASE_TOOLCHAIN" fmt --all -- --check
+          cargo "+$RELEASE_TOOLCHAIN" clippy --workspace --all-targets --locked -- -D warnings
+          cargo "+$RELEASE_TOOLCHAIN" test --workspace --all-targets --locked
+          cargo "+$RELEASE_TOOLCHAIN" test --workspace --doc --locked
+          cargo "+$RELEASE_TOOLCHAIN" test -p liknon-cli \
+            --test validator_outcome_fixtures --locked -- --ignored
+
+      - name: Inspect and exercise the source-package candidate
+        shell: bash
+        run: |
+          version=$(jq -r '.version' "$RUNNER_TEMP/identity.json")
+          export LIKNON_SOURCE_REHEARSAL_ROOT="$RUNNER_TEMP/source-rehearsal"
+          RUSTUP_TOOLCHAIN="$RELEASE_TOOLCHAIN" \
+            distribution/cli/common/scripts/rehearse-source-packages.sh \
+              liknon-cli-ui \
+              liknon-resource-contracts \
+              liknon-validator \
+              liknon-manager \
+              liknon-tool \
+              -- liknon-cli
+          cargo "+$RELEASE_TOOLCHAIN" package --list --locked -p liknon-cli \
+            > "$RUNNER_TEMP/package-inventory.txt"
+          if rg '^(docs/validation|docs/plans|skills/|evals/|fixtures/|distribution/)' \
+            "$RUNNER_TEMP/package-inventory.txt"; then
+            printf '%s\n' "source package contains repository-only material" >&2
+            exit 1
+          fi
+          package_dir="target/package/liknon-cli-$version"
+          crate="target/package/liknon-cli-$version.crate"
+          [ -d "$package_dir" ]
+          [ -f "$crate" ]
+          cargo "+$RELEASE_TOOLCHAIN" install \
+            --config 'source.crates-io.replace-with="liknon-rehearsal"' \
+            --config "source.liknon-rehearsal.directory='$LIKNON_SOURCE_REHEARSAL_ROOT/vendor'" \
+            --path "$package_dir" \
+            --locked \
+            --root "$RUNNER_TEMP/package-install"
+          while IFS= read -r command_name; do
+            [ -x "$RUNNER_TEMP/package-install/bin/$command_name" ]
+            "$RUNNER_TEMP/package-install/bin/$command_name" --version
+            "$RUNNER_TEMP/package-install/bin/$command_name" -h > /dev/null
+          done < <(jq -r '.product.commands[]' "$PRODUCT_DESCRIPTOR")
+          for rejected in likx likv likm likt; do
+            [ ! -e "$RUNNER_TEMP/package-install/bin/$rejected" ]
+          done
+          "$RUNNER_TEMP/package-install/bin/liknon" validator --version
+          "$RUNNER_TEMP/package-install/bin/liknon" v --version
+          "$RUNNER_TEMP/package-install/bin/liknon" manager --version
+          "$RUNNER_TEMP/package-install/bin/liknon" m --version
+          "$RUNNER_TEMP/package-install/bin/liknon" tool --version
+          "$RUNNER_TEMP/package-install/bin/liknon" t --version
+          "$RUNNER_TEMP/package-install/bin/liknon-validator" schema config > /dev/null
+          mkdir -p "$RUNNER_TEMP/contract/crates"
+          cp "$RUNNER_TEMP/identity.json" "$RUNNER_TEMP/contract/"
+          cp "$RUNNER_TEMP/package-inventory.txt" "$RUNNER_TEMP/contract/"
+          cp target/package/*.crate "$RUNNER_TEMP/contract/crates/"
+          (
+            cd "$RUNNER_TEMP/contract/crates"
+            sha256sum ./*.crate | sort > ../crates.sha256
+          )
+
+      - name: Verify candidate preparation leaves source unchanged
+        shell: bash
+        run: |
+          git diff --exit-code
+          [ -z "$(git status --short --untracked-files=all)" ] \
+            || { git status --short --untracked-files=all >&2; exit 1; }
+
+      - name: Upload inspected source contract
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cli-suite-release-contract
+          path: ${{ runner.temp }}/contract
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+  native:
+    name: Native ${{ matrix.target }}
+    needs: contract
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.contract.outputs.native_matrix) }}
+    uses: ./.github/workflows/_cli-native-candidate.yml
+    with:
+      descriptor: distribution/cli/suite/product.json
+      release_ref: ${{ inputs.tag }}
+      identity_artifact: cli-suite-release-contract
+      target: ${{ matrix.target }}
+      runner: ${{ matrix.runner }}
+      toolchain: 1.87.0
+      package: liknon-cli
+      authenticity: ${{ matrix.authenticity }}
+      artifact_prefix: cli-suite
+    permissions:
+      contents: read
+
+  sign-windows:
+    name: Sign complete Windows candidate
+    needs: native
+    runs-on: windows-2025
+    environment: sign-cli-suite-windows
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact candidate tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Download unsigned Windows candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-native-unsigned-x86_64-pc-windows-msvc
+          path: ${{ runner.temp }}/transport
+
+      - name: Restore unsigned candidate
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "$env:RUNNER_TEMP/native" | Out-Null
+          $Archive = Get-ChildItem -LiteralPath "$env:RUNNER_TEMP/transport" -Filter *.tar | Select-Object -First 1
+          if ($null -eq $Archive) { throw "Unsigned Windows transport is missing." }
+          tar -xf $Archive.FullName -C "$env:RUNNER_TEMP/native"
+
+      - name: Sign and timestamp every suite executable
+        shell: pwsh
+        env:
+          WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
+          WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+          WINDOWS_CERT_FINGERPRINT: ${{ vars.WINDOWS_CERT_FINGERPRINT }}
+          WINDOWS_TIMESTAMP_URL: ${{ vars.WINDOWS_TIMESTAMP_URL }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_BASE64) -or
+              [string]::IsNullOrWhiteSpace($env:WINDOWS_PFX_PASSWORD) -or
+              [string]::IsNullOrWhiteSpace($env:WINDOWS_CERT_FINGERPRINT) -or
+              [string]::IsNullOrWhiteSpace($env:WINDOWS_TIMESTAMP_URL)) {
+            throw "AP-2 incomplete: Windows signing identity or metadata is missing."
+          }
+          $Pfx = Join-Path $env:RUNNER_TEMP "liknon-signing.pfx"
+          [System.IO.File]::WriteAllBytes($Pfx, [Convert]::FromBase64String($env:WINDOWS_PFX_BASE64))
+          $SignTool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if ($null -eq $SignTool) { throw "SignTool was not found." }
+          $Descriptor = Get-Content -LiteralPath $env:PRODUCT_DESCRIPTOR -Raw | ConvertFrom-Json
+          foreach ($Command in $Descriptor.product.commands) {
+            $Payload = Join-Path $env:RUNNER_TEMP "native/payloads/x86_64-pc-windows-msvc/$Command.exe"
+            & $SignTool.FullName sign /fd SHA256 /td SHA256 /tr $env:WINDOWS_TIMESTAMP_URL /f $Pfx /p $env:WINDOWS_PFX_PASSWORD $Payload
+            if ($LASTEXITCODE -ne 0) { throw "SignTool failed for $Command." }
+            $Signature = Get-AuthenticodeSignature -LiteralPath $Payload
+            if ($Signature.Status -eq 'NotSigned' -or
+                $Signature.Status -eq 'HashMismatch' -or
+                $Signature.SignerCertificate.Thumbprint -ne $env:WINDOWS_CERT_FINGERPRINT -or
+                $null -eq $Signature.TimeStamperCertificate) {
+              throw "Signed payload does not match the approved contract: $Command."
+            }
+          }
+          [ordered]@{
+            mode = 'self-signed-authenticode'
+            verified = $true
+            method = 'SignTool SHA-256 with RFC 3161 timestamp for every suite executable; fingerprint pinned without trust-store import'
+            certificateFingerprint = $env:WINDOWS_CERT_FINGERPRINT
+            timestamped = $true
+          } | ConvertTo-Json | Set-Content -LiteralPath "$env:RUNNER_TEMP/authenticity.json" -Encoding utf8NoBOM
+
+      - name: Install exact candidate toolchain
+        shell: pwsh
+        run: rustup toolchain install $env:RELEASE_TOOLCHAIN --profile minimal --no-self-update
+
+      - name: Smoke-test and record the signed suite
+        shell: bash
+        run: |
+          payload_root="$RUNNER_TEMP/native/payloads"
+          while IFS= read -r command_name; do
+            "$payload_root/x86_64-pc-windows-msvc/$command_name.exe" --version
+            "$payload_root/x86_64-pc-windows-msvc/$command_name.exe" -h > /dev/null
+          done < <(jq -r '.product.commands[]' "$PRODUCT_DESCRIPTOR")
+          "$payload_root/x86_64-pc-windows-msvc/liknon.exe" validator --version
+          "$payload_root/x86_64-pc-windows-msvc/liknon.exe" manager --version
+          "$payload_root/x86_64-pc-windows-msvc/liknon.exe" tool --version
+          mkdir -p "$RUNNER_TEMP/native/records"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            native-record \
+            --descriptor "$PRODUCT_DESCRIPTOR" \
+            --target x86_64-pc-windows-msvc \
+            --payload-root "$payload_root" \
+            --authenticity "$RUNNER_TEMP/authenticity.json" \
+            --output "$RUNNER_TEMP/native/records/x86_64-pc-windows-msvc.json"
+          tar -cf "$RUNNER_TEMP/x86_64-pc-windows-msvc.tar" -C "$RUNNER_TEMP/native" .
+
+      - name: Remove signing material
+        if: always()
+        shell: pwsh
+        run: Remove-Item -LiteralPath "$env:RUNNER_TEMP/liknon-signing.pfx" -Force -ErrorAction SilentlyContinue
+
+      - name: Upload final Windows candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cli-suite-native-final-x86_64-pc-windows-msvc
+          path: ${{ runner.temp }}/x86_64-pc-windows-msvc.tar
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+  assemble-direct:
+    name: Assemble complete direct candidate
+    needs: [native, sign-windows]
+    uses: ./.github/workflows/_cli-direct-assembly.yml
+    with:
+      descriptor: distribution/cli/suite/product.json
+      release_ref: ${{ inputs.tag }}
+      toolchain: 1.87.0
+      artifact_prefix: cli-suite
+      identity_artifact: cli-suite-release-contract
+      download_base_url: ${{ vars.LIKNON_DOWNLOAD_BASE_URL }}
+      public_key: distribution/cli/suite/direct/public-key.pem
+    permissions:
+      contents: read
+
+  sign-direct:
+    name: Sign complete suite metadata
+    needs: assemble-direct
+    runs-on: ubuntu-24.04
+    environment: sign-cli-suite-release
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact candidate tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Download unsigned direct candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-direct-unsigned
+          path: ${{ runner.temp }}/transport
+
+      - name: Download suite identity
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-release-contract
+          path: ${{ runner.temp }}/contract
+
+      - name: Install exact candidate toolchain
+        shell: bash
+        run: rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
+
+      - name: Restore candidate and signing identity
+        shell: bash
+        env:
+          DIRECT_SIGNING_PRIVATE_KEY_BASE64: ${{ secrets.DIRECT_SIGNING_PRIVATE_KEY_BASE64 }}
+        run: |
+          [ -n "$DIRECT_SIGNING_PRIVATE_KEY_BASE64" ] \
+            || { printf '%s\n' "AP-3 incomplete: detached-signature key is missing" >&2; exit 1; }
+          mkdir -p "$RUNNER_TEMP/direct"
+          tar -xf "$RUNNER_TEMP/transport/direct-unsigned.tar" -C "$RUNNER_TEMP/direct"
+          printf '%s' "$DIRECT_SIGNING_PRIVATE_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/private.pem"
+          chmod 600 "$RUNNER_TEMP/private.pem"
+          openssl pkey -in "$RUNNER_TEMP/private.pem" -pubout -out "$RUNNER_TEMP/derived-public.pem"
+          cmp "$RUNNER_TEMP/derived-public.pem" distribution/cli/suite/direct/public-key.pem
+
+      - name: Sign and verify exact candidate bytes
+        shell: bash
+        run: |
+          distribution/cli/common/scripts/sign-direct.sh \
+            "$RUNNER_TEMP/direct" "$RUNNER_TEMP/private.pem"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            verify-direct \
+            --descriptor "$PRODUCT_DESCRIPTOR" \
+            --identity "$RUNNER_TEMP/contract/identity.json" \
+            --workspace . \
+            --manifest "$RUNNER_TEMP/direct/manifest.json" \
+            --root "$RUNNER_TEMP/direct" \
+            --public-key distribution/cli/suite/direct/public-key.pem
+          tar -cf "$RUNNER_TEMP/direct-signed.tar" -C "$RUNNER_TEMP/direct" .
+
+      - name: Remove detached signing material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/private.pem" "$RUNNER_TEMP/derived-public.pem"
+
+      - name: Upload signed direct candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cli-suite-direct-signed
+          path: ${{ runner.temp }}/direct-signed.tar
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
+
+  verify-candidate:
+    name: Verify retained suite candidate
+    needs: sign-direct
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact candidate tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Download signed direct candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-direct-signed
+          path: ${{ runner.temp }}/transport
+
+      - name: Download suite identity
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-release-contract
+          path: ${{ runner.temp }}/contract
+
+      - name: Install exact candidate toolchain
+        shell: bash
+        run: rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal --no-self-update
+
+      - name: Authenticate complete direct candidate
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/direct"
+          tar -xf "$RUNNER_TEMP/transport/direct-signed.tar" -C "$RUNNER_TEMP/direct"
+          cargo "+$RELEASE_TOOLCHAIN" run --quiet --locked -p liknon-cli-distribution -- \
+            verify-direct \
+            --descriptor "$PRODUCT_DESCRIPTOR" \
+            --identity "$RUNNER_TEMP/contract/identity.json" \
+            --workspace . \
+            --manifest "$RUNNER_TEMP/direct/manifest.json" \
+            --root "$RUNNER_TEMP/direct" \
+            --public-key distribution/cli/suite/direct/public-key.pem
+
+      - name: Exercise transaction and rollback against a local origin
+        shell: bash
+        run: |
+          version=$(jq -r '.version' "$RUNNER_TEMP/contract/identity.json")
+          prefix=$(jq -r '.distribution.releasePrefix' "$PRODUCT_DESCRIPTOR")
+          release_root="$RUNNER_TEMP/web/$prefix/v$version"
+          install_root="$RUNNER_TEMP/install"
+          mkdir -p "$release_root"
+          cp "$RUNNER_TEMP/direct"/* "$release_root/"
+          python3 -m http.server 18080 --bind 127.0.0.1 --directory "$RUNNER_TEMP/web" \
+            > "$RUNNER_TEMP/http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          sleep 1
+          sh "$RUNNER_TEMP/direct/install.sh" \
+            --base-url http://127.0.0.1:18080 \
+            --install-dir "$install_root" \
+            --libc gnu
+          while IFS= read -r command_name; do
+            "$install_root/$command_name" --version
+            "$install_root/$command_name" -h > /dev/null
+          done < <(jq -r '.product.commands[]' "$PRODUCT_DESCRIPTOR")
+          for rejected in likx likv likm likt; do
+            [ ! -e "$install_root/$rejected" ]
+          done
+          "$install_root/liknon" validator --version
+          "$install_root/liknon" v --version
+          "$install_root/liknon" manager --version
+          "$install_root/liknon" m --version
+          "$install_root/liknon" tool --version
+          "$install_root/liknon" t --version
+          before="$RUNNER_TEMP/before.sha256"
+          after="$RUNNER_TEMP/after.sha256"
+          while IFS= read -r command_name; do
+            sha256sum "$install_root/$command_name"
+          done < <(jq -r '.product.commands[]' "$PRODUCT_DESCRIPTOR") | sort > "$before"
+          archive=$(jq -r '.artifacts[] | select(.target == "x86_64-unknown-linux-gnu") | .archive.path' \
+            "$RUNNER_TEMP/direct/manifest.json")
+          printf 'mutation' >> "$release_root/$archive"
+          if sh "$RUNNER_TEMP/direct/install.sh" \
+            --base-url http://127.0.0.1:18080 \
+            --install-dir "$install_root" \
+            --libc gnu; then
+            printf '%s\n' "mutated suite archive was accepted" >&2
+            exit 1
+          fi
+          while IFS= read -r command_name; do
+            sha256sum "$install_root/$command_name"
+          done < <(jq -r '.product.commands[]' "$PRODUCT_DESCRIPTOR") | sort > "$after"
+          cmp "$before" "$after"
+          sh "$RUNNER_TEMP/direct/install.sh" --install-dir "$install_root" --uninstall
+          while IFS= read -r command_name; do
+            [ ! -e "$install_root/$command_name" ]
+          done < <(jq -r '.product.commands[]' "$PRODUCT_DESCRIPTOR")
+
+  verify-posix:
+    name: Verify POSIX suite (${{ matrix.target }})
+    needs: [contract, sign-direct]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.contract.outputs.posix_matrix) }}
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact candidate tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Download signed direct candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-direct-signed
+          path: ${{ runner.temp }}/transport
+
+      - name: Exercise exact target archive through the installer
+        shell: bash
+        env:
+          EXPECTED_TARGET: ${{ matrix.target }}
+          EXPECTED_LIBC: ${{ matrix.libc }}
+          OPERATING_SYSTEM: ${{ matrix.operating_system }}
+        run: |
+          direct="$RUNNER_TEMP/direct"
+          web="$RUNNER_TEMP/web"
+          install="$RUNNER_TEMP/install path"
+          mkdir -p "$direct"
+          tar -xf "$RUNNER_TEMP/transport/direct-signed.tar" -C "$direct"
+          version=$(jq -r '.identity.version' "$direct/manifest.json")
+          prefix=$(jq -r '.distribution.releasePrefix' "$PRODUCT_DESCRIPTOR")
+          release="$web/$prefix/v$version"
+          mkdir -p "$release"
+          cp "$direct"/* "$release/"
+          python3 -m http.server 18081 --bind 127.0.0.1 --directory "$web" \
+            > "$RUNNER_TEMP/http-posix.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          sleep 1
+          set -- --base-url http://127.0.0.1:18081 --install-dir "$install"
+          if [ -n "$EXPECTED_LIBC" ]; then set -- "$@" --libc "$EXPECTED_LIBC"; fi
+          output=$(sh "$direct/install.sh" "$@")
+          printf '%s\n' "$output" | grep -F "Selected target: $EXPECTED_TARGET" >/dev/null
+          while IFS= read -r command_name; do
+            "$install/$command_name" --version
+            "$install/$command_name" -h > /dev/null
+            if [ "$OPERATING_SYSTEM" = macos ]; then
+              codesign --verify --strict --verbose=2 "$install/$command_name"
+            fi
+          done < <(jq -r '.product.commands[]' "$PRODUCT_DESCRIPTOR")
+          "$install/liknon" validator --version
+          "$install/liknon" manager --version
+          "$install/liknon" tool --version
+          sh "$direct/install.sh" --install-dir "$install" --uninstall
+          while IFS= read -r command_name; do
+            [ ! -e "$install/$command_name" ]
+          done < <(jq -r '.product.commands[]' "$PRODUCT_DESCRIPTOR")
+
+  verify-windows:
+    name: Verify Windows suite
+    needs: sign-direct
+    runs-on: windows-2025
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact candidate tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Download signed direct candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-direct-signed
+          path: ${{ runner.temp }}/transport
+
+      - name: Exercise complete PowerShell installation
+        shell: pwsh
+        env:
+          WINDOWS_CERT_FINGERPRINT: ${{ vars.WINDOWS_CERT_FINGERPRINT }}
+        run: |
+          $Direct = Join-Path $env:RUNNER_TEMP "direct"
+          $Web = Join-Path $env:RUNNER_TEMP "web"
+          $Install = Join-Path $env:RUNNER_TEMP "install path"
+          New-Item -ItemType Directory -Path $Direct | Out-Null
+          tar -xf "$env:RUNNER_TEMP/transport/direct-signed.tar" -C $Direct
+          $Manifest = Get-Content -LiteralPath (Join-Path $Direct "manifest.json") -Raw | ConvertFrom-Json
+          $Descriptor = Get-Content -LiteralPath $env:PRODUCT_DESCRIPTOR -Raw | ConvertFrom-Json
+          $Release = Join-Path $Web "$($Descriptor.distribution.releasePrefix)/v$($Manifest.identity.version)"
+          New-Item -ItemType Directory -Path $Release -Force | Out-Null
+          Copy-Item -Path (Join-Path $Direct "*") -Destination $Release
+          $Server = Start-Process python -ArgumentList @(
+            "-m", "http.server", "18082", "--bind", "127.0.0.1", "--directory", $Web
+          ) -PassThru -WindowStyle Hidden
+          try {
+            $Ready = $false
+            for ($Attempt = 0; $Attempt -lt 20; $Attempt++) {
+              try {
+                Invoke-WebRequest -UseBasicParsing -MaximumRedirection 0 `
+                  -Uri "http://127.0.0.1:18082/$($Descriptor.distribution.releasePrefix)/v$($Manifest.identity.version)/manifest.json" `
+                  -OutFile "$env:RUNNER_TEMP/probe.json"
+                $Ready = $true
+                break
+              } catch { Start-Sleep -Milliseconds 250 }
+            }
+            if (-not $Ready) { throw "Local candidate origin did not start." }
+            $Installer = Join-Path $Direct "install.ps1"
+            & $Installer -BaseUrl "http://127.0.0.1:18082" -InstallDir $Install
+            foreach ($Command in $Descriptor.product.commands) {
+              $Path = Join-Path $Install "$Command.exe"
+              & $Path --version
+              & $Path -h | Out-Null
+              $Signature = Get-AuthenticodeSignature -LiteralPath $Path
+              if ($Signature.SignerCertificate.Thumbprint -ne $env:WINDOWS_CERT_FINGERPRINT -or
+                  $null -eq $Signature.TimeStamperCertificate) {
+                throw "Windows signing evidence does not match $Command."
+              }
+            }
+            & (Join-Path $Install "liknon.exe") validator --version
+            & (Join-Path $Install "liknon.exe") manager --version
+            & (Join-Path $Install "liknon.exe") tool --version
+            & $Installer -InstallDir $Install -Uninstall
+            foreach ($Command in $Descriptor.product.commands) {
+              if (Test-Path -LiteralPath (Join-Path $Install "$Command.exe")) {
+                throw "Uninstall left $Command."
+              }
+            }
+          } finally {
+            Stop-Process -Id $Server.Id -Force -ErrorAction SilentlyContinue
+          }
+
+  attest:
+    name: Attest retained suite subjects
+    needs: [verify-candidate, verify-posix, verify-windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Download signed direct candidate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-direct-signed
+          path: ${{ runner.temp }}/direct-transport
+
+      - name: Download source candidates
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cli-suite-release-contract
+          path: ${{ runner.temp }}/contract
+
+      - name: Restore exact attestation subjects
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/subjects"
+          tar -xf "$RUNNER_TEMP/direct-transport/direct-signed.tar" -C "$RUNNER_TEMP/subjects"
+          cp "$RUNNER_TEMP"/contract/crates/*.crate "$RUNNER_TEMP/subjects/"
+
+      - name: Publish GitHub artifact attestations
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: |
+            ${{ runner.temp }}/subjects/*.crate
+            ${{ runner.temp }}/subjects/*.tar.gz
+            ${{ runner.temp }}/subjects/*.zip
+
+      - name: Record B06 candidate handoff
+        shell: bash
+        run: |
+          jq -n \
+            --arg tag '${{ inputs.tag }}' \
+            --arg runId '${{ github.run_id }}' \
+            --arg runAttempt '${{ github.run_attempt }}' \
+            '{schemaVersion: 1, product: "cli-suite", tag: $tag, workflowRunId: $runId, workflowRunAttempt: $runAttempt, state: "verified-candidate"}' \
+            > "$RUNNER_TEMP/candidate-handoff.json"
+
+      - name: Retain B06 handoff evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cli-suite-b06-handoff
+          path: ${{ runner.temp }}/candidate-handoff.json
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

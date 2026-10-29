@@ -2,9 +2,11 @@
 
 ## Status
 
-`Approved target`. B04 is the normative owner of the public CLI suite,
-including source packaging, native archives, installation, launcher routing,
-and public release identity.
+`Implemented locally; candidate production pending`. B04 is the normative
+owner of the public CLI suite, including source packaging, native archives,
+installation, launcher routing, and public release identity. The source suite,
+distribution contracts, candidate workflow, and B06 handoff are implemented;
+target-native candidate production and public activation have not run yet.
 
 B01, B02, and B03 remain the owners of Validator, Manager, and Tool behavior.
 Their earlier standalone distribution work is retained as implementation
@@ -215,23 +217,23 @@ The B04 verification matrix must prove:
 
 ## Acceptance Criteria
 
-- [ ] `liknon-cli` is the only public source package for the CLI suite.
-- [ ] The package installs `liknon`, `liknon-validator`, `liknon-manager`, and
+- [x] `liknon-cli` is the only public source package for the CLI suite.
+- [x] The package installs `liknon`, `liknon-validator`, `liknon-manager`, and
   `liknon-tool`.
-- [ ] `likx`, `likv`, `likm`, and `likt` are absent from Cargo metadata,
+- [x] `likx`, `likv`, `likm`, and `likt` are absent from Cargo metadata,
   archives, installers, and supported-command documentation; tests assert their
   rejection.
-- [ ] `validator|v`, `manager|m`, and `tool|t` are launcher-only namespaces.
-- [ ] Each capability executable remains independently invocable.
-- [ ] The launcher owns no capability behavior.
-- [ ] Source packaging has a complete publishable dependency closure.
+- [x] `validator|v`, `manager|m`, and `tool|t` are launcher-only namespaces.
+- [x] Each capability executable remains independently invocable.
+- [x] The launcher owns no capability behavior.
+- [x] Source packaging has a complete publishable dependency closure.
 - [ ] Every supported target has exactly one authenticated native suite archive.
 - [ ] Every archive contains exactly the four executable roles for that target.
-- [ ] Installation, update, rollback, and uninstall treat the suite as one
+- [x] Installation, update, rollback, and uninstall treat the suite as one
   coherent version.
 - [ ] The website and R2 expose one suite download per target, not standalone
   capability downloads.
-- [ ] B01, B02, and B03 behavior gates remain green after consolidation.
+- [x] B01, B02, and B03 behavior gates remain green after consolidation.
 - [ ] B06 can promote one reviewed CLI suite candidate without reconstructing
   or replacing any binary.
 

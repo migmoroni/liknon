@@ -1,6 +1,7 @@
 # Manager Operating Contract
 
-`liknon-manager` and `likm` are equivalent commands. Manager is the only Liknon
+`liknon-manager` is the direct command. `liknon manager` and `liknon m` route
+to that same installed process. Manager is the only Liknon
 application that contacts the Resource Hub or mutates installed resource state.
 It does not validate workspaces, answer knowledge questions, interpret content,
 evaluate AI policy, or invoke another Liknon executable.

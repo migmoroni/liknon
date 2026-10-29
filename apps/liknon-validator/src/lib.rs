@@ -2,7 +2,7 @@
 //!
 //! This crate owns configuration loading, semantic validation, planning,
 //! execution, repository evidence, structured reports, and terminal adaptation
-//! for the `liknon-validator` and `likv` binaries.
+//! for the `liknon-validator` executable owned by the `liknon-cli` suite.
 
 #![warn(missing_docs)]
 #![deny(rustdoc::bare_urls)]
@@ -23,5 +23,5 @@ pub mod execution;
 pub mod initialization;
 pub mod planning;
 
-pub use cli::run_cli;
+pub use cli::run_cli_with_version;
 pub use error::ValidatorError;

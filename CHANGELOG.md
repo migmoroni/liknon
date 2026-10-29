@@ -18,17 +18,14 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Cargo workspace boundaries for the Validation CLI and its engine modules,
   Manager application, Tool application, aggregate launcher package, and
   private knowledge maintenance tool.
-- Direct validation executables `liknon-validator` and `likv`, authenticated
-  resource-management executables `liknon-manager` and `likm`, verified offline
-  resource-consumption executables `liknon-tool` and `likt`, and launcher-only
-  `liknon` and `likx` shells.
-- Product-neutral native CLI release contracts, deterministic manifests,
-  authenticated installers, immutable Cloudflare publication and recovery
-  scripts, and reusable credential-free workflows, with Validation as the
-  first reviewed product profile.
-- Independent `liknon-validator` source packaging for crates.io and exact
-  release provenance derived from Cargo metadata, signed tag, commit, and
-  committed lockfile.
+- The `liknon-cli` suite with the capability-free `liknon` launcher and direct
+  `liknon-validator`, `liknon-manager`, and `liknon-tool` executables.
+- Product-neutral native CLI release contracts, deterministic multi-payload
+  manifests, transactional authenticated installers, immutable Cloudflare
+  publication and recovery scripts, and reusable candidate workflows for one
+  complete four-executable suite per target.
+- Unified `liknon-cli` source packaging and exact suite provenance derived from
+  Cargo metadata, signed tag, commit, and committed lockfile.
 - Public resource, catalog, trust, manifest, and lock contracts with generated
   JSON Schemas; deterministic signed static-Hub assembly; and neutral resource
   fixtures covering collections, dependencies, workflows, community content,
@@ -37,13 +34,10 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   verification, explicit local sources, content-addressed caching, complete
   dry-run planning, transactional installation and materialization, concurrent
   mutation exclusion, and interrupted-operation recovery.
-- An isolated Manager distribution profile and release preparation contract
-  built on the shared product-neutral CLI distribution foundation.
 - Deterministic Tool catalog, metadata search, exact payload retrieval, locked
   dependency resolution, bounded context assembly, integrity enforcement, and
   explicit untrusted-content boundaries over local resource stores.
-- An isolated Tool source/native distribution profile, semantic offline smoke
-  fixture, and Manager-to-Tool interoperability gate.
+- A suite-level Manager-to-Tool interoperability fixture and release gate.
 
 ### Changed
 
@@ -55,8 +49,15 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Knowledge checks run as the private `liknon-knowledge-maintenance` package.
 - Shared resource-state validation now verifies requested roots, exact locked
   versions and origins, and every required dependency edge before consumption.
+- Public executable ownership, source packaging, native archives, installers,
+  version identity, and candidate retention are consolidated under
+  `liknon-cli`; capability implementation crates no longer own binary targets
+  or independent release trains.
 
 ### Removed
+
+- Physical compact command aliases and standalone Validator, Manager, and Tool
+  distribution profiles.
 
 - Embedded authored knowledge, the `knowledge` validation subcommand, and the
   root single-package library/CLI boundary.

@@ -81,28 +81,14 @@
         "consumer": {
           "type": "string"
         },
-        "installedCommands": {
+        "payloads": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/NativePayload"
           }
-        },
-        "payloadFile": {
-          "type": "string"
-        },
-        "payloadPath": {
-          "type": "string"
         },
         "platformAuthenticity": {
           "$ref": "#/$defs/AuthenticityEvidence"
-        },
-        "sha256": {
-          "type": "string"
-        },
-        "size": {
-          "type": "integer",
-          "format": "uint64",
-          "minimum": 0
         },
         "target": {
           "type": "string"
@@ -111,13 +97,35 @@
       "additionalProperties": false,
       "required": [
         "target",
-        "payloadFile",
-        "payloadPath",
-        "size",
-        "sha256",
-        "installedCommands",
+        "payloads",
         "consumer",
         "platformAuthenticity"
+      ]
+    },
+    "NativePayload": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "path",
+        "size",
+        "sha256"
       ]
     },
     "ReleaseIdentity": {

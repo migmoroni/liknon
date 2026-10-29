@@ -97,22 +97,18 @@
     "ProductIdentity": {
       "type": "object",
       "properties": {
-        "aliases": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "maxItems": 1,
-          "minItems": 1
-        },
-        "canonicalCommand": {
-          "type": "string"
-        },
         "cargoManifest": {
           "type": "string"
         },
         "cargoPackage": {
           "type": "string"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
         },
         "id": {
           "type": "string"
@@ -142,8 +138,7 @@
         "ownerPlan",
         "cargoPackage",
         "cargoManifest",
-        "canonicalCommand",
-        "aliases",
+        "commands",
         "tagPrefix",
         "releaseRustToolchain",
         "repository",
@@ -168,6 +163,9 @@
         "github": {
           "type": "string"
         },
+        "stable": {
+          "type": "string"
+        },
         "windowsSigning": {
           "type": "string"
         }
@@ -179,7 +177,8 @@
         "detachedSigning",
         "windowsSigning",
         "github",
-        "cloudflare"
+        "cloudflare",
+        "stable"
       ]
     },
     "TargetDescriptor": {

@@ -5,10 +5,10 @@ in a Liknon workspace. It lets humans, editors, agents, and automation discover
 resource metadata first, retrieve exact content deliberately, and assemble a
 bounded context without contacting the Hub or executing resource instructions.
 
-The package installs two equivalent commands:
-
-- `liknon-tool`, the explicit command;
-- `likt`, the compact command.
+The public `liknon-cli` package installs `liknon-tool` beside the launcher and
+the other capability executables. `liknon tool` and `liknon t` route to that
+same sibling process; they are launcher namespaces rather than executable
+aliases.
 
 ## Responsibilities
 
@@ -34,13 +34,16 @@ when configured workspace checks must run.
 From the Liknon repository root:
 
 ```sh
-cargo install --path apps/liknon-tool --locked --force
+cargo install --path apps/liknon-cli --locked --force
 liknon-tool --version
-likt --version
+liknon tool --version
 ```
 
 Rust 1.87 or newer is required. Public registry and native installation are not
 advertised until their protected release and public readback have completed.
+
+The `liknon-tool` Rust package is a publishable implementation dependency of
+`liknon-cli`; it owns no public binary target.
 
 ## Commands
 

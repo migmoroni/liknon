@@ -62,10 +62,11 @@ Each application owns:
 - machine-readable contracts and serialization;
 - errors, streams, and exit codes.
 
-Direct and compact executable names for the same application must produce
-equivalent terminal behavior. Launcher-owned visual options apply only before a
-capability namespace; options after that namespace belong to the delegated
-capability.
+Direct capability invocation and delegation through the launcher must produce
+equivalent terminal behavior. Short names such as `v`, `m`, and `t` are
+launcher namespaces, not additional executables. Launcher-owned visual options
+apply only before a capability namespace; options after that namespace belong
+to the delegated capability.
 
 ## Library Scope
 

@@ -162,8 +162,11 @@ fn validate_package(
         .filter(|target| target.kind.iter().any(|kind| kind == "bin"))
         .map(|target| target.name.as_str())
         .collect::<BTreeSet<_>>();
-    let expected = std::iter::once(descriptor.product.canonical_command.as_str())
-        .chain(descriptor.product.aliases.iter().map(String::as_str))
+    let expected = descriptor
+        .product
+        .commands
+        .iter()
+        .map(String::as_str)
         .collect::<BTreeSet<_>>();
     if actual != expected {
         return Err(contract(format!(

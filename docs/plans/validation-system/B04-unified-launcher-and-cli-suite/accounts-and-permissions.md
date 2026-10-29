@@ -36,7 +36,7 @@ credential.
 | `liknon-cli` source package | `publish-crates-cli-suite` |
 | Signed source tag and metadata | `publish-github-cli-suite` |
 | Immutable native suite objects | `publish-cloudflare-cli-suite` |
-| Suite metadata signing | `sign-liknon-cli-suite` |
+| Suite metadata signing | `sign-cli-suite-release` |
 | Windows/macOS authenticity | Target-specific protected signing environments |
 | Stable pointer promotion | `promote-cli-suite-stable` |
 | Human approval | Credential-free protected environments |
@@ -83,4 +83,3 @@ product.
 Every CLI-suite publication effect has one accountable owner, one narrow
 credential boundary, one recovery path, and no per-capability publication
 authority.
-

@@ -16,15 +16,7 @@ fn repository_root() -> PathBuf {
 }
 
 fn descriptor() -> PathBuf {
-    repository_root().join("distribution/cli/validation/product.json")
-}
-
-fn manager_descriptor() -> PathBuf {
-    repository_root().join("distribution/cli/manager/product.json")
-}
-
-fn tool_descriptor() -> PathBuf {
-    repository_root().join("distribution/cli/tool/product.json")
+    repository_root().join("distribution/cli/suite/product.json")
 }
 
 fn run(arguments: &[&str]) -> std::process::Output {
@@ -72,7 +64,7 @@ fn checked_in_schemas_are_canonical() {
 }
 
 #[test]
-fn cargo_inspection_derives_validation_identity() {
+fn cargo_inspection_derives_suite_identity() {
     let temporary = TempDir::new().unwrap();
     let identity = temporary.path().join("identity.json");
     let output = run(&[
@@ -90,80 +82,21 @@ fn cargo_inspection_derives_validation_identity() {
         String::from_utf8_lossy(&output.stderr)
     );
     let value: Value = serde_json::from_slice(&fs::read(identity).unwrap()).unwrap();
-    assert_eq!(value["product"], "validation");
-    assert_eq!(value["package"], "liknon-validator");
+    assert_eq!(value["product"], "cli-suite");
+    assert_eq!(value["package"], "liknon-cli");
     assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
     assert_eq!(
         value["tag"],
-        format!("liknon-validator-v{}", env!("CARGO_PKG_VERSION"))
+        format!("liknon-cli-v{}", env!("CARGO_PKG_VERSION"))
     );
     assert_eq!(
         value["binaryTargets"],
-        serde_json::json!(["liknon-validator", "likv"])
-    );
-}
-
-#[test]
-fn cargo_inspection_derives_isolated_manager_identity() {
-    let temporary = TempDir::new().unwrap();
-    let identity = temporary.path().join("identity.json");
-    let output = run(&[
-        "inspect",
-        "--descriptor",
-        manager_descriptor().to_str().unwrap(),
-        "--workspace",
-        repository_root().to_str().unwrap(),
-        "--output",
-        identity.to_str().unwrap(),
-    ]);
-    assert!(
-        output.status.success(),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let value: Value = serde_json::from_slice(&fs::read(identity).unwrap()).unwrap();
-    assert_eq!(value["product"], "manager");
-    assert_eq!(value["package"], "liknon-manager");
-    assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
-    assert_eq!(
-        value["tag"],
-        format!("liknon-manager-v{}", env!("CARGO_PKG_VERSION"))
-    );
-    assert_eq!(
-        value["binaryTargets"],
-        serde_json::json!(["likm", "liknon-manager"])
-    );
-}
-
-#[test]
-fn cargo_inspection_derives_isolated_tool_identity() {
-    let temporary = TempDir::new().unwrap();
-    let identity = temporary.path().join("identity.json");
-    let output = run(&[
-        "inspect",
-        "--descriptor",
-        tool_descriptor().to_str().unwrap(),
-        "--workspace",
-        repository_root().to_str().unwrap(),
-        "--output",
-        identity.to_str().unwrap(),
-    ]);
-    assert!(
-        output.status.success(),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let value: Value = serde_json::from_slice(&fs::read(identity).unwrap()).unwrap();
-    assert_eq!(value["product"], "tool");
-    assert_eq!(value["package"], "liknon-tool");
-    assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
-    assert_eq!(
-        value["tag"],
-        format!("liknon-tool-v{}", env!("CARGO_PKG_VERSION"))
-    );
-    assert_eq!(
-        value["binaryTargets"],
-        serde_json::json!(["liknon-tool", "likt"])
+        serde_json::json!([
+            "liknon",
+            "liknon-manager",
+            "liknon-tool",
+            "liknon-validator"
+        ])
     );
 }
 
@@ -228,10 +161,10 @@ fn descriptor_rejects_product_target_mismatch() {
 }
 
 #[test]
-fn descriptor_rejects_more_than_one_compact_alias() {
+fn descriptor_rejects_duplicate_commands() {
     let temporary = TempDir::new().unwrap();
     let mut value: Value = serde_json::from_slice(&fs::read(descriptor()).unwrap()).unwrap();
-    value["product"]["aliases"] = serde_json::json!(["likv", "validate"]);
+    value["product"]["commands"] = serde_json::json!(["liknon", "liknon"]);
     let invalid = write_descriptor(&temporary, &value);
     let output = run(&[
         "validate-descriptor",
@@ -239,7 +172,7 @@ fn descriptor_rejects_more_than_one_compact_alias() {
         invalid.to_str().unwrap(),
     ]);
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr).contains("exactly one compact command alias"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("must be unique"));
 }
 
 #[test]
@@ -252,18 +185,9 @@ fn reusable_workflows_contain_no_product_identity() {
         let content =
             fs::read_to_string(repository_root().join(".github/workflows").join(workflow)).unwrap();
         for product_value in [
-            "liknon-validator",
-            "validation-native",
-            "distribution/cli/validation",
-            "apps/liknon-validator",
-            "liknon-manager",
-            "manager-native",
-            "distribution/cli/manager",
-            "apps/liknon-manager",
-            "liknon-tool",
-            "tool-native",
-            "distribution/cli/tool",
-            "apps/liknon-tool",
+            "cli-suite-native",
+            "distribution/cli/suite",
+            "apps/liknon-cli",
         ] {
             assert!(
                 !content.contains(product_value),
@@ -274,14 +198,43 @@ fn reusable_workflows_contain_no_product_identity() {
 }
 
 #[test]
+fn suite_owns_one_candidate_workflow_without_publication_effects() {
+    let workflows = repository_root().join(".github/workflows");
+    let candidate = fs::read_to_string(workflows.join("candidate-cli-suite.yml")).unwrap();
+
+    assert!(candidate.contains("distribution/cli/suite/product.json"));
+    assert!(candidate.contains("cli-suite-b06-handoff"));
+    for removed in [
+        "release-validation.yml",
+        "release-manager.yml",
+        "release-tool.yml",
+    ] {
+        assert!(
+            !workflows.join(removed).exists(),
+            "isolated release workflow must not exist: {removed}"
+        );
+    }
+    for public_effect in [
+        "cargo publish",
+        "gh release create",
+        "wrangler r2 object put",
+        "aws s3 cp",
+    ] {
+        assert!(
+            !candidate.contains(public_effect),
+            "candidate workflow must not perform public effect: {public_effect}"
+        );
+    }
+}
+
+#[test]
 fn unknown_product_cannot_activate_a_repository_package() {
     let temporary = TempDir::new().unwrap();
     let mut value: Value = serde_json::from_slice(&fs::read(descriptor()).unwrap()).unwrap();
     value["product"]["id"] = "missing-product".into();
     value["product"]["cargoPackage"] = "missing-product-cli".into();
     value["product"]["cargoManifest"] = "apps/missing-product/Cargo.toml".into();
-    value["product"]["canonicalCommand"] = "missing-product-cli".into();
-    value["product"]["aliases"] = serde_json::json!(["mpc"]);
+    value["product"]["commands"] = serde_json::json!(["missing-product-cli"]);
     value["product"]["tagPrefix"] = "missing-product-cli-v".into();
     value["distribution"]["releasePrefix"] = "releases/missing-product-cli".into();
     value["distribution"]["stablePointer"] = "channels/missing-product-cli/stable.json".into();

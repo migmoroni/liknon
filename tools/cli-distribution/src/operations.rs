@@ -13,35 +13,38 @@ use crate::{
     io::{read_json, safe_relative_path, write_bytes, write_json},
     model::{
         BuildManifest, DirectArtifact, DirectManifest, FileRecord, InstalledCommandRecord,
-        InstallerPlatform, InstallerRecord, ManifestSignature, NativeArtifact, ProductDescriptor,
-        ReleaseIdentity, StablePointer, SCHEMA_VERSION,
+        InstallerPlatform, InstallerRecord, ManifestSignature, NativeArtifact, NativePayload,
+        ProductDescriptor, ReleaseIdentity, StablePointer, SCHEMA_VERSION,
     },
 };
 
 pub(crate) fn native_record(
     descriptor: &ProductDescriptor,
     target_name: &str,
-    payload: &Path,
-    payload_path: &str,
+    payload_root: &Path,
     authenticity_path: &Path,
     output: &Path,
 ) -> Result<()> {
     descriptor.validate()?;
     let target = descriptor.target(target_name)?;
     let authenticity = read_json(authenticity_path)?;
-    let (size, digest) = sha256(payload)?;
-    let payload_file = payload
-        .file_name()
-        .and_then(OsStr::to_str)
-        .ok_or_else(|| contract("payload filename is not valid UTF-8"))?
-        .to_owned();
+    let payloads = descriptor
+        .installed_commands(target)
+        .into_iter()
+        .map(|name| {
+            let relative = format!("{target_name}/{name}");
+            let (size, sha256) = sha256(&payload_root.join(&relative))?;
+            Ok(NativePayload {
+                name,
+                path: relative,
+                size,
+                sha256,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
     let artifact = NativeArtifact {
         target: target_name.to_owned(),
-        payload_file,
-        payload_path: payload_path.to_owned(),
-        size,
-        sha256: digest,
-        installed_commands: descriptor.installed_commands(target),
+        payloads,
         consumer: format!("direct:{target_name}"),
         platform_authenticity: authenticity,
     };
@@ -112,13 +115,13 @@ pub(crate) fn assemble_archives(
             path: staging.clone(),
             source,
         })?;
-        let payload = payload_root.join(&artifact.payload_path);
-        let commands = descriptor.installed_commands(target);
-        for command in &commands {
-            let destination = staging.join(command);
-            fs::copy(&payload, &destination).map_err(|source| Error::Write {
-                path: destination.clone(),
-                source,
+        for payload in &artifact.payloads {
+            let destination = staging.join(&payload.name);
+            fs::copy(payload_root.join(&payload.path), &destination).map_err(|source| {
+                Error::Write {
+                    path: destination.clone(),
+                    source,
+                }
             })?;
             set_executable(&destination)?;
         }
@@ -149,17 +152,15 @@ pub(crate) fn assemble_archives(
             source_date_epoch,
         )?;
         let (archive_size, archive_sha256) = sha256(&archive_path)?;
-        let canonical_digest = sha256(&staging.join(&commands[0]))?;
-        let command_records = commands
+        let command_records = artifact
+            .payloads
             .iter()
-            .map(|command| {
-                let (size, digest) = sha256(&staging.join(command))?;
+            .map(|payload| {
+                let (size, digest) = sha256(&staging.join(&payload.name))?;
                 Ok(InstalledCommandRecord {
-                    name: command.clone(),
-                    path: command.clone(),
+                    name: payload.name.clone(),
+                    path: payload.name.clone(),
                     size,
-                    equals_canonical: (size, digest.as_str())
-                        == (canonical_digest.0, canonical_digest.1.as_str()),
                     sha256: digest,
                 })
             })
@@ -219,6 +220,15 @@ pub(crate) fn render_installers(input: InstallerRender<'_>) -> Result<()> {
         path: input.output_dir.to_path_buf(),
         source,
     })?;
+    let posix_commands = input.descriptor.product.commands.join(" ");
+    let powershell_commands = input
+        .descriptor
+        .product
+        .commands
+        .iter()
+        .map(|command| format!("'{command}.exe'"))
+        .collect::<Vec<_>>()
+        .join(", ");
     let replacements = [
         ("@@PRODUCT@@", input.descriptor.product.id.as_str()),
         (
@@ -241,14 +251,8 @@ pub(crate) fn render_installers(input: InstallerRender<'_>) -> Result<()> {
                 .manifest_signing_key_id
                 .as_str(),
         ),
-        (
-            "@@CANONICAL_COMMAND@@",
-            input.descriptor.product.canonical_command.as_str(),
-        ),
-        (
-            "@@ALIAS_COMMAND@@",
-            input.descriptor.product.aliases[0].as_str(),
-        ),
+        ("@@POSIX_COMMANDS@@", posix_commands.as_str()),
+        ("@@POWERSHELL_COMMANDS@@", powershell_commands.as_str()),
         ("@@PUBLIC_KEY_PEM@@", public_key.trim()),
     ];
     render_template(

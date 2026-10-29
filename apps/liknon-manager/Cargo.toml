@@ -7,10 +7,10 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 publish = ["crates-io"]
-description = "Authenticated resource acquisition and workspace state manager for Liknon"
+description = "Authenticated resource management engine for the Liknon CLI suite"
 readme = "README.md"
 keywords = ["liknon", "resources", "cli", "workspace"]
-categories = ["command-line-utilities", "development-tools"]
+categories = ["development-tools"]
 
 [dependencies]
 clap.workspace = true
@@ -32,13 +32,3 @@ ed25519-dalek.workspace = true
 jsonschema.workspace = true
 liknon-resource-contracts = { workspace = true, features = ["signing"] }
 tempfile.workspace = true
-
-[[bin]]
-name = "liknon-manager"
-path = "src/bin/liknon-manager.rs"
-doc = false
-
-[[bin]]
-name = "likm"
-path = "src/bin/likm.rs"
-doc = false

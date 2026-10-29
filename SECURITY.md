@@ -2,8 +2,9 @@
 
 ## Supported Versions
 
-Security fixes are provided for the latest `0.5.x` release. This policy is
-updated when another release line becomes supported.
+Liknon has not published its first supported release. Security reports for the
+current development state are still accepted and coordinated privately. This
+section will name supported release lines after public activation.
 
 ## Reporting A Vulnerability
 
@@ -49,18 +50,21 @@ compromise, or missing revocation coverage through the private advisory channel.
 
 ## Release Distribution Trust
 
-Validation and Manager CLI releases each bind one package-derived version to a
-signed annotated Git tag, exact source commit, committed lockfile, source
-package, and native artifact hashes. Their identities, candidates, credentials,
-object prefixes, and stable pointers remain product-specific. GitHub Releases
-contain metadata only. Native archives are
+The CLI suite binds one package-derived version to a signed annotated Git tag,
+exact source commit, committed lockfile, source package, and all native artifact
+hashes. One target archive contains the `liknon`, `liknon-validator`,
+`liknon-manager`, and `liknon-tool` executables as a single release unit. The
+capabilities do not have independent CLI release identities, object prefixes,
+or stable pointers. GitHub Releases contain metadata only. Native archives are
 served through the project-controlled download domain and authenticated by a
 detached RSA/SHA-256 signature over the exact public manifest.
 
 Trust the manifest public key only after obtaining it from an exact verified
 source tag. Authenticate installers before execution, then let the installer
-authenticate the manifest and archive. Never continue after a signature,
-fingerprint, hash, target, or identity mismatch.
+authenticate the manifest, archive, and every executable payload. Installation,
+update, rollback, and uninstall treat all four files transactionally. Never
+continue after a signature, fingerprint, hash, target, inventory, or identity
+mismatch.
 
 Windows initially uses a persistent project-controlled self-signed
 Authenticode certificate with an RFC 3161 timestamp; the installer does not add

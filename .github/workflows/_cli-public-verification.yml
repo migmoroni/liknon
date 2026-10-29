@@ -27,12 +27,6 @@ on:
       target_matrix:
         required: true
         type: string
-      posix_smoke:
-        required: true
-        type: string
-      powershell_smoke:
-        required: true
-        type: string
       evidence_artifact:
         required: true
         type: string
@@ -77,7 +71,7 @@ jobs:
           [ "$(jq '.assets | length' "$RUNNER_TEMP/github-release.json")" = 0 ] \
             || { printf '%s\n' "GitHub Release contains unexpected binary assets" >&2; exit 1; }
 
-      - name: Fetch and authenticate all public direct objects
+      - name: Fetch and authenticate all public suite objects
         shell: bash
         env:
           RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
@@ -97,60 +91,43 @@ jobs:
             --manifest "$RUNNER_TEMP/public/manifest.json" \
             --root "$RUNNER_TEMP/public" \
             --public-key "$PUBLIC_KEY"
-          while IFS= read -r path; do
-            headers=$(curl --fail --silent --show-error --head --max-redirs 0 \
-              --proto '=https' --proto-redir '=https' --tlsv1.2 \
-              "$DOWNLOAD_BASE_URL/$prefix/v$version/$path")
-            printf '%s' "$headers" | tr -d '\r' | grep -i '^cache-control:.*immutable' >/dev/null
-            case "$path" in
-              manifest.json) expected_type='application/json' ;;
-              *.sig) expected_type='application/octet-stream' ;;
-              *.tar.gz) expected_type='application/gzip' ;;
-              *.zip) expected_type='application/zip' ;;
-              *.sh) expected_type='text/x-shellscript' ;;
-              *) expected_type='text/plain' ;;
-            esac
-            printf '%s' "$headers" | tr -d '\r' \
-              | grep -i "^content-type: *$expected_type" >/dev/null
-          done < <(
-            printf '%s\n' manifest.json
-            jq -r '.artifacts[].archive.path, .checksums.path, .installers[].file.path, .installers[].signaturePath, .signature.path' \
-              "$RUNNER_TEMP/public/manifest.json"
-          )
 
-      - name: Install exact crates.io source package
+      - name: Install and verify exact crates.io suite
         shell: bash
         env:
           RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
           DESCRIPTOR: ${{ inputs.descriptor }}
-          POSIX_SMOKE: ${{ inputs.posix_smoke }}
         run: |
           version=$(jq -r '.version' "$RUNNER_TEMP/contract/identity.json")
           package=$(jq -r '.product.cargoPackage' "$DESCRIPTOR")
-          canonical=$(jq -r '.product.canonicalCommand' "$DESCRIPTOR")
-          alias=$(jq -r '.product.aliases[0]' "$DESCRIPTOR")
           cargo "+$RELEASE_TOOLCHAIN" install "$package" \
-            --version "=$version" \
-            --locked \
-            --root "$RUNNER_TEMP/crates-install"
-          sh "$POSIX_SMOKE" \
-            "$RUNNER_TEMP/crates-install/bin/$canonical" \
-            "$RUNNER_TEMP/crates-install/bin/$alias"
+            --version "=$version" --locked --root "$RUNNER_TEMP/crates-install"
+          while IFS= read -r command_name; do
+            [ -x "$RUNNER_TEMP/crates-install/bin/$command_name" ]
+            "$RUNNER_TEMP/crates-install/bin/$command_name" --version
+            "$RUNNER_TEMP/crates-install/bin/$command_name" -h > /dev/null
+          done < <(jq -r '.product.commands[]' "$DESCRIPTOR")
+          for rejected in likx likv likm likt; do
+            [ ! -e "$RUNNER_TEMP/crates-install/bin/$rejected" ]
+          done
+          "$RUNNER_TEMP/crates-install/bin/liknon" validator --version
+          "$RUNNER_TEMP/crates-install/bin/liknon" v --version
+          "$RUNNER_TEMP/crates-install/bin/liknon" manager --version
+          "$RUNNER_TEMP/crates-install/bin/liknon" m --version
+          "$RUNNER_TEMP/crates-install/bin/liknon" tool --version
+          "$RUNNER_TEMP/crates-install/bin/liknon" t --version
 
-      - name: Install exact GitHub source tag in isolation
+      - name: Install and verify exact GitHub source tag
         shell: bash
         env:
           RELEASE_TOOLCHAIN: ${{ inputs.toolchain }}
           RELEASE_REF: ${{ inputs.release_ref }}
           DESCRIPTOR: ${{ inputs.descriptor }}
           PUBLIC_KEY: ${{ inputs.public_key }}
-          POSIX_SMOKE: ${{ inputs.posix_smoke }}
         run: |
           repository=$(jq -r '.product.repository' "$DESCRIPTOR")
           manifest=$(jq -r '.product.cargoManifest' "$DESCRIPTOR")
           package_dir=$(dirname "$manifest")
-          canonical=$(jq -r '.product.canonicalCommand' "$DESCRIPTOR")
-          alias=$(jq -r '.product.aliases[0]' "$DESCRIPTOR")
           git clone --branch "$RELEASE_REF" --depth 1 \
             "https://github.com/$repository.git" "$RUNNER_TEMP/source"
           (
@@ -160,11 +137,10 @@ jobs:
           )
           cargo "+$RELEASE_TOOLCHAIN" install \
             --path "$RUNNER_TEMP/source/$package_dir" \
-            --locked \
-            --root "$RUNNER_TEMP/source-install"
-          sh "$POSIX_SMOKE" \
-            "$RUNNER_TEMP/source-install/bin/$canonical" \
-            "$RUNNER_TEMP/source-install/bin/$alias"
+            --locked --root "$RUNNER_TEMP/source-install"
+          while IFS= read -r command_name; do
+            "$RUNNER_TEMP/source-install/bin/$command_name" --version
+          done < <(jq -r '.product.commands[]' "$DESCRIPTOR")
 
       - name: Retain public readback evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -178,7 +154,7 @@ jobs:
           retention-days: 90
 
   direct-install:
-    name: Direct install (${{ matrix.target }})
+    name: Direct suite install (${{ matrix.target }})
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.target_matrix) }}
@@ -202,7 +178,7 @@ jobs:
           tag_prefix=$(jq -r '.product.tagPrefix' "$DESCRIPTOR")
           case "$RELEASE_REF" in
             "$tag_prefix"*) version=${RELEASE_REF#"$tag_prefix"} ;;
-            *) printf '%s\n' "release ref does not match product tag prefix" >&2; exit 1 ;;
+            *) printf '%s\n' "release ref does not match suite tag prefix" >&2; exit 1 ;;
           esac
           prefix=$(jq -r '.distribution.releasePrefix' "$DESCRIPTOR")
           release_url="${DOWNLOAD_BASE_URL%/}/$prefix/v$version"
@@ -222,10 +198,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends musl
           (ldd --version 2>&1 || true) | grep -qi musl \
-            || find /lib /usr/lib -maxdepth 2 -name 'ld-musl-*.so.1' -print -quit \
-              | grep -q .
+            || find /lib /usr/lib -maxdepth 2 -name 'ld-musl-*.so.1' -print -quit | grep -q .
 
-      - name: Execute POSIX installer and aliases
+      - name: Execute and verify POSIX suite installer
         if: matrix.shell_kind == 'posix'
         shell: bash
         env:
@@ -233,35 +208,28 @@ jobs:
           DESCRIPTOR: ${{ inputs.descriptor }}
           EXPECTED_LIBC: ${{ matrix.libc }}
           EXPECTED_TARGET: ${{ matrix.target }}
-          POSIX_SMOKE: ${{ inputs.posix_smoke }}
         run: |
-          canonical=$(jq -r '.product.canonicalCommand' "$DESCRIPTOR")
-          alias=$(jq -r '.product.aliases[0]' "$DESCRIPTOR")
-          set -- \
-            --base-url "$DOWNLOAD_BASE_URL" \
-            --install-dir "$RUNNER_TEMP/install"
-          if [ -n "$EXPECTED_LIBC" ]; then
-            set -- "$@" --libc "$EXPECTED_LIBC"
-          fi
+          set -- --base-url "$DOWNLOAD_BASE_URL" --install-dir "$RUNNER_TEMP/install"
+          if [ -n "$EXPECTED_LIBC" ]; then set -- "$@" --libc "$EXPECTED_LIBC"; fi
           output=$(sh "$RUNNER_TEMP/install.sh" "$@")
-          printf '%s\n' "$output"
-          printf '%s\n' "$output" \
-            | grep -F "Selected target: $EXPECTED_TARGET" >/dev/null
-          sh "$POSIX_SMOKE" \
-            "$RUNNER_TEMP/install/$canonical" \
-            "$RUNNER_TEMP/install/$alias"
-          canonical_sha=$(openssl dgst -sha256 -r "$RUNNER_TEMP/install/$canonical" | awk '{print $1}')
-          alias_sha=$(openssl dgst -sha256 -r "$RUNNER_TEMP/install/$alias" | awk '{print $1}')
-          [ "$canonical_sha" = "$alias_sha" ]
-          if [ "${{ matrix.operating_system }}" = "macos" ]; then
-            codesign --verify --strict --verbose=2 "$RUNNER_TEMP/install/$canonical"
-          fi
+          printf '%s\n' "$output" | grep -F "Selected target: $EXPECTED_TARGET" >/dev/null
+          while IFS= read -r command_name; do
+            "$RUNNER_TEMP/install/$command_name" --version
+            "$RUNNER_TEMP/install/$command_name" -h > /dev/null
+            if [ "${{ matrix.operating_system }}" = macos ]; then
+              codesign --verify --strict --verbose=2 "$RUNNER_TEMP/install/$command_name"
+            fi
+          done < <(jq -r '.product.commands[]' "$DESCRIPTOR")
+          "$RUNNER_TEMP/install/liknon" validator --version
+          "$RUNNER_TEMP/install/liknon" manager --version
+          "$RUNNER_TEMP/install/liknon" tool --version
           sh "$RUNNER_TEMP/install.sh" "$@"
           sh "$RUNNER_TEMP/install.sh" --install-dir "$RUNNER_TEMP/install" --uninstall
-          [ ! -e "$RUNNER_TEMP/install/$canonical" ]
-          [ ! -e "$RUNNER_TEMP/install/$alias" ]
+          while IFS= read -r command_name; do
+            [ ! -e "$RUNNER_TEMP/install/$command_name" ]
+          done < <(jq -r '.product.commands[]' "$DESCRIPTOR")
 
-      - name: Download, authenticate, and execute PowerShell installer
+      - name: Download, authenticate, and execute PowerShell suite installer
         if: matrix.shell_kind == 'powershell'
         shell: pwsh
         env:
@@ -271,18 +239,14 @@ jobs:
           PUBLIC_KEY: ${{ inputs.public_key }}
           EXPECTED_FINGERPRINT: ${{ inputs.windows_certificate_fingerprint }}
           EXPECTED_TARGET: ${{ matrix.target }}
-          POWERSHELL_SMOKE: ${{ inputs.powershell_smoke }}
         run: |
           $Descriptor = Get-Content -LiteralPath $env:DESCRIPTOR -Raw | ConvertFrom-Json
-          $TagPrefix = $Descriptor.product.tagPrefix
-          if (-not $env:RELEASE_REF.StartsWith($TagPrefix, [System.StringComparison]::Ordinal)) {
-            throw "Release ref does not match product tag prefix."
+          if (-not $env:RELEASE_REF.StartsWith($Descriptor.product.tagPrefix, [System.StringComparison]::Ordinal)) {
+            throw "Release ref does not match suite tag prefix."
           }
-          $Version = $env:RELEASE_REF.Substring($TagPrefix.Length)
+          $Version = $env:RELEASE_REF.Substring($Descriptor.product.tagPrefix.Length)
           $Target = $Descriptor.targets | Where-Object { $_.rustTarget -ceq $env:EXPECTED_TARGET }
-          if ($null -eq $Target) { throw "Expected target is absent from the product descriptor." }
-          $CanonicalCommand = "$($Descriptor.product.canonicalCommand)$($Target.executableSuffix)"
-          $AliasCommand = "$($Descriptor.product.aliases[0])$($Target.executableSuffix)"
+          if ($null -eq $Target) { throw "Expected target is absent from the suite descriptor." }
           $ReleaseUrl = "$($env:DOWNLOAD_BASE_URL.TrimEnd('/'))/$($Descriptor.distribution.releasePrefix)/v$Version"
           $Installer = Join-Path $env:RUNNER_TEMP "install.ps1"
           $Signature = Join-Path $env:RUNNER_TEMP "install.ps1.sig"
@@ -301,14 +265,22 @@ jobs:
           if (-not $Verified) { throw "Installer signature verification failed." }
           $InstallDir = Join-Path $env:RUNNER_TEMP "install"
           & $Installer -BaseUrl $env:DOWNLOAD_BASE_URL -InstallDir $InstallDir
-          $CanonicalPath = Join-Path $InstallDir $CanonicalCommand
-          $AliasPath = Join-Path $InstallDir $AliasCommand
-          & $env:POWERSHELL_SMOKE -Canonical $CanonicalPath -Alias $AliasPath
-          $Canonical = Get-AuthenticodeSignature -LiteralPath $CanonicalPath
-          if ($Canonical.SignerCertificate.Thumbprint -ne $env:EXPECTED_FINGERPRINT -or $null -eq $Canonical.TimeStamperCertificate) {
-            throw "Windows signing evidence does not match the release contract."
+          foreach ($Command in $Descriptor.product.commands) {
+            $Path = Join-Path $InstallDir "$Command$($Target.executableSuffix)"
+            & $Path --version
+            $SignatureState = Get-AuthenticodeSignature -LiteralPath $Path
+            if ($SignatureState.SignerCertificate.Thumbprint -ne $env:EXPECTED_FINGERPRINT -or
+                $null -eq $SignatureState.TimeStamperCertificate) {
+              throw "Windows signing evidence does not match $Command."
+            }
           }
+          & (Join-Path $InstallDir "liknon.exe") validator --version
+          & (Join-Path $InstallDir "liknon.exe") manager --version
+          & (Join-Path $InstallDir "liknon.exe") tool --version
           & $Installer -BaseUrl $env:DOWNLOAD_BASE_URL -InstallDir $InstallDir
           & $Installer -InstallDir $InstallDir -Uninstall
-          if (Test-Path -LiteralPath $CanonicalPath) { throw "Uninstall left canonical command." }
-          if (Test-Path -LiteralPath $AliasPath) { throw "Uninstall left alias command." }
+          foreach ($Command in $Descriptor.product.commands) {
+            if (Test-Path -LiteralPath (Join-Path $InstallDir "$Command$($Target.executableSuffix)")) {
+              throw "Uninstall left $Command."
+            }
+          }
